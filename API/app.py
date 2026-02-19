@@ -7,6 +7,13 @@ from flask_cors import CORS
 from datetime import timedelta
 # from pathlib import Path
 
+import logging
+if not logging.getLogger().handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s"
+    )
+
 #import json
 from Classes.Base import Config
 # from API.Classes.Base.SyncS3 import SyncS3

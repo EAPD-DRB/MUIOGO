@@ -2,8 +2,11 @@ from pathlib import Path
 import pandas as pd
 import traceback
 import json, shutil, os, time, subprocess
+import logging
 from collections import defaultdict
 from itertools import product
+
+logger = logging.getLogger(__name__)
 
 from Classes.Base import Config
 from Classes.Case.OsemosysClass import Osemosys
@@ -2127,8 +2130,9 @@ class DataFile(Osemosys):
                 #PREPROCESS data.txt
                 #subprocess.run('preprocess_data.py' + datafile + dataFile_processed)
 
+                logger.debug("Starting preprocessing step for case %s", caserunname)
                 self.preprocessData(self.dataFile, self.dataFile_processed)
-                print("PREPROCESSING DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                logger.info("PREPROCESSING DONE! --- %s seconds --- %s", time.time() - start_time, caserunname)
                 txtOut = txtOut + ("Preprocessing time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
                 #return output to variable preprocessed data file
@@ -2141,7 +2145,7 @@ class DataFile(Osemosys):
                 #original data file without preprocessing
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile_original +' -d ' + datafile +' --wlp ' + lpfile, cwd=glpfolder,  capture_output=True, text=True, shell=True)
                 
-                print("CREATINON OF LP FILE DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                logger.info("CREATINON OF LP FILE DONE! --- %s seconds --- %s", time.time() - start_time, caserunname)
                 txtOut = txtOut + ("Creation of LP file time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
 
@@ -2157,9 +2161,10 @@ class DataFile(Osemosys):
 
                 #cbc_out = subprocess.run('cbc ' + lpfile +' -presolve off -postsolve on -logLevel 3 solve -printing all -solu '  + resultfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
                 # prin
+                logger.debug("Running CBC solver in directory %s", cbcfolder)
                 cbc_out = subprocess.run('cbc ' + lpfile +' solve -printing all -solu '  + resultfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
                 # -printing all prints all constraints to result.txt
-                print("SOLUTION DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                logger.info("SOLUTION DONE! --- %s seconds --- %s", time.time() - start_time, caserunname)
                 txtOut = txtOut + ("Solution time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
                 ####output to lg file .log i .txt with errors
                 # out = subprocess.run('cbc ' + lpfile +' solve -solu '  + resultfile +'>'+ logfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
@@ -2204,14 +2209,14 @@ class DataFile(Osemosys):
 
                 if statusFlag == "success":
                     self.generateCSVfromCBC(self.dataFile, self.resFile, self.resPath)
-                    print("CSV DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                    logger.info("CSV DONE! --- %s seconds --- %s", time.time() - start_time, caserunname)
                     txtOut = txtOut + ("csv files extraction time {:0.2f} s;{}".format(time.time() - start_time, '\n'))
                     self.generateResultsViewer(caserunname)
-                    print("PIVOT TABLE DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                    logger.info("PIVOT TABLE DONE! --- %s seconds --- %s", time.time() - start_time, caserunname)
                     txtOut = txtOut + ("Pivot data preparation time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
 
-                print("MESSAGES DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                logger.info("MESSAGES DONE! --- %s seconds --- %s", time.time() - start_time, caserunname)
                 txtOut = txtOut + ("Message preparation time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
                 response = {
@@ -2231,9 +2236,9 @@ class DataFile(Osemosys):
             return response
             # urllib.request.urlretrieve(self.dataFile, dataFile)
 
-        except Exception as ex:
-            print(ex) # do whatever you want for debugging.
-            raise    # re-raise exception.
+        except Exception:
+            logger.exception("Unhandled exception during solver execution")
+            raise
         except(IOError, IndexError):
             raise IndexError
         except OSError:
