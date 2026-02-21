@@ -1,5 +1,6 @@
 # 🎓 Applications for MUIOGO Are Now Open!
 
+
 Please complete the following questionnaire so we can keep track of everybody’s application in a structured way:
 
 🗓 **Deadline**: 16 March  
@@ -105,6 +106,62 @@ This repository is downstream and separately managed from upstream:
 
 Delivery in MUIOGO cannot depend on upstream timelines or release cycles.
 
+## 🧩 System Architecture
+
+```
+┌──────────────────────────────────────────────┐
+│                    MUIOGO                     │
+├──────────────────────────────────────────────┤
+│  User Interface Layer                        │
+│  ├─ Scenario Manager                         │
+│  ├─ Run Configuration                        │
+│  ├─ Visualization Dashboard                  │
+│  └─ Workflow Monitor                         │
+├──────────────────────────────────────────────┤
+│  Execution Orchestrator                      │
+│  ├─ CLEWS Runner                             │
+│  ├─ OG‑Core Runner                           │
+│  ├─ Coupling Engine                          │
+│  └─ Convergence Controller                   │
+├──────────────────────────────────────────────┤
+│  Data Exchange Layer                         │
+│  ├─ Output → Input Transformers              │
+│  ├─ Validation Checks                        │
+│  └─ Intermediate Storage                     │
+├──────────────────────────────────────────────┤
+│  Model Backends                              │
+│  ├─ OSeMOSYS / CLEWS                         │
+│  └─ OG‑Core                                  │
+└──────────────────────────────────────────────┘
+```
+
+## 🧪 Supported Execution Modes
+
+### 🔹 Standalone Mode
+
+Users can run models independently:
+* CLEWS only
+* OG‑Core only
+
+### 🔹 Coupled Mode (One‑Way)
+
+Workflow:
+```
+Model A → Transform → Model B
+```
+
+Supported directions:
+* CLEWS → OG‑Core
+* OG‑Core → CLEWS
+
+### 🔹 Converging Mode (Iterative)
+
+Workflow:
+```
+CLEWS → OG → CLEWS → OG → … until convergence
+```
+
 ## License
 
 Apache License 2.0 (`LICENSE`).
+
