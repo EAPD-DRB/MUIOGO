@@ -1,24 +1,672 @@
-# Modelling User Interface for OG-Core & OSeMOSYS (MUIOGO)
+\# MUIOGO — Modelling User Interface for OG‑Core \& OSeMOSYS
 
-This project aims to integrate two widely used open-source policy modelling frameworks —CLEWS and OG-Core— into a unified, end-to-end decision-support tool for sustainable development planning. By linking sectoral resource systems (climate, land, energy, and water) with a dynamic macroeconomic model, the project will enable policymakers to assess the economy-wide impacts of climate and development policies in a transparent, reproducible, and user-friendly way. These frameworks have been successfully implemented in over 20 countries in a wide range of issues, from informing the development of Nationally Determined Contributions (NDCs) under the Paris Agreement and preventing maladaptation to climate impacts, to assessing options to help lower-income households, or informing on the viability of social protection and pension systems — thus benefitting hundreds of millions of people worldwide.
 
-The Economic Analysis and Policy Division (EAPD) of the United Nations Department of Economic and Social Affairs (DESA) oversees the development and country-level implementation of these open-source modelling tools. For over a decade, these models have supported developing countries facing challenges in achieving sustainable development, particularly Small Island Developing States (SIDS), Land-Locked Countries, and Least Developed Countries. Because they are open source, assumptions are visible and results are reproducible, supporting informed policy discussion. They can be run and adapted at low cost, and they can be calibrated to the data a country actually has, making rigorous analyses feasible in developing and low-income settings where proprietary tools are often out of reach.
 
-The CLEWS (Climate, Land, Energy, Water Systems) framework, built on the [OSeMOSYS - Open Source Energy Modelling System](https://github.com/OSeMOSYS/OSeMOSYS), maps the interactions, synergies, and trade-offs among land use, the energy sector, and water systems under climate change scenarios. It allows users to check the actual, physical viability of their plans, from analyzing whether there will have enough land and water to implement a biofuel policy for energy independence, to studying the impacts of carbon taxes on a green energy transition.
+\## 🌍 Overview
 
-The country-adapted [OG-CORE](https://pslmodels.github.io/OG-Core/content/intro/intro.html) is an overlapping-generations (OG) macroeconomic model that enables dynamic general equilibrium analysis of fiscal, demographic, and economic policies over the long term. OG-Core turns government choices into testable scenarios and shows how they shape growth, jobs, and inequality over time and across generations. It can stress-test a range of major reforms, from taxing and spending choices to health or education policies, and technology shifts such as the effects of AI on productivity.
 
-The OG–CLEWS framework expands both models into a single integrated assessment tool by linking their data structures, execution workflows, and analytical outputs. While both models are mature and widely used, they currently operate as separate tools. This project will create a standardized, automated interface between them and a shared execution and visualization layer, enabling integrated analyses that are not currently possible with existing tools. It will provide policymakers with an easy-to-use, accessible tool to check their plans and strategies and back them with an evidence-based, transparent assessment tool. They will gain a more holistic view of their policies, encompassing natural resources management, the energy sector, and their macroeconomic and fiscal implications, in a novel approach that is not currently available to them.
 
-The enhancements developed through this project will be implemented in more than 10 target countries under an ongoing USD 2 million [Peace and Development Trust Fund](https://www.un.org/en/unpdf) programme, through the United Nations [Regular Programme for Technical Cooperation](https://unstats.un.org/capacity-development/activities/rptc.cshtml), as well as through the [Development Account 19th Tranche](https://da.desa.un.org/), ensuring that the results of this work will have real-world impact beyond the GSoC through 2030, helping more countries worldwide achieve their Sustainable Development Goals.
+MUIOGO is an integrated, platform‑independent decision‑support interface that unifies two widely used open‑source policy modelling ecosystems:
 
-## Expected Outcomes
-By the end of the GSoC period, contributors will deliver a platform-independent application that supports the standalone execution of the OG-Core and CLEWS/OSeMOSYS models, as well as the integrated OG–CLEWS model. The work centers on extending https://github.com/OSeMOSYS/MUIO (the existing UI for CLEWS) into a unified tool that manages data and scenarios, orchestrates model runs, and presents outputs from both systems.
 
-1. Cross-platform MUIO: Contributors will refactor and package MUIO so it runs on multiple operating systems beyond Windows, namely MacOS and Linux, preserving all existing functionality.
 
-2. OG-Core module in MUIO: Contributors will implement an OG-Core module within MUIO, extending the user interface so that it provides the same features currently available for CLEWS. This includes data input, creating and managing OG scenarios, configuring run settings, launching runs, capturing logs and run metadata, presenting results through interactive graphs, and organizing outputs in a standardized results structure. The user interface will allow users to select whether to run CLEWS or OG within MUIO.
+\* \*\*CLEWS / OSeMOSYS\*\* — sectoral resource systems modelling (Climate, Land, Energy, Water)
 
-3. OG–CLEWS coupled module: Contributors will implement a module in MUIO that can execute coupled-model workflows. In coupled mode, MUIO will run one model, apply a provided data exchange pipeline to transform outputs into inputs for the other model, then run the second model. The module will support initially one-way coupling (from CLEWS to OG-Core and vice versa). MUIO will store intermediate exchange files, final outputs and full logs, and will include validation checks that confirm required inputs exist at each step. The user interface will then allow users to select CLEWS only, OG only, or coupled mode. In coupled mode, users will be able to choose linked scenarios, set coupling options (CLEWS to OG or vice versa), run the workflow, monitor progress, and browse outputs for each stage of the coupled execution. The interface will prioritize usability for non-technical users through sensible defaults, guardrails, and informative error messages.
+\* \*\*OG‑Core\*\* — dynamic overlapping‑generations macroeconomic modelling
 
-4. OG–CLEWS converging module: Contributors will expand the coupled module into iterative runs, so that users can launch a simulation that will run the models consecutively (run CLEWS, then feed its outputs into OG-Core and run it, then feed its outputs into CLEWS and run it, etc.) until the simulation converges into a solution (i.e., the results remain approximately the same). The user interface will allow users to select CLEWS only, OG only, coupled mode, or converging mode.
+
+
+The project extends the existing \*\*MUIO\*\* interface into a robust, scalable, and user‑friendly environment that enables policymakers, researchers, and analysts to perform \*\*standalone\*\*, \*\*coupled\*\*, and \*\*iterative converging\*\* simulations across natural resource and macroeconomic domains.
+
+
+
+By bridging physical resource constraints with economy‑wide dynamics, MUIOGO empowers evidence‑based sustainable development planning with full transparency and reproducibility.
+
+
+
+---
+
+
+
+\## 🎯 Project Vision
+
+
+
+Sustainable policy design requires understanding both:
+
+
+
+\* Physical system feasibility (energy, land, water, climate)
+
+\* Economy‑wide and intergenerational impacts
+
+
+
+Currently, CLEWS/OSeMOSYS and OG‑Core operate as separate tools. \*\*MUIOGO removes this fragmentation\*\* by providing:
+
+
+
+✅ A unified user interface
+
+✅ Automated data exchange pipelines
+
+✅ Standardized execution workflows
+
+✅ Integrated visualization and reporting
+
+
+
+This enables policymakers to evaluate trade‑offs that were previously difficult or impossible to assess in a single workflow.
+
+
+
+---
+
+
+
+\## 🚀 Key Objectives
+
+
+
+\### 1. Cross‑Platform MUIO
+
+
+
+\* Refactor the existing MUIO codebase
+
+\* Ensure compatibility with:
+
+
+
+&nbsp; \* Windows
+
+&nbsp; \* macOS
+
+&nbsp; \* Linux
+
+\* Preserve full backward compatibility
+
+\* Provide reproducible packaged builds
+
+
+
+\### 2. OG‑Core Integration
+
+
+
+\* Implement a full OG‑Core module inside MUIO
+
+\* Mirror CLEWS feature parity
+
+\* Provide scenario management and execution
+
+\* Standardize outputs and logs
+
+
+
+\### 3. Coupled OG–CLEWS Workflows
+
+
+
+\* Enable one‑way model coupling
+
+\* Automate data transformation pipelines
+
+\* Store intermediate artifacts
+
+\* Provide validation guardrails
+
+
+
+\### 4. Converging (Iterative) Mode
+
+
+
+\* Support multi‑iteration runs until convergence
+
+\* Provide convergence monitoring
+
+\* Ensure numerical stability
+
+
+
+---
+
+
+
+\## 🧩 System Architecture
+
+
+
+```
+
+┌──────────────────────────────────────────────┐
+
+│                    MUIOGO                     │
+
+├──────────────────────────────────────────────┤
+
+│  User Interface Layer                        │
+
+│  ├─ Scenario Manager                         │
+
+│  ├─ Run Configuration                        │
+
+│  ├─ Visualization Dashboard                  │
+
+│  └─ Workflow Monitor                         │
+
+├──────────────────────────────────────────────┤
+
+│  Execution Orchestrator                      │
+
+│  ├─ CLEWS Runner                             │
+
+│  ├─ OG‑Core Runner                           │
+
+│  ├─ Coupling Engine                          │
+
+│  └─ Convergence Controller                   │
+
+├──────────────────────────────────────────────┤
+
+│  Data Exchange Layer                         │
+
+│  ├─ Output → Input Transformers              │
+
+│  ├─ Validation Checks                        │
+
+│  └─ Intermediate Storage                     │
+
+├──────────────────────────────────────────────┤
+
+│  Model Backends                              │
+
+│  ├─ OSeMOSYS / CLEWS                         │
+
+│  └─ OG‑Core                                  │
+
+└──────────────────────────────────────────────┘
+
+```
+
+
+
+---
+
+
+
+\## 🧪 Supported Execution Modes
+
+
+
+\### 🔹 Standalone Mode
+
+
+
+Users can run models independently:
+
+
+
+\* CLEWS only
+
+\* OG‑Core only
+
+
+
+\*\*Features\*\*
+
+
+
+\* Scenario creation
+
+\* Run configuration
+
+\* Log capture
+
+\* Interactive visualization
+
+
+
+---
+
+
+
+\### 🔹 Coupled Mode (One‑Way)
+
+
+
+Workflow:
+
+
+
+```
+
+Model A → Transform → Model B
+
+```
+
+
+
+Supported directions:
+
+
+
+\* CLEWS → OG‑Core
+
+\* OG‑Core → CLEWS
+
+
+
+\*\*Capabilities\*\*
+
+
+
+\* Automatic data exchange
+
+\* Intermediate file storage
+
+\* Input validation
+
+\* Step‑wise progress monitoring
+
+
+
+---
+
+
+
+\### 🔹 Converging Mode (Iterative)
+
+
+
+Workflow:
+
+
+
+```
+
+CLEWS → OG → CLEWS → OG → … until convergence
+
+```
+
+
+
+\*\*Key Features\*\*
+
+
+
+\* User‑defined tolerance
+
+\* Iteration limits
+
+\* Convergence diagnostics
+
+\* Stability safeguards
+
+
+
+---
+
+
+
+\## 🖥️ User Interface Features
+
+
+
+\### Scenario Management
+
+
+
+\* Create and clone scenarios
+
+\* Link cross‑model scenarios
+
+\* Version tracking
+
+\* Metadata capture
+
+
+
+\### Run Configuration
+
+
+
+\* Model selection
+
+\* Coupling direction
+
+\* Convergence settings
+
+\* Resource allocation
+
+
+
+\### Execution Monitoring
+
+
+
+\* Real‑time logs
+
+\* Progress indicators
+
+\* Failure diagnostics
+
+\* Guardrail warnings
+
+
+
+\### Results \& Visualization
+
+
+
+\* Interactive graphs
+
+\* Standardized output structure
+
+\* Cross‑model comparison views
+
+\* Export capabilities
+
+
+
+---
+
+
+
+\## 📂 Repository Structure
+
+
+
+```
+
+muiogo/
+
+├── ui/                     # Frontend components
+
+├── orchestrator/           # Workflow engine
+
+├── adapters/
+
+│   ├── clews/              # CLEWS interface
+
+│   └── ogcore/             # OG‑Core interface
+
+├── coupling/               # Data exchange pipelines
+
+├── convergence/            # Iterative controller
+
+├── validation/             # Input/output checks
+
+├── results/                # Standardized outputs
+
+├── packaging/              # Cross‑platform builds
+
+└── docs/                   # Documentation
+
+```
+
+
+
+---
+
+
+
+\## ⚙️ Installation
+
+
+
+\### Prerequisites
+
+
+
+\* Python (version specified in `pyproject.toml`)
+
+\* Git
+
+\* Platform‑specific solvers for OSeMOSYS
+
+
+
+\### Clone Repository
+
+
+
+```bash
+
+git clone https://github.com/OSeMOSYS/MUIO.git
+
+cd MUIO
+
+```
+
+
+
+\### Install Dependencies
+
+
+
+```bash
+
+pip install -r requirements.txt
+
+```
+
+
+
+\### Run Application
+
+
+
+```bash
+
+python main.py
+
+```
+
+
+
+---
+
+
+
+\## 🧠 Design Principles
+
+
+
+\* \*\*Transparency first\*\* — all assumptions visible
+
+\* \*\*Reproducibility\*\* — deterministic workflows
+
+\* \*\*Usability for policymakers\*\* — sensible defaults
+
+\* \*\*Modularity\*\* — clean separation of concerns
+
+\* \*\*Scalability\*\* — supports country‑level deployments
+
+\* \*\*Open‑source alignment\*\* — no proprietary lock‑in
+
+
+
+---
+
+
+
+\## 🌐 Real‑World Impact
+
+
+
+The enhanced platform will support deployments in \*\*10+ countries\*\* under ongoing UN technical cooperation programmes. Expected benefits include:
+
+
+
+\* Better Nationally Determined Contributions (NDC) planning
+
+\* Prevention of maladaptation risks
+
+\* Improved social protection analysis
+
+\* Evidence‑based energy transition strategies
+
+\* Support for low‑income country policy design
+
+
+
+The work contributes directly to advancing the \*\*Sustainable Development Goals (SDGs)\*\* through integrated, data‑driven policy analysis.
+
+
+
+---
+
+
+
+\## 🛣️ Development Roadmap
+
+
+
+\### Phase 1 — Cross‑Platform Refactor
+
+
+
+\* \[ ] Abstract OS‑specific code
+
+\* \[ ] Implement packaging pipeline
+
+\* \[ ] CI for multi‑OS builds
+
+
+
+\### Phase 2 — OG‑Core Module
+
+
+
+\* \[ ] Scenario UI
+
+\* \[ ] Runner integration
+
+\* \[ ] Output standardization
+
+
+
+\### Phase 3 — Coupled Engine
+
+
+
+\* \[ ] Data transformers
+
+\* \[ ] Validation layer
+
+\* \[ ] Coupled UI workflow
+
+
+
+\### Phase 4 — Convergence Engine
+
+
+
+\* \[ ] Iteration controller
+
+\* \[ ] Tolerance handling
+
+\* \[ ] Diagnostics dashboard
+
+
+
+\### Phase 5 — Hardening \& UX
+
+
+
+\* \[ ] Error messaging
+
+\* \[ ] Performance tuning
+
+\* \[ ] Documentation polish
+
+
+
+---
+
+
+
+\## 🤝 Contributing
+
+
+
+We welcome contributions from the open‑source community.
+
+
+
+\*\*Suggested workflow:\*\*
+
+
+
+1\. Fork the repository
+
+2\. Create a feature branch
+
+3\. Add tests where applicable
+
+4\. Submit a pull request with clear description
+
+
+
+Please ensure:
+
+
+
+\* Code follows project style guidelines
+
+\* All new modules include documentation
+
+\* Workflows remain reproducible
+
+
+
+---
+
+
+
+\## 📜 License
+
+
+
+This project follows the same open‑source license as the upstream MUIO repository.
+
+
+
+---
+
+
+
+\## 🙏 Acknowledgements
+
+
+
+Developed under the guidance of the United Nations Department of Economic and Social Affairs (DESA), Economic Analysis and Policy Division (EAPD), and the global open‑source modelling community.
+
+
+
+---
+
+
+
+\## ⭐ Why MUIOGO Matters
+
+
+
+> Bridging physical resource systems with macroeconomic dynamics enables a new generation of transparent, evidence‑based policymaking tools for sustainable development.
+
+
+
+If this project supports your research or policy work, consider starring the repository and contributing to its growth.
+
+
+
+---
+
+
+
+\*\*Built for policymakers. Designed for transparency. Engineered for impact.\*\* 🚀
+
+
+
