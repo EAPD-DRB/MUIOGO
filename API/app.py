@@ -5,7 +5,7 @@ import sys
 from flask import Flask, jsonify, request, session, render_template
 from flask_cors import CORS
 from datetime import timedelta
-# from pathlib import Path
+from pathlib import Path
 
 #import json
 from Classes.Base import Config
@@ -16,9 +16,12 @@ from Routes.Case.SyncS3Route import syncs3_api
 from Routes.Case.ViewDataRoute import viewdata_api
 from Routes.DataFile.DataFileRoute import datafile_api
 
-#RADI
-template_dir = os.path.abspath('WebAPP')
-static_dir = os.path.abspath('WebAPP')
+# Dynamically resolve the absolute path to the project root.
+# __file__ is app.py. .parent goes up to 'API'. .parent.parent goes up to the root folder.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+template_dir = str(BASE_DIR / 'WebAPP')
+static_dir = str(BASE_DIR / 'WebAPP')
 
 # template_dir = Config.WebAPP_PATH.resolve()
 # static_dir = Config.WebAPP_PATH.resolve()
@@ -57,14 +60,13 @@ CORS(app)
 @app.after_request
 def add_headers(response):
     if Config.HEROKU_DEPLOY == 0: 
-        #localhost
-        response.headers.add('Access-Control-Allow-Origin', 'http://127.0.0.1')
+        # Allow requests from any local origin (localhost or 127.0.0.1)
+        response.headers.add('Access-Control-Allow-Origin', '*')
     else:
         #HEROKU
         response.headers.add('Access-Control-Allow-Origin', 'https://osemosys.herokuapp.com/')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    #response.headers['Content-Type'] = 'application/javascript'
     return response
 
 # @app.errorhandler(CustomException)
@@ -129,4 +131,3 @@ if __name__ == '__main__':
         #HEROKU
         app.run(host='0.0.0.0', port=port, debug=True)
         #app.run(host='127.0.0.1', port=port, debug=True)
-

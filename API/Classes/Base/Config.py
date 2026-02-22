@@ -17,16 +17,19 @@ S3_BUCKET = ""
 S3_KEY = ""
 S3_SECRET = ""
 
+# Dynamically resolve absolute path to the project root (MUIOGO).
+# __file__ is Config.py. We go up 4 levels: Base -> Classes -> API -> MUIOGO root
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+
 ALLOWED_EXTENSIONS = set(['zip', 'application/zip'])
 ALLOWED_EXTENSIONS_XLS = set(['xls', 'xlsx'])
 
-UPLOAD_FOLDER = Path('WebAPP')
-WebAPP_PATH = Path('WebAPP')
-DATA_STORAGE = Path("WebAPP", 'DataStorage')
-CLASS_FOLDER = Path("WebAPP", 'Classes')
-EXTRACT_FOLDER = Path("")
-SOLVERs_FOLDER = Path('WebAPP', 'SOLVERs')
-
+UPLOAD_FOLDER = BASE_DIR / 'WebAPP'
+WebAPP_PATH = BASE_DIR / 'WebAPP'
+DATA_STORAGE = BASE_DIR / 'WebAPP' / 'DataStorage'
+CLASS_FOLDER = BASE_DIR / 'WebAPP' / 'Classes'
+EXTRACT_FOLDER = BASE_DIR
+SOLVERs_FOLDER = BASE_DIR / 'WebAPP' / 'SOLVERs'
 
 #absolute paths
 # OSEMOSYS_ROOT = os.path.abspath(os.getcwd())
@@ -37,7 +40,15 @@ SOLVERs_FOLDER = Path('WebAPP', 'SOLVERs')
 # EXTRACT_FOLDER = Path(OSEMOSYS_ROOT, "")
 # SOLVERs_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP', 'SOLVERs')
 
-os.chmod(DATA_STORAGE, 0o777)
+# Ensure cross-platform compatibility. 
+# 0o777 is a Unix-specific permission mask that can fail or behave unpredictably on Windows 
+# or strictly mounted Linux environments.
+if SYSTEM != 'Windows':
+    try:
+        os.chmod(DATA_STORAGE, 0o777)
+    except PermissionError:
+        # Failsafe for Linux environments where the user doesn't have ownership of the mount
+        pass
 
 HEROKU_DEPLOY = 0
 AWS_SYNC = 0
@@ -243,4 +254,3 @@ PARAMETERS_C_full = {
         'SpecifiedDemandProfile': ['r','f','y','l','SpecifiedDemandProfile'],
         'ResidualStorageCapacity': ['r','s','y','ResidualStorageCapacity'],
     }
-
