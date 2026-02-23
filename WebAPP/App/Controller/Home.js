@@ -10,7 +10,14 @@ import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { Routes } from "../../Routes/Routes.Class.js";
 
 export default class Home {
+    
     static async onLoad(){
+        Message.clearMessages();
+
+    if (!localStorage.getItem("osycase")) {
+        Message.infoOsy("No case loaded. Please create or select a model to begin.");
+    }
+
         if (Base.AWS_SYNC == 1 && Base.INIT_SYNC){
             $('#loadermain h4').text('Syncronizing with S3 Bucket!'); 
             $('#loadermain').show();

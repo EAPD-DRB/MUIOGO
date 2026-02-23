@@ -1,6 +1,19 @@
 import { Html } from "./Html.Class.js";
 export class Message {
 
+    static isInitialEmptyState(message) {
+        if (!message) return true;
+
+        const text = message.toString().toLowerCase().trim();
+
+        return (
+            text === "" ||
+            text === "error!" ||
+            text.includes("no selected parameters") ||
+            text.includes("undefined") ||
+            text.includes("null")
+        );
+    }
     static clearMessages() {
         $("#osy-warning").empty();
         $("#osy-success").empty();
@@ -39,12 +52,17 @@ export class Message {
     }
 
     static danger(message) {
-        $("#osy-danger").html(`<div class="alert alert-danger fade in">
-                                        <button class="close" data-dismiss="alert">×</button>
-                                        <i class="fa-fw fa fa-times"></i>
-                                        <strong>Error!</strong> `+ message + `
-                                    </div>`);
+
+    if (Message.isInitialEmptyState(message)) {
+        message = "No case loaded. Please create or load a case to begin.";
     }
+
+    $("#osy-danger").html(`<div class="alert alert-danger fade in">
+            <button class="close" data-dismiss="alert">×</button>
+            <i class="fa-fw fa fa-times"></i>
+            <strong>Notice:</strong> `+ message + `
+        </div>`);
+}
 
     static warningOsy(message) {
         $("#osy-warning-transparent").html(`
@@ -73,12 +91,17 @@ export class Message {
     }
 
     static dangerOsy(message) {
-        $("#osy-danger-transparent").html(`<div class="alert alert-danger-osy fade in">
-                                        <button class="close" data-dismiss="alert">×</button>
-                                        <i class="fa-fw fa fa-exclamation-triangle fa-2x danger"></i>
-                                        <strong>Error!</strong> <i style="color:grey">`+ message + `</i>
-                                    </div>`);
+
+    if (Message.isInitialEmptyState(message)) {
+        message = "No case loaded. Please create or load a case to begin.";
     }
+
+    $("#osy-danger-transparent").html(`<div class="alert alert-danger-osy fade in">
+            <button class="close" data-dismiss="alert">×</button>
+            <i class="fa-fw fa fa-exclamation-triangle fa-2x danger"></i>
+            <strong>Notice:</strong> <i style="color:grey">`+ message + `</i>
+        </div>`);
+}
 
     static bigBoxDanger(title, content, timeout) {
         $.bigBox({
@@ -276,3 +299,4 @@ export class Message {
         $('#loadermain').hide();
     }
 }
+
