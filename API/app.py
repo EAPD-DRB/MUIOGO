@@ -111,22 +111,18 @@ def setSession():
 
 
 if __name__ == '__main__':
-# if __name__ == 'app':
-    #potrebno radi module js importa u index.html ES6 modules
-    #Flask.__version__
     import mimetypes
     mimetypes.add_type('application/javascript', '.js')
+
     port = int(os.environ.get("PORT", 5002))
-    print("PORTTTTTTTTTTT")
-    if Config.HEROKU_DEPLOY == 0: 
-        #localhost
-        #app.run(host='127.0.0.1', port=port, debug=True)
-        #waitress server
-        #prod server
+
+    print(f"\nStarting MUIOGO server on http://127.0.0.1:{port}")
+    print("Press CTRL+C to stop the server\n")
+
+    if Config.HEROKU_DEPLOY == 0:
+        # Local development (Waitress)
         from waitress import serve
         serve(app, host='127.0.0.1', port=port)
     else:
-        #HEROKU
+        # Heroku deployment
         app.run(host='0.0.0.0', port=port, debug=True)
-        #app.run(host='127.0.0.1', port=port, debug=True)
-
