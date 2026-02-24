@@ -1,4 +1,5 @@
 #import sys
+from pathlib import Path
 import os
 import sys
 
@@ -17,8 +18,17 @@ from Routes.Case.ViewDataRoute import viewdata_api
 from Routes.DataFile.DataFileRoute import datafile_api
 
 #RADI
-template_dir = os.path.abspath('WebAPP')
-static_dir = os.path.abspath('WebAPP')
+# -------------------------
+# FIX: Make template/static paths independent of cwd
+# -------------------------
+
+# This file is in: API/app.py
+# So project root is 1 level up
+BASE_DIR = Path(__file__).resolve().parents[1]
+WEBAPP_PATH = BASE_DIR / "WebAPP"
+
+template_dir = str(WEBAPP_PATH)
+static_dir = str(WEBAPP_PATH)
 
 # template_dir = Config.WebAPP_PATH.resolve()
 # static_dir = Config.WebAPP_PATH.resolve()
