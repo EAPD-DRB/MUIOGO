@@ -19,13 +19,25 @@ S3_SECRET = ""
 
 ALLOWED_EXTENSIONS = set(['zip', 'application/zip'])
 ALLOWED_EXTENSIONS_XLS = set(['xls', 'xlsx'])
+# -------------------------
+# FIX: Make paths independent of working directory
+# -------------------------
 
-UPLOAD_FOLDER = Path('WebAPP')
-WebAPP_PATH = Path('WebAPP')
-DATA_STORAGE = Path("WebAPP", 'DataStorage')
-CLASS_FOLDER = Path("WebAPP", 'Classes')
-EXTRACT_FOLDER = Path("")
-SOLVERs_FOLDER = Path('WebAPP', 'SOLVERs')
+# This file is in: API/Classes/Base/Config.py
+# So project root is 3 levels up
+BASE_DIR = Path(__file__).resolve().parents[3]
+
+WEBAPP_PATH = BASE_DIR / "WebAPP"
+
+UPLOAD_FOLDER = WEBAPP_PATH
+DATA_STORAGE = WEBAPP_PATH / "DataStorage"
+CLASS_FOLDER = WEBAPP_PATH / "Classes"
+SOLVERs_FOLDER = WEBAPP_PATH / "SOLVERs"
+EXTRACT_FOLDER = BASE_DIR
+
+# Ensure DataStorage exists before chmod
+DATA_STORAGE.mkdir(parents=True, exist_ok=True)
+os.chmod(DATA_STORAGE, 0o777)
 
 
 #absolute paths
@@ -203,7 +215,7 @@ PARAMETERS_C = {
         'DiscountRate': ['r'],
         'OutputActivityRatio':['r','f','t','y','m'],
         'InputActivityRatio':['r','f','t','y','m'],
-        'EmissionActivityRatio':['r','e''t','y','m'],
+        'EmissionActivityRatio':['r','e','t','y','m'],
         'TotalAnnualMaxCapacityInvestment':['r','t','y'],
         'TotalAnnualMinCapacityInvestment':['r','t','y'],
         'TotalTechnologyAnnualActivityUpperLimit':['r','t','y'],
