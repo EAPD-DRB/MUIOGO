@@ -49,6 +49,7 @@ class Osemosys():
         self._glpkFolder = None
         self._cbcFolder = None
 
+
         self.resultsPath = Path(Config.DATA_STORAGE,case,'res')
         self.viewFolderPath = Path(Config.DATA_STORAGE,case,'view')
         
