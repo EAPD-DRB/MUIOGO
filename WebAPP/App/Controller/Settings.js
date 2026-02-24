@@ -218,7 +218,7 @@ export default class Settings {
                 });  
             }
 
-            Message.smallBoxInfo("Info!", "MUIO settings have been saved successfully!", 5000);
+            Message.smallBoxInfo("Info!", "MUIOGO settings have been saved successfully!", 5000);
             $(".demo").toggleClass("activate");
             // Message.loaderStart();
             // location.reload();
@@ -232,7 +232,7 @@ export default class Settings {
             $("#dllSettingUnits").jqxDropDownList('uncheckAll');
             //$("#ddlGridPageSize").jqxDropDownList('clearSelection'); 
             $("#ddlPivotDecimalPoints").jqxDropDownList('clearSelection');  
-            Message.smallBoxInfo("Info!", "You have reset MUIO settings!", 5000);
+            Message.smallBoxInfo("Info!", "You have reset MUIOGO settings!", 5000);
             $(".demo").toggleClass("activate");
 
             // Message.loaderStart();

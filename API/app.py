@@ -61,7 +61,7 @@ def add_headers(response):
         response.headers.add('Access-Control-Allow-Origin', 'http://127.0.0.1')
     else:
         #HEROKU
-        response.headers.add('Access-Control-Allow-Origin', 'https://osemosys.herokuapp.com/')
+        response.headers.add('Access-Control-Allow-Origin', 'https://muiogo.herokuapp.com/') # temp url
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
     #response.headers['Content-Type'] = 'application/javascript'
@@ -90,7 +90,7 @@ def home():
 @app.route("/getSession", methods=['GET'])
 def getSession():
     try:
-        ses = session.get('osycase', None) or None
+        ses = session.get('muiogocase', None) or None
         response = {
             "session":ses
         }
@@ -103,8 +103,8 @@ def setSession():
     try:
         cs = request.json['case']
         #session.permanent= True
-        session['osycase'] = cs
-        response = {"osycase": session['osycase']}
+        session['muiogocase'] = cs
+        response = {'muiogocase': session['muiogocase']}
         return jsonify(response), 200
     except( KeyError ):
         return jsonify('No selected parameters!'), 404

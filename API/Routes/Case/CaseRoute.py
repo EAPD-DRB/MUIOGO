@@ -105,8 +105,8 @@ def deleteCase():
         casePath = Path(Config.DATA_STORAGE, case)
         shutil.rmtree(casePath)
 
-        if case == session.get('osycase'):
-            session['osycase'] = None
+        if case == session.get('muiogocase'):
+            session['muiogocase'] = None
             response = {
                 "message": 'Model <b>'+ case + '</b> deleted!',
                 "status_code": "success_session"
@@ -214,7 +214,7 @@ def updateData():
     try:
         data = request.json['data']
         param = request.json['param']
-        case = session.get('osycase', None)
+        case = session.get('muiogocase', None)
         dataJson = request.json['dataJson']
         dataPath = Path(Config.DATA_STORAGE, case, dataJson)
         if case != None:
@@ -235,7 +235,7 @@ def saveCase():
     try:
         genData = request.json['data']
         casename = genData['osy-casename']
-        case = session.get('osycase', None)
+        case = session.get('muiogocase', None)
 
         configPath = Path(Config.DATA_STORAGE, 'Variables.json')
         vars = File.readParamFile(configPath)
@@ -327,7 +327,7 @@ def saveCase():
                     #nedostaje update resData u smislu novih ili izbirsanih scenarija
                     #rename case sa novim imenom
                     os.rename(Path(Config.DATA_STORAGE,case), Path(Config.DATA_STORAGE,casename ))
-                    session['osycase'] = casename
+                    session['muiogocase'] = casename
                     
                     response = {
                         "message": "Your model configuration has been updated!",
@@ -347,7 +347,7 @@ def saveCase():
                     for list in lists:
                         viewDef[list['id']] = []
 
-                session['osycase'] = casename
+                session['muiogocase'] = casename
                 os.makedirs(Path(Config.DATA_STORAGE,casename))
                 genDataPath = Path(Config.DATA_STORAGE, casename, "genData.json")
                 File.writeFile( genData, genDataPath)
@@ -418,7 +418,7 @@ def prepareCSV():
 @case_api.route("/downloadCSV", methods=['GET'])
 def downloadCSV():
     try:
-        casename = session.get('osycase', None)
+        casename = session.get('muiogocase', None)
         dataFile = Path(Config.DATA_STORAGE,casename,'export.csv')
         
         dir = Path(Config.DATA_STORAGE,casename)

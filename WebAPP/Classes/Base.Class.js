@@ -15,7 +15,7 @@ export class Base {
             apiUrl = "http://127.0.0.1:5002/";
         } else {
             //HEROKU
-            apiUrl = "https://osemosys.herokuapp.com/";
+            apiUrl = "https://muiogo.herokuapp.com/";
         }
         return apiUrl
     }
@@ -266,7 +266,7 @@ export class Base {
             dictResponseError: 'Error uploading file!',
             dictFileTooBig: ` <i class="fa fa-caret-right text-danger"></i>Filers too big!`,
             dictRemoveFile: `Remove Case!`,
-            dictInvalidFileType: "Not valid Osemosys ver 1.0 case!",
+            dictInvalidFileType: "Not valid MUIOGO ver 1.0 case!",
             // accept: function(file, done) {
             //   if (file.name == "justinbieber.jpg") {
             //     done("Naha, you don't.");

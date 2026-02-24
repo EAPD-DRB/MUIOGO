@@ -381,7 +381,7 @@ def uploadCaseUnchunked_old():
                                     })
                                 else:
                                     msg.append({
-                                        "message": "Model " + casename +" is not valid OSEMOSYS ver 1.0, 2.0, 3.0, 4.0 or 5.0 model!",
+                                        "message": "Model " + casename +" is not valid MUIOGO ver 1.0, 2.0, 3.0, 4.0 or 5.0 model!",
                                         "status_code": "error"
                                     })
                             else:
@@ -520,7 +520,7 @@ def handle_full_zip(file, filepath=None):
                         })
                     else:
                         msg.append({
-                            "message": "Model " + casename +" is not valid OSEMOSYS!",
+                            "message": "Model " + casename +" is not valid MUIOGO!",
                             "status_code": "error"
                         })
 

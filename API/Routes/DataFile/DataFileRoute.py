@@ -77,8 +77,8 @@ def deleteCaseRun():
             response = caserun.deleteCaseRun(caserunname, resultsOnly)    
         return jsonify(response), 200
 
-        # if casename == session.get('osycase'):
-        #     session['osycase'] = None
+        # if casename == session.get('muiogocase'):
+        #     session['muiogocase'] = None
         #     response = {
         #         "message": 'Case <b>'+ casename + '</b> deleted!',
         #         "status_code": "success_session"
@@ -181,7 +181,7 @@ def downloadDataFile():
         # }         
         # return jsonify(response), 200
         #path = "/Examples.pdf"
-        case = session.get('osycase', None)
+        case = session.get('muiogocase', None)
         caserunname = request.args.get('caserunname')
         dataFile = Path(Config.DATA_STORAGE,case, 'res',caserunname, 'data.txt')
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
@@ -192,7 +192,7 @@ def downloadDataFile():
 @datafile_api.route("/downloadFile", methods=['GET'])
 def downloadFile():
     try:
-        case = session.get('osycase', None)
+        case = session.get('muiogocase', None)
         file = request.args.get('file')
         dataFile = Path(Config.DATA_STORAGE,case,'res','csv',file)
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
@@ -203,7 +203,7 @@ def downloadFile():
 @datafile_api.route("/downloadCSVFile", methods=['GET'])
 def downloadCSVFile():
     try:
-        case = session.get('osycase', None)
+        case = session.get('muiogocase', None)
         file = request.args.get('file')
         caserunname = request.args.get('caserunname')
         dataFile = Path(Config.DATA_STORAGE,case,'res',caserunname,'csv',file)
@@ -215,7 +215,7 @@ def downloadCSVFile():
 @datafile_api.route("/downloadResultsFile", methods=['GET'])
 def downloadResultsFile():
     try:
-        case = session.get('osycase', None)
+        case = session.get('muiogocase', None)
         caserunname = request.args.get('caserunname')
         dataFile = Path(Config.DATA_STORAGE,case, 'res', caserunname,'results.txt')
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)

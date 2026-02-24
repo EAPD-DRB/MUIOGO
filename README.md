@@ -37,11 +37,11 @@ Free online trainings are available here:
 
 ### Windows
 
-MUIO is currently distributed primarily as a Windows desktop installer.
+MUIOGO is currently distributed primarily as a Windows desktop installer.
 
-1. Download the latest `.exe` installer from [here](https://github.com/OSeMOSYS/MUIO/releases)
+1. Download the latest `.exe` installer from [here](https://github.com/EAPD-DRB/MUIOGO/releases)
 2. Move the `.exe` file to a folder where you have administrator permissions.
-3. Right-click `MUIO.exe` and select **Run as administrator**.
+3. Right-click `MUIOGO.exe` and select **Run as administrator**.
 4. Wait for installation to complete.
 5. Open the app from the Start Menu if it does not open automatically.
 
