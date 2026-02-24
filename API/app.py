@@ -117,6 +117,14 @@ if __name__ == '__main__':
     import mimetypes
     mimetypes.add_type('application/javascript', '.js')
     port = int(os.environ.get("PORT", 5002))
+    
+    from startup_validation import run_startup_checks, StartupValidationError
+    try:
+        run_startup_checks()
+    except StartupValidationError as e:
+        print(str(e))
+        exit(1)
+
     print("PORTTTTTTTTTTT")
     if Config.HEROKU_DEPLOY == 0: 
         #localhost
