@@ -1,5 +1,7 @@
 from pathlib import Path
+import os
 import platform
+import shutil
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 
@@ -45,20 +47,16 @@ class Osemosys():
         self.osemosysFile = Path(Config.SOLVERs_FOLDER,'model.v.5.4.txt') 
         self.osemosysFileOriginal = Path(Config.SOLVERs_FOLDER,'osemosys.txt')
         
-        if platform.system() == 'Windows':
-            #self.glpkFolder = Path(Config.SOLVERs_FOLDER, 'GLPK','glpk-4.65', 'w64')
-            # self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-2.7.5-win64-intel11.1', 'bin')
-            self.glpkFolder = Path(Config.SOLVERs_FOLDER, 'GLPK')
-            self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR')
-        
-            #self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-2.10-win64-msvc16-md', 'bin')
-
-            #Cbc-master-win64-msvc16-mt
-            #self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-master-win64-msvc16-md', 'bin')
-
-        else:
-            self.glpkFolder = Path(Config.SOLVERs_FOLDER, 'GLPK','glpk-4.65', 'w64')
-            self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-2.10-osx10.15-x86_64-gcc9', 'bin')
+        self.glpkFolder = self._resolve_solver_folder(
+            env_var="SOLVER_GLPK_PATH",
+            binary_name="glpsol",
+            bundled_path=Path(Config.SOLVERs_FOLDER, "GLPK"),
+        )
+        self.cbcFolder = self._resolve_solver_folder(
+            env_var="SOLVER_CBC_PATH",
+            binary_name="cbc",
+            bundled_path=Path(Config.SOLVERs_FOLDER, "COIN-OR"),
+        )
 
         self.resultsPath = Path(Config.DATA_STORAGE,case,'res')
         self.viewFolderPath = Path(Config.DATA_STORAGE,case,'view')
@@ -86,6 +84,30 @@ class Osemosys():
             for de in l:
                 a.append(de['name'])
         self.VARS = a
+
+    @staticmethod
+    def _resolve_solver_folder(env_var: str, binary_name: str, bundled_path: Path) -> Path:
+        """Resolve a solver binary folder using a three-tier priority chain:
+
+        1. Environment variable (e.g. SOLVER_GLPK_PATH)
+        2. System PATH via shutil.which
+        3. Bundled binary folder inside SOLVERs_FOLDER
+
+        Raises RuntimeError at startup if no solver can be located,
+        instead of silently storing a wrong path and failing mid-run.
+        """
+        env_val = os.environ.get(env_var, "").strip()
+        if env_val:
+            return Path(env_val)
+        which = shutil.which(binary_name)
+        if which:
+            return Path(which).parent
+        if bundled_path.exists():
+            return bundled_path
+        raise RuntimeError(
+            f"Solver binary '{binary_name}' could not be found.\n"
+            f"Set {env_var} in your environment or install '{binary_name}' on PATH."
+        )
 
     def getParamDefaultValues(self):
         d = {}
