@@ -20,26 +20,44 @@ def _check_directory(path: Path, require_write=False):
     return True, "OK"
 
 
-def _check_binary(binary_name, package_name):
-    path = shutil.which(binary_name)
+# def _check_binary(binary_name, package_name):
+#     path = shutil.which(binary_name)
 
-    if not path:
-        system = platform.system()
-        install_hint = {
-            "Darwin": f"brew install {package_name}",
-            "Linux": f"sudo apt install {package_name}",
-            "Windows": f"choco install {package_name}",
-        }.get(system, f"Install {package_name} using your OS package manager.")
+#     if not path:
+#         system = platform.system()
+#         install_hint = {
+#             "Darwin": f"brew install {package_name}",
+#             "Linux": f"sudo apt install {package_name}",
+#             "Windows": f"choco install {package_name}",
+#         }.get(system, f"Install {package_name} using your OS package manager.")
 
-        return False, f"Not found in PATH. Install using: {install_hint}"
+#         return False, f"Not found in PATH. Install using: {install_hint}"
 
-    if not os.access(path, os.X_OK):
-        return False, f"Found at {path} but not executable"
+#     if not os.access(path, os.X_OK):
+#         return False, f"Found at {path} but not executable"
 
-    # Try to retrieve version
+#     # Try to retrieve version
+#     try:
+#         result = subprocess.run(
+#             [binary_name, "--version"],
+#             stdout=subprocess.PIPE,
+#             stderr=subprocess.PIPE,
+#             text=True,
+#             timeout=5,
+#         )
+
+#         version_output = result.stdout or result.stderr
+#         version_line = version_output.splitlines()[0] if version_output else "version unknown"
+
+#         return True, f"Found ({version_line})"
+
+#     except Exception:
+#         return True, "Found (version unknown)"
+
+def _get_version_info(binary_path):
     try:
         result = subprocess.run(
-            [binary_name, "--version"],
+            [binary_path, "--version"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -53,7 +71,35 @@ def _check_binary(binary_name, package_name):
 
     except Exception:
         return True, "Found (version unknown)"
+    
+def _check_binary(binary_name, package_name):
+    system = platform.system()
 
+    # Handle Windows .exe suffix
+    binary_candidate = binary_name
+    if system == "Windows" and not binary_name.endswith(".exe"):
+        binary_candidate = f"{binary_name}.exe"
+
+    # 1️⃣ Check local solver folder first
+    local_solver_dir = Path(Config.SOLVERs_FOLDER)
+    local_binary = local_solver_dir / binary_candidate
+
+    if local_binary.exists() and os.access(local_binary, os.X_OK):
+        return _get_version_info(str(local_binary))
+
+    # 2️⃣ Fallback to system PATH
+    system_path = shutil.which(binary_name)
+    if system_path and os.access(system_path, os.X_OK):
+        return _get_version_info(system_path)
+
+    # 3️⃣ Not found → install hint
+    install_hint = {
+        "Darwin": f"brew install {package_name}",
+        "Linux": f"sudo apt install {package_name}",
+        "Windows": f"choco install {package_name}",
+    }.get(system, f"Install {package_name} using your OS package manager.")
+
+    return False, f"Not found locally or in PATH. Install using: {install_hint}"
 
 def run_startup_checks():
     print("\n[Startup Validation] Running dependency checks...\n")
