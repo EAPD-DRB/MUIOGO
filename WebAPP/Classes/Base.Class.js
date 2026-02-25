@@ -11,8 +11,8 @@ export class Base {
     static apiUrl() {
         let apiUrl
         if (this.HEROKU == 0) {
-            //localhost
-            apiUrl = "http://127.0.0.1:5002/";
+            // Use runtime origin for local/dev mode (works in Codespaces, preview URLs, etc.)
+            apiUrl = window.location.origin + "/";
         } else {
             //HEROKU
             apiUrl = "https://osemosys.herokuapp.com/";

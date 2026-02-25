@@ -20,24 +20,24 @@ S3_SECRET = ""
 ALLOWED_EXTENSIONS = set(['zip', 'application/zip'])
 ALLOWED_EXTENSIONS_XLS = set(['xls', 'xlsx'])
 
-UPLOAD_FOLDER = Path('WebAPP')
-WebAPP_PATH = Path('WebAPP')
-DATA_STORAGE = Path("WebAPP", 'DataStorage')
-CLASS_FOLDER = Path("WebAPP", 'Classes')
-EXTRACT_FOLDER = Path("")
-SOLVERs_FOLDER = Path('WebAPP', 'SOLVERs')
+# Anchor all paths to the project root (two levels up from this file:
+# API/Classes/Base/Config.py -> project root)
+_CONFIG_DIR = Path(__file__).resolve().parent          # .../API/Classes/Base
+PROJECT_ROOT = _CONFIG_DIR.parent.parent.parent        # .../MUIOGO
 
+UPLOAD_FOLDER = PROJECT_ROOT / 'WebAPP'
+WebAPP_PATH = PROJECT_ROOT / 'WebAPP'
+DATA_STORAGE = PROJECT_ROOT / 'WebAPP' / 'DataStorage'
+CLASS_FOLDER = PROJECT_ROOT / 'WebAPP' / 'Classes'
+EXTRACT_FOLDER = PROJECT_ROOT
+SOLVERs_FOLDER = PROJECT_ROOT / 'WebAPP' / 'SOLVERs'
 
-#absolute paths
-# OSEMOSYS_ROOT = os.path.abspath(os.getcwd())
-# UPLOAD_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP')
-# WebAPP_PATH = Path(OSEMOSYS_ROOT, 'WebAPP')
-# DATA_STORAGE = Path(OSEMOSYS_ROOT, "WebAPP", 'DataStorage')
-# CLASS_FOLDER = Path(OSEMOSYS_ROOT, "WebAPP", 'Classes')
-# EXTRACT_FOLDER = Path(OSEMOSYS_ROOT, "")
-# SOLVERs_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP', 'SOLVERs')
-
-os.chmod(DATA_STORAGE, 0o777)
+# Ensure DATA_STORAGE exists before setting permissions
+os.makedirs(DATA_STORAGE, exist_ok=True)
+try:
+    os.chmod(DATA_STORAGE, 0o777)
+except OSError:
+    pass  # May fail on macOS due to SIP or permission restrictions
 
 HEROKU_DEPLOY = 0
 AWS_SYNC = 0
@@ -203,7 +203,7 @@ PARAMETERS_C = {
         'DiscountRate': ['r'],
         'OutputActivityRatio':['r','f','t','y','m'],
         'InputActivityRatio':['r','f','t','y','m'],
-        'EmissionActivityRatio':['r','e''t','y','m'],
+        'EmissionActivityRatio':['r','e','t','y','m'],
         'TotalAnnualMaxCapacityInvestment':['r','t','y'],
         'TotalAnnualMinCapacityInvestment':['r','t','y'],
         'TotalTechnologyAnnualActivityUpperLimit':['r','t','y'],

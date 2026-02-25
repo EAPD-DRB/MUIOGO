@@ -361,15 +361,14 @@ export class Osemosys {
     // }
 
     static getData(casename, dataJson) {
-        // return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"})
-        // .then(response => response.json())
-        // .catch(error => error);
+        // Guard: prevent fetch with null/undefined casename (e.g. after model deletion)
+        if (!casename) {
+            return Promise.resolve(null);
+        }
 
         return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"}) 
             .then((response) => {
                 if (response.ok) {
-                    //console.log('response1 ', response)
-                    //console.log('data ', response.json())
                 return response;
                 }
                 throw new Error('No casename selecetd');
@@ -397,22 +396,14 @@ export class Osemosys {
     }
 
     static getResultData(casename, dataJson) {
-        // return new Promise((resolve, reject) => {
-        //     fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
-        //     .then(DATA => {
-        //         DATA = DATA.json();
-        //         resolve(DATA);
-        //     })
-        //     .catch(error => {
-        //         if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-        //         reject(error);
-        //     });
-        // });
+        // Guard: prevent fetch with null/undefined casename
+        if (!casename) {
+            return Promise.resolve(null);
+        }
 
         return fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
             .then((response) => {
                 if (response.ok) {
-                    //console.log('response1 ', response)
                     return response;
                 }
                 throw new Error('No casename selecetd');

@@ -5,7 +5,7 @@ import sys
 from flask import Flask, jsonify, request, session, render_template
 from flask_cors import CORS
 from datetime import timedelta
-# from pathlib import Path
+from pathlib import Path
 
 #import json
 from Classes.Base import Config
@@ -16,28 +16,9 @@ from Routes.Case.SyncS3Route import syncs3_api
 from Routes.Case.ViewDataRoute import viewdata_api
 from Routes.DataFile.DataFileRoute import datafile_api
 
-#RADI
-template_dir = os.path.abspath('WebAPP')
-static_dir = os.path.abspath('WebAPP')
-
-# template_dir = Config.WebAPP_PATH.resolve()
-# static_dir = Config.WebAPP_PATH.resolve()
-
-# template_dir = os.path.join(sys._MEIPASS, 'WebAPP') 
-# static_dir = os.path.join(sys._MEIPASS, 'WebAPP') 
-
-#gets absolute path
-# template_dir = Path('WebAPP').resolve()
-# static_dir = Path('../WebAPP').resolve()
-
-# template_dir = 'WebAPP'
-# static_dir = '../WebAPP'
-
-print(template_dir)
-print(static_dir)
-print(sys.executable)
-
-print(__name__)
+# Resolve template/static dirs from project root (CWD-independent)
+template_dir = str(Config.WebAPP_PATH.resolve())
+static_dir = str(Config.WebAPP_PATH.resolve())
 
 app = Flask(__name__, static_url_path='', static_folder=static_dir,  template_folder=template_dir)
 
@@ -111,22 +92,22 @@ def setSession():
 
 
 if __name__ == '__main__':
-# if __name__ == 'app':
-    #potrebno radi module js importa u index.html ES6 modules
-    #Flask.__version__
     import mimetypes
     mimetypes.add_type('application/javascript', '.js')
     port = int(os.environ.get("PORT", 5002))
-    print("PORTTTTTTTTTTT")
-    if Config.HEROKU_DEPLOY == 0: 
-        #localhost
-        #app.run(host='127.0.0.1', port=port, debug=True)
-        #waitress server
-        #prod server
-        from waitress import serve
-        serve(app, host='127.0.0.1', port=port)
-    else:
-        #HEROKU
-        app.run(host='0.0.0.0', port=port, debug=True)
-        #app.run(host='127.0.0.1', port=port, debug=True)
+    host = '127.0.0.1'
 
+    print(f"──────────────────────────────────────────")
+    print(f"  MUIOGO starting up")
+    print(f"  Python:    {sys.executable}")
+    print(f"  Templates: {template_dir}")
+    print(f"  Static:    {static_dir}")
+    print(f"  Mode:      {'Heroku' if Config.HEROKU_DEPLOY else 'Local'}")
+    print(f"  URL:       http://{host}:{port}/")
+    print(f"──────────────────────────────────────────")
+
+    if Config.HEROKU_DEPLOY == 0: 
+        from waitress import serve
+        serve(app, host=host, port=port)
+    else:
+        app.run(host='0.0.0.0', port=port, debug=True)

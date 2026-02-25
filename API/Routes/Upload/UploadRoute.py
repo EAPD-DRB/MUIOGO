@@ -41,12 +41,13 @@ def download_dir(prefix, local, bucket, client):
             kwargs.update({'ContinuationToken': next_token})
         results = client.list_objects_v2(**kwargs)
         contents = results.get('Contents')
-        for i in contents:
-            k = i.get('Key')
-            if k[-1] != '/':
-                keys.append(k)
-            else:
-                dirs.append(k)
+        if contents:
+            for i in contents:
+                k = i.get('Key')
+                if k[-1] != '/':
+                    keys.append(k)
+                else:
+                    dirs.append(k)
         next_token = results.get('NextContinuationToken')
     for d in dirs:
         dest_pathname = os.path.join(local, d)
@@ -58,7 +59,7 @@ def download_dir(prefix, local, bucket, client):
             os.makedirs(os.path.dirname(dest_pathname))
         client.download_file(bucket, k, dest_pathname)
 
-def upload_dir(s3, localDir, awsInitDir, bucketName, tag, prefix='\\'):
+def upload_dir(s3, localDir, awsInitDir, bucketName, tag, prefix=os.sep):
     """
     from current working directory, upload a 'localDir' with all its subcontents (files and subdirectories...)
     to a aws bucket

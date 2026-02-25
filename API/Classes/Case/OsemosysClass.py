@@ -1,9 +1,43 @@
 from pathlib import Path
 import platform
+import shutil
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 
 class Osemosys():
+
+    @staticmethod
+    def _resolve_solver_folder(env_var, exe_name, bundled_subpath):
+        """
+        Three-tier solver resolution:
+          1. Environment variable (e.g. GLPK_PATH=/opt/homebrew/bin)
+          2. System PATH lookup via shutil.which()
+          3. Bundled fallback under SOLVERs/
+        Returns the directory containing the solver executable as a Path.
+        """
+        # Tier 1: explicit env var
+        env_path = __import__('os').environ.get(env_var)
+        if env_path:
+            p = Path(env_path)
+            if p.is_dir():
+                return p
+            # If they pointed at the executable itself, use its parent
+            if p.is_file():
+                return p.parent
+
+        # Tier 2: system PATH (Homebrew, apt, etc.)
+        which_result = shutil.which(exe_name)
+        if which_result:
+            return Path(which_result).resolve().parent
+
+        # Tier 3: bundled fallback
+        bundled = Path(Config.SOLVERs_FOLDER, *bundled_subpath)
+        if bundled.exists():
+            return bundled
+
+        # If nothing found, return the bundled path anyway (will fail at runtime with a clear error)
+        return bundled
+
     def __init__(self, case):
         self.case = case
         self.PARAMETERS = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
@@ -14,8 +48,6 @@ class Osemosys():
         #Case.__init__(self, case)
         self.casePath = Path(Config.DATA_STORAGE,case)
         self.zipPath = Path(Config.DATA_STORAGE,case+'.zip')
-
-        #self.genData = Path(Config.DATA_STORAGE,case,'genData.json')
 
         self.rPath = Path(Config.DATA_STORAGE,case,'R.json')
         self.ryPath = Path(Config.DATA_STORAGE,case,'RY.json')
@@ -45,20 +77,13 @@ class Osemosys():
         self.osemosysFile = Path(Config.SOLVERs_FOLDER,'model.v.5.4.txt') 
         self.osemosysFileOriginal = Path(Config.SOLVERs_FOLDER,'osemosys.txt')
         
-        if platform.system() == 'Windows':
-            #self.glpkFolder = Path(Config.SOLVERs_FOLDER, 'GLPK','glpk-4.65', 'w64')
-            # self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-2.7.5-win64-intel11.1', 'bin')
-            self.glpkFolder = Path(Config.SOLVERs_FOLDER, 'GLPK')
-            self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR')
-        
-            #self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-2.10-win64-msvc16-md', 'bin')
-
-            #Cbc-master-win64-msvc16-mt
-            #self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-master-win64-msvc16-md', 'bin')
-
-        else:
-            self.glpkFolder = Path(Config.SOLVERs_FOLDER, 'GLPK','glpk-4.65', 'w64')
-            self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-2.10-osx10.15-x86_64-gcc9', 'bin')
+        # Portable solver resolution: env var → PATH → bundled fallback
+        self.glpkFolder = Osemosys._resolve_solver_folder(
+            'GLPK_PATH', 'glpsol', ('GLPK',)
+        )
+        self.cbcFolder = Osemosys._resolve_solver_folder(
+            'CBC_PATH', 'cbc', ('COIN-OR',)
+        )
 
         self.resultsPath = Path(Config.DATA_STORAGE,case,'res')
         self.viewFolderPath = Path(Config.DATA_STORAGE,case,'view')
