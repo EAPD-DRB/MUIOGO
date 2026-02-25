@@ -37,7 +37,9 @@ SOLVERs_FOLDER = Path('WebAPP', 'SOLVERs')
 # EXTRACT_FOLDER = Path(OSEMOSYS_ROOT, "")
 # SOLVERs_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP', 'SOLVERs')
 
-os.chmod(DATA_STORAGE, 0o777)
+# os.chmod(DATA_STORAGE, 0o777)
+if DATA_STORAGE.exists() and os.environ.get("ENV", "production") == "development":
+    os.chmod(DATA_STORAGE, 0o755)
 
 HEROKU_DEPLOY = 0
 AWS_SYNC = 0
@@ -72,7 +74,7 @@ DEFAULT_F ={
     "RTSM": 'default_RTSM' ,   
     "RYTE" : 'default_RYTE',  
     "RYTEM": 'default_RYTEM' , 
-    "RYTM" : 'default_RYTM',     
+    # "RYTM" : 'default_RYTM',     
     "RYTTs": 'default_RYTTs',     
     "RYCTs": 'default_RYCTs'
 }
@@ -98,7 +100,7 @@ UPDATE_F ={
     "RTSM": 'update_RTSM' ,   
     "RYTE" : 'update_RYTE',  
     "RYTEM": 'update_RYTEM' , 
-    "RYTM" : 'update_RYTM',     
+    # "RYTM" : 'update_RYTM',     
     "RYTTs": 'update_RYTTs',     
     "RYCTs": 'update_RYCTs'
 }
@@ -124,7 +126,7 @@ GEN_F ={
     "RTSM": 'gen_RTSM' ,  
     "RYTE" : 'gen_RYTE',  
     "RYTEM": 'gen_RYTEM' , 
-    "RYTM" : 'gen_RYTM',     
+    # "RYTM" : 'gen_RYTM',     
     "RYTTs": 'gen_RYTTs',     
     "RYCTs": 'gen_RYCTs'
 }
@@ -203,7 +205,7 @@ PARAMETERS_C = {
         'DiscountRate': ['r'],
         'OutputActivityRatio':['r','f','t','y','m'],
         'InputActivityRatio':['r','f','t','y','m'],
-        'EmissionActivityRatio':['r','e''t','y','m'],
+        'EmissionActivityRatio':['r','e','t','y','m'],
         'TotalAnnualMaxCapacityInvestment':['r','t','y'],
         'TotalAnnualMinCapacityInvestment':['r','t','y'],
         'TotalTechnologyAnnualActivityUpperLimit':['r','t','y'],
