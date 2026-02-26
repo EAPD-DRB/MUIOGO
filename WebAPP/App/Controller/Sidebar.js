@@ -224,3 +224,38 @@ export class Sidebar {
         });
     }
 }
+// window.quitApp = function () {
+//     fetch('/shutdown', { method: 'POST' })
+//         .then(response => {
+//             if (!response.ok) {
+//                 alert("Shutdown not allowed (not in local mode)");
+//                 return;
+//             }
+
+//             document.body.innerHTML = `
+//                 <div style="padding:40px;font-family:sans-serif">
+//                     <h2>Application Stopped</h2>
+//                     <p>You can safely close this browser tab.</p>
+//                 </div>
+//             `;
+//         });
+// };
+window.quitApp = function () {
+    fetch('/shutdown', { method: 'POST' })
+        .then(() => {
+            showStoppedMessage();
+        })
+        .catch(() => {
+            // If connection drops, that likely means server stopped
+            showStoppedMessage();
+        });
+};
+
+function showStoppedMessage() {
+    document.body.innerHTML = `
+        <div style="padding:40px;font-family:sans-serif">
+            <h2>Application Stopped</h2>
+            <p>You can safely close this browser tab.</p>
+        </div>
+    `;
+}

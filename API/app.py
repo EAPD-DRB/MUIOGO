@@ -5,6 +5,11 @@ import sys
 from flask import Flask, jsonify, request, session, render_template
 from flask_cors import CORS
 from datetime import timedelta
+from dotenv import load_dotenv
+import threading
+import time
+import signal
+load_dotenv()
 # from pathlib import Path
 
 #import json
@@ -110,6 +115,22 @@ def setSession():
         return jsonify('No selected parameters!'), 404
 
 
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    local_mode = os.environ.get("LOCAL_MODE", "").strip()
+    print("LOCAL_MODE inside shutdown =", repr(local_mode))
+
+    if local_mode != "1":
+        return "Shutdown not allowed (not in local mode)", 403
+
+    def kill_server():
+        time.sleep(0.5)  # allow response to finish
+        os.kill(os.getpid(), signal.SIGTERM)
+
+    threading.Thread(target=kill_server).start()
+
+    return "Server shutting down...", 200
+
 if __name__ == '__main__':
 # if __name__ == 'app':
     #potrebno radi module js importa u index.html ES6 modules
@@ -137,4 +158,3 @@ if __name__ == '__main__':
         #HEROKU
         app.run(host='0.0.0.0', port=port, debug=True)
         #app.run(host='127.0.0.1', port=port, debug=True)
-
