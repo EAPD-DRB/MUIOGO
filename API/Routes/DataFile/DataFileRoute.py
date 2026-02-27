@@ -6,6 +6,20 @@ from Classes.Base import Config
 
 datafile_api = Blueprint('DataFileRoute', __name__)
 
+def validate_json_fields(*fields):
+    """Validate that the request body is JSON and contains all required fields.
+
+    Returns (None, None) when valid.
+    Returns (response, 400) when invalid.
+    """
+    data = request.get_json(silent=True)
+    if data is None:
+        return jsonify({"error": "Request body must be valid JSON"}), 400
+    for field in fields:
+        if field not in data:
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+    return None, None
+
 @datafile_api.route("/generateDataFile", methods=['POST'])
 def generateDataFile():
     try:
@@ -26,6 +40,9 @@ def generateDataFile():
 @datafile_api.route("/createCaseRun", methods=['POST'])
 def createCaseRun():
     try:
+        err, code = validate_json_fields('casename', 'caserunname', 'data')
+        if err:
+            return err, code
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         data = request.json['data']
@@ -41,6 +58,9 @@ def createCaseRun():
 @datafile_api.route("/updateCaseRun", methods=['POST'])
 def updateCaseRun():
     try:
+        err, code = validate_json_fields('casename', 'caserunname', 'oldcaserunname', 'data')
+        if err:
+            return err, code
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         oldcaserunname = request.json['oldcaserunname']
@@ -56,7 +76,10 @@ def updateCaseRun():
 
 @datafile_api.route("/deleteCaseRun", methods=['POST'])
 def deleteCaseRun():
-    try:        
+    try:
+        err, code = validate_json_fields('casename', 'caserunname', 'resultsOnly')
+        if err:
+            return err, code
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         resultsOnly = request.json['resultsOnly']
@@ -226,6 +249,9 @@ def downloadResultsFile():
 @datafile_api.route("/run", methods=['POST'])
 def run():
     try:
+        err, code = validate_json_fields('casename', 'caserunname', 'solver')
+        if err:
+            return err, code
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         solver = request.json['solver']
@@ -242,6 +268,9 @@ def run():
 @datafile_api.route("/batchRun", methods=['POST'])
 def batchRun():
     try:
+        err, code = validate_json_fields('modelname', 'cases')
+        if err:
+            return err, code
         start = time.time()
         modelname = request.json['modelname']
         cases = request.json['cases']

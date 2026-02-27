@@ -12,6 +12,20 @@ from Classes.Base.SyncS3 import SyncS3
 
 case_api = Blueprint('CaseRoute', __name__)
 
+def validate_json_fields(*fields):
+    """Validate that the request body is JSON and contains all required fields.
+
+    Returns (None, None) when valid.
+    Returns (response, 400) when invalid.
+    """
+    data = request.get_json(silent=True)
+    if data is None:
+        return jsonify({"error": "Request body must be valid JSON"}), 400
+    for field in fields:
+        if field not in data:
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+    return None, None
+
 @case_api.route("/initSyncS3", methods=['GET'])
 def initSyncS3():
     try:
@@ -69,6 +83,9 @@ def getDesc():
 @case_api.route("/copyCase", methods=['POST'])
 def copy():
     try:
+        err, code = validate_json_fields('casename')
+        if err:
+            return err, code
         case = request.json['casename']
         case_copy = case + '_copy'
         casePath = Path(Config.DATA_STORAGE, case_copy, 'genData.json')
@@ -99,7 +116,10 @@ def copy():
 
 @case_api.route("/deleteCase", methods=['POST'])
 def deleteCase():
-    try:        
+    try:
+        err, code = validate_json_fields('casename')
+        if err:
+            return err, code
         case = request.json['casename']
         
         casePath = Path(Config.DATA_STORAGE, case)
@@ -175,6 +195,9 @@ def resultsExists():
 @case_api.route("/saveParamFile", methods=['POST'])
 def saveParamFile():
     try:
+        err, code = validate_json_fields('ParamData', 'VarData')
+        if err:
+            return err, code
         ParamData = request.json['ParamData']
         VarData = request.json['VarData']
 
@@ -194,6 +217,9 @@ def saveParamFile():
 @case_api.route("/saveScOrder", methods=['POST'])
 def saveScOrder():
     try:
+        err, code = validate_json_fields('data', 'casename')
+        if err:
+            return err, code
         data = request.json['data']
         case = request.json['casename']
         genDataPath = Path(Config.DATA_STORAGE, case, 'genData.json')
@@ -233,6 +259,9 @@ def updateData():
 @case_api.route("/saveCase", methods=['POST'])
 def saveCase():
     try:
+        err, code = validate_json_fields('data')
+        if err:
+            return err, code
         genData = request.json['data']
         casename = genData['osy-casename']
         case = session.get('osycase', None)
