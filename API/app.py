@@ -1,6 +1,9 @@
 #import sys
 from pathlib import Path
 import os
+import sys
+import secrets
+import logging
 
 from flask import Flask, jsonify, request, session, render_template
 from flask_cors import CORS
@@ -45,7 +48,27 @@ static_dir = str(WEBAPP_PATH)
 app = Flask(__name__, static_url_path='', static_folder=static_dir,  template_folder=template_dir)
 
 app.permanent_session_lifetime = timedelta(days=5)
-app.config['SECRET_KEY'] = '12345'
+
+# --- Secure SECRET_KEY configuration ---
+_secret_key = os.environ.get("MUIOGO_SECRET_KEY")
+_flask_env = os.environ.get("FLASK_ENV", "development").lower()
+
+if not _secret_key:
+    if _flask_env == "production":
+        raise RuntimeError(
+            "FATAL: MUIOGO_SECRET_KEY environment variable is not set. "
+            "The application cannot start in production without a secret key. "
+            "Set it via: export MUIOGO_SECRET_KEY=$(python -c 'import secrets; print(secrets.token_hex(32))')"
+        )
+    else:
+        _secret_key = secrets.token_hex(32)
+        logging.warning(
+            "WARNING: MUIOGO_SECRET_KEY is not set. A random secret key has been generated. "
+            "This is acceptable for development, but you MUST set MUIOGO_SECRET_KEY "
+            "in production. Sessions will not persist across restarts."
+        )
+
+app.config['SECRET_KEY'] = _secret_key
 app.config["MAX_CONTENT_LENGTH"] = None
 
 app.register_blueprint(upload_api)
