@@ -39,6 +39,16 @@ At the moment, this repository starts from a direct copy baseline of MUIO. The g
 - GLPK and CBC solvers:
   - Installed automatically by setup scripts (`./scripts/setup.sh` or `scripts\\setup.bat`)
 
+### Development / testing tools (optional)
+
+Contributors and CI can install dev tools separately:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+This adds `pytest`, `ruff`, `coverage`, and `pytest-cov`. It is not required to run the app.
+
 ## Quick Start
 
 ### macOS / Linux (in Terminal)

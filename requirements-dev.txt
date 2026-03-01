@@ -1,0 +1,8 @@
+# Development and testing dependencies
+# Install with: pip install -r requirements-dev.txt
+# This does NOT auto-install runtime deps; install requirements.txt first.
+
+pytest>=7.0,<9.0
+pytest-cov>=4.0,<6.0
+ruff>=0.4,<1.0
+coverage>=7.0,<8.0
