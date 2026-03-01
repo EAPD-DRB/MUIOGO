@@ -1,0 +1,70 @@
+# -------------------------------------------------------
+# pyproject.toml — Modern dependency management (optional)
+#
+# This file is provided as a reference for future migration.
+# Currently the project uses requirements*.txt files.
+#
+# Pros of pyproject.toml:
+#   - Single source of truth for project metadata + deps
+#   - Native support for optional dependency groups
+#   - Understood by pip, build, setuptools, hatch, flit, etc.
+#
+# Cons vs requirements files:
+#   - Requires educating contributors on the new format
+#   - Some legacy CI scripts assume requirements.txt
+#   - Pinned versions are less natural (use constraints files)
+# -------------------------------------------------------
+
+[build-system]
+requires = ["setuptools>=67.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "muiogo"
+version = "0.1.0"
+description = "Modelling User Interface for OG-Core and OSeMOSYS"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+
+dependencies = [
+    "blinker==1.8.2",
+    "boto3==1.34.122",
+    "botocore==1.34.122",
+    "click==8.1.7",
+    "colorama==0.4.6",
+    "et-xmlfile==1.1.0",
+    "Flask==3.0.3",
+    "Flask-Cors==4.0.1",
+    "itsdangerous==2.2.0",
+    "Jinja2==3.1.4",
+    "jmespath==1.0.1",
+    "MarkupSafe==2.1.5",
+    "numpy==1.26.4",
+    "openpyxl==3.1.4",
+    "packaging==24.0",
+    "pandas==2.2.2",
+    "python-dateutil==2.9.0.post0",
+    "python-dotenv==1.0.1",
+    "pytz==2024.1",
+    "s3transfer==0.10.1",
+    "six==1.16.0",
+    "tzdata==2024.1",
+    "urllib3==2.2.1",
+    "waitress==3.0.0",
+    "Werkzeug==3.0.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0,<9.0",
+    "pytest-cov>=4.0,<6.0",
+    "ruff>=0.4,<1.0",
+    "coverage>=7.0,<8.0",
+]
+build-win = [
+    "altgraph==0.17.4",
+    "pefile==2023.2.7",
+    "pyinstaller==5.13.2",
+    "pyinstaller-hooks-contrib==2024.7",
+    "pywin32-ctypes==0.2.2",
+]
