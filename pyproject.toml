@@ -2,12 +2,15 @@
 requires = ["setuptools>=67.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["API"]
+
 [project]
 name = "muiogo"
 version = "0.1.0"
 description = "Modelling User Interface for OG-Core and OSeMOSYS"
-requires-python = ">=3.11,<3.13"
-license = {text = "Apache-2.0"}
+requires-python = ">=3.10,<3.13"
+license = { file = "LICENSE" }
 
 dependencies = [
     "blinker==1.8.2",
@@ -45,9 +48,9 @@ dev = [
     "coverage>=7.0,<8.0",
 ]
 build-win = [
-    "altgraph==0.17.4",
-    "pefile==2023.2.7",
-    "pyinstaller==5.13.2",
-    "pyinstaller-hooks-contrib==2024.7",
-    "pywin32-ctypes==0.2.2",
+    "altgraph>=0.17",
+    "pefile>=2023.2",
+    "pyinstaller>=5.13,<7.0",
+    "pyinstaller-hooks-contrib>=2024.0",
+    "pywin32-ctypes>=0.2",
 ]
