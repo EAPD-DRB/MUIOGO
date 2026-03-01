@@ -1,166 +1,262 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-us">
-	<head>
-		<meta charset="utf-8">
-		<title>MUIO 5.4</title>
-		<meta name="description" content="">
-		<meta name="author" content="">
-			
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-		<meta name="mobile-web-app-capable" content="yes">
-		
-		<!-- #CSS Links -->
-		<!-- Basic Styles -->
-		 <link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/dropzone.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/bootstrap.min.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/font-awesome.min.css">
+  <head>
+    <meta charset="utf-8" />
+    <title>MUIO 5.4</title>
+    <meta name="description" content="" />
+    <meta name="author" content="" />
 
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
 
-		<!-- <script src="https://kit.fontawesome.com/6d75d98468.js" crossorigin="anonymous"></script>
+    <!-- #CSS Links -->
+    <!-- Basic Styles -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="References/smartadmin/css/dropzone.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="References/smartadmin/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="References/smartadmin/css/font-awesome.min.css"
+    />
+
+    <!-- <script src="https://kit.fontawesome.com/6d75d98468.js" crossorigin="anonymous"></script>
 		 -->
-		<!-- Wijmo -->
-		<link rel="stylesheet" href="References/wijmo/styles/wijmo.min.css" />
-		<script src="References/wijmo/controls/wijmo.min.js"></script>
-		
-		<script src="References/wijmo/controls/wijmo.input.min.js"></script>
-		<script src="References/wijmo/controls/wijmo.grid.min.js"></script>
-		<script src="References/wijmo/controls/wijmo.grid.filter.min.js"></script>
-		<script src="References/wijmo/controls/wijmo.chart.min.js"></script>
-		<script src="References/wijmo/controls/wijmo.xlsx.min.js"></script>
-		<script src="References/wijmo/controls/wijmo.grid.xlsx.min.js"></script>
-		
-		 <script src="References/wijmo/controls/wijmo.odata.min.js"></script>
-		 <script src="References/wijmo/controls/wijmo.olap.min.js"></script>
-		<script src="References/jszip/jszip.min.js"></script>
+    <!-- Wijmo -->
+    <link rel="stylesheet" href="References/wijmo/styles/wijmo.min.css" />
+    <script src="References/wijmo/controls/wijmo.min.js"></script>
 
-		<!-- plotly -->
-		<script src="References/plotly/plotly-2.27.0.min.js"></script>
-		<!-- <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js'></script> -->
+    <script src="References/wijmo/controls/wijmo.input.min.js"></script>
+    <script src="References/wijmo/controls/wijmo.grid.min.js"></script>
+    <script src="References/wijmo/controls/wijmo.grid.filter.min.js"></script>
+    <script src="References/wijmo/controls/wijmo.chart.min.js"></script>
+    <script src="References/wijmo/controls/wijmo.xlsx.min.js"></script>
+    <script src="References/wijmo/controls/wijmo.grid.xlsx.min.js"></script>
 
+    <script src="References/wijmo/controls/wijmo.odata.min.js"></script>
+    <script src="References/wijmo/controls/wijmo.olap.min.js"></script>
+    <script src="References/jszip/jszip.min.js"></script>
 
+    <!-- plotly -->
+    <script src="References/plotly/plotly-2.27.0.min.js"></script>
+    <!-- <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js'></script> -->
 
-		<!-- SmartAdmin Styles : Caution! DO NOT change the order -->
-		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/smartadmin-production-plugins.min.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/smartadmin-production.min.css">
-		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/smartadmin-skins.min.css">
+    <!-- SmartAdmin Styles : Caution! DO NOT change the order -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="References/smartadmin/css/smartadmin-production-plugins.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="References/smartadmin/css/smartadmin-production.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="References/smartadmin/css/smartadmin-skins.min.css"
+    />
 
-		<link rel="stylesheet" href="References/jqwidgets/styles/jqx.base.css" type="text/css" />
-		<link rel="stylesheet" href="References/jqwidgets/styles/jqx.bootstrap.css" type="text/css" />
-		<link rel="stylesheet" href="References/jqwidgets/styles/jqx.material.css" type="text/css" />
-		<link rel="stylesheet" href="References/jqwidgets/styles/jqx.fluent.css" type="text/css" />
+    <link
+      rel="stylesheet"
+      href="References/jqwidgets/styles/jqx.base.css"
+      type="text/css"
+    />
+    <link
+      rel="stylesheet"
+      href="References/jqwidgets/styles/jqx.bootstrap.css"
+      type="text/css"
+    />
+    <link
+      rel="stylesheet"
+      href="References/jqwidgets/styles/jqx.material.css"
+      type="text/css"
+    />
+    <link
+      rel="stylesheet"
+      href="References/jqwidgets/styles/jqx.fluent.css"
+      type="text/css"
+    />
 
+    <!-- #FAVICONS -->
+    <!-- <link rel="shortcut icon" href="References/smartadmin/img/favicon/favicon.ico" type="image/x-icon"> -->
+    <link
+      rel="icon"
+      href="References/smartadmin/img/favicon/favicon.ico"
+      type="image/x-icon"
+    />
 
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="References/smartadmin/css/demo.css"
+    />
 
-		<!-- #FAVICONS -->
-		<!-- <link rel="shortcut icon" href="References/smartadmin/img/favicon/favicon.ico" type="image/x-icon"> -->
-		<link rel="icon" href="References/smartadmin/img/favicon/favicon.ico" type="image/x-icon">
+    <!-- We recommend you use "your_style.css" to override SmartAdmin-->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="References/smartadmin/css/osy.css"
+    />
 
-		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/demo.css">
+    <!-- jquery-->
+    <script
+      type="text/javascript"
+      src="References/jquery/jquery-3.4.1.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="References/jquery/jquery-1.12.1.ui.min.js"
+    ></script>
+    <!-- <script type="text/javascript" src="References/jquery/jquery.cookie.js"></script> -->
 
-		<!-- We recommend you use "your_style.css" to override SmartAdmin-->
-		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/osy.css"> 
+    <!-- Error Boundary - Load early for maximum error coverage -->
+    <script src="Classes/ErrorBoundary.Class.js"></script>
+    <script src="Classes/ErrorBoundary.Dev.js"></script>
 
-		<!-- jquery-->    
-		<script type="text/javascript" src="References/jquery/jquery-3.4.1.min.js"></script>
-		<script type="text/javascript" src="References/jquery/jquery-1.12.1.ui.min.js"></script>
-		<!-- <script type="text/javascript" src="References/jquery/jquery.cookie.js"></script> -->
+    <!-- jsonLogic-->
+    <script
+      type="text/javascript"
+      src="References/jsonLogic/jsonLogic.js"
+    ></script>
 
-		<!-- jsonLogic-->    
-		<script type="text/javascript" src="References/jsonLogic/jsonLogic.js"></script>
+    <!-- jqx widgets-->
+    <script
+      type="text/javascript"
+      src="References/jqwidgets/jqx-all.js"
+    ></script>
 
-    	<!-- jqx widgets-->
-		<script type="text/javascript" src="References/jqwidgets/jqx-all.js"></script>
+    <!--crossroad-->
+    <script
+      type="text/javascript"
+      src="References/signals/signals.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="References/crossroad/crossroad.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="References/hasher/hasher.min.js"
+    ></script>
 
-		<!--crossroad-->
-		<script type="text/javascript" src="References/signals/signals.min.js"></script>
-		<script type="text/javascript" src="References/crossroad/crossroad.min.js"></script>
-		<script type="text/javascript" src="References/hasher/hasher.min.js"></script>
+    <!-- mermaid -->
+    <script src="References/mermaid/mermaid.min.js"></script>
 
+    <!-- iOS web-app metas : hides Safari UI Components and Changes Status Bar Appearance -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  </head>
 
-		<!-- mermaid -->
-		<script src="References/mermaid/mermaid.min.js"></script>
-		
-		<!-- iOS web-app metas : hides Safari UI Components and Changes Status Bar Appearance -->
-		<meta name="apple-mobile-web-app-capable" content="yes">
-		<meta name="apple-mobile-web-app-status-bar-style" content="black">
-	</head>
+  <body class="minified smart-style-4 fixed-header">
+    <div id="loadermain" style="display: none">
+      <div class="loader"></div>
+      <h4></h4>
+    </div>
 
-	<body class=" minified smart-style-4  fixed-header ">
-		<div id="loadermain" style="display: none;">
-            <div class="loader "></div>
-			<h4></h4>
-		</div>
+    <!-- #HEADER -->
+    <header id="header"></header>
+    <!-- END HEADER -->
 
-		<!-- #HEADER -->
-		<header id="header"></header>
-		<!-- END HEADER -->
+    <!-- #NAVIGATION -->
+    <!-- Left panel : Navigation area -->
+    <!-- Note: This width of the aside area can be adjusted through LESS/SASS variables -->
+    <aside id="left-panel"></aside>
 
-		<!-- #NAVIGATION -->
-		<!-- Left panel : Navigation area -->
-		<!-- Note: This width of the aside area can be adjusted through LESS/SASS variables -->
-		<aside id="left-panel"></aside>
-		
-		<!-- #MAIN PANEL -->
-		<div id="main" role="main">	
-			<div id="osy-danger"></div>	
-			<div id="osy-warning"></div>	
-			<div id="osy-info"></div>	
-			<div id="osy-success"></div>	
+    <!-- #MAIN PANEL -->
+    <div id="main" role="main">
+      <div id="osy-danger"></div>
+      <div id="osy-warning"></div>
+      <div id="osy-info"></div>
+      <div id="osy-success"></div>
 
-			<div id="osy-danger-transparent"></div>	
-			<div id="osy-warning-transparent"></div>	
-			<div id="osy-info-transparent"></div>	
-			<div id="osy-success-transparent"></div>
-			<div id="osy-default-transparent"></div>
-					
-			<div class="osy-content pace-done" id="content"></div>
+      <div id="osy-danger-transparent"></div>
+      <div id="osy-warning-transparent"></div>
+      <div id="osy-info-transparent"></div>
+      <div id="osy-success-transparent"></div>
+      <div id="osy-default-transparent"></div>
 
-			<div class="demo"></div>
+      <div class="osy-content pace-done" id="content"></div>
 
-		</div>
+      <div class="demo"></div>
+    </div>
 
-		<!-- #PAGE FOOTER -->
-		<footer>
-			<div class="page-footer">
-				<div class="row">
-					<div class="col-xs-12 col-sm-6">
-						<span class="txt-color-white">MUIO ver.5.4<span class="hidden-xs"> - Modelling User Interface for Osemosys</span> © 2020-2025</span>
-					</div>
-				</div>
-				<!-- end row -->
-			</div>
-		</footer>
+    <!-- #PAGE FOOTER -->
+    <footer>
+      <div class="page-footer">
+        <div class="row">
+          <div class="col-xs-12 col-sm-6">
+            <span class="txt-color-white"
+              >MUIO ver.5.4<span class="hidden-xs">
+                - Modelling User Interface for Osemosys</span
+              >
+              © 2020-2025</span
+            >
+          </div>
+        </div>
+        <!-- end row -->
+      </div>
+    </footer>
 
-		<div id="modals"></div>
-		
-		<script> $("aside").load("App/View/Sidebar.html"); </script>
-        <script> $("header").load("App/View/Navbar.html"); </script>
+    <div id="modals"></div>
 
-		<!--ROUTES-->
-		<script type="module" src="{{ url_for('static', filename='Routes/Routes.Class.js') }}"></script>
-		<!-- <script type="module" src="Routes/Routes.Class.js"></script> -->
-		
-		<script data-pace-options='{ "restartOnRequestAfter": true }' src="References/smartadmin/js/plugin/pace/pace.js"></script>
+    <script>
+      $("aside").load("App/View/Sidebar.html");
+    </script>
+    <script>
+      $("header").load("App/View/Navbar.html");
+    </script>
 
-		<!-- IMPORTANT: APP CONFIG -->
-		<script src="References/smartadmin/js/app.config.js"></script>
+    <!--ROUTES-->
+    <script
+      type="module"
+      src="{{ url_for('static', filename='Routes/Routes.Class.js') }}"
+    ></script>
+    <!-- <script type="module" src="Routes/Routes.Class.js"></script> -->
 
-		<!-- BOOTSTRAP JS -->
-		<script src="References/smartadmin/js/bootstrap/bootstrap.min.js"></script>
+    <script
+      data-pace-options='{ "restartOnRequestAfter": true }'
+      src="References/smartadmin/js/plugin/pace/pace.js"
+    ></script>
 
-		<!-- CUSTOM NOTIFICATION -->
-		<script src="References/smartadmin/js/notification/SmartNotification.min.js"></script>
+    <!-- IMPORTANT: APP CONFIG -->
+    <script src="References/smartadmin/js/app.config.js"></script>
 
-		<!-- JARVIS WIDGETS -->
-		<script src="References/smartadmin/js/smartwidgets/jarvis.widget.min.js"></script>
+    <!-- BOOTSTRAP JS -->
+    <script src="References/smartadmin/js/bootstrap/bootstrap.min.js"></script>
 
-		<!-- EASY PIE CHARTS -->
-		<script src="References/smartadmin/js/plugin/easy-pie-chart/jquery.easy-pie-chart.min.js"></script>
+    <!-- CUSTOM NOTIFICATION -->
+    <script src="References/smartadmin/js/notification/SmartNotification.min.js"></script>
 
-		<!-- SPARKLINES -->
-		<script src="References/smartadmin/js/plugin/sparkline/jquery.sparkline.min.js"></script>
+    <!-- JARVIS WIDGETS -->
+    <script src="References/smartadmin/js/smartwidgets/jarvis.widget.min.js"></script>
 
-		<!-- MAIN APP JS FILE -->
-		<script src="References/smartadmin/js/app.min.js"></script> 
-	</body>
+    <!-- EASY PIE CHARTS -->
+    <script src="References/smartadmin/js/plugin/easy-pie-chart/jquery.easy-pie-chart.min.js"></script>
+
+    <!-- SPARKLINES -->
+    <script src="References/smartadmin/js/plugin/sparkline/jquery.sparkline.min.js"></script>
+
+    <!-- MAIN APP JS FILE -->
+    <script src="References/smartadmin/js/app.min.js"></script>
+  </body>
 </html>
