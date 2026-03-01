@@ -1,7 +1,6 @@
 #import sys
 from pathlib import Path
 import os
-import sys
 import secrets
 import logging
 
@@ -70,6 +69,16 @@ if not _secret_key:
 
 app.config['SECRET_KEY'] = _secret_key
 app.config["MAX_CONTENT_LENGTH"] = None
+
+# --- Session cookie security hardening ---
+if _flask_env == "production":
+    app.config["SESSION_COOKIE_SECURE"] = True      # Cookies sent only over HTTPS
+    app.config["SESSION_COOKIE_HTTPONLY"] = True      # Not accessible via JavaScript
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"    # CSRF protection for cross-site requests
+else:
+    app.config["SESSION_COOKIE_SECURE"] = False       # Allow HTTP in development
+    app.config["SESSION_COOKIE_HTTPONLY"] = True       # Always block JS access to session cookie
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 app.register_blueprint(upload_api)
 app.register_blueprint(case_api)
