@@ -3,8 +3,13 @@ from pathlib import Path
 import shutil, datetime, time, os
 from Classes.Case.DataFileClass import DataFile
 from Classes.Base import Config
+from Classes.Base.path_security import validate_path_component, safe_resolve_path
 
 datafile_api = Blueprint('DataFileRoute', __name__)
+
+@datafile_api.errorhandler(ValueError)
+def handle_invalid_path(exc):
+    return jsonify({"error": str(exc) or "Invalid path supplied"}), 400
 
 @datafile_api.route("/generateDataFile", methods=['POST'])
 def generateDataFile():
@@ -60,8 +65,10 @@ def deleteCaseRun():
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         resultsOnly = request.json['resultsOnly']
+        validate_path_component(casename)
+        validate_path_component(caserunname)
         
-        casePath = Path(Config.DATA_STORAGE, casename, 'res', caserunname)
+        casePath = safe_resolve_path(Config.DATA_STORAGE, casename, 'res', caserunname)
         if not resultsOnly:
             shutil.rmtree(casePath)
         else:
@@ -183,8 +190,11 @@ def downloadDataFile():
         #path = "/Examples.pdf"
         case = session.get('osycase', None)
         caserunname = request.args.get('caserunname')
-        dataFile = Path(Config.DATA_STORAGE,case, 'res',caserunname, 'data.txt')
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
+        if case is not None:
+            validate_path_component(case)
+        validate_path_component(caserunname)
+        dataFile = safe_resolve_path(Config.DATA_STORAGE, case, 'res', caserunname, 'data.txt')
+        return send_file(dataFile, as_attachment=True, max_age=0)
     
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -194,8 +204,11 @@ def downloadFile():
     try:
         case = session.get('osycase', None)
         file = request.args.get('file')
-        dataFile = Path(Config.DATA_STORAGE,case,'res','csv',file)
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
+        if case is not None:
+            validate_path_component(case)
+        validate_path_component(file)
+        dataFile = safe_resolve_path(Config.DATA_STORAGE, case, 'res', 'csv', file)
+        return send_file(dataFile, as_attachment=True, max_age=0)
     
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -206,8 +219,12 @@ def downloadCSVFile():
         case = session.get('osycase', None)
         file = request.args.get('file')
         caserunname = request.args.get('caserunname')
-        dataFile = Path(Config.DATA_STORAGE,case,'res',caserunname,'csv',file)
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
+        if case is not None:
+            validate_path_component(case)
+        validate_path_component(file)
+        validate_path_component(caserunname)
+        dataFile = safe_resolve_path(Config.DATA_STORAGE, case, 'res', caserunname, 'csv', file)
+        return send_file(dataFile, as_attachment=True, max_age=0)
     
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -217,8 +234,11 @@ def downloadResultsFile():
     try:
         case = session.get('osycase', None)
         caserunname = request.args.get('caserunname')
-        dataFile = Path(Config.DATA_STORAGE,case, 'res', caserunname,'results.txt')
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
+        if case is not None:
+            validate_path_component(case)
+        validate_path_component(caserunname)
+        dataFile = safe_resolve_path(Config.DATA_STORAGE, case, 'res', caserunname, 'results.txt')
+        return send_file(dataFile, as_attachment=True, max_age=0)
     
     except(IOError):
         return jsonify('No existing cases!'), 404

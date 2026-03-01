@@ -9,8 +9,13 @@ from threading import Thread
 
 from Classes.Base import Config
 from Classes.Base.FileClass import File
+from Classes.Base.path_security import validate_path_component, safe_resolve_path, safe_zip_extract
 
 upload_api = Blueprint('UploadRoute', __name__)
+
+@upload_api.errorhandler(ValueError)
+def handle_invalid_path(exc):
+    return jsonify({"error": str(exc) or "Invalid path supplied"}), 400
 
 #File extension checking
 def allowed_filename(filename):
@@ -207,9 +212,10 @@ def backupCase():
         #case = request.form['case']
         #case = request.json['casename']
         case = request.args.get('case')
+        validate_path_component(case)
 
-        casePath = Path('WebAPP', 'DataStorage',case)
-        zippedFile = Path('WebAPP', 'DataStorage', case+'.zip')
+        casePath = safe_resolve_path(Config.DATA_STORAGE, case)
+        zippedFile = safe_resolve_path(Config.DATA_STORAGE, case+'.zip')
 
         '''File system data storage'''
         with ZipFile(zippedFile, 'w') as zipObj:
@@ -278,7 +284,7 @@ def uploadCaseUnchunked_old():
                                 name = data.get('osy-version', None)
 
                                 if name == '1.0' or name == '2.0':
-                                    zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                                    safe_zip_extract(zf, Path(Config.EXTRACT_FOLDER))
 
                                     #add res view folders with json default files
                                     configPath = Path(Config.DATA_STORAGE, 'Variables.json')
@@ -325,7 +331,7 @@ def uploadCaseUnchunked_old():
                                 elif name == '3.0': 
                                     #potrebno dodati tech groups
                                     #case = data.get('osy-casename', None)
-                                    zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                                    safe_zip_extract(zf, Path(Config.EXTRACT_FOLDER))
                                     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                                     genData = File.readParamFile(genDataPath)
                                     genData["osy-techGroups"] = []
@@ -344,7 +350,7 @@ def uploadCaseUnchunked_old():
                                         "casename": casename
                                     })
                                 elif name == '4.0' or name == '4.5' or name == '4.9': 
-                                    zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                                    safe_zip_extract(zf, Path(Config.EXTRACT_FOLDER))
                                     # potrebno updatevoati YearSplit u verziji 5.0 su dinamicki
                                     #update for dynamic timeslicec
                                     updateTimeslices(casename)
@@ -372,7 +378,7 @@ def uploadCaseUnchunked_old():
                                 #         })
 
                                 elif name == '5.0': 
-                                    zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                                    safe_zip_extract(zf, Path(Config.EXTRACT_FOLDER))
                                     updateViewDefintions(casename)
                                     msg.append({
                                         "message": "Model " + casename +" have been uploaded!",
@@ -455,7 +461,7 @@ def handle_full_zip(file, filepath=None):
                     #     TVOJA ORIGINALNA LOGIKA
                     # ---------------------------
                     if name == '1.0' or name == '2.0':
-                        zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                        safe_zip_extract(zf, Path(Config.EXTRACT_FOLDER))
                         configPath = Path(Config.DATA_STORAGE, 'Variables.json')
                         vars = File.readParamFile(configPath)
                         viewDef = {}
@@ -484,7 +490,7 @@ def handle_full_zip(file, filepath=None):
                             "casename": casename
                         })
                     elif name == '3.0':
-                        zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                        safe_zip_extract(zf, Path(Config.EXTRACT_FOLDER))
                         genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                         genData = File.readParamFile(genDataPath)
                         genData["osy-techGroups"] = []
@@ -500,7 +506,7 @@ def handle_full_zip(file, filepath=None):
                             "casename": casename
                         })
                     elif name in ['4.0', '4.5', '4.9']:
-                        zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                        safe_zip_extract(zf, Path(Config.EXTRACT_FOLDER))
                         updateTimeslices(casename)
                         updateStorageSet(casename)
                         updateViewDefintions(casename)
@@ -511,7 +517,7 @@ def handle_full_zip(file, filepath=None):
                             "casename": casename
                         })
                     elif name == '5.0':
-                        zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                        safe_zip_extract(zf, Path(Config.EXTRACT_FOLDER))
                         updateViewDefintions(casename)
                         msg.append({
                             "message": "Model " + casename +" have been uploaded!",

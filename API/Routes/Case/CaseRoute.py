@@ -9,8 +9,13 @@ from Classes.Case.CaseClass import Case
 from Classes.Case.UpdateCaseClass import UpdateCase
 from Classes.Case.ImportTemplate import ImportTemplate
 from Classes.Base.SyncS3 import SyncS3
+from Classes.Base.path_security import validate_path_component, safe_resolve_path
 
 case_api = Blueprint('CaseRoute', __name__)
+
+@case_api.errorhandler(ValueError)
+def handle_invalid_path(exc):
+    return jsonify({"error": str(exc) or "Invalid path supplied"}), 400
 
 @case_api.route("/initSyncS3", methods=['GET'])
 def initSyncS3():
@@ -43,7 +48,9 @@ def getResultCSV():
     try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
-        csvFolder = Path(Config.DATA_STORAGE,casename,"res", caserunname, "csv")
+        validate_path_component(casename)
+        validate_path_component(caserunname)
+        csvFolder = safe_resolve_path(Config.DATA_STORAGE, casename, "res", caserunname, "csv")
         if os.path.isdir(csvFolder):
             csvs = [ f.name for f in os.scandir(csvFolder) ]
         else:
@@ -56,7 +63,8 @@ def getResultCSV():
 def getDesc():
     try:
         casename = request.json['casename']
-        genDataPath = Path(Config.DATA_STORAGE,casename,"genData.json")
+        validate_path_component(casename)
+        genDataPath = safe_resolve_path(Config.DATA_STORAGE, casename, "genData.json")
         genData = File.readFile(genDataPath)
         response = {
             "message": "Get model description success",
@@ -70,11 +78,13 @@ def getDesc():
 def copy():
     try:
         case = request.json['casename']
+        validate_path_component(case)
         case_copy = case + '_copy'
-        casePath = Path(Config.DATA_STORAGE, case_copy, 'genData.json')
+        validate_path_component(case_copy)
+        casePath = safe_resolve_path(Config.DATA_STORAGE, case_copy, 'genData.json')
 
-        src =  Path(Config.DATA_STORAGE, case)
-        dest =  Path(Config.DATA_STORAGE, case + '_copy')
+        src = safe_resolve_path(Config.DATA_STORAGE, case)
+        dest = safe_resolve_path(Config.DATA_STORAGE, case_copy)
 
         if(os.path.isdir(dest)):
             response = {
@@ -101,8 +111,9 @@ def copy():
 def deleteCase():
     try:        
         case = request.json['casename']
+        validate_path_component(case)
         
-        casePath = Path(Config.DATA_STORAGE, case)
+        casePath = safe_resolve_path(Config.DATA_STORAGE, case)
         shutil.rmtree(casePath)
 
         if case == session.get('osycase'):
@@ -128,7 +139,9 @@ def getResultData():
         casename = request.json['casename']
         dataJson = request.json['dataJson']
         if casename != None:
-            dataPath = Path(Config.DATA_STORAGE,casename,'view',dataJson)
+            validate_path_component(casename)
+            validate_path_component(dataJson)
+            dataPath = safe_resolve_path(Config.DATA_STORAGE, casename, 'view', dataJson)
             data = File.readFile(dataPath)
             response = data   
 
@@ -142,7 +155,8 @@ def getResultData():
 def getParamFile():
     try:
         dataJson = request.json['dataJson']
-        configPath = Path(Config.DATA_STORAGE, dataJson)
+        validate_path_component(dataJson)
+        configPath = safe_resolve_path(Config.DATA_STORAGE, dataJson)
         ConfigFile = File.readParamFile(configPath)
         response = ConfigFile       
         return jsonify(response), 200
@@ -154,8 +168,9 @@ def resultsExists():
     try:
         casename = request.json['casename']
         if casename != None:
-            resPath = Path(Config.DATA_STORAGE, casename, 'view', 'RYT.json')
-            dataPath = Path(Config.DATA_STORAGE,casename,'view','resData.json')
+            validate_path_component(casename)
+            resPath = safe_resolve_path(Config.DATA_STORAGE, casename, 'view', 'RYT.json')
+            dataPath = safe_resolve_path(Config.DATA_STORAGE, casename, 'view', 'resData.json')
             data = File.readFile(dataPath)
             if os.path.isfile(resPath) and data['osy-cases']:
                 RYTTs = File.readFile(resPath)
@@ -196,7 +211,8 @@ def saveScOrder():
     try:
         data = request.json['data']
         case = request.json['casename']
-        genDataPath = Path(Config.DATA_STORAGE, case, 'genData.json')
+        validate_path_component(case)
+        genDataPath = safe_resolve_path(Config.DATA_STORAGE, case, 'genData.json')
         genData = File.readFile(genDataPath)
         genData['osy-scenarios'] = data
         File.writeFile( genData, genDataPath)
@@ -216,7 +232,10 @@ def updateData():
         param = request.json['param']
         case = session.get('osycase', None)
         dataJson = request.json['dataJson']
-        dataPath = Path(Config.DATA_STORAGE, case, dataJson)
+        validate_path_component(dataJson)
+        if case is not None:
+            validate_path_component(case)
+        dataPath = safe_resolve_path(Config.DATA_STORAGE, case, dataJson)
         if case != None:
             sourceData = File.readFile(dataPath)
             sourceData[param] = data
@@ -235,9 +254,12 @@ def saveCase():
     try:
         genData = request.json['data']
         casename = genData['osy-casename']
+        validate_path_component(casename)
         case = session.get('osycase', None)
+        if case is not None and case != '':
+            validate_path_component(case)
 
-        configPath = Path(Config.DATA_STORAGE, 'Variables.json')
+        configPath = safe_resolve_path(Config.DATA_STORAGE, 'Variables.json')
         vars = File.readParamFile(configPath)
 
         
@@ -262,13 +284,13 @@ def saveCase():
 
         #ako je izabran case, edit mode
         if case != None and case != '':
-            genDataPath = Path(Config.DATA_STORAGE, case, "genData.json")
+            genDataPath = safe_resolve_path(Config.DATA_STORAGE, case, "genData.json")
 
             ##update za view i res ukoliko nema
-            resPath = Path(Config.DATA_STORAGE,case,'res')
-            viewPath = Path(Config.DATA_STORAGE,case,'view')
-            resDataPath = Path(Config.DATA_STORAGE,case,'view','resData.json')
-            viewDataPath = Path(Config.DATA_STORAGE,case,'view','viewDefinitions.json')
+            resPath = safe_resolve_path(Config.DATA_STORAGE, case, 'res')
+            viewPath = safe_resolve_path(Config.DATA_STORAGE, case, 'view')
+            resDataPath = safe_resolve_path(Config.DATA_STORAGE, case, 'view', 'resData.json')
+            viewDataPath = safe_resolve_path(Config.DATA_STORAGE, case, 'view', 'viewDefinitions.json')
 
             # viewDataPathExisting = Path(Config.DATA_STORAGE,casename,'view','viewDefinitions.json')
             viewDefExisting = File.readParamFile(viewDataPath)
@@ -315,7 +337,7 @@ def saveCase():
                 }
             #edit case sa drugim imenom, moramo provjeriit da li novo ime postoji u sistemu
             else:
-                if not os.path.exists(Path(Config.DATA_STORAGE,casename)):
+                if not os.path.exists(safe_resolve_path(Config.DATA_STORAGE, casename)):
 
                     #update modela 
                     caseUpdate = UpdateCase(case, genData)
@@ -326,7 +348,7 @@ def saveCase():
 
                     #nedostaje update resData u smislu novih ili izbirsanih scenarija
                     #rename case sa novim imenom
-                    os.rename(Path(Config.DATA_STORAGE,case), Path(Config.DATA_STORAGE,casename ))
+                    os.rename(safe_resolve_path(Config.DATA_STORAGE, case), safe_resolve_path(Config.DATA_STORAGE, casename))
                     session['osycase'] = casename
                     
                     response = {
@@ -341,23 +363,23 @@ def saveCase():
                     }
         #novi case 
         else:
-            if not os.path.exists(Path(Config.DATA_STORAGE,casename)):
+            if not os.path.exists(safe_resolve_path(Config.DATA_STORAGE, casename)):
                 viewDef = {}
                 for group, lists in vars.items():
                     for list in lists:
                         viewDef[list['id']] = []
 
                 session['osycase'] = casename
-                os.makedirs(Path(Config.DATA_STORAGE,casename))
-                genDataPath = Path(Config.DATA_STORAGE, casename, "genData.json")
+                os.makedirs(safe_resolve_path(Config.DATA_STORAGE, casename))
+                genDataPath = safe_resolve_path(Config.DATA_STORAGE, casename, "genData.json")
                 File.writeFile( genData, genDataPath)
                 case = Case(casename, genData)
                 case.createCase()  
 
-                resPath = Path(Config.DATA_STORAGE,casename,'res')
-                viewPath = Path(Config.DATA_STORAGE,casename,'view')
-                resDataPath = Path(Config.DATA_STORAGE,casename,'view','resData.json')
-                viewDataPath = Path(Config.DATA_STORAGE,casename,'view','viewDefinitions.json')
+                resPath = safe_resolve_path(Config.DATA_STORAGE, casename, 'res')
+                viewPath = safe_resolve_path(Config.DATA_STORAGE, casename, 'view')
+                resDataPath = safe_resolve_path(Config.DATA_STORAGE, casename, 'view', 'resData.json')
+                viewDataPath = safe_resolve_path(Config.DATA_STORAGE, casename, 'view', 'viewDefinitions.json')
                 if not os.path.exists(resPath):
                     os.makedirs(resPath, exist_ok=True)
                 if not os.path.exists(viewPath):
@@ -390,6 +412,7 @@ def saveCase():
 def prepareCSV():
     try:
         casename = request.json['casename']
+        validate_path_component(casename)
         jsonData = request.json['jsonData']
 
         Pd = pd.DataFrame(jsonData)
@@ -402,7 +425,7 @@ def prepareCSV():
                 Pd.insert(i, p_col, col)
                 i=i+1
 
-        Pd.to_csv(Path(Config.DATA_STORAGE,casename,'export.csv'), index = None)
+        Pd.to_csv(safe_resolve_path(Config.DATA_STORAGE, casename, 'export.csv'), index = None)
 
         # Pd.to_excel(Path(Config.DATA_STORAGE,casename,'export.xlsx'))
         
@@ -419,10 +442,11 @@ def prepareCSV():
 def downloadCSV():
     try:
         casename = session.get('osycase', None)
-        dataFile = Path(Config.DATA_STORAGE,casename,'export.csv')
+        if casename is not None:
+            validate_path_component(casename)
+        dataFile = safe_resolve_path(Config.DATA_STORAGE, casename, 'export.csv')
         
-        dir = Path(Config.DATA_STORAGE,casename)
-        return send_file(dataFile.resolve(), as_attachment=True,mimetype='application/csv', max_age=0)
+        return send_file(dataFile, as_attachment=True,mimetype='application/csv', max_age=0)
         #return send_from_directory(dir, 'export.csv', as_attachment=True)
     except(IOError):
         return jsonify('No existing cases!'), 404
