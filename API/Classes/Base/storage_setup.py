@@ -23,8 +23,8 @@ def setup_data_directory(path: Path) -> None:
 
     After creation the directory is checked for writability.  If the
     directory cannot be created, or is not writable, a clear error is
-    raised so the application fails fast with an actionable message
-    rather than silently booting with a broken storage path.
+    raised so that the calling code can decide whether to abort startup
+    or handle the failure, rather than continuing with a broken storage path.
 
     Parameters
     ----------
@@ -72,7 +72,30 @@ def setup_data_directory(path: Path) -> None:
         )
 
     # --- 3. Validate writability ----------------------------------------
-    if not os.access(path, os.W_OK):
+    # For directories, being able to create files typically requires both
+    # write *and* execute/search permissions. Check both, then confirm with
+    # a small create/delete probe to catch ACL or FS quirks.
+    if not os.access(path, os.W_OK | os.X_OK):
         raise PermissionError(
             f"Data-storage directory is not writable: {path}"
         )
+
+    # Create/delete probe: ensures we can actually write inside the directory.
+    test_file = path / ".storage_setup_write_test"
+    try:
+        with open(test_file, "w"):
+            pass
+    except OSError as exc:
+        raise PermissionError(
+            f"Data-storage directory is not writable: {path}"
+        ) from exc
+    else:
+        try:
+            test_file.unlink()
+        except OSError:
+            # Non-fatal: directory is writable (file was created), but cleanup failed.
+            logger.debug(
+                "Temporary writability probe file could not be removed: %s",
+                test_file,
+                exc_info=True,
+            )

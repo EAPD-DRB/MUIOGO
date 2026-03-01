@@ -83,10 +83,35 @@ def test_chmod_failure_logs_warning(tmp_path: Path, caplog) -> None:
 
 
 def test_unwritable_directory_raises(tmp_path: Path) -> None:
-    """PermissionError is raised when directory is not writable."""
+    """PermissionError is raised when os.access reports not writable."""
     target = tmp_path / "DataStorage"
     target.mkdir()
 
     with mock.patch("Classes.Base.storage_setup.os.access", return_value=False):
         with pytest.raises(PermissionError, match="not writable"):
             setup_data_directory(target)
+
+
+def test_write_probe_failure_raises(tmp_path: Path) -> None:
+    """PermissionError raised when the create/delete probe cannot write."""
+    target = tmp_path / "DataStorage"
+    target.mkdir()
+
+    # os.access passes, but the actual file open fails
+    with mock.patch("builtins.open", side_effect=OSError("access denied")):
+        with pytest.raises(PermissionError, match="not writable"):
+            setup_data_directory(target)
+
+
+def test_write_probe_cleanup_failure_is_nonfatal(tmp_path: Path, caplog) -> None:
+    """If the probe file cannot be deleted, a debug log is emitted but no error."""
+    target = tmp_path / "DataStorage"
+    target.mkdir()
+
+    probe = target / ".storage_setup_write_test"
+
+    with mock.patch.object(Path, "unlink", side_effect=OSError("busy")):
+        with caplog.at_level(logging.DEBUG):
+            setup_data_directory(target)
+
+    assert "could not be removed" in caplog.text
