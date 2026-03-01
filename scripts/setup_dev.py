@@ -43,6 +43,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 VENV_DIR = (Path.home() / ".venvs" / "muiogo").resolve()
 REQUIREMENTS = PROJECT_ROOT / "requirements.txt"
+REQUIREMENTS_DEV = PROJECT_ROOT / "requirements-dev.txt"
 SYSTEM = platform.system()  # 'Darwin', 'Linux', 'Windows'
 MIN_PYTHON = (3, 10)
 MAX_PYTHON = (3, 13)  # exclusive
@@ -377,6 +378,19 @@ def install_python_deps() -> bool:
         _requirements_hash_file().write_text(current_req_hash + "\n", encoding="utf-8")
     except Exception as exc:
         _print_warn("Could not write requirements cache file", str(exc))
+
+    # Also install dev dependencies if requirements-dev.txt exists
+    if REQUIREMENTS_DEV.exists():
+        dev_result = _run(
+            [pip, "install", "-r", str(REQUIREMENTS_DEV)],
+            capture_output=True,
+            text=True,
+        )
+        if dev_result.returncode != 0:
+            _print_warn("Dev dependencies install failed (non-fatal)", "")
+            print(dev_result.stderr[-2000:] if dev_result.stderr else "(no stderr)")
+        else:
+            print(f"  {GREEN}Dev dependencies installed.{RESET}")
 
     print(f"  {GREEN}Python dependencies installed.{RESET}")
     return True
