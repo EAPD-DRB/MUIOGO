@@ -21,7 +21,7 @@ if not "%CONDA_DEFAULT_ENV%"=="" (
 where python3.11 >nul 2>&1
 if %errorlevel% equ 0 (
     set "PYTHON=python3.11"
-    goto :check_version
+    goto :run
 )
 
 where py >nul 2>&1
@@ -29,7 +29,7 @@ if %errorlevel% equ 0 (
     py -3.11 -c "import sys" >nul 2>&1
     if %errorlevel% equ 0 (
         set "PYTHON=py -3.11"
-        goto :check_version
+        goto :run
     )
 )
 
@@ -39,19 +39,7 @@ echo   In PowerShell (winget): winget install -e --id Python.Python.3.11
 echo   Python.org Windows installer: https://www.python.org/downloads/windows/
 exit /b 1
 
-:check_version
-for /f "tokens=*" %%i in ('!PYTHON! -c "import sys; print(sys.version_info[:2] == (3, 11))"') do set "PY_OK=%%i"
-if not "!PY_OK!"=="True" (
-    echo ERROR: Unsupported Python version. Found:
-    !PYTHON! --version
-    echo MUIOGO setup expects Python 3.11.
-    echo Install/upgrade Python 3.11:
-    echo   In PowerShell (winget): winget install -e --id Python.Python.3.11
-    echo   Python.org Windows installer: https://www.python.org/downloads/windows/
-    exit /b 1
-)
-
+:run
 echo Using Python:
 !PYTHON! --version
-
 !PYTHON! "%SCRIPT_DIR%setup_dev.py" %*

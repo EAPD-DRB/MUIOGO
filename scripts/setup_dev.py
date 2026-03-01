@@ -364,7 +364,7 @@ def install_python_deps() -> bool:
          capture_output=True)
 
     result = _run(
-        [pip, "install", "-r", str(REQUIREMENTS)],
+        [python, "-m", "pip", "install", "-r", str(REQUIREMENTS)],
         capture_output=True,
         text=True,
     )
