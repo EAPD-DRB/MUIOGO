@@ -8,7 +8,9 @@ from datetime import timedelta
 # from pathlib import Path
 
 #import json
+import logging
 from Classes.Base import Config
+from Classes.Base.storage_setup import setup_data_directory
 # from API.Classes.Base.SyncS3 import SyncS3
 from Routes.Upload.UploadRoute import upload_api
 from Routes.Case.CaseRoute import case_api
@@ -41,6 +43,17 @@ static_dir = str(WEBAPP_PATH)
 
 # template_dir = 'WebAPP'
 # static_dir = '../WebAPP'
+
+# --- Platform-aware data directory initialization (runs once at startup) ---
+try:
+    setup_data_directory(Config.DATA_STORAGE)
+except (OSError, PermissionError):
+    logging.getLogger(__name__).critical(
+        "Cannot initialise data-storage directory: %s. "
+        "The application will start but file operations may fail.",
+        Config.DATA_STORAGE,
+        exc_info=True,
+    )
 
 app = Flask(__name__, static_url_path='', static_folder=static_dir,  template_folder=template_dir)
 

@@ -1,12 +1,8 @@
 from pathlib import Path
-import os
 #from dotenv import load_dotenv
-import platform
 
 #load environment variables
 #load_dotenv()
-
-SYSTEM = platform.system()
 
 # S3_BUCKET = os.environ.get("S3_BUCKET")
 # S3_KEY = os.environ.get("S3_KEY")
@@ -35,12 +31,6 @@ CLASS_FOLDER = WEBAPP_PATH / "Classes"
 SOLVERs_FOLDER = WEBAPP_PATH / "SOLVERs"
 EXTRACT_FOLDER = BASE_DIR
 
-# Ensure DataStorage exists
-DATA_STORAGE.mkdir(parents=True, exist_ok=True)
-
-# Validate writability instead of forcing permissions
-if not os.access(DATA_STORAGE, os.W_OK):
-    raise PermissionError(f"Data storage path is not writable: {DATA_STORAGE}")
 #absolute paths
 # OSEMOSYS_ROOT = os.path.abspath(os.getcwd())
 # UPLOAD_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP')
