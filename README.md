@@ -41,13 +41,18 @@ At the moment, this repository starts from a direct copy baseline of MUIO. The g
 
 ### Development / testing tools (optional)
 
-Contributors and CI can install dev tools separately:
+Dev tools (`pytest`, `ruff`, `coverage`, `pytest-cov`) are optional and can be installed separately:
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-This adds `pytest`, `ruff`, `coverage`, and `pytest-cov`. It is not required to run the app.
+Runtime dependencies are a separate install step — only needed if you want to run the app or tests that import app code:
+
+```bash
+pip install -r requirements.txt        # runtime deps (if needed)
+pip install -r requirements-dev.txt     # dev/testing tools
+```
 
 ## Quick Start
 

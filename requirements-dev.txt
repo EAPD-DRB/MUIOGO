@@ -1,6 +1,6 @@
 # Development and testing dependencies
 # Install with: pip install -r requirements-dev.txt
-# This does NOT auto-install runtime deps; install requirements.txt first.
+# This does NOT include runtime deps; install requirements.txt as well if you need to run the app/tests that use them.
 
 pytest>=7.0,<9.0
 pytest-cov>=4.0,<6.0
