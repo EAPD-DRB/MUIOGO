@@ -9,13 +9,13 @@ from Classes.Case.CaseClass import Case
 from Classes.Case.UpdateCaseClass import UpdateCase
 from Classes.Case.ImportTemplate import ImportTemplate
 from Classes.Base.SyncS3 import SyncS3
-from Classes.Base.path_security import validate_path_component, safe_resolve_path
+from Classes.Base.path_security import validate_path_component, safe_resolve_path, PathValidationError
 
 case_api = Blueprint('CaseRoute', __name__)
 
-@case_api.errorhandler(ValueError)
+@case_api.errorhandler(PathValidationError)
 def handle_invalid_path(exc):
-    return jsonify({"error": str(exc) or "Invalid path supplied"}), 400
+    return jsonify({"error": "Invalid path supplied"}), 400
 
 @case_api.route("/initSyncS3", methods=['GET'])
 def initSyncS3():
@@ -232,9 +232,10 @@ def updateData():
         param = request.json['param']
         case = session.get('osycase', None)
         dataJson = request.json['dataJson']
+        if case is None:
+            return jsonify('No active case in session!'), 401
+        validate_path_component(case)
         validate_path_component(dataJson)
-        if case is not None:
-            validate_path_component(case)
         dataPath = safe_resolve_path(Config.DATA_STORAGE, case, dataJson)
         if case != None:
             sourceData = File.readFile(dataPath)
@@ -442,8 +443,9 @@ def prepareCSV():
 def downloadCSV():
     try:
         casename = session.get('osycase', None)
-        if casename is not None:
-            validate_path_component(casename)
+        if casename is None:
+            return jsonify('No active case in session!'), 401
+        validate_path_component(casename)
         dataFile = safe_resolve_path(Config.DATA_STORAGE, casename, 'export.csv')
         
         return send_file(dataFile, as_attachment=True,mimetype='application/csv', max_age=0)

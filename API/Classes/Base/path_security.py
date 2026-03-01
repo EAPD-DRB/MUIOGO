@@ -30,13 +30,20 @@ from __future__ import annotations
 
 import logging
 import re
-from pathlib import Path, PurePosixPath, PureWindowsPath
+import shutil
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
+class PathValidationError(ValueError):
+    """Raised when a user-supplied path component fails validation."""
+    pass
+
+
 # Only allow alphanumeric, hyphens, underscores, dots, spaces, and
 # parentheses — i.e. characters that are safe in filenames on all major OSes.
-_SAFE_COMPONENT_RE = re.compile(r"^[A-Za-z0-9 _\-.()\[\]]+$")
+_SAFE_COMPONENT_RE = re.compile(r"^[A-Za-z0-9 _\-()\[\].]+$")
 
 
 def validate_path_component(name: str) -> str:
@@ -54,7 +61,7 @@ def validate_path_component(name: str) -> str:
 
     Raises
     ------
-    ValueError
+    PathValidationError
         When the component contains forbidden characters or sequences.
     """
     if not isinstance(name, str) or not name:
@@ -100,7 +107,7 @@ def safe_resolve_path(base_dir: Path, *parts: str) -> Path:
 
     Raises
     ------
-    ValueError
+    PathValidationError
         When the resolved path escapes *base_dir*.
     """
     # Validate every individual component first
@@ -120,7 +127,7 @@ def safe_resolve_path(base_dir: Path, *parts: str) -> Path:
             resolved_base,
             resolved_target,
         )
-        raise ValueError("Invalid path: target is outside the allowed directory")
+        raise PathValidationError("Invalid path: target is outside the allowed directory")
 
     return resolved_target
 
@@ -162,9 +169,9 @@ def safe_zip_extract(zip_file, destination: Path) -> None:
         # Ensure parent directories exist
         target.parent.mkdir(parents=True, exist_ok=True)
 
-        # Extract the single member safely
+        # Extract the single member safely using streaming copy
         with zip_file.open(member) as src, open(target, "wb") as dst:
-            dst.write(src.read())
+            shutil.copyfileobj(src, dst)
 
 
 # ---------------------------------------------------------------------- #
@@ -183,4 +190,4 @@ def _reject(name: object, reason: str) -> None:
         reason,
         name,
     )
-    raise ValueError("Invalid path supplied")
+    raise PathValidationError("Invalid path supplied")

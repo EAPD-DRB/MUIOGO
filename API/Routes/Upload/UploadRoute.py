@@ -9,13 +9,49 @@ from threading import Thread
 
 from Classes.Base import Config
 from Classes.Base.FileClass import File
-from Classes.Base.path_security import validate_path_component, safe_resolve_path, safe_zip_extract
+from Classes.Base.path_security import (
+    validate_path_component as _validate_path_component,
+    safe_resolve_path as _safe_resolve_path,
+    safe_zip_extract as _safe_zip_extract,
+    PathValidationError,
+)
 
 upload_api = Blueprint('UploadRoute', __name__)
 
-@upload_api.errorhandler(ValueError)
+
+class _UploadPathValidationError(PathValidationError):
+    """Upload-specific path validation error for narrower catching."""
+    pass
+
+
+def validate_path_component(*args, **kwargs):
+    """Wrapper that converts low-level PathValidationError to upload-specific."""
+    try:
+        return _validate_path_component(*args, **kwargs)
+    except PathValidationError as exc:
+        raise _UploadPathValidationError("Invalid path supplied") from exc
+
+
+def safe_resolve_path(*args, **kwargs):
+    """Wrapper that converts low-level PathValidationError to upload-specific."""
+    try:
+        return _safe_resolve_path(*args, **kwargs)
+    except PathValidationError as exc:
+        raise _UploadPathValidationError("Invalid path supplied") from exc
+
+
+def safe_zip_extract(*args, **kwargs):
+    """Wrapper that converts low-level PathValidationError to upload-specific."""
+    try:
+        return _safe_zip_extract(*args, **kwargs)
+    except PathValidationError as exc:
+        raise _UploadPathValidationError("Invalid path supplied") from exc
+
+
+@upload_api.errorhandler(_UploadPathValidationError)
 def handle_invalid_path(exc):
-    return jsonify({"error": str(exc) or "Invalid path supplied"}), 400
+    # Return a fixed, generic error message to avoid leaking internals.
+    return jsonify({"error": "Invalid path supplied"}), 400
 
 #File extension checking
 def allowed_filename(filename):
