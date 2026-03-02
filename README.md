@@ -1,6 +1,14 @@
-# MUIOGO
+# 🎓 Applications for MUIOGO Are Now Open!
 
-<img src="assets/UN_Crest.png" width="75" align="left">
+Please complete the following questionnaire so we can keep track of everybody’s application in a structured way:
+
+🗓 **Deadline**: 16 March  
+📄 **Apply** [here](https://forms.gle/8Yvw2H6Q7Qw6snSN9)
+
+---
+<p align="center"><img src="assets/MUIOGO_Logo.png" width="50%"></p>
+
+<p><img src="assets/UN_Crest.png" width="75" align="left"></p>
 
 **M**odelling **U**ser **I**nterface for **OG**-Core and **O**SeMOSYS
 
@@ -15,6 +23,8 @@ The project will create a standardized interface and shared execution system lin
 See the [Project Background & Vision](https://github.com/EAPD-DRB/MUIOGO/wiki/Project-Background-and-Vision) and the programme's [Timeline](https://github.com/EAPD-DRB/MUIOGO/wiki/Timeline) for more information.
 
 MUIOGO is the integration project to bring the purely Python-based OG-Core model into MUIO, the GUI for OSeMOSYS (CLEWS).
+
+For now, the app will run locally on a user's machine. In the future, the app may be hosted on a server for public access, so scalability should remain a design consideration. Today, the initial target is a downloadable app that users can run locally without needing an internet connection.
 
 At the moment, this repository starts from a direct copy baseline of MUIO. The goal of MUIOGO is to evolve that baseline into an integrated OG-CLEWS model that is maintainable and platform-independent.
 
@@ -55,6 +65,13 @@ For setup options, use the "--help" flag:
 - SHA-256: `facf4bda703f67b3c8b8697fea19d7d49be72bc2029fc05a68c61fd12ba7edde`
 
 Setup installs demo data by default.
+
+To install demo data manually:
+
+1. Unzip `assets/demo-data/CLEWs.Demo.zip` into `WebAPP/DataStorage/`
+2. Confirm this folder exists: `WebAPP/DataStorage/CLEWs Demo/`
+
+One of the core goals of MUIOGO is to become platform independent so separate platform-specific ports are no longer required.
 
 ## Repository Layout
 

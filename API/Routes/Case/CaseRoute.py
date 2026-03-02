@@ -70,6 +70,13 @@ def getDesc():
 def copy():
     try:
         case = request.json['casename']
+        active_case = session.get('osycase')
+
+        if not active_case:
+            return jsonify({'message': 'No active session.', 'status_code': 'error'}), 403
+        if case != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
+
         case_copy = case + '_copy'
         casePath = Path(Config.DATA_STORAGE, case_copy, 'genData.json')
 
@@ -99,23 +106,23 @@ def copy():
 
 @case_api.route("/deleteCase", methods=['POST'])
 def deleteCase():
-    try:        
+    try:
         case = request.json['casename']
-        
+        active_case = session.get('osycase')
+
+        if not active_case:
+            return jsonify({'message': 'No active session.', 'status_code': 'error'}), 403
+        if case != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
+
         casePath = Path(Config.DATA_STORAGE, case)
         shutil.rmtree(casePath)
 
-        if case == session.get('osycase'):
-            session['osycase'] = None
-            response = {
-                "message": 'Model <b>'+ case + '</b> deleted!',
-                "status_code": "success_session"
-            }
-        else:
-            response = {
-                "message": 'Model <b>'+ case + '</b> deleted!',
-                "status_code": "success"
-            }
+        session['osycase'] = None
+        response = {
+            "message": 'Model <b>'+ case + '</b> deleted!',
+            "status_code": "success_session"
+        }
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404

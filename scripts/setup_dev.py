@@ -296,12 +296,6 @@ def _venv_python() -> Path:
     return VENV_DIR / "bin" / "python"
 
 
-def _venv_pip() -> Path:
-    if SYSTEM == "Windows":
-        return VENV_DIR / "Scripts" / "pip.exe"
-    return VENV_DIR / "bin" / "pip"
-
-
 def setup_venv() -> bool:
     """Create a Python venv if one does not already exist."""
     _print_header("Step 1: Python virtual environment")
@@ -338,7 +332,6 @@ def install_python_deps() -> bool:
         _print_fail("requirements.txt not found", str(REQUIREMENTS))
         return False
 
-    pip = str(_venv_pip())
     python = str(_venv_python())
     current_req_hash = _sha256(REQUIREMENTS)
     cached_req_hash = _read_requirements_hash()

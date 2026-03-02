@@ -46,17 +46,8 @@ class Osemosys():
         
         self.osemosysFile = Path(Config.SOLVERs_FOLDER,'model.v.5.4.txt') 
         self.osemosysFileOriginal = Path(Config.SOLVERs_FOLDER,'osemosys.txt')
-        
-        self.glpkFolder = self._resolve_solver_folder(
-            env_var="SOLVER_GLPK_PATH",
-            binary_name="glpsol",
-            bundled_path=Path(Config.SOLVERs_FOLDER, "GLPK"),
-        )
-        self.cbcFolder = self._resolve_solver_folder(
-            env_var="SOLVER_CBC_PATH",
-            binary_name="cbc",
-            bundled_path=Path(Config.SOLVERs_FOLDER, "COIN-OR"),
-        )
+        self._glpkFolder = None
+        self._cbcFolder = None
 
         self.resultsPath = Path(Config.DATA_STORAGE,case,'res')
         self.viewFolderPath = Path(Config.DATA_STORAGE,case,'view')
@@ -84,6 +75,26 @@ class Osemosys():
             for de in l:
                 a.append(de['name'])
         self.VARS = a
+
+    @property
+    def glpkFolder(self):
+        if self._glpkFolder is None:
+            self._glpkFolder = self._resolve_solver_folder(
+                env_var="SOLVER_GLPK_PATH",
+                binary_name="glpsol",
+                bundled_path=Path(Config.SOLVERs_FOLDER, "GLPK"),
+            )
+        return self._glpkFolder
+
+    @property
+    def cbcFolder(self):
+        if self._cbcFolder is None:
+            self._cbcFolder = self._resolve_solver_folder(
+                env_var="SOLVER_CBC_PATH",
+                binary_name="cbc",
+                bundled_path=Path(Config.SOLVERs_FOLDER, "COIN-OR"),
+            )
+        return self._cbcFolder
 
     @staticmethod
     def _solver_binary_names(binary_name: str):
@@ -124,8 +135,8 @@ class Osemosys():
         2. System PATH via shutil.which
         3. Bundled binary folder inside SOLVERs_FOLDER
 
-        Raises RuntimeError at startup if no solver can be located,
-        instead of silently storing a wrong path and failing mid-run.
+        Raises RuntimeError when resolution is attempted and no solver can be
+        located, instead of silently storing a wrong path and failing mid-run.
         """
         env_val = os.environ.get(env_var, "").strip().strip("\"'")
         if env_val:

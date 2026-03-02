@@ -105,11 +105,13 @@ def getSession():
 def setSession():
     try:
         cs = request.json['case']
-        #session.permanent= True
+        from pathlib import Path
+        if not Path(Config.DATA_STORAGE, cs).is_dir():
+            return jsonify({'message': 'Case not found.', 'status_code': 'error'}), 404
         session['osycase'] = cs
         response = {"osycase": session['osycase']}
         return jsonify(response), 200
-    except( KeyError ):
+    except KeyError:
         return jsonify('No selected parameters!'), 404
 
 
