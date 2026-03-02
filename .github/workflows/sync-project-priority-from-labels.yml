@@ -1,0 +1,65 @@
+name: Sync Project Priority From Labels
+
+on:
+  issues:
+    types:
+      - labeled
+      - unlabeled
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue number to sync
+        required: true
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  # Queue per issue so rapid label changes on one issue are processed in order
+  # and never canceled by updates on other issues.
+  group: sync-project-priority-from-labels-${{ github.repository }}-${{ github.event.issue.number || inputs.issue_number || 'manual' }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.event.label.name, 'Priority:')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate token
+        env:
+          MUIOGO_RW_TOKEN: ${{ secrets.MUIOGO_RW_TOKEN }}
+        run: |
+          if [ -z "$MUIOGO_RW_TOKEN" ]; then
+            echo "Missing secret MUIOGO_RW_TOKEN (needs issues/projects read-write)." >&2
+            exit 1
+          fi
+
+      - name: Sync project priority for triggering issue
+        if: github.event_name == 'issues'
+        env:
+          GITHUB_TOKEN: ${{ secrets.MUIOGO_RW_TOKEN }}
+          PRIORITY_FIELD_NAME: Priority
+          DRY_RUN: "false"
+        run: |
+          bash scripts/sync_project_priority_from_issue_labels.sh \
+            "${{ github.repository }}" \
+            "Project Management" \
+            "${{ github.event.issue.number }}"
+
+      - name: Sync project priority for manual issue number
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.MUIOGO_RW_TOKEN }}
+          PRIORITY_FIELD_NAME: Priority
+          DRY_RUN: "false"
+        run: |
+          bash scripts/sync_project_priority_from_issue_labels.sh \
+            "${{ github.repository }}" \
+            "Project Management" \
+            "${{ inputs.issue_number }}"
