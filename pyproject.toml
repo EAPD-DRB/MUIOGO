@@ -1,0 +1,67 @@
+[project]
+name = "muiogo"
+version = "0.1.0"
+description = "Modelling User Interface for OG-Core and OSeMOSYS"
+requires-python = ">=3.10"
+
+# ---------------------------------------------------------------------------
+# Ruff – fast Python linter & formatter
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+# Lint the main source directories; ignore vendored / generated files
+include = ["API/**/*.py", "tests/**/*.py"]
+
+[tool.ruff.lint]
+# Start with a practical, non-disruptive rule set.
+# E  = pycodestyle errors
+# F  = pyflakes
+# I  = isort (import order)
+# UP = pyupgrade (modernise syntax)
+select = ["E", "F", "I", "UP"]
+# Ignore rules that conflict with the existing codebase to keep the first
+# CI run green.  These can be tightened over time.
+ignore = [
+    "E401",   # multiple-imports-on-one-line — fix in style cleanup PR
+    "E501",   # line-too-long — enforced by formatter instead
+    "E402",   # module-level import not at top of file
+    "E711",   # none-comparison (== None vs is None)
+    "E712",   # true-false-comparison
+    "E741",   # ambiguous-variable-name
+    "F401",   # imported but unused — many __init__.py re-exports
+    "F601",   # multi-value-repeated-key-literal
+    "F811",   # redefinition of unused name
+    "F841",   # local variable assigned but never used
+    "I001",   # unsorted-imports — enable after bulk reformatting
+    "UP015",  # redundant-open-modes
+    "UP024",  # os-error-alias (IOError → OSError) — 179 hits, fix in bulk later
+    "UP030",  # format-literals
+    "UP031",  # printf-string-formatting
+    "UP032",  # f-string — 57 hits, fix in bulk later
+    "UP039",  # unnecessary-class-parentheses
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]   # re-exports are intentional in __init__ files
+"API/Classes/Case/DataFileClass.py" = ["F821"]  # 45 undefined-name hits from complex control flow; fix in dedicated cleanup
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+# ---------------------------------------------------------------------------
+# coverage
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["API"]
+omit = ["tests/*", "API/WebAPP/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 0
