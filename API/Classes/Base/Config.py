@@ -83,7 +83,6 @@ DEFAULT_F ={
     "RTSM": 'default_RTSM' ,   
     "RYTE" : 'default_RYTE',  
     "RYTEM": 'default_RYTEM' , 
-    "RYTM" : 'default_RYTM',     
     "RYTTs": 'default_RYTTs',     
     "RYCTs": 'default_RYCTs'
 }
@@ -109,7 +108,6 @@ UPDATE_F ={
     "RTSM": 'update_RTSM' ,   
     "RYTE" : 'update_RYTE',  
     "RYTEM": 'update_RYTEM' , 
-    "RYTM" : 'update_RYTM',     
     "RYTTs": 'update_RYTTs',     
     "RYCTs": 'update_RYCTs'
 }
@@ -135,7 +133,6 @@ GEN_F ={
     "RTSM": 'gen_RTSM' ,  
     "RYTE" : 'gen_RYTE',  
     "RYTEM": 'gen_RYTEM' , 
-    "RYTM" : 'gen_RYTM',     
     "RYTTs": 'gen_RYTTs',     
     "RYCTs": 'gen_RYCTs'
 }
