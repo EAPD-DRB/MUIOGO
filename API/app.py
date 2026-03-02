@@ -50,10 +50,11 @@ try:
 except (OSError, PermissionError):
     logging.getLogger(__name__).critical(
         "Cannot initialise data-storage directory: %s. "
-        "The application will start but file operations may fail.",
+        "Aborting startup — file operations would fail at runtime.",
         Config.DATA_STORAGE,
         exc_info=True,
     )
+    raise
 
 app = Flask(__name__, static_url_path='', static_folder=static_dir,  template_folder=template_dir)
 
