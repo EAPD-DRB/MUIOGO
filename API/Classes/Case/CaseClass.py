@@ -1,11 +1,12 @@
 from pathlib import Path
 from Classes.Base import Config
 from Classes.Base.FileClass import File
+from API.Classes.Base.SchemaRegistry import SchemaRegistry  
 
 class Case:
     def __init__(self, case, genData):
         self.case = case
-        self.PARAMETERS = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
+        self.PARAMETERS = SchemaRegistry.instance()._raw 
         self.genData =  genData
         self.jsonPath = {}
         for group, array in self.PARAMETERS.items():
@@ -610,12 +611,15 @@ class Case:
             raise
 
     def createCase(self):
-        try:
-            for group, array in self.PARAMETERS.items():
-                if array:
-                    func_name = Config.DEFAULT_F[group]
-                    func = getattr(self,func_name) 
-                    func() 
+        try: 
+            registry = SchemaRegistry.instance().bind_to_class(self.__class__)
             
-        except(IOError):
+            for group, array in self.PARAMETERS.items():
+                if array: 
+                    data = registry.dispatch_default(self, group) 
+                    if isinstance(data, dict):
+                        File.writeFile(data, self.jsonPath[group])
+            
+        except Exception as e:
+            print(f"Error creating case at group {group}: {str(e)}")
             raise
