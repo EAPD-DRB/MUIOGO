@@ -11,6 +11,15 @@ class UpdateCase(Osemosys):
         Osemosys.__init__(self, case)
         self.genDataUpdate = genData
         self.case = case
+        # OsemosysClass does not define jsonPath; build it here from the same
+        # root so updateCase() and the individual update_* methods hit the
+        # same files.  Pattern mirrors CaseClass.__init__.
+        from Classes.Base import Config
+        from pathlib import Path
+        self.jsonPath = {
+            group: Path(Config.DATA_STORAGE, case, group + ".json")
+            for group in self.PARAMETERS
+        }
 
     # -------------------------------------------------------------------------
     # Core engine
@@ -223,16 +232,46 @@ class UpdateCase(Osemosys):
         )
 
     def update_RTSM(self):
-        mo = int(self.genDataUpdate["osy-mo"]) + 1
-        self._execute_unified_update(
-            "RTSM", "rtsmPath", "RTSM",
-            optional_file = True,
-            item_filter   = lambda item, pid: bool(item.get(pid)),
-            item_expander = lambda item, pid: [
-                {"TechId": item[pid], "MoId": m}
-                for m in range(1, mo)
-            ],
-        )
+        # RTSM has NO year axis — chunk key is 'Value', not year columns.
+        # Structure: StgId × TechId × MoId → {'StgId', 'TechId', 'MoId', 'Value'}
+        # ParameterIterator always produces year-keyed chunks so it cannot be
+        # used here; this method preserves the original logic exactly.
+        try:
+            if not os.path.isfile(self.rtsmPath):
+                Case(self.case, self.genDataUpdate).default_RTSM()
+                return
+
+            source    = self.RTSM(File.readFile(self.rtsmPath))
+            stgs      = self.genDataUpdate["osy-stg"]
+            scenarios = self.genDataUpdate["osy-scenarios"]
+            mo        = int(self.genDataUpdate["osy-mo"]) + 1
+
+            result = {}
+            for param in self.PARAMETERS["RTSM"]:
+                pid = param["id"]
+                result[pid] = {}
+                for sc in scenarios:
+                    sc_id  = sc["ScenarioId"]
+                    chunks = []
+                    for stg in stgs:
+                        tech = stg.get(pid)
+                        if not tech:
+                            continue
+                        for m in range(1, mo):
+                            chunk = {"StgId": stg["StgId"], "TechId": tech, "MoId": m}
+                            if self.keys_exists(source, pid, sc_id, stg["StgId"], tech, m):
+                                chunk["Value"] = source[pid][sc_id][stg["StgId"]][tech][m]
+                            elif sc_id == "SC_0":
+                                chunk["Value"] = param["default"]
+                            else:
+                                chunk["Value"] = None
+                            chunks.append(chunk)
+                    result[pid][sc_id] = chunks
+
+            File.writeFile(result, self.rtsmPath)
+
+        except IOError:
+            raise IOError
 
     def update_RYTSM(self):
         mo = int(self.genDataUpdate["osy-mo"]) + 1
@@ -265,6 +304,12 @@ class UpdateCase(Osemosys):
             registry = SchemaRegistry.instance().bind_to_class(self.__class__)
             for group, array in self.PARAMETERS.items():
                 if array:
+                    # self.jsonPath[group] and self.*Path are always identical
+                    # (both resolve to DATA_STORAGE/case/GROUP.json) but
+                    # self.jsonPath is the only dict-style accessor available
+                    # on UpdateCase, so we use it for the iterator path.
+                    # Legacy update_* methods manage their own paths internally
+                    # and return None, so the write below is skipped for them.
                     path = self.jsonPath[group]
                     existing_data = File.readFile(path) if os.path.exists(path) else None
                     data = registry.dispatch_update(self, group, existing_data=existing_data)
