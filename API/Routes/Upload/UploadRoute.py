@@ -41,12 +41,13 @@ def download_dir(prefix, local, bucket, client):
             kwargs.update({'ContinuationToken': next_token})
         results = client.list_objects_v2(**kwargs)
         contents = results.get('Contents')
-        for i in contents:
-            k = i.get('Key')
-            if k[-1] != '/':
-                keys.append(k)
-            else:
-                dirs.append(k)
+        if contents:
+            for i in contents:
+                k = i.get('Key')
+                if k and not k.endswith('/'):
+                    keys.append(k)
+                else:
+                    dirs.append(k)
         next_token = results.get('NextContinuationToken')
     for d in dirs:
         dest_pathname = os.path.join(local, d)

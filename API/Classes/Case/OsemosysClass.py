@@ -66,7 +66,7 @@ class Osemosys():
         for k, l in self.PARAMETERS.items():
             tmp = {}
             for de in l:
-                tmp[de['id']] = de['value'].replace(" ", "")
+                tmp[de['id']] = (de['value'] or "").replace(" ", "")
             d[k] = tmp
         self.PARAM = d
 

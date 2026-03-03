@@ -613,9 +613,9 @@ class Case:
         try:
             for group, array in self.PARAMETERS.items():
                 if array:
-                    func_name = Config.DEFAULT_F[group]
-                    func = getattr(self,func_name) 
-                    func() 
+                    func_name = f"default_{group}"
+                    func = getattr(self, func_name)
+                    func()
             
         except(IOError):
             raise
