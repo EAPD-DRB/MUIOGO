@@ -1,0 +1,3 @@
+# API/Config/version.py
+
+CURRENT_MODEL_VERSION = "UNVERSIONED/CURRENT"

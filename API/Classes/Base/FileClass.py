@@ -1,5 +1,6 @@
 #import ujson as json
 import json
+from API.Config.version import CURRENT_MODEL_VERSION
 
 class File:
     @staticmethod
@@ -18,7 +19,11 @@ class File:
     @staticmethod
     def writeFile(data, path):
         try:
-            with open(path, mode="w") as f:
+            with open(path, "w") as f:
+                # Inject version at save time
+                if isinstance(data, dict):
+                    data["modelVersion"] = CURRENT_MODEL_VERSION
+
                 f.write(json.dumps(data, ensure_ascii=True, indent=4, sort_keys=False))
         except (IOError, IndexError):
             raise IndexError
