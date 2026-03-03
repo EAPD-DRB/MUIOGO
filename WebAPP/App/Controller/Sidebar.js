@@ -1,26 +1,15 @@
 import { GROUPNAMES, PARAMORDER, PARAMCOLORS, RESULTPARAMORDER, RESULTPARAMCOLORS, RESULTGROUPNAMES } from "../../Classes/Const.Class.js";
+import { getModelRegistry } from "../../Classes/ModelRegistry.js";
 import { Model } from "../Model/Sidebar.Model.js";
 import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { Message } from "../../Classes/Message.Class.js";
 
 export class Sidebar {
-    /** Cached model registry */
-    static _registry = null;
-
-    /**
-     * Fetch the model registry (caches on first call).
-     */
-    static getModelRegistry() {
-        if (this._registry) return Promise.resolve(this._registry);
-        return fetch('DataStorage/ModelRegistry.json')
-            .then(r => r.json())
-            .then(registry => { this._registry = registry; return registry; });
-    }
 
     static Reload(casename) {
         // Load registry alongside case data
         Promise.all([
-            this.getModelRegistry(),
+            getModelRegistry(),
             Osemosys.getData(casename, 'genData.json')
         ])
         .then(([registry, genData]) => {
@@ -79,9 +68,8 @@ export class Sidebar {
             const groupOrder = (cfg && cfg.sidebarGroups) ? cfg.sidebarGroups : PARAMORDER;
 
             $.each(groupOrder, function (id, group) {
+                if (!Array.isArray(model.PARAMETERS[group]) || model.PARAMETERS[group].length === 0) return true;
                 $.each(model.PARAMETERS[group], function (id, obj) {
-                    //da li ima parametara definisanih za grupu
-                    if (model.PARAMETERS[group] !== undefined || model.PARAMETERS[group].length != 0) {
                         if (obj.menu) {
                             // console.log('obj.id ', obj.id)
                             if (obj.id == 'IAR' && model.menuCondition.IAR) {
@@ -209,7 +197,6 @@ export class Sidebar {
                             }
 
                         }
-                    }
                 });
             });
         } 

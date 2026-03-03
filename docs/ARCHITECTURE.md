@@ -45,7 +45,8 @@ for supported model types (e.g. OSeMOSYS, OG-Core).  Each entry declares:
 **How it works:**
 
 1. On startup, `Routes.Class.js` fetches `ModelRegistry.json` and stores the
-   active model type in `localStorage('osy-modelType')`.
+   active model type in `localStorage` under the key `"osy-modelType"` (via
+   `localStorage.setItem('osy-modelType', ...)`).
 2. The navbar contains a **Model type** dropdown that lists all entries in the
    registry. Selecting an entry fires a `modelTypeChanged` custom event.
 3. `Routes.Class.js` listens for `modelTypeChanged`, updates

@@ -1,34 +1,11 @@
 import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { Message } from "../../Classes/Message.Class.js";
 import { Model } from "./Routes.Model.js";
+import { getModelRegistry, getModelConfig } from "../../Classes/ModelRegistry.js";
 
 export class Routes {
     /** Currently active model-type key (e.g. "osemosys" or "ogcore"). */
     static activeModelType = 'osemosys';
-
-    /** Cached model registry (loaded once from ModelRegistry.json). */
-    static _registry = null;
-
-    /**
-     * Fetch the model registry.  Caches the result so subsequent calls
-     * are free.
-     * @returns {Promise<Object>} the full registry object
-     */
-    static getModelRegistry() {
-        if (this._registry) return Promise.resolve(this._registry);
-        return fetch('DataStorage/ModelRegistry.json')
-            .then(r => r.json())
-            .then(registry => { this._registry = registry; return registry; });
-    }
-
-    /**
-     * Return the registry entry for the currently active model type.
-     * @returns {Object} e.g. { label, paramFile, varFile, sidebarGroups, routes, features }
-     */
-    static getActiveModelConfig() {
-        if (!this._registry) return null;
-        return this._registry[this.activeModelType] || null;
-    }
 
     /**
      * Switch the active model type and reload routes.
@@ -41,14 +18,14 @@ export class Routes {
     }
 
     static Load(casename) {
-        this.getModelRegistry()
+        getModelRegistry()
         .then(registry => {
             // Restore persisted model type (default to osemosys)
             const saved = localStorage.getItem('osy-modelType');
             if (saved && registry[saved]) {
                 this.activeModelType = saved;
             }
-            const cfg = this.getActiveModelConfig();
+            const cfg = getModelConfig(this.activeModelType);
             const paramFile = cfg ? cfg.paramFile : 'Parameters.json';
             const varFile   = cfg ? cfg.varFile   : 'Variables.json';
             return Promise.all([
@@ -126,7 +103,7 @@ export class Routes {
             });
         });
         //dynamic routes – generated from the active model's registry config
-        const cfg = this.getActiveModelConfig();
+        const cfg = getModelConfig(this.activeModelType);
         function addAppRoute(group, id){
             return crossroads.addRoute(`/${group}/${id}`, function() {
                 $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
