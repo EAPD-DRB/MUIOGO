@@ -1,6 +1,7 @@
 #import ujson as json
 import json
 from API.Config.version import CURRENT_MODEL_VERSION
+from API.Classes.Base.model_version_validator import validate_model_version
 
 class File:
     @staticmethod
@@ -8,7 +9,12 @@ class File:
         try:
             with open(path, mode="r") as f:
                 data = json.loads(f.read())
+
+            # PR2: Enforce schema validation at load time
+            validate_model_version(data)
+
             return data
+
         except IndexError:
             raise IndexError
         except IOError:
@@ -25,8 +31,10 @@ class File:
                     data["modelVersion"] = CURRENT_MODEL_VERSION
 
                 f.write(json.dumps(data, ensure_ascii=True, indent=4, sort_keys=False))
-        except (IOError, IndexError):
+        except IndexError:
             raise IndexError
+        except IOError:
+            raise IOError
         except OSError:
             raise OSError
 
@@ -35,8 +43,10 @@ class File:
         try:
             with open(path, mode="w") as f:
                 f.write(json.dumps(data))
-        except (IOError, IndexError):
+        except IndexError:
             raise IndexError
+        except IOError:
+            raise IOError
         except OSError:
             raise OSError
 

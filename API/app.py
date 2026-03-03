@@ -15,7 +15,7 @@ from Routes.Case.CaseRoute import case_api
 from Routes.Case.SyncS3Route import syncs3_api
 from Routes.Case.ViewDataRoute import viewdata_api
 from Routes.DataFile.DataFileRoute import datafile_api
-
+from API.Classes.Base.version_exceptions import VersionMismatchException
 #RADI
 # -------------------------
 # FIX: Make template/static paths independent of cwd
@@ -76,6 +76,16 @@ def add_headers(response):
 #     response.status_code = error.status_code
 #     return response
 
+@app.errorhandler(VersionMismatchException)
+def version_mismatch_handler(error):
+    response = jsonify({
+        "error": "MODEL_VERSION_MISMATCH",
+        "expected_version": error.expected,
+        "detected_version": error.detected,
+        "message": "Stored model version is incompatible with this application version."
+    })
+    response.status_code = 400
+    return response
 #entry point to frontend
 @app.route("/", methods=['GET'])
 def home():
