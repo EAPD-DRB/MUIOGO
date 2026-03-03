@@ -1,0 +1,61 @@
+{
+    "osemosys": {
+        "label": "CLEWS/OSeMOSYS",
+        "paramFile": "Parameters.json",
+        "varFile": "Variables.json",
+        "sidebarGroups": [
+            "R", "RT", "RY", "RE", "RYCn", "RYTCn", "RYTs", "RYDtb",
+            "RYSeDt", "RYT", "RYTM", "RYTC", "RYTCM", "RS", "RYS",
+            "RTSM", "RYTTs", "RYC", "RYCTs", "RYE", "RYTEM"
+        ],
+        "routes": {
+            "RYT": { "controller": "RYT", "view": "RYT" },
+            "RYTM": { "controller": "RYTM", "view": "RYTM" },
+            "RYTC": { "controller": "RYTC", "view": "RYTC" },
+            "RYTCM": { "controller": "RYTCM", "view": "RYTCM" },
+            "R": { "controller": "R", "view": "R" },
+            "RT": { "controller": "RT", "view": "RT" },
+            "RY": { "controller": "RY", "view": "RY" },
+            "RE": { "controller": "RE", "view": "RE" },
+            "RYCn": { "controller": "RYCn", "view": "RYCn" },
+            "RYTCn": { "controller": "RYTCn", "view": "RYTCn" },
+            "RYTs": { "controller": "RYTs", "view": "RYTs" },
+            "RYDtb": { "controller": "RYDtb", "view": "RYDtb" },
+            "RYSeDt": { "controller": "RYSeDt", "view": "RYSeDt" },
+            "RS": { "controller": "RS", "view": "RS" },
+            "RYS": { "controller": "RYS", "view": "RYS" },
+            "RTSM": { "controller": "RTSM", "view": "RTSM" },
+            "RYTTs": { "controller": "RYTTs", "view": "RYTTs" },
+            "RYC": { "controller": "RYC", "view": "RYC" },
+            "RYCTs": { "controller": "RYCTs", "view": "RYCTs" },
+            "RYE": { "controller": "RYE", "view": "RYE" },
+            "RYTEM": { "controller": "RYTEM", "view": "RYTEM" }
+        },
+        "features": {
+            "resViewer": true,
+            "resViewerMermaid": true,
+            "pivot": true,
+            "legacyImport": true
+        }
+    },
+    "ogcore": {
+        "label": "OG-Core",
+        "paramFile": "OGParameters.json",
+        "varFile": "OGVariables.json",
+        "sidebarGroups": [
+            "demographics", "fiscal", "industry", "calibration"
+        ],
+        "routes": {
+            "demographics": { "controller": "demographics", "view": "demographics" },
+            "fiscal": { "controller": "fiscal", "view": "fiscal" },
+            "industry": { "controller": "industry", "view": "industry" },
+            "calibration": { "controller": "calibration", "view": "calibration" }
+        },
+        "features": {
+            "resViewer": false,
+            "resViewerMermaid": false,
+            "pivot": true,
+            "legacyImport": false
+        }
+    }
+}

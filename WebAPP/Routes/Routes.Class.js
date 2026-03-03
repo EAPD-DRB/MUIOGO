@@ -3,18 +3,61 @@ import { Message } from "../../Classes/Message.Class.js";
 import { Model } from "./Routes.Model.js";
 
 export class Routes {
+    /** Currently active model-type key (e.g. "osemosys" or "ogcore"). */
+    static activeModelType = 'osemosys';
+
+    /** Cached model registry (loaded once from ModelRegistry.json). */
+    static _registry = null;
+
+    /**
+     * Fetch the model registry.  Caches the result so subsequent calls
+     * are free.
+     * @returns {Promise<Object>} the full registry object
+     */
+    static getModelRegistry() {
+        if (this._registry) return Promise.resolve(this._registry);
+        return fetch('DataStorage/ModelRegistry.json')
+            .then(r => r.json())
+            .then(registry => { this._registry = registry; return registry; });
+    }
+
+    /**
+     * Return the registry entry for the currently active model type.
+     * @returns {Object} e.g. { label, paramFile, varFile, sidebarGroups, routes, features }
+     */
+    static getActiveModelConfig() {
+        if (!this._registry) return null;
+        return this._registry[this.activeModelType] || null;
+    }
+
+    /**
+     * Switch the active model type and reload routes.
+     * @param {string} modelType – key in ModelRegistry.json (e.g. "osemosys")
+     */
+    static switchModelType(modelType) {
+        this.activeModelType = modelType;
+        localStorage.setItem('osy-modelType', modelType);
+        this.Load();
+    }
+
     static Load(casename) {
-        Osemosys.getParamFile()
-        .then(PARAMETERS => {
-            const promise = [];
-            promise.push(PARAMETERS);
-            const VARIABLES = Osemosys.getParamFile('Variables.json');
-            promise.push(VARIABLES);
-            return Promise.all(promise);
+        this.getModelRegistry()
+        .then(registry => {
+            // Restore persisted model type (default to osemosys)
+            const saved = localStorage.getItem('osy-modelType');
+            if (saved && registry[saved]) {
+                this.activeModelType = saved;
+            }
+            const cfg = this.getActiveModelConfig();
+            const paramFile = cfg ? cfg.paramFile : 'Parameters.json';
+            const varFile   = cfg ? cfg.varFile   : 'Variables.json';
+            return Promise.all([
+                Osemosys.getParamFile(paramFile),
+                Osemosys.getParamFile(varFile)
+            ]);
         })
-        .then(data => {
-            let [PARAMETERS, VARIABLES] = data;
-            let model = new Model(PARAMETERS,VARIABLES);
+        .then(([PARAMETERS, VARIABLES]) => {
+            let model = new Model(PARAMETERS, VARIABLES);
             this.getRoutes(model);
         })
         .catch(error => {
@@ -82,7 +125,8 @@ export class Routes {
                 });
             });
         });
-        //dynamic routes
+        //dynamic routes – generated from the active model's registry config
+        const cfg = this.getActiveModelConfig();
         function addAppRoute(group, id){
             return crossroads.addRoute(`/${group}/${id}`, function() {
                 $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
@@ -95,11 +139,24 @@ export class Routes {
                 });
             });
         }
-        $.each(model.PARAMETERS, function (param, array) {                    
-            $.each(array, function (id, obj) {
-                addAppRoute(param, obj.id)
+
+        if (cfg && cfg.sidebarGroups) {
+            // Use registry sidebarGroups to drive route generation
+            $.each(cfg.sidebarGroups, function (idx, group) {
+                if (model.PARAMETERS[group]) {
+                    $.each(model.PARAMETERS[group], function (id, obj) {
+                        addAppRoute(group, obj.id);
+                    });
+                }
             });
-        });
+        } else {
+            // Fallback: iterate all parameter groups from the model
+            $.each(model.PARAMETERS, function (param, array) {                    
+                $.each(array, function (id, obj) {
+                    addAppRoute(param, obj.id);
+                });
+            });
+        }
         crossroads.addRoute('/DataFile', function() {
             $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
             import('../App/Controller/DataFile.js')
@@ -167,5 +224,9 @@ export class Routes {
 
 Routes.Load();
 
-
-
+// Listen for model-type changes from the navbar switcher
+window.addEventListener('modelTypeChanged', function(e) {
+    if (e.detail && e.detail.modelType) {
+        Routes.switchModelType(e.detail.modelType);
+    }
+});

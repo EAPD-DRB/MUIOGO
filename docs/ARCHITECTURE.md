@@ -28,6 +28,38 @@ Solver execution is handled by backend subprocess calls (GLPK/CBC).
   - `WebAPP/Classes/`
   - `WebAPP/Routes/`
 
+### Model registry (model-agnostic navigation)
+
+The file `WebAPP/DataStorage/ModelRegistry.json` is the single source of truth
+for supported model types (e.g. OSeMOSYS, OG-Core).  Each entry declares:
+
+| Key              | Purpose                                           |
+|------------------|---------------------------------------------------|
+| `label`          | Human-readable name shown in the UI               |
+| `paramFile`      | Parameter definition JSON (e.g. `Parameters.json`)|
+| `varFile`        | Variable definition JSON (e.g. `Variables.json`)  |
+| `sidebarGroups`  | Ordered list of parameter groups for the sidebar  |
+| `routes`         | Map of group → controller/view pair               |
+| `features`       | Feature flags (RES viewer, pivot, legacy import)  |
+
+**How it works:**
+
+1. On startup, `Routes.Class.js` fetches `ModelRegistry.json` and stores the
+   active model type in `localStorage('osy-modelType')`.
+2. The navbar contains a **Model type** dropdown that lists all entries in the
+   registry. Selecting an entry fires a `modelTypeChanged` custom event.
+3. `Routes.Class.js` listens for `modelTypeChanged`, updates
+   `Routes.activeModelType`, and re-generates crossroads routes using the
+   `sidebarGroups` from the selected model's config.
+4. `Sidebar.js` uses the same registry config to determine which parameter
+   groups to render in the Data entry menu, falling back to the existing
+   `PARAMORDER` constant when no registry config is present.
+5. The backend exposes `GET /getModelRegistry` so the registry can also be
+   consumed programmatically.
+
+Adding a new model type requires only adding a new key to
+`ModelRegistry.json`—no JavaScript changes are needed for navigation.
+
 ### Runtime data and outputs
 
 - `WebAPP/DataStorage/Parameters.json`

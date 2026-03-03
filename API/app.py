@@ -90,6 +90,22 @@ def home():
     return render_template('index.html')
 
 
+@app.route("/getModelRegistry", methods=['GET'])
+def getModelRegistry():
+    """Return the model registry JSON so the frontend can build
+    model-agnostic navigation and routes."""
+    import json
+    registry_path = WEBAPP_PATH / "DataStorage" / "ModelRegistry.json"
+    try:
+        with open(registry_path, 'r', encoding='utf-8') as f:
+            registry = json.load(f)
+        return jsonify(registry), 200
+    except FileNotFoundError:
+        return jsonify({"error": "ModelRegistry.json not found"}), 404
+    except json.JSONDecodeError as e:
+        return jsonify({"error": f"Invalid JSON in ModelRegistry.json: {str(e)}"}), 500
+
+
 @app.route("/getSession", methods=['GET'])
 def getSession():
     try:

@@ -134,7 +134,31 @@
 		<div id="modals"></div>
 		
 		<script> $("aside").load("App/View/Sidebar.html"); </script>
-        <script> $("header").load("App/View/Navbar.html"); </script>
+        <script> $("header").load("App/View/Navbar.html", function() {
+			// Populate model-type switcher from ModelRegistry.json
+			$.getJSON('DataStorage/ModelRegistry.json', function(registry) {
+				var $picker = $('#modelTypePicker');
+				var saved = localStorage.getItem('osy-modelType') || 'osemosys';
+				$.each(registry, function(key, cfg) {
+					var active = (key === saved) ? ' class="active"' : '';
+					$picker.append('<li' + active + '><a href="#" data-model-type="' + key + '">' + cfg.label + '</a></li>');
+				});
+				// Set label to saved model type
+				if (registry[saved]) {
+					$('#modelTypeSwitcherLabel').html(registry[saved].label + ' <i class="fa fa-angle-down"></i>');
+				}
+				// Bind click
+				$picker.on('click', 'a[data-model-type]', function(e) {
+					e.preventDefault();
+					var modelType = $(this).data('model-type');
+					$('#modelTypeSwitcherLabel').html(registry[modelType].label + ' <i class="fa fa-angle-down"></i>');
+					$picker.find('li').removeClass('active');
+					$(this).parent().addClass('active');
+					// Dispatch a custom event so Routes and Sidebar can react
+					window.dispatchEvent(new CustomEvent('modelTypeChanged', { detail: { modelType: modelType, config: registry[modelType] } }));
+				});
+			});
+		}); </script>
 
 		<!--ROUTES-->
 		<script type="module" src="{{ url_for('static', filename='Routes/Routes.Class.js') }}"></script>

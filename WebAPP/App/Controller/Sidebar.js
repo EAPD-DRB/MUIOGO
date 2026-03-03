@@ -4,23 +4,42 @@ import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { Message } from "../../Classes/Message.Class.js";
 
 export class Sidebar {
+    /** Cached model registry */
+    static _registry = null;
+
+    /**
+     * Fetch the model registry (caches on first call).
+     */
+    static getModelRegistry() {
+        if (this._registry) return Promise.resolve(this._registry);
+        return fetch('DataStorage/ModelRegistry.json')
+            .then(r => r.json())
+            .then(registry => { this._registry = registry; return registry; });
+    }
+
     static Reload(casename) {
-        Osemosys.getData(casename, 'genData.json')
-        .then(genData => {
-            const promise = [];
-            promise.push(genData);
-            const PARAMETERS = Osemosys.getParamFile();
-            promise.push(PARAMETERS);
-            const VARIABLES = Osemosys.getParamFile('Variables.json');
-            promise.push(VARIABLES);
-            const RESULTEXISTS = Osemosys.resultsExists(casename);
-            promise.push(RESULTEXISTS);
-            return Promise.all(promise);
+        // Load registry alongside case data
+        Promise.all([
+            this.getModelRegistry(),
+            Osemosys.getData(casename, 'genData.json')
+        ])
+        .then(([registry, genData]) => {
+            const modelType = localStorage.getItem('osy-modelType') || 'osemosys';
+            const cfg = registry[modelType] || registry['osemosys'];
+            const paramFile = cfg ? cfg.paramFile : 'Parameters.json';
+            const varFile   = cfg ? cfg.varFile   : 'Variables.json';
+
+            return Promise.all([
+                genData,
+                Osemosys.getParamFile(paramFile),
+                Osemosys.getParamFile(varFile),
+                Osemosys.resultsExists(casename),
+                cfg
+            ]);
         })
-        .then(data => {
-            let [genData, PARAMETERS, VARIABLES, RESULTEXISTS] = data;
-            let model = new Model(PARAMETERS,VARIABLES, genData, RESULTEXISTS);
-            this.initAppRoutes(model);
+        .then(([genData, PARAMETERS, VARIABLES, RESULTEXISTS, cfg]) => {
+            let model = new Model(PARAMETERS, VARIABLES, genData, RESULTEXISTS);
+            this.initAppRoutes(model, cfg);
             this.initEvents();
         })
         .catch(error => {
@@ -28,7 +47,7 @@ export class Sidebar {
         });
     }
 
-    static initAppRoutes(model) {
+    static initAppRoutes(model, cfg) {
         $('#dynamicRoutes').empty();
         $('.dynamicRoutesLink').hide();
         $('.dynamicRoutesRES').hide();
@@ -56,7 +75,10 @@ export class Sidebar {
 
             //console.log('model sidebar ', model)
 
-            $.each(PARAMORDER, function (id, group) {
+            // Use registry sidebarGroups when available, fallback to PARAMORDER
+            const groupOrder = (cfg && cfg.sidebarGroups) ? cfg.sidebarGroups : PARAMORDER;
+
+            $.each(groupOrder, function (id, group) {
                 $.each(model.PARAMETERS[group], function (id, obj) {
                     //da li ima parametara definisanih za grupu
                     if (model.PARAMETERS[group] !== undefined || model.PARAMETERS[group].length != 0) {
