@@ -39,17 +39,16 @@
         }
     },
     "ogcore": {
-        "label": "OG-Core",
+        "label": "OG-Core Macroeconomy",
         "paramFile": "OGParameters.json",
         "varFile": "OGVariables.json",
         "sidebarGroups": [
-            "demographics", "fiscal", "industry", "calibration"
+            "demographics", "fiscal_policy", "calibration"
         ],
         "routes": {
-            "demographics": { "controller": "demographics", "view": "demographics" },
-            "fiscal": { "controller": "fiscal", "view": "fiscal" },
-            "industry": { "controller": "industry", "view": "industry" },
-            "calibration": { "controller": "calibration", "view": "calibration" }
+            "demographics": { "controller": "Demographics", "view": "Demographics" },
+            "fiscal_policy": { "controller": "FiscalPolicy", "view": "FiscalPolicy" },
+            "calibration": { "controller": "Calibration", "view": "Calibration" }
         },
         "features": {
             "resViewer": false,
