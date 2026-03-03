@@ -5,7 +5,7 @@ class File:
     def readFile(path):
         try:
             with open(path, mode="r") as f:
-                data = json.loads(f.read())
+                data = json.load(f)
             return data
         except IndexError:
             raise IndexError
@@ -38,7 +38,7 @@ class File:
     def readParamFile(path):
         try:
             with open(path, mode="r") as f:
-                data = json.loads(f.read())
+                data = json.load(f)
             return data
         except IndexError:
             raise IndexError
