@@ -1,0 +1,24 @@
+[tool.ruff]
+target-version = "py311"
+
+# Exclude vendored third-party assets and generated data directories
+exclude = [
+    "WebAPP/References",
+    "WebAPP/DataStorage",
+    "assets",
+    "docs",
+    ".venv",
+]
+
+[tool.ruff.lint]
+# E9  — syntax errors (SyntaxError, IndentationError)
+# F   — Pyflakes (imports, undefined names, etc.)
+# Only these two categories are enforced now.
+# E501, style rules, and import ordering are deferred until legacy code is cleaned up.
+select = ["E9", "F"]
+
+# Pre-existing violations in the current codebase, deferred for separate cleanup PRs:
+# F401 — unused imports throughout API/
+# F821 — undefined names (false positives from Flask Blueprint dynamic routing)
+# F841 — unused local variables throughout API/
+ignore = ["F401", "F821", "F841"]
