@@ -69,7 +69,7 @@ class CustomThread(Thread):
         Raises:
             Exception: Re-raises any exception that occurred in the thread.
         """
-        Thread.join(self)
+        Thread.join(self, timeout=timeout)
         if self._exc_info is not None:
             raise self._exc_info[1].with_traceback(self._exc_info[2])
         return self._return

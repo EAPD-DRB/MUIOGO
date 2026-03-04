@@ -185,7 +185,7 @@ def updateTimeslices_OnlyTs(casename: str) -> None:
     RYCTsPath.write_text(RYCTsPath.read_text().replace('Timeslice', 'TsId'))
 ##############################################################Multithreading example#########################3
 class Download(Thread):
-    def __init__(self, request, zippedFile):
+    def __init__(self, request, zippedFile=None):
         Thread.__init__(self)
         self.request = request
         self.zippedFile = zippedFile
@@ -195,8 +195,9 @@ class Download(Thread):
         time.sleep(20)
         #print(self.request)
         #remove zipped file
-        os.remove(self.zippedFile)
-        print("Deletion of zip archive done!")
+        if self.zippedFile is not None:
+            os.remove(self.zippedFile)
+            print("Deletion of zip archive done!")
 
 
 @upload_api.route('/myfunc', methods=["GET", "POST"])

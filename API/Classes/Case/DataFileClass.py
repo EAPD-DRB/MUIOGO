@@ -1004,7 +1004,7 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def cleanUp(self) -> None:
+    def cleanUp(self) -> Dict[str, str]:
         """Remove all case-run results and view JSON files."""
         try:
 
