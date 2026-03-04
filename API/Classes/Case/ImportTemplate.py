@@ -1,4 +1,8 @@
+"""Import external template files into the MUIOGO case structure."""
+
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
 import pandas as pd
 import string, random, json, os.path, time
 
@@ -7,88 +11,126 @@ from Classes.Case.CaseClass import Case
 from Classes.Base.FileClass import File
 
 class ImportTemplate():
-    def __init__(self,template):
-        self.PARAMETERS = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
-        self.VARIABLES = File.readParamFile(Path(Config.DATA_STORAGE, 'Variables.json'))
-        self.TEMPLATE_PATH = Path(Config.DATA_STORAGE, template)
+    """Parse and import an external Excel template into case data.
 
-    def getTechById(self, techs):
-        techNames = {}
+    Attributes:
+        PARAMETERS: Parameter definitions from ``Parameters.json``.
+        VARIABLES: Variable definitions from ``Variables.json``.
+        TEMPLATE_PATH: Resolved path to the template directory.
+    """
+
+    def __init__(self, template: str) -> None:
+        """Initialise an ImportTemplate instance.
+
+        Args:
+            template: Name of the template subdirectory under DataStorage.
+        """
+        self.PARAMETERS: Dict[str, Any] = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
+        self.VARIABLES: Dict[str, Any] = File.readParamFile(Path(Config.DATA_STORAGE, 'Variables.json'))
+        self.TEMPLATE_PATH: Path = Path(Config.DATA_STORAGE, template)
+
+    def getTechById(self, techs: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of technology ID to name."""
+        techNames: Dict[str, str] = {}
         for tech in techs:
             techNames[tech['TechId']] = tech['Tech']
         return techNames
 
-    def getTsById(self, timeslices):
-        tsNames = {}
+    def getTsById(self, timeslices: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of timeslice ID to name."""
+        tsNames: Dict[str, str] = {}
         for ts in timeslices:
             tsNames[ts['TsId']] = ts['Ts']
         return tsNames
 
-    def getTsByName(self, timeslices):
-        tsNames = {}
+    def getTsByName(self, timeslices: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of timeslice name to ID."""
+        tsNames: Dict[str, str] = {}
         for ts in timeslices:
             tsNames[ts['Ts']] = ts['TsId']
         return tsNames
     
-    def getTechGroupById(self, techGroups):
-        techGroupNames = {}
+    def getTechGroupById(self, techGroups: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of tech-group ID to name."""
+        techGroupNames: Dict[str, str] = {}
         for tech in techGroups:
             techGroupNames[tech['TechGroupId']] = tech['TechGroup']
         return techGroupNames
 
-    def getTechGroupByName(self, techGroups):
-        techGroupNames = {}
+    def getTechGroupByName(self, techGroups: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of tech-group name to ID."""
+        techGroupNames: Dict[str, str] = {}
         for tech in techGroups:
             techGroupNames[tech['TechGroup']] = tech['TechGroupId']
         return techGroupNames
 
-    def getCommById(self, comms):
-        commNames = {}
+    def getCommById(self, comms: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of commodity ID to name."""
+        commNames: Dict[str, str] = {}
         for comm in comms:
             commNames[comm['CommId']] = comm['Comm']
         return commNames
 
-    def getTechByName(self, techs):
-        techNames = {}
+    def getTechByName(self, techs: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of technology name to ID."""
+        techNames: Dict[str, str] = {}
         for tech in techs:
             techNames[tech['Tech']] = tech['TechId']
         return techNames
 
-    def getCommByName(self, comms):
-        commNames = {}
+    def getCommByName(self, comms: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of commodity name to ID."""
+        commNames: Dict[str, str] = {}
         for comm in comms:
             commNames[comm['Comm']] = comm['CommId']
         return commNames
 
-    def getEmiById(self, emis):
-        emiNames = {}
+    def getEmiById(self, emis: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of emission ID to name."""
+        emiNames: Dict[str, str] = {}
         for emi in emis:
             emiNames[emi['EmisId']] = emi['Emis']
         return emiNames
 
-    def getEmiByName(self, emis):
-        emiNames = {}
+    def getEmiByName(self, emis: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of emission name to ID."""
+        emiNames: Dict[str, str] = {}
         for emi in emis:
             emiNames[emi['Emis']] = emi['EmisId']
         return emiNames
 
-    def getStgById(self, stgs):
-        stgNames = {}
+    def getStgById(self, stgs: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of storage ID to name."""
+        stgNames: Dict[str, str] = {}
         for stg in stgs:
             stgNames[stg['StgId']] = stg['Stg']
         return stgNames
 
-    def getStgByName(self, stgs):
-        stgNames = {}
+    def getStgByName(self, stgs: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Return mapping of storage name to ID."""
+        stgNames: Dict[str, str] = {}
         for stg in stgs:
             stgNames[stg['Stg']] = stg['StgId']
         return stgNames
 
-    def getId(self, type):
+    def getId(self, type: str) -> str:
+        """Generate a random unique ID with the given type prefix."""
         st = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
         return type+'_'+st
 
-    def defaultTech(self, name, desc="Default technology", capunit="GW", actunit="PJ", first=False ):
+    def defaultTech(self, name: str, desc: str = "Default technology", capunit: str = "GW", actunit: str = "PJ", first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default technology definition.
+
+        Args:
+            name: Technology display name.
+            desc: Human-readable description.
+            capunit: Unit of capacity.
+            actunit: Unit of activity.
+            first: If ``True``, use the canonical ``TEC_0`` ID.
+
+        Returns:
+            Single-element list containing the technology dict.
+        """
         if(first):
             id = 'TEC_0'
         else:
@@ -110,7 +152,17 @@ class ImportTemplate():
         ]
         return defaultObj
 
-    def defaultTechGroup(self, name, desc="Default technology group", first=False):
+    def defaultTechGroup(self, name: str, desc: str = "Default technology group", first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default technology-group definition.
+
+        Args:
+            name: Tech-group display name.
+            desc: Human-readable description.
+            first: If ``True``, use the canonical ``TG_0`` ID.
+
+        Returns:
+            Single-element list containing the tech-group dict.
+        """
         if(first):
             id = 'TG_0'
         else:
@@ -125,7 +177,17 @@ class ImportTemplate():
         ]
         return defaultObj
         
-    def defaultTs(self, name, desc="Default timeslice", first=False):
+    def defaultTs(self, name: str, desc: str = "Default timeslice", first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default timeslice definition.
+
+        Args:
+            name: Timeslice display name.
+            desc: Human-readable description.
+            first: If ``True``, use the canonical ``TS_0`` ID.
+
+        Returns:
+            Single-element list containing the timeslice dict.
+        """
         if(first):
             id = 'TS_0'
         else:
@@ -143,7 +205,17 @@ class ImportTemplate():
         ]
         return defaultTs
     
-    def defaultSe(self, name, desc="Default season", first=False):
+    def defaultSe(self, name: str, desc: str = "Default season", first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default season definition.
+
+        Args:
+            name: Season display name.
+            desc: Human-readable description.
+            first: If ``True``, use the canonical ``SE_0`` ID.
+
+        Returns:
+            Single-element list containing the season dict.
+        """
         if(first):
             id = 'SE_0'
         else:
@@ -158,7 +230,17 @@ class ImportTemplate():
         ]
         return defaultSe
 
-    def defaultDt(self, name, desc="Default day type", first=False):
+    def defaultDt(self, name: str, desc: str = "Default day type", first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default day-type definition.
+
+        Args:
+            name: Day-type display name.
+            desc: Human-readable description.
+            first: If ``True``, use the canonical ``DT_0`` ID.
+
+        Returns:
+            Single-element list containing the day-type dict.
+        """
         if(first):
             id = 'DT_0'
         else:
@@ -173,7 +255,17 @@ class ImportTemplate():
         ]
         return defaultDt
 
-    def defaultDtb(self, name, desc="Default daily time bracket", first=False):
+    def defaultDtb(self, name: str, desc: str = "Default daily time bracket", first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default daily-time-bracket definition.
+
+        Args:
+            name: Daily time bracket display name.
+            desc: Human-readable description.
+            first: If ``True``, use the canonical ``DTB_0`` ID.
+
+        Returns:
+            Single-element list containing the daily-time-bracket dict.
+        """
         if(first):
             id = 'DTB_0'
         else:
@@ -188,7 +280,18 @@ class ImportTemplate():
         ]
         return defaultDtb
      
-    def defaultComm(self, name, desc="Default commodity", unit="PJ", first=False):
+    def defaultComm(self, name: str, desc: str = "Default commodity", unit: str = "PJ", first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default commodity definition.
+
+        Args:
+            name: Commodity display name.
+            desc: Human-readable description.
+            unit: Measurement unit (e.g. ``"PJ"``).
+            first: If ``True``, use the canonical ``COM_0`` ID.
+
+        Returns:
+            Single-element list containing the commodity dict.
+        """
         if(first):
             id = 'COM_0'
         else:
@@ -204,7 +307,18 @@ class ImportTemplate():
         ]
         return defaultComm
 
-    def defaultEmi(self, name, desc="Default emission", unit="Ton", first=False):
+    def defaultEmi(self, name: str, desc: str = "Default emission", unit: str = "Ton", first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default emission definition.
+
+        Args:
+            name: Emission display name.
+            desc: Human-readable description.
+            unit: Measurement unit (e.g. ``"Ton"``).
+            first: If ``True``, use the canonical ``EMI_0`` ID.
+
+        Returns:
+            Single-element list containing the emission dict.
+        """
         if(first):
             id = 'EMI_0'
         else:
@@ -220,7 +334,18 @@ class ImportTemplate():
         ]
         return defaultEmi
 
-    def defaultStg(self, name, desc="Default storage", unit="MW", first=False):
+    def defaultStg(self, name: str, desc: str = "Default storage", unit: str = "MW", first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default storage definition.
+
+        Args:
+            name: Storage display name.
+            desc: Human-readable description.
+            unit: Measurement unit (e.g. ``"MW"``).
+            first: If ``True``, use the canonical ``STG_0`` ID.
+
+        Returns:
+            Single-element list containing the storage dict.
+        """
         if(first):
             id = 'STG_0'
         else:
@@ -239,7 +364,12 @@ class ImportTemplate():
         ]
         return defaultStg
     
-    def defaultUnit(self):
+    def defaultUnit(self) -> List[Dict[str, Any]]:
+        """Return a default unit definition.
+
+        Returns:
+            Single-element list containing the unit dict.
+        """
         id = self.getId('UT')
         defaultUnit = [
             {
@@ -254,7 +384,15 @@ class ImportTemplate():
         ]
         return defaultUnit
         
-    def defaultScenario(self, first=False):
+    def defaultScenario(self, first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default scenario definition.
+
+        Args:
+            first: If ``True``, use the canonical ``SC_0`` ID.
+
+        Returns:
+            Single-element list containing the scenario dict.
+        """
         if(first):
             id = 'SC_0'
         else:
@@ -270,7 +408,15 @@ class ImportTemplate():
         ]
         return defaultObj
 
-    def defaultConstraint(self, first=False):
+    def defaultConstraint(self, first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default constraint definition.
+
+        Args:
+            first: If ``True``, use the canonical ``CO_0`` ID.
+
+        Returns:
+            Single-element list containing the constraint dict.
+        """
         if(first):
             id = 'CO_0'
         else:
@@ -288,7 +434,15 @@ class ImportTemplate():
         ]
         return defaultObj
         
-    def defaultCase(self, first=False):
+    def defaultCase(self, first: bool = False) -> List[Dict[str, Any]]:
+        """Return a default case definition.
+
+        Args:
+            first: If ``True``, use the canonical ``CS_0`` ID.
+
+        Returns:
+            Single-element list containing the case dict.
+        """
         if(first):
             id = 'CS_0'
         else:
@@ -304,8 +458,16 @@ class ImportTemplate():
         ]
         return defaultObj
 
-    def refR(self, xlsObj):
-        outObj = {}
+    def refR(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot spreadsheet rows keyed by REGION into a flat mapping.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Dict mapping region identifiers to their values.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['REGION'] not in outObj:
                 outObj[obj['REGION']] = {}
@@ -315,8 +477,16 @@ class ImportTemplate():
             outObj['RE1'] = val
         return outObj
     
-    def refRT(self, xlsObj):
-        outObj = {}
+    def refRT(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot spreadsheet rows keyed by TECHNOLOGY into a mapping.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Dict mapping technology names to their values.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['TECHNOLOGY'] not in outObj:
                 outObj[obj['TECHNOLOGY']] = {}
@@ -325,8 +495,16 @@ class ImportTemplate():
             outObj[tech] = val
         return outObj
 
-    def refRE(self, xlsObj):
-        outObj = {}
+    def refRE(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot spreadsheet rows keyed by EMISSION into a mapping.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Dict mapping emission names to their values.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['EMISSION'] not in outObj:
                 outObj[obj['EMISSION']] = {}
@@ -335,8 +513,16 @@ class ImportTemplate():
             outObj[emi] = val
         return outObj
 
-    def refRS(self, xlsObj):
-        outObj = {}
+    def refRS(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot spreadsheet rows keyed by STORAGE into a mapping.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Dict mapping storage names to their values.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['STORAGE'] not in outObj:
                 outObj[obj['STORAGE']] = {}
@@ -345,8 +531,16 @@ class ImportTemplate():
             outObj[stg] = val
         return outObj
     
-    def refRY(self, xlsObj):
-        outObj = {}
+    def refRY(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot spreadsheet rows keyed by YEAR into a mapping.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Dict mapping year values to their data.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['YEAR'] not in outObj:
                 outObj[obj['YEAR']] = {}
@@ -355,8 +549,16 @@ class ImportTemplate():
             outObj[yr] = val
         return outObj
 
-    def refRYTCM(self, xlsObj):
-        outObj = {}
+    def refRYTCM(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot rows keyed by TECHNOLOGY / FUEL / MODE_OF_OPERATION.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Nested dict ``{tech: {fuel: {mode: row_data}}}``.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['TECHNOLOGY'] not in outObj:
                 outObj[obj['TECHNOLOGY']] = {}
@@ -374,8 +576,16 @@ class ImportTemplate():
             outObj[tech][comm][mod] = obj
         return outObj
 
-    def refRYTEM(self, xlsObj):
-        outObj = {}
+    def refRYTEM(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot rows keyed by TECHNOLOGY / EMISSION / MODE_OF_OPERATION.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Nested dict ``{tech: {emission: {mode: row_data}}}``.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['TECHNOLOGY'] not in outObj:
                 outObj[obj['TECHNOLOGY']] = {}
@@ -393,8 +603,16 @@ class ImportTemplate():
             outObj[tech][emi][mod] = obj
         return outObj
 
-    def refRYTM(self, xlsObj):
-        outObj = {}
+    def refRYTM(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot rows keyed by TECHNOLOGY / MODE_OF_OPERATION.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Nested dict ``{tech: {mode: row_data}}``.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['TECHNOLOGY'] not in outObj:
                 outObj[obj['TECHNOLOGY']] = {}
@@ -408,8 +626,16 @@ class ImportTemplate():
             outObj[tech][mod] = obj
         return outObj
 
-    def refRYTTs(self, xlsObj):
-        outObj = {}
+    def refRYTTs(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot rows keyed by TECHNOLOGY / TIMESLICE.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Nested dict ``{tech: {timeslice: row_data}}``.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['TECHNOLOGY'] not in outObj:
                 outObj[obj['TECHNOLOGY']] = {}
@@ -423,8 +649,16 @@ class ImportTemplate():
             outObj[tech][mod] = obj
         return outObj
 
-    def refRYCTs(self, xlsObj):
-        outObj = {}
+    def refRYCTs(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot rows keyed by FUEL / TIMESLICE.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Nested dict ``{fuel: {timeslice: row_data}}``.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['FUEL'] not in outObj:
                 outObj[obj['FUEL']] = {}
@@ -438,8 +672,16 @@ class ImportTemplate():
             outObj[comm][mod] = obj
         return outObj
 
-    def refRTSM(self, xlsObj):
-        outObj = {}
+    def refRTSM(self, xlsObj: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Pivot rows keyed by TECHNOLOGY / STORAGE / MODE_OF_OPERATION.
+
+        Args:
+            xlsObj: List of row dicts from the Excel sheet.
+
+        Returns:
+            Nested dict ``{tech: {storage: {mode: value}}}``.
+        """
+        outObj: Dict[str, Any] = {}
         for obj in xlsObj:
             if obj['TECHNOLOGY'] not in outObj:
                 outObj[obj['TECHNOLOGY']] = {}
@@ -454,7 +696,21 @@ class ImportTemplate():
             outObj[tech][stg][mod] = val
         return outObj
     
-    def importProcess(self, data):
+    def importProcess(self, data: Dict[str, Any]) -> Dict[str, str]:
+        """Execute the full template-import workflow.
+
+        Reads an Excel template, builds the case structure (technologies,
+        commodities, emissions, storages, years, etc.), writes JSON data
+        files, and populates parameter values from the spreadsheet.
+
+        Args:
+            data: Form payload containing template path, case name,
+                currency, version, description, date, and a flag
+                indicating whether raw data should also be imported.
+
+        Returns:
+            Response dict with ``message``, ``status_code``, and ``output`` keys.
+        """
         try:
             print('IMPORT STARTED!')
             start_time = time.time()

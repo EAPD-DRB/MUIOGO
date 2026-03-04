@@ -1,14 +1,30 @@
+"""AWS S3 synchronisation helpers.
+
+Provides upload, download, and delete operations for syncing local
+case data with an S3 bucket.
+"""
+
 import boto3
 import os
 import glob
 from pathlib import Path
-from collections.abc import Iterable 
+from collections.abc import Iterable
+from typing import List, Optional
 
 # from Classes.Base.S3 import S3
 from Classes.Base import Config
 
+
 class SyncS3():
-    def __init__(self):
+    """Client for synchronising local case data with AWS S3.
+
+    Attributes:
+        resource: ``boto3`` S3 resource handle.
+        client: ``boto3`` S3 low-level client handle.
+    """
+
+    def __init__(self) -> None:
+        """Initialise S3 resource and client using application config."""
         #S3.__init__(self)
         self.resource = boto3.resource(
         "s3",
@@ -22,7 +38,15 @@ class SyncS3():
             aws_secret_access_key=Config.S3_SECRET
         )
 
-    def getCasesSyncInit(self):
+    def getCasesSyncInit(self) -> List[str]:
+        """List case prefixes (top-level folders) in the S3 bucket.
+
+        Returns:
+            List of case name strings found in the bucket.
+
+        Raises:
+            IOError: If the bucket cannot be accessed.
+        """
         try:
             my_bucket = self.resource.Bucket(Config.S3_BUCKET)
             result = my_bucket.meta.client.list_objects(Bucket=my_bucket.name, Delimiter='/')
@@ -34,13 +58,16 @@ class SyncS3():
         except(IOError):
             raise IOError
 
-    def downloadSync(self, prefix, local, bucket):
-        """
-        params:
-        - prefix: pattern to match in s3; case name
-        - local: local path to folder in which to place files
-        - bucket: s3 bucket with target contents
-        - client: initialized s3 client object
+    def downloadSync(self, prefix: str, local: Path, bucket: str) -> None:
+        """Download all objects matching *prefix* from S3 to a local path.
+
+        Args:
+            prefix: S3 key prefix to match (typically the case name).
+            local: Local directory to place downloaded files in.
+            bucket: Name of the S3 bucket.
+
+        Raises:
+            IOError: If an I/O error occurs during download.
         """
         client=self.client
         keys = []
@@ -75,22 +102,23 @@ class SyncS3():
             client.download_file(bucket, k, dest_pathname)
 
     #s3.uploadSync(localDir, case, Config.S3_BUCKET, '*')
-    def uploadSync(self, localDir, awsInitDir, bucketName, tag, prefix=os.sep):
-        """
-        from current working directory, upload a 'localDir' with all its subcontents (files and subdirectories...)
-        to a aws bucket
-        Parameters
-        ----------
-        localDir :   localDirectory to be uploaded
-        awsInitDir : prefix 'directory' in aws
-        bucketName : bucket in aws
-        tag :        tag to select files, like *png
-                    NOTE: if you use tag it must be given like --tag '*txt', in some quotation marks... for argparse
-        prefix :     to remove initial '/' from file names
+    def uploadSync(
+        self,
+        localDir: Path,
+        awsInitDir: str,
+        bucketName: str,
+        tag: str,
+        prefix: str = os.sep,
+    ) -> None:
+        """Upload a local directory tree to an S3 bucket.
 
-        Returns
-        -------
-        None
+        Args:
+            localDir: Local directory to be uploaded.
+            awsInitDir: Prefix 'directory' in AWS.
+            bucketName: Target S3 bucket name.
+            tag: Glob pattern to select files (e.g. ``'*'``, ``'*png'``).
+            prefix: Leading string to strip from local file paths
+                (defaults to :data:`os.sep`).
         """
         resource = self.resource
         # mydirs daje listu svvih file i folder u localDir npr WebApp/DataStorage/Demo/genData.json
@@ -109,31 +137,34 @@ class SyncS3():
                 awsPath = str(awsInitDir) + '/' + str(fileName)
                 resource.meta.client.upload_file(FullfileName, bucketName, awsPath)
 
-    def deleteSync(self, case):
+    def deleteSync(self, case: str) -> None:
+        """Delete all objects for a case from the S3 bucket.
+
+        Args:
+            case: The case name whose S3 objects should be removed.
+
+        Raises:
+            IOError: If the deletion fails.
+        """
         try:
             my_bucket = self.resource.Bucket(Config.S3_BUCKET)
             my_bucket.objects.filter(Prefix=case+"/").delete()
         except(IOError):
             raise IOError
 
-    def updateSync(self, localFile, awsInitDir, bucketName):
-        """
-        upload a 'localFile' 
-        to a aws bucket
-        Parameters
-        ----------
-        localFile :   localFile to be uploaded
-        awsInitDir : prefix 'directory' in aws
-        bucketName : bucket in aws
-        Returns
-        -------
-        None
+    def updateSync(self, localFile: Path, awsInitDir: str, bucketName: str) -> None:
+        """Upload a single local file to an S3 bucket.
+
+        Args:
+            localFile: Path to the local file to upload.
+            awsInitDir: Prefix 'directory' in AWS.
+            bucketName: Target S3 bucket name.
         """
         resource = self.resource
         fileName = localFile.name
-        localFile = str(localFile).replace(os.sep, '/')
+        localFileStr: str = str(localFile).replace(os.sep, '/')
         if awsInitDir != '':
             awsPath = str(awsInitDir) + '/' + str(fileName)
         else:
             awsPath = str(fileName)
-        resource.meta.client.upload_file(localFile, bucketName, awsPath)
+        resource.meta.client.upload_file(localFileStr, bucketName, awsPath)

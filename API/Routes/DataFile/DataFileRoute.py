@@ -1,3 +1,4 @@
+"""Flask routes for data-file generation, solver execution and downloads."""
 from flask import Blueprint, jsonify, request, send_file, session
 from pathlib import Path
 import shutil, datetime, time, os
@@ -7,7 +8,8 @@ from Classes.Base import Config
 datafile_api = Blueprint('DataFileRoute', __name__)
 
 @datafile_api.route("/generateDataFile", methods=['POST'])
-def generateDataFile():
+def generateDataFile() -> tuple:
+    """Generate the OSeMOSYS data file for a case run."""
     try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
@@ -24,7 +26,8 @@ def generateDataFile():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/createCaseRun", methods=['POST'])
-def createCaseRun():
+def createCaseRun() -> tuple:
+    """Create a new case run configuration."""
     try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
@@ -39,7 +42,8 @@ def createCaseRun():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/updateCaseRun", methods=['POST'])
-def updateCaseRun():
+def updateCaseRun() -> tuple:
+    """Update an existing case run configuration."""
     try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
@@ -55,7 +59,8 @@ def updateCaseRun():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/deleteCaseRun", methods=['POST'])
-def deleteCaseRun():
+def deleteCaseRun() -> tuple:
+    """Delete a case run or its results."""
     try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
@@ -84,7 +89,8 @@ def deleteCaseRun():
         return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500
 
 @datafile_api.route("/deleteScenarioCaseRuns", methods=['POST'])
-def deleteScenarioCaseRuns():
+def deleteScenarioCaseRuns() -> tuple:
+    """Delete all case runs belonging to a specific scenario."""
     try:
         scenarioId = request.json['scenarioId']
         casename = request.json['casename']
@@ -98,7 +104,8 @@ def deleteScenarioCaseRuns():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/saveView", methods=['POST'])
-def saveView():
+def saveView() -> tuple:
+    """Save view configuration for a case."""
     try:
         casename = request.json['casename']
         param = request.json['param']
@@ -113,7 +120,8 @@ def saveView():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/updateViews", methods=['POST'])
-def updateViews():
+def updateViews() -> tuple:
+    """Update view definitions for a case."""
     try:
         casename = request.json['casename']
         param = request.json['param']
@@ -128,7 +136,8 @@ def updateViews():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/readDataFile", methods=['POST'])
-def readDataFile():
+def readDataFile() -> tuple:
+    """Read and return the generated data file content."""
     try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
@@ -143,7 +152,8 @@ def readDataFile():
         return jsonify('No existing cases!'), 404
     
 @datafile_api.route("/validateInputs", methods=['POST'])
-def validateInputs():
+def validateInputs() -> tuple:
+    """Validate input parameters for a case run."""
     try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
@@ -158,7 +168,8 @@ def validateInputs():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/downloadDataFile", methods=['GET'])
-def downloadDataFile():
+def downloadDataFile() -> tuple:
+    """Download the data.txt file for the active case run."""
     try:
         #casename = request.json['casename']
         #casename = 'DEMO CASE'
@@ -179,7 +190,8 @@ def downloadDataFile():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/downloadFile", methods=['GET'])
-def downloadFile():
+def downloadFile() -> tuple:
+    """Download a result CSV file for the active case."""
     try:
         case = session.get('osycase', None)
         file = request.args.get('file')
@@ -190,7 +202,8 @@ def downloadFile():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/downloadCSVFile", methods=['GET'])
-def downloadCSVFile():
+def downloadCSVFile() -> tuple:
+    """Download a specific CSV result file for a case run."""
     try:
         case = session.get('osycase', None)
         file = request.args.get('file')
@@ -202,7 +215,8 @@ def downloadCSVFile():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/downloadResultsFile", methods=['GET'])
-def downloadResultsFile():
+def downloadResultsFile() -> tuple:
+    """Download the results.txt file for a case run."""
     try:
         case = session.get('osycase', None)
         caserunname = request.args.get('caserunname')
@@ -213,7 +227,8 @@ def downloadResultsFile():
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/run", methods=['POST'])
-def run():
+def run() -> tuple:
+    """Execute the solver for a case run."""
     try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
@@ -229,7 +244,8 @@ def run():
         return jsonify('No existing cases!'), 404
     
 @datafile_api.route("/batchRun", methods=['POST'])
-def batchRun():
+def batchRun() -> tuple:
+    """Generate data files and run the solver for multiple case runs."""
     try:
         start = time.time()
         modelname = request.json['modelname']
@@ -248,7 +264,8 @@ def batchRun():
         return jsonify('Error!'), 404
     
 @datafile_api.route("/cleanUp", methods=['POST'])
-def cleanUp():
+def cleanUp() -> tuple:
+    """Remove temporary solver artefacts for a model."""
     try:
         modelname = request.json['modelname']
 

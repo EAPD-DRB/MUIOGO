@@ -1,4 +1,8 @@
+"""Data-file generation, solver execution and result processing."""
+
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
 import traceback
 import json, shutil, os, time, subprocess
@@ -9,11 +13,21 @@ from Classes.Base import Config
 from Classes.Case.OsemosysClass import Osemosys
 from Classes.Base.FileClass import File
 from Classes.Base.CustomThreadClass import CustomThread
+
+
 class DataFile(Osemosys):
+    """Generate OSeMOSYS data files, run solvers, and process results.
+
+    Inherits dimension look-ups and parameter reshaping from
+    :class:`Osemosys`.  Public methods cover the full pipeline:
+    data-file generation (``gen_*``), solver invocation (``run``),
+    result parsing, and view management.
+    """
     # def __init__(self, case):
     #     Osemosys.__init__(self, case)
 
-    def gen_Conversions(self):
+    def gen_Conversions(self) -> None:
+        """Write timeslice conversion tables to the data file."""
         self.seasons = ''
         for seId in self.seIDs:
             self.seasons += '{} '.format(self.seMap[seId]) 
@@ -78,7 +92,8 @@ class DataFile(Osemosys):
         self.f.write('{}{}{}'.format(self.dailytimebrackets, ':=', '\n'))
         self.f.write('{}{}'.format(dtbString,'\n'))
 
-    def gen_R(self):
+    def gen_R(self) -> None:
+        """Write *R* scalar parameters to the data file."""
         r = self.R(File.readFile(self.rPath))
         for id, param in self.PARAM['R'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -88,7 +103,8 @@ class DataFile(Osemosys):
             self.f.write('{} {} {}'.format('RE1', tmp, '\n'))
             self.f.write('{} {}'.format(';', '\n'))
 
-    def gen_RCn(self):
+    def gen_RCn(self) -> None:
+        """Write constraint tag parameters to the data file."""
         rcn = self.RCn()
         self.f.write('{} {} {} {} {} {}'.format('param', 'UDCTag','default', -1, ':','\n'))
         self.f.write('{}{}{}'.format(self.cons, ':=', '\n'))
@@ -100,7 +116,8 @@ class DataFile(Osemosys):
         self.f.write('{}{}{}'.format('RE1 ', rcnString, '\n'))
         self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RY(self):
+    def gen_RY(self) -> None:
+        """Write *RY* parameters to the data file."""
         ry = self.RY(File.readFile(self.ryPath))
         for id, param in self.PARAM['RY'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':','\n'))
@@ -114,7 +131,8 @@ class DataFile(Osemosys):
             self.f.write('{}{}{}'.format('RE1 ', ryString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RT(self):
+    def gen_RT(self) -> None:
+        """Write *RT* parameters to the data file."""
         rt = self.RT(File.readFile(self.rtPath))
         for id, param in self.PARAM['RT'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':','\n'))
@@ -128,7 +146,8 @@ class DataFile(Osemosys):
             self.f.write('{}{}{}'.format('RE1 ', rtString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RE(self):
+    def gen_RE(self) -> None:
+        """Write *RE* parameters to the data file."""
         re = self.RE(File.readFile(self.rePath))
         for id, param in self.PARAM['RE'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':','\n'))
@@ -142,7 +161,8 @@ class DataFile(Osemosys):
             self.f.write('{}{}{}'.format('RE1 ', reString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RS(self):
+    def gen_RS(self) -> None:
+        """Write *RS* parameters to the data file."""
         re = self.RS(File.readFile(self.rsPath))
         for id, param in self.PARAM['RS'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':','\n'))
@@ -156,7 +176,8 @@ class DataFile(Osemosys):
             self.f.write('{}{}{}'.format('RE1 ', rsString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RTSM(self):
+    def gen_RTSM(self) -> None:
+        """Write *RTSM* parameters to the data file."""
         rtsm = self.RTSM(File.readFile(self.rtsmPath))
         for id, param in self.PARAM['RTSM'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -187,7 +208,8 @@ class DataFile(Osemosys):
                     self.f.write('{} {}{}'.format(self.stgMap[stgId], rytcString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYCn(self):
+    def gen_RYCn(self) -> None:
+        """Write *RYCn* parameters to the data file."""
         rycn = self.RYCn(File.readFile(self.rycnPath))
         for id, param in self.PARAM['RYCn'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -203,7 +225,8 @@ class DataFile(Osemosys):
                 self.f.write('{} {}{}'.format(self.conMap[conId], rycnString, '\n'))
         self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYTs(self):
+    def gen_RYTs(self) -> None:
+        """Write *RYTs* parameters to the data file."""
         ryts = self.RYTs(File.readFile(self.rytsPath))
         for id, param in self.PARAM['RYTs'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':','\n'))
@@ -223,7 +246,8 @@ class DataFile(Osemosys):
                 self.f.write('{} {}{}'.format(self.tsMap[timesliceId], rytsString, '\n'))
         self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYDtb(self):
+    def gen_RYDtb(self) -> None:
+        """Write *RYDtb* parameters to the data file."""
         rydtb = self.RYDtb(File.readFile(self.rydtbPath))
         for id, param in self.PARAM['RYDtb'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':','\n'))
@@ -243,7 +267,8 @@ class DataFile(Osemosys):
                 self.f.write('{} {}{}'.format(self.dtbMap[dtbId], rydtbString, '\n'))
         self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYSeDt(self):
+    def gen_RYSeDt(self) -> None:
+        """Write *RYSeDt* parameters to the data file."""
         rysedt = self.RYSeDt(File.readFile(self.rysedtPath))
         for id, param in self.PARAM['RYSeDt'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -271,7 +296,8 @@ class DataFile(Osemosys):
                         self.f.write('{} {}{}'.format(self.dtMap[dtId], rysedtString, '\n'))
         self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYT(self):
+    def gen_RYT(self) -> None:
+        """Write *RYT* parameters to the data file."""
         ryt = self.RYT(File.readFile(self.rytPath))
 
         for id, param in self.PARAM['RYT'].items():
@@ -297,7 +323,8 @@ class DataFile(Osemosys):
                     self.f.write('{} {}{}'.format(self.techMap[techId], rytString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYS(self):
+    def gen_RYS(self) -> None:
+        """Write *RYS* parameters to the data file."""
         rys = self.RYS(File.readFile(self.rysPath))
 
         for id, param in self.PARAM['RYS'].items():
@@ -323,7 +350,8 @@ class DataFile(Osemosys):
                     self.f.write('{} {}{}'.format(self.stgMap[stgId], rysString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYTCn(self):
+    def gen_RYTCn(self) -> None:
+        """Write *RYTCn* parameters to the data file."""
         rytcn = self.RYTCn(File.readFile(self.rytcnPath))
         for id, param in self.PARAM['RYTCn'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -352,7 +380,8 @@ class DataFile(Osemosys):
                             self.f.write('{} {}{}'.format(self.conMap[conId], rytcnString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYTM(self):
+    def gen_RYTM(self) -> None:
+        """Write *RYTM* parameters to the data file."""
         rytm = self.RYTM(File.readFile(self.rytmPath))
         for id, param in self.PARAM['RYTM'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -380,7 +409,8 @@ class DataFile(Osemosys):
                         self.f.write('{} {}{}'.format(mod, rytmString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYC(self):
+    def gen_RYC(self) -> None:
+        """Write *RYC* parameters to the data file."""
         ryc = self.RYC(File.readFile(self.rycPath))
         for id, param in self.PARAM['RYC'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -406,7 +436,8 @@ class DataFile(Osemosys):
                     self.f.write('{} {}{}'.format(self.commMap[commId], rycString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYE(self):
+    def gen_RYE(self) -> None:
+        """Write *RYE* parameters to the data file."""
         rye = self.RYE(File.readFile(self.ryePath))
         for id, param in self.PARAM['RYE'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -432,7 +463,8 @@ class DataFile(Osemosys):
                     self.f.write('{} {}{}'.format(self.emiMap[emiId], ryeString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYTC(self):
+    def gen_RYTC(self) -> None:
+        """Write *RYTC* parameters to the data file."""
         rytc = self.RYTC(File.readFile(self.rytcPath))
         for id, param in self.PARAM['RYTC'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -457,7 +489,8 @@ class DataFile(Osemosys):
                         self.f.write('{} {}{}'.format(self.commMap[inputCapCommId], rytcString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYTCM(self):
+    def gen_RYTCM(self) -> None:
+        """Write *RYTCM* parameters to the data file."""
         rytcm = self.RYTCM(File.readFile(self.rytcmPath))
         for id, param in self.PARAM['RYTCM'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -485,7 +518,8 @@ class DataFile(Osemosys):
                             self.f.write('{} {}{}'.format(mod, rytcString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYTSM(self):
+    def gen_RYTSM(self) -> None:
+        """Write *RYTSM* parameters to the data file."""
         rytsm = self.RYTSM(File.readFile(self.rytsmPath))
         for id, param in self.PARAM['RYTSM'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -514,7 +548,8 @@ class DataFile(Osemosys):
                             self.f.write('{} {}{}'.format(mod, rytcString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYTE(self):
+    def gen_RYTE(self) -> None:
+        """Write *RYTE* parameters to the data file."""
         ryte = self.RYTE(File.readFile(self.rytePath))
         for id, param in self.PARAM['RYTE'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -539,7 +574,8 @@ class DataFile(Osemosys):
                         self.f.write('{} {}{}'.format(1, ryteString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYTEM(self):
+    def gen_RYTEM(self) -> None:
+        """Write *RYTEM* parameters to the data file."""
         rytem = self.RYTEM(File.readFile(self.rytemPath))
         for id, param in self.PARAM['RYTEM'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -567,7 +603,8 @@ class DataFile(Osemosys):
                             self.f.write('{} {}{}'.format(mod, ryteString, '\n'))
             self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYTTs(self):
+    def gen_RYTTs(self) -> None:
+        """Write *RYTTs* parameters to the data file."""
         rytts = self.RYTTs(File.readFile(self.ryttsPath))
         for id, param in self.PARAM['RYTTs'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -594,7 +631,8 @@ class DataFile(Osemosys):
                         self.f.write('{} {}{}'.format(self.tsMap[timesliceId], ryttsString, '\n'))
         self.f.write('{}{}'.format(';', '\n'))
 
-    def gen_RYCTs(self):
+    def gen_RYCTs(self) -> None:
+        """Write *RYCTs* parameters to the data file."""
         rycts = self.RYCTs(File.readFile(self.ryctsPath))
         for id, param in self.PARAM['RYCTs'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -621,7 +659,8 @@ class DataFile(Osemosys):
                         self.f.write('{} {}{}'.format(self.tsMap[timesliceId], ryctsString, '\n'))
         self.f.write('{}{}'.format(';', '\n'))
 
-    def generateDatafile( self, caserunname ):
+    def generateDatafile( self, caserunname: str ) -> None:
+        """Generate the OSeMOSYS data file for a case run."""
         try:
             self.defaultValue = self.getParamDefaultValues()
             self.emiIDs = self.getEmiIds()
@@ -788,7 +827,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def createCaseRun(self, caserunname, data):
+    def createCaseRun(self, caserunname: str, data: Dict[str, Any]) -> None:
+        """Create a new case-run directory and register it in metadata."""
         try:
             caseRunPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname)
             csvPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname, 'csv')
@@ -820,7 +860,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def deleteScenarioCaseRuns(self, scenarioId):
+    def deleteScenarioCaseRuns(self, scenarioId: str) -> None:
+        """Delete all case runs associated with a scenario."""
         try:
             resData = File.readFile(self.resDataPath)
             cases = resData['osy-cases']
@@ -845,7 +886,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def updateCaseRun(self, caserunname, oldcaserunname, data):
+    def updateCaseRun(self, caserunname: str, oldcaserunname: str, data: Dict[str, Any]) -> None:
+        """Rename a case run and update its metadata."""
         try:
             caseRunPath = Path(Config.DATA_STORAGE,self.case,'res', oldcaserunname)
             newcaseRunPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname)
@@ -899,7 +941,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def deleteCaseResultsJSON(self, caserunname):
+    def deleteCaseResultsJSON(self, caserunname: str) -> None:
+        """Remove result JSON entries for a given case run."""
         try:
             csvPath = Path(self.resultsPath, caserunname, "csv")
             if os.path.exists(csvPath):
@@ -921,7 +964,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
         
-    def deleteCaseRun(self, caserunname, resultsOnly):
+    def deleteCaseRun(self, caserunname: str, resultsOnly: bool) -> None:
+        """Delete a case run or only its results."""
         try:
             #caseRunPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname)
             #resDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'resData.json')
@@ -960,7 +1004,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def cleanUp(self):
+    def cleanUp(self) -> None:
+        """Remove all case-run results and view JSON files."""
         try:
 
             #delete from view folder
@@ -1023,7 +1068,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
         
-    def saveView(self, data, param):
+    def saveView(self, data: Dict[str, Any], param: str) -> Dict[str, str]:
+        """Persist a new view definition and return a status response."""
         try:
 
             viewDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'viewDefinitions.json')
@@ -1045,7 +1091,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def updateViews(self, data, param):
+    def updateViews(self, data: List[Any], param: str) -> Dict[str, str]:
+        """Overwrite view definitions for a parameter group."""
         try:
 
             viewDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'viewDefinitions.json')
@@ -1067,7 +1114,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def readDataFile( self, caserunname ):
+    def readDataFile( self, caserunname: str ) -> Optional[str]:
+        """Read and return the raw data-file text for a case run."""
         try:
             
             #f = open(self.dataFile, mode="r")
@@ -1088,7 +1136,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def parseDataFile(self, dataFilePath):
+    def parseDataFile(self, dataFilePath: Path) -> Dict[str, Any]:
+        """Parse an OSeMOSYS data file into a parameter dictionary."""
         try:
             self.defaultValue = self.getParamDefaultValues()
             data = {}
@@ -1184,7 +1233,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def validateInputs(self, caserunname):
+    def validateInputs(self, caserunname: str) -> Dict[str, str]:
+        """Run validation checks on data-file inputs and return results."""
         try:
             self.defaultValue = self.getParamDefaultValues()
             data = {}
@@ -1643,7 +1693,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
         
-    def preprocessData(self, data_infile, data_outfile):
+    def preprocessData(self, data_infile: str, data_outfile: str) -> None:
+        """Pre-process a data file by computing derived sets and CRF."""
         try:
             lines = []
             with open(data_infile, 'r') as f1:
@@ -1984,7 +2035,8 @@ class DataFile(Osemosys):
             print("An error occurred:")
             traceback.print_exc()  # Prints full traceback
 
-    def batchRun(self, solver, cases):
+    def batchRun(self, solver: str, cases: List[str]) -> Dict[str, str]:
+        """Run the solver sequentially for a batch of case runs."""
         try:
             batchlog=""
             msg=""
@@ -2083,7 +2135,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def run( self, solver, caserun, lock=None ):
+    def run( self, solver: str, caserun: str, lock: Optional[Any] = None ) -> Dict[str, Any]:
+        """Execute GLPK/CBC solver pipeline for a single case run."""
         try:
             caserunname = caserun
             if lock is not None:
@@ -2270,7 +2323,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
     
-    def generateCSVfromCBC(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC(self, data_file: str, results_file: str, base_folder: str = os.getcwd()) -> None:
+        """Parse CBC results and write per-variable CSV files."""
         try:
             #pd.options.mode.chained_assignment = None
             #pd.options.mode.chained_assignment = None
@@ -2540,7 +2594,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
     
-    def generateResultsViewer(self, caserunname):
+    def generateResultsViewer(self, caserunname: str) -> None:
+        """Build pivot-table JSON views from CSV result files."""
         try:
             csvFolderPath = Path(Config.DATA_STORAGE,self.case,'res',caserunname, 'csv')
 
@@ -2906,7 +2961,8 @@ class DataFile(Osemosys):
 
 
     ############################################################################################### OBSOLETE METHODS 
-    def generateResultsViewer_AllCases20240118(self, caserunname):
+    def generateResultsViewer_AllCases20240118(self, caserunname: str) -> None:
+        """Build result views across all cases (obsolete)."""
         try:
             csvFolderPath = Path(Config.DATA_STORAGE,self.case,'res',caserunname, 'csv')
             #viewFolderPath = Path(Config.DATA_STORAGE,self.case,'view')
@@ -3243,7 +3299,8 @@ class DataFile(Osemosys):
             raise OSError
 
     # Dodali u postprocessing Annualized Investment Cost - potrebo dodati nove parametre
-    def generateCSVfromCBC_20240228(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC_20240228(self, data_file: str, results_file: str, base_folder: str = os.getcwd()) -> None:
+        """Parse CBC results with annualised investment cost support."""
         try:
             #pd.options.mode.chained_assignment = None
             #pd.options.mode.chained_assignment = None
@@ -3416,7 +3473,8 @@ class DataFile(Osemosys):
             raise OSError
     
     ##izmjene da bi se napunili csv za InputToNewCapacity i InputToTotalCapacity
-    def generateCSVfromCBC09122023(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC09122023(self, data_file: str, results_file: str, base_folder: str = os.getcwd()) -> None:
+        """Parse CBC results with InputToCapacity CSV support."""
         try:
             #pd.options.mode.chained_assignment = None
 
@@ -3724,7 +3782,8 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def preprocessData_BKP(self, data_infile, data_outfile):
+    def preprocessData_BKP(self, data_infile: str, data_outfile: str) -> None:
+        """Pre-process a data file (backup/legacy version)."""
 
         lines = []
 
@@ -3995,7 +4054,8 @@ class DataFile(Osemosys):
 
             file_out.write('end;')
 
-    def generateCSVfromCBC_BKP(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC_BKP(self, data_file: str, results_file: str, base_folder: str = os.getcwd()) -> None:
+        """Parse CBC results into CSVs (backup/legacy version)."""
         try:
             pd.set_option('mode.chained_assignment', None)
 

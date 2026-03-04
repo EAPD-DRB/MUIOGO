@@ -1,10 +1,12 @@
+"""Flask routes for viewing and updating parameter data."""
 from flask import Blueprint, jsonify, request
 from Classes.Case.OsemosysClass import Osemosys
 
 viewdata_api = Blueprint('ViewDataRoute', __name__)
 
 @viewdata_api.route("/viewData", methods=['POST'])
-def viewData():
+def viewData() -> tuple:
+    """Return aggregated view data grouped by technology, commodity and emission."""
     try:
         casename = request.json['casename']
         if casename != None:
@@ -21,7 +23,8 @@ def viewData():
         return jsonify('No existing cases!'), 404
 
 @viewdata_api.route("/viewTEData", methods=['POST'])
-def viewTEData():
+def viewTEData() -> tuple:
+    """Return technology-emission view data for a case."""
     try:
         casename = request.json['casename']
         if casename != None:
@@ -37,7 +40,8 @@ def viewTEData():
         return jsonify('No existing cases!'), 404
 
 @viewdata_api.route("/updateViewData", methods=['POST'])
-def updateViewData():
+def updateViewData() -> tuple:
+    """Update a single cell value in the parameter view data."""
     try:
         #casename, updateType, groupId, paramId, TechId, CommId, EmisId, Timeslice
         casename = request.json['casename']
@@ -70,7 +74,8 @@ def updateViewData():
         return jsonify('No existing cases!'), 404
 
 @viewdata_api.route("/updateTEViewData", methods=['POST'])
-def updateTEViewData():
+def updateTEViewData() -> tuple:
+    """Update a single cell value in the technology-emission view data."""
     try:
         #casename, updateType, groupId, paramId, TechId, CommId, EmisId, Timeslice
         casename = request.json['casename']

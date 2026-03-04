@@ -1,4 +1,7 @@
+"""Core OSeMOSYS data access and transformation layer."""
+
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 import os
 import platform
 import shutil
@@ -6,7 +9,29 @@ from Classes.Base import Config
 from Classes.Base.FileClass import File
 
 class Osemosys():
-    def __init__(self, case):
+    """Core OSeMOSYS model data access and transformation layer.
+
+    Loads parameter definitions, variable definitions, and general model
+    data for a given case.  Provides helper methods to reshape JSON
+    parameter data, look up dimension IDs/names, and read/write view
+    data.
+
+    Attributes:
+        case: Case name.
+        PARAMETERS: Parameter definitions from ``Parameters.json``.
+        VARIABLES: Variable definitions from ``Variables.json``.
+        genData: General model data loaded from ``genData.json``.
+        resData: Result metadata loaded from ``resData.json``.
+        PARAM: Processed parameter name mapping.
+        VARS: Flat list of variable names.
+    """
+
+    def __init__(self, case: str) -> None:
+        """Initialise an Osemosys instance for the given case.
+
+        Args:
+            case: Case name (subdirectory under DataStorage).
+        """
         self.case = case
         self.PARAMETERS = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
         self.VARIABLES = File.readParamFile(Path(Config.DATA_STORAGE, 'Variables.json'))
@@ -164,17 +189,31 @@ class Osemosys():
             f"Set {env_var}, install '{binary_name}' on PATH, or provide bundled binaries under '{bundled_path}'."
         )
 
-    def getParamDefaultValues(self):
+    def getParamDefaultValues(self) -> Dict[str, Any]:
+        """Return a mapping of parameter IDs to their default values.
+
+        Returns:
+            Dictionary keyed by parameter ID with default values.
+        """
         d = {}
         for k, l in self.PARAMETERS.items():
             for de in l:
                 d[de['id']] = de['default']
         return d
 
-    def keys_exists(self, element, *keys):
-        '''
-        Check if *keys (nested) exists in `element` (dict).
-        '''
+    def keys_exists(self, element: Dict[str, Any], *keys: str) -> bool:
+        """Check whether a chain of nested keys exists in a dictionary.
+
+        Args:
+            element: The dictionary to inspect.
+            *keys: Sequence of keys to look up, each level deeper.
+
+        Returns:
+            ``True`` if all keys exist in the nested structure.
+
+        Raises:
+            AttributeError: If *element* is not a dict or no keys given.
+        """
         if not isinstance(element, dict):
             raise AttributeError('keys_exists() expects dict as first argument.')
         if len(keys) == 0:
@@ -188,24 +227,29 @@ class Osemosys():
                 return False
         return True
         
-    def getYears(self):
+    def getYears(self) -> List[str]:
+        """Return the list of model years."""
         years = self.genData['osy-years']
         return years
 
-    def getTsIds(self):
+    def getTsIds(self) -> List[str]:
+        """Return timeslice IDs."""
         tsIds = [ ts['TsId'] for ts in self.genData["osy-ts"]]
         return tsIds
 
-    def getTsMap(self):
+    def getTsMap(self) -> Dict[str, str]:
+        """Return mapping of timeslice ID to timeslice name."""
         timeslices = {tech['TsId']: tech['Ts'] for tech in self.genData["osy-ts"] }
         return timeslices
 
-    def getTsNames(self):
+    def getTsNames(self) -> List[str]:
+        """Return timeslice names."""
         tsIds = [ ts['Ts'] for ts in self.genData["osy-ts"]]
         return tsIds    
 
 
-    def getMods(self):
+    def getMods(self) -> List[int]:
+        """Return list of mode-of-operation integers."""
         mo = int(self.genData['osy-mo'])+1
         mods = []
         for m in range(1, mo):
@@ -213,55 +257,68 @@ class Osemosys():
         return mods 
 
 
-    def getTechIds(self):
+    def getTechIds(self) -> List[str]:
+        """Return technology IDs."""
         techIds = [ tech['TechId'] for tech in self.genData["osy-tech"]]
         return techIds
 
-    def getTechNames(self):
+    def getTechNames(self) -> List[str]:
+        """Return technology names."""
         techIds = [ tech['Tech'] for tech in self.genData["osy-tech"]]
         return techIds
 
-    def getTechs(self):
+    def getTechs(self) -> List[Dict[str, str]]:
+        """Return list of tech ID-to-name dicts."""
         techs = [ {tech['TechId']:tech['Tech']} for tech in self.genData["osy-tech"]]
         return techs
 
-    def getTechsMap(self):
+    def getTechsMap(self) -> Dict[str, str]:
+        """Return mapping of technology ID to name."""
         techs = {tech['TechId']: tech['Tech'] for tech in self.genData["osy-tech"] }
         return techs
     
-    def getEmiIds(self):
+    def getEmiIds(self) -> List[str]:
+        """Return emission IDs."""
         emiIds = [ tech['EmisId'] for tech in self.genData["osy-emis"]]
         return emiIds
 
-    def getEmiNames(self):
+    def getEmiNames(self) -> List[str]:
+        """Return emission names."""
         emiIds = [ tech['Emis'] for tech in self.genData["osy-emis"]]
         return emiIds
     
-    def getEmis(self):
+    def getEmis(self) -> List[Dict[str, str]]:
+        """Return list of emission ID-to-name dicts."""
         emis = [ {tech['EmisId']: tech['Emis']} for tech in self.genData["osy-emis"]]
         return emis
 
-    def getEmisMap(self):
+    def getEmisMap(self) -> Dict[str, str]:
+        """Return mapping of emission ID to name."""
         emis = {tech['EmisId']: tech['Emis'] for tech in self.genData["osy-emis"] }
         return emis
 
-    def getStgs(self):
+    def getStgs(self) -> List[Dict[str, str]]:
+        """Return list of storage ID-to-name dicts."""
         stgs = [ {stg['StgId']: stg['Stg']} for stg in self.genData["osy-stg"]]
         return stgs
     
-    def getStgNames(self):
+    def getStgNames(self) -> List[str]:
+        """Return storage names."""
         stgs = [ stg['Stg'] for stg in self.genData["osy-stg"]]
         return stgs
     
-    def getStgIds(self):
+    def getStgIds(self) -> List[str]:
+        """Return storage IDs."""
         stgIds = [ stg['StgId'] for stg in self.genData["osy-stg"]]
         return stgIds
     
-    def getStgMap(self):
+    def getStgMap(self) -> Dict[str, str]:
+        """Return mapping of storage ID to name."""
         stgs = {stg['StgId']: stg['Stg'] for stg in self.genData["osy-stg"] }
         return stgs
     
-    def getStgByType(self):
+    def getStgByType(self) -> Dict[str, List[str]]:
+        """Return storages grouped by operation type."""
         stgByType = {}
         for stg in self.genData["osy-stg"]:
             if stg['Operation'] not in stgByType:
@@ -269,51 +326,63 @@ class Osemosys():
             stgByType[stg['Operation']].append(stg['Stg'])
         return stgByType
 
-    def getSeIds(self):
+    def getSeIds(self) -> List[str]:
+        """Return season IDs."""
         seIds = [ se['SeId'] for se in self.genData["osy-se"]]
         return seIds
     
-    def getSeMap(self):
+    def getSeMap(self) -> Dict[str, str]:
+        """Return mapping of season ID to name."""
         ses = { se['SeId']: se['Se'] for se in self.genData["osy-se"] }
         return ses
 
-    def getDtIds(self):
+    def getDtIds(self) -> List[str]:
+        """Return day-type IDs."""
         seIds = [ se['DtId'] for se in self.genData["osy-dt"]]
         return seIds
     
-    def getDtMap(self):
+    def getDtMap(self) -> Dict[str, str]:
+        """Return mapping of day-type ID to name."""
         ses = { se['DtId']: se['Dt'] for se in self.genData["osy-dt"] }
         return ses
 
-    def getDtbIds(self):
+    def getDtbIds(self) -> List[str]:
+        """Return daily-time-bracket IDs."""
         seIds = [ se['DtbId'] for se in self.genData["osy-dtb"]]
         return seIds
     
-    def getDtbMap(self):
+    def getDtbMap(self) -> Dict[str, str]:
+        """Return mapping of daily-time-bracket ID to name."""
         ses = { se['DtbId']: se['Dtb'] for se in self.genData["osy-dtb"] }
         return ses
 
-    def getCommIds(self):
+    def getCommIds(self) -> List[str]:
+        """Return commodity IDs."""
         commIds = [ tech['CommId'] for tech in self.genData["osy-comm"]]
         return commIds
     
-    def getCommNames(self):
+    def getCommNames(self) -> List[str]:
+        """Return commodity names."""
         commIds = [ tech['Comm'] for tech in self.genData["osy-comm"]]
         return commIds
 
-    def getComms(self):
+    def getComms(self) -> List[Dict[str, str]]:
+        """Return list of commodity ID-to-name dicts."""
         comms = [ {tech['CommId']: tech['Comm']} for tech in self.genData["osy-comm"]]
         return comms
 
-    def getCommsMap(self):
+    def getCommsMap(self) -> Dict[str, str]:
+        """Return mapping of commodity ID to name."""
         comms = {tech['CommId']: tech['Comm'] for tech in self.genData["osy-comm"] }
         return comms
     
-    def getConIds(self):
+    def getConIds(self) -> List[str]:
+        """Return constraint IDs."""
         conIds = [ tech['ConId'] for tech in self.genData["osy-constraints"]]
         return conIds
 
-    def getConsMap(self):
+    def getConsMap(self) -> Dict[str, str]:
+        """Return mapping of constraint ID to name."""
         cons = {con['ConId']: con['Con'] for con in self.genData["osy-constraints"] }
         return cons
 
@@ -321,7 +390,8 @@ class Osemosys():
     #     scIds = [ sc['ScenarioId'] for sc in self.genData["osy-scenarios"]]
     #     return scIds
 
-    def getScenariosByCase(self):
+    def getScenariosByCase(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Return scenarios grouped by case-run name."""
         #scIds = [ sc['ScenarioId'] for sc in self.genData["osy-scenarios"]]
         scBycs = {}
         for case in self.resData["osy-cases"]:
@@ -334,13 +404,22 @@ class Osemosys():
                 scBycs[case['Case']].append(chunk)
         return scBycs
 
-    def getScOrder(self, caserunname):
+    def getScOrder(self, caserunname: str) -> List[Dict[str, Any]]:
+        """Return ordered scenario list for a specific case run.
+
+        Args:
+            caserunname: Name of the case run.
+
+        Returns:
+            List of scenario dicts with ScId, Sc, and Active keys.
+        """
         #scIds = [ {'ScId': sc['ScenarioId'], 'Sc': sc['Scenario'], 'Active': sc['Active']} for sc in self.genData["osy-scenarios"]]
         scenarioBycase = self.getScenariosByCase()
         scIds = scenarioBycase[caserunname]
         return scIds
 
-    def getStorageTechIds(self):
+    def getStorageTechIds(self) -> Dict[str, Dict[str, List[str]]]:
+        """Return storage technology IDs per parameter and storage."""
         techIds = {}
         for param in self.PARAMETERS['RTSM']:
             techIds[param['id']] = {}
@@ -356,7 +435,8 @@ class Osemosys():
         return techIds
     
     #output actTech['IAR'] = ['Tech_1', 'Tech_2'...]
-    def getActivityTechIds(self):
+    def getActivityTechIds(self) -> Dict[str, List[str]]:
+        """Return activity technology IDs per RYTCM parameter."""
         techIds = {}
         for param in self.PARAMETERS['RYTCM']:
             techIds[param['id']] = []
@@ -366,7 +446,8 @@ class Osemosys():
         return techIds
 
     #output actTech['IAR']['Tech_1'] = ['Comm_1', 'Comm_2'...]
-    def getActivityCommIds(self):
+    def getActivityCommIds(self) -> Dict[str, Dict[str, List[str]]]:
+        """Return activity commodity IDs per parameter and technology."""
         commIds = {}
         for param in self.PARAMETERS['RYTCM']:
             commIds[param['id']] = {}
@@ -376,7 +457,8 @@ class Osemosys():
         return commIds
 
     #output actTech['INCR'] = ['Tech_1', 'Tech_2'...]
-    def getInputCapTechIds(self):
+    def getInputCapTechIds(self) -> Dict[str, List[str]]:
+        """Return input-capacity technology IDs per RYTC parameter."""
         techIds = {}
         for param in self.PARAMETERS['RYTC']:
             techIds[param['id']] = []
@@ -386,7 +468,8 @@ class Osemosys():
         return techIds
 
     #output actTech['INCR']['Tech_1'] = ['Comm_1', 'Comm_2'...]
-    def getInputCapCommIds(self):
+    def getInputCapCommIds(self) -> Dict[str, Dict[str, List[str]]]:
+        """Return input-capacity commodity IDs per parameter and technology."""
         commIds = {}
         for param in self.PARAMETERS['RYTC']:
             commIds[param['id']] = {}
@@ -395,7 +478,8 @@ class Osemosys():
                     commIds[param['id']][tech['TechId']] = tech[param['id']]
         return commIds 
 
-    def getConstraintTechIds(self):
+    def getConstraintTechIds(self) -> Dict[str, Dict[str, List[str]]]:
+        """Return constraint technology IDs per parameter and constraint."""
         techIds = {}
         for param in self.PARAMETERS['RYTCn']:
             techIds[param['id']] = {}
@@ -408,7 +492,8 @@ class Osemosys():
                         techIds[param['id']][con['ConId']].append(tech)
         return techIds
 
-    def getActivityEmissionTechIds(self):
+    def getActivityEmissionTechIds(self) -> Dict[str, List[str]]:
+        """Return activity-emission technology IDs per RYTEM parameter."""
         techIds = {}
         for param in self.PARAMETERS['RYTEM']:
             techIds[param['id']] = []
@@ -419,7 +504,8 @@ class Osemosys():
                     techIds[param['id']].append(tech['TechId'])
         return techIds
 
-    def getActivityEmisionIds(self):
+    def getActivityEmisionIds(self) -> Dict[str, Dict[str, List[str]]]:
+        """Return activity emission IDs per parameter and technology."""
         commIds = {}
         for param in self.PARAMETERS['RYTEM']:
             commIds[param['id']] = {}
@@ -431,7 +517,8 @@ class Osemosys():
                     commIds[param['id']][tech['TechId']] = tech['EAR']
         return commIds
 
-    def R(self, Rdata):
+    def R(self, Rdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *R* parameter JSON into a flat lookup."""
         R = {}
         for param, obj1 in Rdata.items():
             R[param] = {}
@@ -442,13 +529,15 @@ class Osemosys():
                         
         return R
 
-    def RCn(self):
+    def RCn(self) -> Dict[str, Any]:
+        """Build constraint tag lookup from general data."""
         RCn = {}
         for con in self.genData["osy-constraints"]:
             RCn[con['ConId']] = con['Tag']
         return RCn
 
-    def RY(self, RYdata):
+    def RY(self, RYdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RY* parameter JSON into a flat lookup."""
         RY = {}
         for param, obj1 in RYdata.items():
             RY[param] = {}
@@ -459,7 +548,8 @@ class Osemosys():
                         RY[param][sc][year] = val
         return RY
 
-    def RT(self, RTdata):
+    def RT(self, RTdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RT* parameter JSON into a flat lookup."""
         RT = {}
         for param, obj1 in RTdata.items():
             RT[param] = {}
@@ -470,7 +560,8 @@ class Osemosys():
                         RT[param][sc][tech] = val
         return RT
 
-    def RE(self, REdata):
+    def RE(self, REdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RE* parameter JSON into a flat lookup."""
         RE = {}
         for param, obj1 in REdata.items():
             RE[param] = {}
@@ -481,7 +572,8 @@ class Osemosys():
                         RE[param][sc][emi] = val
         return RE
 
-    def RS(self, RSdata):
+    def RS(self, RSdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RS* parameter JSON into a flat lookup."""
         RS = {}
         for param, obj in RSdata.items():
             RS[param] = {}
@@ -492,7 +584,8 @@ class Osemosys():
                         RS[param][sc][stg] = val
         return RS
      
-    def RTSM(self, RTSMdata):
+    def RTSM(self, RTSMdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RTSM* parameter JSON into a nested lookup."""
         RTSM = {}
         for param, obj1 in RTSMdata.items():
             RTSM[param] = {}
@@ -516,7 +609,8 @@ class Osemosys():
                             RTSM[param][sc][obj['StgId']][obj['TechId']][obj['MoId']] = val
         return RTSM
     
-    def RYCn(self, RYCndata):
+    def RYCn(self, RYCndata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYCn* parameter JSON into a nested lookup."""
         RYCn = {}
         for param, obj1 in RYCndata.items():
             RYCn[param] = {}
@@ -530,7 +624,8 @@ class Osemosys():
                             RYCn[param][sc][year][o['ConId']] = val
         return RYCn
 
-    def RYT(self, RYTdata):
+    def RYT(self, RYTdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYT* parameter JSON into a nested lookup."""
         RYT = {}
         for param, obj1 in RYTdata.items():
             RYT[param] = {}
@@ -544,7 +639,8 @@ class Osemosys():
                             RYT[param][sc][year][o['TechId']] = val
         return RYT
 
-    def RYS(self, RYSdata):
+    def RYS(self, RYSdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYS* parameter JSON into a nested lookup."""
         RYS = {}
         for param, obj in RYSdata.items():
             RYS[param] = {}
@@ -558,7 +654,8 @@ class Osemosys():
                             RYS[param][sc][year][o['StgId']] = val
         return RYS
     
-    def RYTCn(self, RYTCndata):
+    def RYTCn(self, RYTCndata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYTCn* parameter JSON into a nested lookup."""
         RYTCn = {}
         for param, obj1 in RYTCndata.items():
             RYTCn[param] = {}
@@ -574,7 +671,8 @@ class Osemosys():
                             RYTCn[param][sc][year][obj['TechId']][obj['ConId']] = val
         return RYTCn
 
-    def RYTM(self, RYTMdata):
+    def RYTM(self, RYTMdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYTM* parameter JSON into a nested lookup."""
         RYTM = {}
         for param, obj1 in RYTMdata.items():
             RYTM[param] = {}
@@ -590,7 +688,8 @@ class Osemosys():
                             RYTM[param][sc][year][obj['TechId']][obj['MoId']] = val
         return RYTM
 
-    def RYC(self, RYCdata):
+    def RYC(self, RYCdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYC* parameter JSON into a nested lookup."""
         RYC = {}
         for param, obj1 in RYCdata.items():
             RYC[param] = {}
@@ -604,7 +703,8 @@ class Osemosys():
                             RYC[param][sc][year][o['CommId']] = val
         return RYC
 
-    def RYE(self, RYEdata):
+    def RYE(self, RYEdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYE* parameter JSON into a nested lookup."""
         RYE = {}
         for param, obj1 in RYEdata.items():
             RYE[param] = {}
@@ -618,7 +718,8 @@ class Osemosys():
                             RYE[param][sc][year][o['EmisId']] = val
         return RYE
 
-    def RYTs(self, RYTsdata):
+    def RYTs(self, RYTsdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYTs* parameter JSON into a nested lookup."""
         RYTs = {}
         for param, obj1 in RYTsdata.items():
             RYTs[param] = {}
@@ -632,7 +733,8 @@ class Osemosys():
                             RYTs[param][sc][year][obj['TsId']] = val
         return RYTs
 
-    def RYDtb(self, RYDtbdata):
+    def RYDtb(self, RYDtbdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYDtb* parameter JSON into a nested lookup."""
         RYDtb = {}
         for param, obj1 in RYDtbdata.items():
             RYDtb[param] = {}
@@ -646,7 +748,8 @@ class Osemosys():
                             RYDtb[param][sc][year][obj['DtbId']] = val
         return RYDtb
     
-    def RYSeDt(self, RYSeDtdata):
+    def RYSeDt(self, RYSeDtdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYSeDt* parameter JSON into a nested lookup."""
         RYSeDt = {}
         for param, obj1 in RYSeDtdata.items():
             RYSeDt[param] = {}
@@ -662,7 +765,8 @@ class Osemosys():
                             RYSeDt[param][sc][year][obj['SeId']][obj['DtId']] = val
         return RYSeDt
     
-    def RYTC(self, RYTCdata):
+    def RYTC(self, RYTCdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYTC* parameter JSON into a nested lookup."""
         RYTC = {}
         for param, obj1 in RYTCdata.items():
             RYTC[param] = {}
@@ -678,7 +782,8 @@ class Osemosys():
                             RYTC[param][sc][year][obj['TechId']][obj['CommId']] = val
         return RYTC
 
-    def RYTCM(self, RYTCMdata):
+    def RYTCM(self, RYTCMdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYTCM* parameter JSON into a nested lookup."""
         RYTCM = {}
         for param, obj1 in RYTCMdata.items():
             RYTCM[param] = {}
@@ -696,7 +801,8 @@ class Osemosys():
                             RYTCM[param][sc][year][obj['TechId']][obj['CommId']][obj['MoId']] = val
         return RYTCM
 
-    def RYTSM(self, RYTSMdata):
+    def RYTSM(self, RYTSMdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYTSM* parameter JSON into a nested lookup."""
         RYTSM = {}
         for param, obj1 in RYTSMdata.items():
             RYTSM[param] = {}
@@ -714,7 +820,8 @@ class Osemosys():
                             RYTSM[param][sc][year][obj['StgId']][obj['TechId']][obj['MoId']] = val
         return RYTSM
     
-    def RYTE(self, RYTEdata):
+    def RYTE(self, RYTEdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYTE* parameter JSON into a nested lookup."""
         RYTE = {}
         for param, obj1 in RYTEdata.items():
             RYTE[param] = {}
@@ -730,7 +837,8 @@ class Osemosys():
                             RYTE[param][sc][year][obj['TechId']][obj['EmisId']] = val
         return RYTE
 
-    def RYTEM(self, RYTEMdata):
+    def RYTEM(self, RYTEMdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYTEM* parameter JSON into a nested lookup."""
         RYTEM = {}
         for param, obj1 in RYTEMdata.items():
             RYTEM[param] = {}
@@ -748,7 +856,8 @@ class Osemosys():
                             RYTEM[param][sc][year][obj['TechId']][obj['EmisId']][obj['MoId']] = val
         return RYTEM
 
-    def RYTTs(self, RYTTsdata):
+    def RYTTs(self, RYTTsdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYTTs* parameter JSON into a nested lookup."""
         RYTTs = {}
         for param, obj1 in RYTTsdata.items():
             RYTTs[param] = {}
@@ -764,7 +873,8 @@ class Osemosys():
                             RYTTs[param][sc][year][obj['TechId']][obj['TsId']] = val
         return RYTTs
 
-    def RYCTs(self, RYCTsdata):
+    def RYCTs(self, RYCTsdata: Dict[str, Any]) -> Dict[str, Any]:
+        """Reshape *RYCTs* parameter JSON into a nested lookup."""
         RYCTs = {}
         for param, obj1 in RYCTsdata.items():
             RYCTs[param] = {}
@@ -780,7 +890,8 @@ class Osemosys():
                             RYCTs[param][sc][year][obj['CommId']][obj['TsId']] = val
         return RYCTs
 
-    def viewDataByTech(self):
+    def viewDataByTech(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Aggregate parameter view data grouped by technology."""
         jsonData = {}
         data = {}
         for tech in self.genData["osy-tech"]:
@@ -814,7 +925,8 @@ class Osemosys():
                                     data[tech['TechId']].append(byTech.copy())
         return data
 
-    def viewDataByComm(self):
+    def viewDataByComm(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Aggregate parameter view data grouped by commodity."""
         jsonData = {}
         data = {}
         for tech in self.genData["osy-comm"]:
@@ -848,7 +960,8 @@ class Osemosys():
                                     data[tech['CommId']].append(byComm.copy())
         return data
 
-    def viewDataByEmi(self):
+    def viewDataByEmi(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Aggregate parameter view data grouped by emission."""
         jsonData = {}
         data = {}
         for tech in self.genData["osy-emis"]:
@@ -882,7 +995,8 @@ class Osemosys():
                                     data[tech['EmisId']].append(byEmi.copy())
         return data
 
-    def viewRTByTech(self):
+    def viewRTByTech(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Aggregate single-tech parameter view data grouped by technology."""
         jsonData = {}
         data = {}
         for tech in self.genData["osy-tech"]:
@@ -904,7 +1018,8 @@ class Osemosys():
                                 data[tech['TechId']].append(byTech.copy())
         return data
 
-    def viewREByEmi(self):
+    def viewREByEmi(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Aggregate single-emission parameter view data grouped by emission."""
         jsonData = {}
         data = {}
         for tech in self.genData["osy-emis"]:
@@ -926,7 +1041,36 @@ class Osemosys():
                                 data[tech['EmisId']].append(byEmi.copy())
         return data
 
-    def updateViewData(self, casename, year, ScId, GroupId, ParamId, TechId, CommId, EmisId, Timeslice, value):
+    def updateViewData(
+        self,
+        casename: str,
+        year: str,
+        ScId: str,
+        GroupId: str,
+        ParamId: str,
+        TechId: Optional[str],
+        CommId: Optional[str],
+        EmisId: Optional[str],
+        Timeslice: Optional[str],
+        value: Any,
+    ) -> None:
+        """Update a single cell value in a parameter JSON file.
+
+        Args:
+            casename: Case name.
+            year: Year key to update.
+            ScId: Scenario ID.
+            GroupId: Parameter group ID (e.g. ``'RYT'``).
+            ParamId: Parameter ID within the group.
+            TechId: Technology ID filter (or *None*).
+            CommId: Commodity ID filter (or *None*).
+            EmisId: Emission ID filter (or *None*).
+            Timeslice: Timeslice ID filter (or *None*).
+            value: New value to write.
+
+        Raises:
+            IOError: If the file cannot be read or written.
+        """
         try:
             jsonPath = Path(Config.DATA_STORAGE,casename, GroupId+'.json')
             jsonData = File.readFile(jsonPath)
@@ -941,7 +1085,30 @@ class Osemosys():
         except(IOError):
             raise IOError
 
-    def updateTEViewData(self, casename, ScId, GroupId, ParamId, TechId, EmisId, value):
+    def updateTEViewData(
+        self,
+        casename: str,
+        ScId: str,
+        GroupId: str,
+        ParamId: str,
+        TechId: Optional[str],
+        EmisId: Optional[str],
+        value: Any,
+    ) -> None:
+        """Update a technology/emission scalar value in a parameter JSON file.
+
+        Args:
+            casename: Case name.
+            ScId: Scenario ID.
+            GroupId: Parameter group ID.
+            ParamId: Parameter ID.
+            TechId: Technology ID filter (or *None*).
+            EmisId: Emission ID filter (or *None*).
+            value: New value to write.
+
+        Raises:
+            IOError: If the file cannot be read or written.
+        """
         try:
             jsonPath = Path(Config.DATA_STORAGE,casename, GroupId+'.json')
             jsonData = File.readFile(jsonPath)

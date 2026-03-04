@@ -1,3 +1,4 @@
+"""Flask routes for case management operations."""
 from flask import Blueprint, jsonify, request, session, send_file
 import os
 from pathlib import Path
@@ -13,7 +14,8 @@ from Classes.Base.SyncS3 import SyncS3
 case_api = Blueprint('CaseRoute', __name__)
 
 @case_api.route("/initSyncS3", methods=['GET'])
-def initSyncS3():
+def initSyncS3() -> tuple:
+    """Synchronise all cases from S3 bucket to local storage."""
     try:
         #sync bucket with local storage
         syncS3 = SyncS3()
@@ -31,7 +33,8 @@ def initSyncS3():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/getCases", methods=['GET'])
-def getCases():
+def getCases() -> tuple:
+    """Return a list of all case names in DataStorage."""
     try:
         cases = [ f.name for f in os.scandir(Config.DATA_STORAGE) if f.is_dir() ]
         return jsonify(cases), 200
@@ -39,7 +42,8 @@ def getCases():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/getResultCSV", methods=['POST'])
-def getResultCSV():
+def getResultCSV() -> tuple:
+    """Return CSV filenames for a case run's results."""
     try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
@@ -53,7 +57,8 @@ def getResultCSV():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/getDesc", methods=['POST'])
-def getDesc():
+def getDesc() -> tuple:
+    """Return the model description for a given case."""
     try:
         casename = request.json['casename']
         genDataPath = Path(Config.DATA_STORAGE,casename,"genData.json")
@@ -67,7 +72,8 @@ def getDesc():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/copyCase", methods=['POST'])
-def copy():
+def copy() -> tuple:
+    """Create a copy of an existing case."""
     try:
         case = request.json['casename']
         active_case = session.get('osycase')
@@ -105,7 +111,8 @@ def copy():
         raise OSError
 
 @case_api.route("/deleteCase", methods=['POST'])
-def deleteCase():
+def deleteCase() -> tuple:
+    """Delete a case and clear the active session."""
     try:
         case = request.json['casename']
         active_case = session.get('osycase')
@@ -130,7 +137,8 @@ def deleteCase():
         raise OSError
 
 @case_api.route("/getResultData", methods=['POST'])
-def getResultData():
+def getResultData() -> tuple:
+    """Return result data JSON for a given case view."""
     try:
         casename = request.json['casename']
         dataJson = request.json['dataJson']
@@ -146,7 +154,8 @@ def getResultData():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/getParamFile", methods=['POST'])
-def getParamFile():
+def getParamFile() -> tuple:
+    """Return the contents of a parameter configuration file."""
     try:
         dataJson = request.json['dataJson']
         configPath = Path(Config.DATA_STORAGE, dataJson)
@@ -157,7 +166,8 @@ def getParamFile():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/resultsExists", methods=['POST'])
-def resultsExists():
+def resultsExists() -> tuple:
+    """Check whether results exist for a given case."""
     try:
         casename = request.json['casename']
         if casename != None:
@@ -180,7 +190,8 @@ def resultsExists():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/saveParamFile", methods=['POST'])
-def saveParamFile():
+def saveParamFile() -> tuple:
+    """Save updated parameter and variable data files."""
     try:
         ParamData = request.json['ParamData']
         VarData = request.json['VarData']
@@ -199,7 +210,8 @@ def saveParamFile():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/saveScOrder", methods=['POST'])
-def saveScOrder():
+def saveScOrder() -> tuple:
+    """Save the scenario ordering for a case."""
     try:
         data = request.json['data']
         case = request.json['casename']
@@ -217,7 +229,8 @@ def saveScOrder():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/updateData", methods=['POST'])
-def updateData():
+def updateData() -> tuple:
+    """Update a specific parameter in a case data file."""
     try:
         data = request.json['data']
         param = request.json['param']
@@ -245,7 +258,8 @@ def updateData():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/saveCase", methods=['POST'])
-def saveCase():
+def saveCase() -> tuple:
+    """Create or update a case configuration."""
     try:
         genData = request.json['data']
         casename = genData['osy-casename']
@@ -401,7 +415,8 @@ def saveCase():
         return jsonify('Error saving model IOError!'), 404
 
 @case_api.route("/prepareCSV", methods=['POST'])
-def prepareCSV():
+def prepareCSV() -> tuple:
+    """Prepare and export JSON data as a CSV file."""
     try:
         casename = request.json['casename']
         jsonData = request.json['jsonData']
@@ -430,7 +445,8 @@ def prepareCSV():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/downloadCSV", methods=['GET'])
-def downloadCSV():
+def downloadCSV() -> tuple:
+    """Download the exported CSV file for the active case."""
     try:
         casename = session.get('osycase', None)
         dataFile = Path(Config.DATA_STORAGE,casename,'export.csv')
@@ -442,7 +458,8 @@ def downloadCSV():
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/importTemplate", methods=['POST'])
-def run():
+def run() -> tuple:
+    """Import and process a template into the system."""
     try:
         data = request.json['data']
         template = ImportTemplate(data["osy-template"])

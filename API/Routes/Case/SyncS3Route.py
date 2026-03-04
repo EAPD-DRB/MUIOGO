@@ -1,3 +1,4 @@
+"""Flask routes for S3 synchronisation operations."""
 from flask import Blueprint, jsonify, request
 import os
 from pathlib import Path
@@ -8,7 +9,8 @@ from Classes.Base.SyncS3 import SyncS3
 syncs3_api = Blueprint('SyncS3Route', __name__)
 
 @syncs3_api.route("/deleteResultsPreSync", methods=['POST'])
-def deleteResultsPreSync():
+def deleteResultsPreSync() -> tuple:
+    """Delete results and data file before re-synchronising a case."""
     try:        
         case = request.json['casename']
         
@@ -28,7 +30,8 @@ def deleteResultsPreSync():
         raise OSError
 
 @syncs3_api.route("/uploadSync", methods=['POST'])
-def uploadSync():
+def uploadSync() -> tuple:
+    """Upload a local case directory to the S3 bucket."""
     try:        
         case = request.json['casename']
 
@@ -47,7 +50,8 @@ def uploadSync():
         raise OSError
 
 @syncs3_api.route("/deleteSync", methods=['POST'])
-def deleteSync():
+def deleteSync() -> tuple:
+    """Delete a case from the S3 bucket."""
     try:        
         case = request.json['casename']
 
@@ -65,7 +69,8 @@ def deleteSync():
         raise OSError
 
 @syncs3_api.route("/updateSync", methods=['POST'])
-def updateSync():
+def updateSync() -> tuple:
+    """Update a single file for a case on the S3 bucket."""
     try:        
         case = request.json['casename']
         filename = request.json['file']
@@ -85,7 +90,8 @@ def updateSync():
         raise OSError
 
 @syncs3_api.route("/updateSyncParamFile", methods=['GET'])
-def updateSyncParamFile():
+def updateSyncParamFile() -> tuple:
+    """Sync the Parameters.json file to the S3 bucket."""
     try:        
 
         case = ''

@@ -1,16 +1,42 @@
+"""Update existing case parameter files when model structure changes."""
+
 import os
+from typing import Any, Dict
+
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 from Classes.Case.OsemosysClass import Osemosys
 from Classes.Case.CaseClass import Case
 
 class UpdateCase(Osemosys):
-    def __init__(self, case, genData):
-        Osemosys.__init__(self, case)
-        self.genDataUpdate =  genData
-        self.case = case
+    """Merge existing parameter data with updated model structure.
 
-    def update_R(self):
+    When scenarios, technologies, commodities or other dimensions are
+    added or removed, each ``update_<group>`` method preserves existing
+    values and fills new cells with defaults.
+
+    Attributes:
+        genDataUpdate: Updated general model data.
+        case: Case name.
+    """
+
+    def __init__(self, case: str, genData: Dict[str, Any]) -> None:
+        """Initialise an UpdateCase instance.
+
+        Args:
+            case: Case name (subdirectory under DataStorage).
+            genData: Updated general model data dict.
+        """
+        Osemosys.__init__(self, case)
+        self.genDataUpdate: Dict[str, Any] = genData
+        self.case: str = case
+
+    def update_R(self) -> None:
+        """Merge existing values with updated structure for *R* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rJson = File.readFile(self.rPath) 
             Rsource = self.R(rJson)
@@ -34,7 +60,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RY(self):
+    def update_RY(self) -> None:
+        """Merge existing values with updated structure for *RY* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             ryJson = File.readFile(self.ryPath) 
             RYsource = self.RY(ryJson)
@@ -61,7 +92,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RT(self):
+    def update_RT(self) -> None:
+        """Merge existing values with updated structure for *RT* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rtJson = File.readFile(self.rtPath) 
             RTsource = self.RT(rtJson)
@@ -85,7 +121,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RE(self):
+    def update_RE(self) -> None:
+        """Merge existing values with updated structure for *RE* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             reJson = File.readFile(self.rePath) 
             REsource = self.RE(reJson)
@@ -112,7 +153,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RS(self):
+    def update_RS(self) -> None:
+        """Merge existing values with updated structure for *RS* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             if os.path.isfile(self.rsPath):
                 rsJson = File.readFile(self.rsPath) 
@@ -141,7 +187,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
         
-    def update_RTSM(self):
+    def update_RTSM(self) -> None:
+        """Merge existing values with updated structure for *RTSM* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             if os.path.isfile(self.rtsmPath):
                 rtsmJson = File.readFile(self.rtsmPath) 
@@ -182,7 +233,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
         
-    def update_RYCn(self):
+    def update_RYCn(self) -> None:
+        """Merge existing values with updated structure for *RYCn* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rycnJson = File.readFile(self.rycnPath) 
             RYCnsource = self.RYCn(rycnJson)
@@ -210,7 +266,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYT(self):
+    def update_RYT(self) -> None:
+        """Merge existing values with updated structure for *RYT* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rytJson = File.readFile(self.rytPath) 
             RYTsource = self.RYT(rytJson)
@@ -240,7 +301,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYS(self):
+    def update_RYS(self) -> None:
+        """Merge existing values with updated structure for *RYS* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             if os.path.isfile(self.rysPath):
                 rysJson = File.readFile(self.rysPath) 
@@ -274,7 +340,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
         
-    def update_RYTCn(self):
+    def update_RYTCn(self) -> None:
+        """Merge existing values with updated structure for *RYTCn* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rytcnJson = File.readFile(self.rytcnPath) 
             RYTCnsource = self.RYTCn(rytcnJson)
@@ -309,7 +380,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYTM(self):
+    def update_RYTM(self) -> None:
+        """Merge existing values with updated structure for *RYTM* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rytmJson = File.readFile(self.rytmPath) 
             RYTMsource = self.RYTM(rytmJson)
@@ -343,7 +419,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYC(self):
+    def update_RYC(self) -> None:
+        """Merge existing values with updated structure for *RYC* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rycJson = File.readFile(self.rycPath) 
             RYCsource = self.RYC(rycJson)
@@ -372,7 +453,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYE(self):
+    def update_RYE(self) -> None:
+        """Merge existing values with updated structure for *RYE* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             ryeJson = File.readFile(self.ryePath) 
             RYEsource = self.RYE(ryeJson)
@@ -401,7 +487,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYTs(self):
+    def update_RYTs(self) -> None:
+        """Merge existing values with updated structure for *RYTs* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rytsJson = File.readFile(self.rytsPath) 
             RYTssource = self.RYTs(rytsJson)
@@ -429,7 +520,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYDtb(self):
+    def update_RYDtb(self) -> None:
+        """Merge existing values with updated structure for *RYDtb* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             if os.path.isfile(self.rydtbPath):
                 rydtbJson = File.readFile(self.rydtbPath) 
@@ -461,7 +557,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYSeDt(self):
+    def update_RYSeDt(self) -> None:
+        """Merge existing values with updated structure for *RYSeDt* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             if os.path.isfile(self.rysedtPath):
                 rysedtJson = File.readFile(self.rysedtPath) 
@@ -498,7 +599,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
               
-    def update_RYTC(self):
+    def update_RYTC(self) -> None:
+        """Merge existing values with updated structure for *RYTC* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rytcJson = File.readFile(self.rytcPath) 
             RYTCsource = self.RYTC(rytcJson)
@@ -532,7 +638,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYTCM(self):
+    def update_RYTCM(self) -> None:
+        """Merge existing values with updated structure for *RYTCM* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rytcmJson = File.readFile(self.rytcmPath) 
             RYTCMsource = self.RYTCM(rytcmJson)
@@ -570,7 +681,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYTSM(self):
+    def update_RYTSM(self) -> None:
+        """Merge existing values with updated structure for *RYTSM* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             if os.path.isfile(self.rytsmPath):
                 rytsmJson = File.readFile(self.rytsmPath) 
@@ -613,7 +729,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
         
-    def update_RYTE(self):
+    def update_RYTE(self) -> None:
+        """Merge existing values with updated structure for *RYTE* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             ryteJson = File.readFile(self.rytePath) 
             RYTEsource = self.RYTE(ryteJson)
@@ -648,7 +769,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYTEM(self):
+    def update_RYTEM(self) -> None:
+        """Merge existing values with updated structure for *RYTEM* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             rytemJson = File.readFile(self.rytemPath) 
             RYTEMsource = self.RYTEM(rytemJson)
@@ -689,7 +815,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYTTs(self):
+    def update_RYTTs(self) -> None:
+        """Merge existing values with updated structure for *RYTTs* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             ryttsJson = File.readFile(self.ryttsPath) 
             RYTTssource = self.RYTTs(ryttsJson)
@@ -722,7 +853,12 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
 
-    def update_RYCTs(self):
+    def update_RYCTs(self) -> None:
+        """Merge existing values with updated structure for *RYCTs* parameters.
+
+        Raises:
+            IOError: If parameter files cannot be read or written.
+        """
         try:
             ryctsJson = File.readFile(self.ryctsPath) 
             RYCTssource = self.RYCTs(ryctsJson)
@@ -756,7 +892,14 @@ class UpdateCase(Osemosys):
         except(IOError):
             raise IOError
     
-    def updateCase(self):
+    def updateCase(self) -> None:
+        """Run all update methods for every parameter group.
+
+        Iterates over parameter groups and calls ``update_<group>``.
+
+        Raises:
+            IOError: If any parameter file cannot be processed.
+        """
         try:
             for group, array in self.PARAMETERS.items():
                 if array:

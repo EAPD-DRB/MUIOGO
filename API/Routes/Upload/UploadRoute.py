@@ -1,4 +1,6 @@
+"""Flask routes for file upload and case import operations."""
 import shutil
+from typing import Any, Optional
 from flask import Blueprint, request, jsonify, send_file, after_this_request
 from zipfile import ZipFile
 from pathlib import Path
@@ -13,20 +15,23 @@ from Classes.Base.FileClass import File
 upload_api = Blueprint('UploadRoute', __name__)
 
 #File extension checking
-def allowed_filename(filename):
+def allowed_filename(filename: str) -> bool:
+    """Check whether the file extension is in the allowed set."""
     return '.' in filename and filename.rsplit('.',1)[1] in Config.ALLOWED_EXTENSIONS
 
 #File extension checking
-def allowed_filename_xls(filename):
+def allowed_filename_xls(filename: str) -> bool:
+    """Check whether the file extension is in the allowed Excel set."""
     return '.' in filename and filename.rsplit('.',1)[1] in Config.ALLOWED_EXTENSIONS_XLS
 
-def download_dir(prefix, local, bucket, client):
-    """
-    params:
-    - prefix: pattern to match in s3
-    - local: local path to folder in which to place files
-    - bucket: s3 bucket with target contents
-    - client: initialized s3 client object
+def download_dir(prefix: str, local: str, bucket: str, client: Any) -> None:
+    """Download all files from an S3 bucket prefix to a local directory.
+
+    Args:
+        prefix: Pattern to match in S3.
+        local: Local path to folder in which to place files.
+        bucket: S3 bucket with target contents.
+        client: Initialised S3 client object.
     """
     keys = []
     dirs = []
@@ -59,22 +64,16 @@ def download_dir(prefix, local, bucket, client):
             os.makedirs(os.path.dirname(dest_pathname))
         client.download_file(bucket, k, dest_pathname)
 
-def upload_dir(s3, localDir, awsInitDir, bucketName, tag, prefix=os.sep):
-    """
-    from current working directory, upload a 'localDir' with all its subcontents (files and subdirectories...)
-    to a aws bucket
-    Parameters
-    ----------
-    localDir :   localDirectory to be uploaded, with respect to current working directory
-    awsInitDir : prefix 'directory' in aws
-    bucketName : bucket in aws
-    tag :        tag to select files, like *png
-                 NOTE: if you use tag it must be given like --tag '*txt', in some quotation marks... for argparse
-    prefix :     to remove initial '/' from file names
+def upload_dir(s3: Any, localDir: Path, awsInitDir: str, bucketName: str, tag: str, prefix: str = os.sep) -> None:
+    """Upload a local directory and its contents to an AWS S3 bucket.
 
-    Returns
-    -------
-    None
+    Args:
+        s3: Initialised S3 resource wrapper.
+        localDir: Local directory to upload.
+        awsInitDir: Prefix directory path in AWS.
+        bucketName: Target S3 bucket name.
+        tag: Glob tag to select files (e.g. ``'*png'``).
+        prefix: Leading separator to strip from file names.
     """
 
     # mydirs daje listu svvih file i folder u localDir npr WebApp/DataStorage/Demo/genData.json
@@ -94,7 +93,8 @@ def upload_dir(s3, localDir, awsInitDir, bucketName, tag, prefix=os.sep):
             # S3.resource.meta.client.upload_file(FullfileName, bucketName, awsPath)
             s3.resource.meta.client.upload_file(FullfileName, bucketName, awsPath)
 
-def updateTimeslices(casename):
+def updateTimeslices(casename: str) -> None:
+    """Rebuild season, day-type and timeslice entries in genData and rename legacy keys."""
     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
     genData = File.readParamFile(genDataPath)
     ns = int(genData["osy-ns"])
@@ -130,7 +130,8 @@ def updateTimeslices(casename):
     RYCTsPath = Path(Config.DATA_STORAGE, casename, 'RYCTs.json')
     RYCTsPath.write_text(RYCTsPath.read_text().replace('Timeslice', 'TsId'))
 
-def updateStorageSet(casename):
+def updateStorageSet(casename: str) -> None:
+    """Reset the storage set list in the case genData file."""
     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
     genData = File.readParamFile(genDataPath)
 
@@ -138,7 +139,8 @@ def updateStorageSet(casename):
 
     File.writeFile( genData, genDataPath)
 
-def updateViewDefintions(casename):
+def updateViewDefintions(casename: str) -> None:
+    """Synchronise view definitions with the current Variables.json schema."""
     viewDataPath = Path(Config.DATA_STORAGE,casename,'view','viewDefinitions.json')
     viewDefExisting = File.readParamFile(viewDataPath)
     configPath = Path(Config.DATA_STORAGE, 'Variables.json')
@@ -157,7 +159,8 @@ def updateViewDefintions(casename):
     }
     File.writeFile( viewData, viewDataPath)
 
-def updateTimeslices_OnlyTs(casename):
+def updateTimeslices_OnlyTs(casename: str) -> None:
+    """Rebuild only the timeslice entries without touching seasons or day types."""
     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
     genData = File.readParamFile(genDataPath)
     ns = int(genData["osy-ns"])
@@ -197,13 +200,15 @@ class Download(Thread):
 
 
 @upload_api.route('/myfunc', methods=["GET", "POST"])
-def myfunc():
+def myfunc() -> tuple:
+        """Trigger a background download thread (demo endpoint)."""
         thread_a = Download(request.__copy__())
         thread_a.start()
         return "Processing in background", 200
 
 @upload_api.route("/backupCase", methods=['GET'])
-def backupCase():
+def backupCase() -> tuple:
+    """Create a ZIP backup of a case and send it as a download."""
     try:    
         #case = request.form['case']
         #case = request.json['casename']
@@ -245,7 +250,8 @@ def backupCase():
         raise OSError
 
 @upload_api.route('/uploadCaseUnchunked_old', methods=['POST'])
-def uploadCaseUnchunked_old():
+def uploadCaseUnchunked_old() -> tuple:
+    """Upload and extract a case ZIP archive (legacy non-chunked version)."""
     try:        
         msg = []
         submitted_storage =  request.files.to_dict()
@@ -408,7 +414,8 @@ def uploadCaseUnchunked_old():
     except OSError:
         raise OSError
 
-def handle_full_zip(file, filepath=None):
+def handle_full_zip(file: Any, filepath: Optional[str] = None) -> tuple:
+    """Process a complete ZIP archive, extract and register the model."""
     msg = []
 
     # Ako je file objekat (upload iz browsera)
@@ -542,7 +549,8 @@ def handle_full_zip(file, filepath=None):
     return jsonify({"response": msg}), 200
 
 @upload_api.route('/uploadCase', methods=['POST'])
-def uploadCase():
+def uploadCase() -> tuple:
+    """Upload a case ZIP archive with chunked upload support."""
     try:
         # -------------------------------
         # 1) Primanje Dropzone chunk meta
@@ -609,7 +617,8 @@ def uploadCase():
         return jsonify({"error": str(e)}), 500
     
 @upload_api.route('/uploadXls', methods=['POST'])
-def uploadXls():
+def uploadXls() -> tuple:
+    """Upload an Excel template file."""
     try: 
         msg = []
         submitted_storage =  request.files.to_dict()

@@ -1,3 +1,4 @@
+"""Flask application entry point."""
 #import sys
 from pathlib import Path
 import os
@@ -64,7 +65,8 @@ CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
 
 #entry point to frontend
 @app.route("/", methods=['GET'])
-def home():
+def home() -> str:
+    """Render the main application page."""
     #sync bucket with local storage
     # if Config.AWS_SYNC == 1:
     #     syncS3 = SyncS3()
@@ -77,7 +79,8 @@ def home():
 
 
 @app.route("/getSession", methods=['GET'])
-def getSession():
+def getSession() -> tuple:
+    """Return the current active case session."""
     try:
         ses = session.get('osycase', None) or None
         response = {
@@ -88,7 +91,8 @@ def getSession():
         return jsonify('No selected parameters!'), 404
 
 @app.route("/setSession", methods=['POST'])
-def setSession():
+def setSession() -> tuple:
+    """Set the active case for the current session."""
     try:
         cs = request.json['case']
         from pathlib import Path

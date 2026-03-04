@@ -1,18 +1,50 @@
+"""Case initialisation with default parameter values."""
+
 from pathlib import Path
+from typing import Any, Dict
+
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 
+
 class Case:
-    def __init__(self, case, genData):
-        self.case = case
-        self.PARAMETERS = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
-        self.genData =  genData
-        self.jsonPath = {}
+    """Create and populate a new OSeMOSYS case with default parameter files.
+
+    For every parameter group defined in ``Parameters.json``, a
+    corresponding ``default_<group>`` method writes a JSON file filled
+    with default values for all scenario / dimension combinations.
+
+    Attributes:
+        case: Case name (also used as the sub-directory name).
+        PARAMETERS: Parameter definitions loaded from
+            ``Parameters.json``.
+        genData: General data dictionary describing the model
+            (technologies, years, scenarios, etc.).
+        jsonPath: Mapping of parameter-group names to their JSON
+            file paths on disk.
+    """
+
+    def __init__(self, case: str, genData: Dict[str, Any]) -> None:
+        """Initialise a Case instance.
+
+        Args:
+            case: Case name used as a subdirectory under *DataStorage*.
+            genData: General model data dict (scenarios, years, techs, …).
+        """
+        self.case: str = case
+        self.PARAMETERS: Dict[str, Any] = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
+        self.genData: Dict[str, Any] = genData
+        self.jsonPath: Dict[str, Path] = {}
         for group, array in self.PARAMETERS.items():
             if array:
                 self.jsonPath[group] = Path(Config.DATA_STORAGE, case, group+".json")
 
-    def default_R(self):
+    def default_R(self) -> None:
+        """Write default values for *R* (region-level scalar) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             scenarios = self.genData['osy-scenarios']
             Rdata = {}
@@ -32,7 +64,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RY(self):
+    def default_RY(self) -> None:
+        """Write default values for *RY* (region-year) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             scenarios = self.genData['osy-scenarios']
@@ -52,7 +89,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RT(self):
+    def default_RT(self) -> None:
+        """Write default values for *RT* (region-technology) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             techs = self.genData['osy-tech']
             scenarios = self.genData['osy-scenarios']
@@ -73,7 +115,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RE(self):
+    def default_RE(self) -> None:
+        """Write default values for *RE* (region-emission) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             emis = self.genData['osy-emis']
             scenarios = self.genData['osy-scenarios']
@@ -94,7 +141,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RS(self):
+    def default_RS(self) -> None:
+        """Write default values for *RS* (region-storage) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             stgs = self.genData['osy-stg']
             scenarios = self.genData['osy-scenarios']
@@ -115,7 +167,12 @@ class Case:
         except(IOError):
             raise
         
-    def default_RYCn(self):
+    def default_RYCn(self) -> None:
+        """Write default values for *RYCn* (region-year-constraint) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             scenarios = self.genData['osy-scenarios']
@@ -140,7 +197,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYTs(self):
+    def default_RYTs(self) -> None:
+        """Write default values for *RYTs* (region-year-timeslice) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             scenarios = self.genData['osy-scenarios']
@@ -164,7 +226,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYDtb(self):
+    def default_RYDtb(self) -> None:
+        """Write default values for *RYDtb* (region-year-daily-time-bracket) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             scenarios = self.genData['osy-scenarios']
@@ -188,7 +255,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYSeDt(self):
+    def default_RYSeDt(self) -> None:
+        """Write default values for *RYSeDt* (region-year-season-daytype) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             seasons = self.genData['osy-se']
@@ -216,7 +288,12 @@ class Case:
         except(IOError):
             raise
            
-    def default_RYT(self):
+    def default_RYT(self) -> None:
+        """Write default values for *RYT* (region-year-technology) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             techs = self.genData['osy-tech']
@@ -241,7 +318,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYS(self):
+    def default_RYS(self) -> None:
+        """Write default values for *RYS* (region-year-storage) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             stgs = self.genData['osy-stg']
@@ -266,7 +348,12 @@ class Case:
         except(IOError):
             raise
         
-    def default_RYTCn(self):
+    def default_RYTCn(self) -> None:
+        """Write default values for *RYTCn* (region-year-technology-constraint) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             scenarios = self.genData['osy-scenarios']
@@ -294,7 +381,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYTM(self):
+    def default_RYTM(self) -> None:
+        """Write default values for *RYTM* (region-year-technology-mode) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             mo = int(self.genData['osy-mo'])+1
             years = self.genData['osy-years']
@@ -322,7 +414,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYC(self):
+    def default_RYC(self) -> None:
+        """Write default values for *RYC* (region-year-commodity) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             comms = self.genData['osy-comm']
@@ -347,7 +444,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYE(self):
+    def default_RYE(self) -> None:
+        """Write default values for *RYE* (region-year-emission) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             emis = self.genData['osy-emis']
@@ -372,7 +474,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYTC(self):
+    def default_RYTC(self) -> None:
+        """Write default values for *RYTC* (region-year-technology-commodity) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             techs = self.genData['osy-tech']
@@ -400,7 +507,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYTCM(self):
+    def default_RYTCM(self) -> None:
+        """Write default values for *RYTCM* (region-year-technology-commodity-mode) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             techs = self.genData['osy-tech']
@@ -431,7 +543,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYTSM(self):
+    def default_RYTSM(self) -> None:
+        """Write default values for *RYTSM* (region-year-technology-storage-mode) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             stgs = self.genData['osy-stg']
@@ -462,7 +579,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RTSM(self):
+    def default_RTSM(self) -> None:
+        """Write default values for *RTSM* (region-technology-storage-mode) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             stgs = self.genData['osy-stg']
             scenarios = self.genData['osy-scenarios']
@@ -491,7 +613,12 @@ class Case:
         except(IOError):
             raise
            
-    def default_RYTE(self):
+    def default_RYTE(self) -> None:
+        """Write default values for *RYTE* (region-year-technology-emission) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             techs = self.genData['osy-tech']
@@ -519,7 +646,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYTEM(self):
+    def default_RYTEM(self) -> None:
+        """Write default values for *RYTEM* (region-year-technology-emission-mode) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             techs = self.genData['osy-tech']
@@ -553,7 +685,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYTTs(self):
+    def default_RYTTs(self) -> None:
+        """Write default values for *RYTTs* (region-year-technology-timeslice) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             techs = self.genData['osy-tech']
@@ -581,7 +718,12 @@ class Case:
         except(IOError):
             raise
 
-    def default_RYCTs(self):
+    def default_RYCTs(self) -> None:
+        """Write default values for *RYCTs* (region-year-commodity-timeslice) parameters.
+
+        Raises:
+            IOError: If the file cannot be written.
+        """
         try:
             years = self.genData['osy-years']
             comms = self.genData['osy-comm']
@@ -609,7 +751,15 @@ class Case:
         except(IOError):
             raise
 
-    def createCase(self):
+    def createCase(self) -> None:
+        """Generate all default parameter files for this case.
+
+        Iterates over every parameter group and calls the corresponding
+        ``default_<group>`` method.
+
+        Raises:
+            IOError: If any parameter file cannot be written.
+        """
         try:
             for group, array in self.PARAMETERS.items():
                 if array:

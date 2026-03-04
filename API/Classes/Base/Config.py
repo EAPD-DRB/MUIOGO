@@ -1,4 +1,12 @@
+"""Application configuration module.
+
+Defines paths, constants, and environment-based settings used throughout
+the MUIOGO application. Values are resolved at import time so that every
+module shares a single source of truth.
+"""
+
 from pathlib import Path
+from typing import Dict, Final, List, Set, Tuple
 import os
 #from dotenv import load_dotenv
 import platform
@@ -6,34 +14,34 @@ import platform
 #load environment variables
 #load_dotenv()
 
-SYSTEM = platform.system()
+SYSTEM: Final[str] = platform.system()
 
 # S3_BUCKET = os.environ.get("S3_BUCKET")
 # S3_KEY = os.environ.get("S3_KEY")
 # S3_SECRET = os.environ.get("S3_SECRET")
 
 #S3 bucket is not used in Osemosys
-S3_BUCKET = ""
-S3_KEY = ""
-S3_SECRET = ""
+S3_BUCKET: Final[str] = ""
+S3_KEY: Final[str] = ""
+S3_SECRET: Final[str] = ""
 
-ALLOWED_EXTENSIONS = set(['zip', 'application/zip'])
-ALLOWED_EXTENSIONS_XLS = set(['xls', 'xlsx'])
+ALLOWED_EXTENSIONS: Final[Set[str]] = set(['zip', 'application/zip'])
+ALLOWED_EXTENSIONS_XLS: Final[Set[str]] = set(['xls', 'xlsx'])
 # -------------------------
 # FIX: Make paths independent of working directory
 # -------------------------
 
 # This file is in: API/Classes/Base/Config.py
 # So project root is 3 levels up
-BASE_DIR = Path(__file__).resolve().parents[3]
+BASE_DIR: Final[Path] = Path(__file__).resolve().parents[3]
 
-WEBAPP_PATH = BASE_DIR / "WebAPP"
+WEBAPP_PATH: Final[Path] = BASE_DIR / "WebAPP"
 
-UPLOAD_FOLDER = WEBAPP_PATH
-DATA_STORAGE = WEBAPP_PATH / "DataStorage"
-CLASS_FOLDER = WEBAPP_PATH / "Classes"
-SOLVERs_FOLDER = WEBAPP_PATH / "SOLVERs"
-EXTRACT_FOLDER = BASE_DIR
+UPLOAD_FOLDER: Final[Path] = WEBAPP_PATH
+DATA_STORAGE: Final[Path] = WEBAPP_PATH / "DataStorage"
+CLASS_FOLDER: Final[Path] = WEBAPP_PATH / "Classes"
+SOLVERs_FOLDER: Final[Path] = WEBAPP_PATH / "SOLVERs"
+EXTRACT_FOLDER: Final[Path] = BASE_DIR
 
 # Ensure DataStorage exists
 DATA_STORAGE.mkdir(parents=True, exist_ok=True)
@@ -50,16 +58,16 @@ if not os.access(DATA_STORAGE, os.W_OK):
 # EXTRACT_FOLDER = Path(OSEMOSYS_ROOT, "")
 # SOLVERs_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP', 'SOLVERs')
 
-HEROKU_DEPLOY = 0
-AWS_SYNC = 0
+HEROKU_DEPLOY: Final[int] = 0
+AWS_SYNC: Final[int] = 0
 
 # API base URL: configurable via MUIOGO_API_URL env var.
 # Defaults to window.location.origin on the frontend when not set.
-API_BASE_URL = os.environ.get("MUIOGO_API_URL", "")
+API_BASE_URL: Final[str] = os.environ.get("MUIOGO_API_URL", "")
 
 # CORS allowed origins: configurable via MUIOGO_CORS_ORIGINS env var.
 # Accepts a comma-separated list. Defaults to localhost origins for local dev.
-CORS_ORIGINS = [
+CORS_ORIGINS: Final[List[str]] = [
     origin.strip()
     for origin in os.environ.get(
         "MUIOGO_CORS_ORIGINS",
@@ -68,17 +76,17 @@ CORS_ORIGINS = [
     if origin.strip()
 ]
 
-PINNED_COLUMNS = ('Sc', 'Tech', 'Comm', 'Emis','Stg', 'Ts', 'MoO', 'UnitId', 'Se','Dt', 'Dtb', 'paramName','TechName', 'CommName', 'EmisName', 'ConName', 'MoId')
+PINNED_COLUMNS: Final[Tuple[str, ...]] = ('Sc', 'Tech', 'Comm', 'Emis','Stg', 'Ts', 'MoO', 'UnitId', 'Se','Dt', 'Dtb', 'paramName','TechName', 'CommName', 'EmisName', 'ConName', 'MoId')
 
-TECH_GROUPS = ('RYT', 'RYTM', 'RYTC', 'RYTCn', 'RYTCM', 'RYTE', 'RYTEM', 'RYTTs')
-COMM_GROUPS = ('RYC', 'RYTC', 'RYTCM','RYCTs')
-EMIS_GROUPS = ('RYE', 'RYTE', 'RYTEM')
+TECH_GROUPS: Final[Tuple[str, ...]] = ('RYT', 'RYTM', 'RYTC', 'RYTCn', 'RYTCM', 'RYTE', 'RYTEM', 'RYTTs')
+COMM_GROUPS: Final[Tuple[str, ...]] = ('RYC', 'RYTC', 'RYTCM','RYCTs')
+EMIS_GROUPS: Final[Tuple[str, ...]] = ('RYE', 'RYTE', 'RYTEM')
 
-SINGLE_TECH_GROUPS = ['RT']
-SINGLE_EMIS_GROUPS = ['RE']
+SINGLE_TECH_GROUPS: Final[List[str]] = ['RT']
+SINGLE_EMIS_GROUPS: Final[List[str]] = ['RE']
 
 #full var list 38
-VARIABLES_C = {
+VARIABLES_C: Final[Dict[str, List[str]]] = {
         'NewCapacity':['r','t','y'],
         'AccumulatedNewCapacity':['r','t','y'],
         'TotalCapacityAnnual':['r','t','y'],
@@ -139,7 +147,7 @@ VARIABLES_C = {
         'UDC2_UserDefinedConstraintEquality': ['r','cn','y']
     }
 
-DUALS = {
+DUALS: Final[Dict[str, List[str]]] = {
     'EBb4_EnergyBalanceEachYear4_ICR': ['r','f','y'],
     'E8_AnnualEmissionsLimit': ['r','e','y'],
     'UDC1_UserDefinedConstraintInequality': ['r','cn','y'],
@@ -147,7 +155,7 @@ DUALS = {
 }
 
 #needed for validation of inputs
-PARAMETERS_C = {
+PARAMETERS_C: Final[Dict[str, List[str]]] = {
         'DiscountRate': ['r'],
         'OutputActivityRatio':['r','f','t','y','m'],
         'InputActivityRatio':['r','f','t','y','m'],
@@ -169,7 +177,7 @@ PARAMETERS_C = {
         'SpecifiedDemandProfile': ['r','f','y','l']
     }
 
-PARAMETERS_C_full = {
+PARAMETERS_C_full: Final[Dict[str, List[str]]] = {
         'DiscountRate': ['r', 'DiscountRate'],
         'OutputActivityRatio':['r','f','t','y','m','OutputActivityRatio'],
         'InputActivityRatio':['r','f','t','y','m','InputActivityRatio'],
