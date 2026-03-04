@@ -223,16 +223,23 @@ def updateData():
         param = request.json['param']
         case = session.get('osycase', None)
         dataJson = request.json['dataJson']
+        
+        # Early return if case is None - prevents UnboundLocalError
+        if case is None:
+            return jsonify({
+                "message": "No active case session found. Please select a case first.",
+                "status_code": "error"
+            }), 400
+        
         dataPath = Path(Config.DATA_STORAGE, case, dataJson)
-        if case != None:
-            sourceData = File.readFile(dataPath)
-            sourceData[param] = data
-            File.writeFile(sourceData, dataPath)
-            #File.writeFileUJson(sourceData, dataPath)
-            response = {
-                "message": "Your data has been saved!",
-                "status_code": "success"
-            }      
+        sourceData = File.readFile(dataPath)
+        sourceData[param] = data
+        File.writeFile(sourceData, dataPath)
+        #File.writeFileUJson(sourceData, dataPath)
+        response = {
+            "message": "Your data has been saved!",
+            "status_code": "success"
+        }      
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
