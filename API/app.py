@@ -1,15 +1,10 @@
-#import sys
 from pathlib import Path
 import os
 
 from flask import Flask, jsonify, request, session, render_template
 from flask_cors import CORS
 from datetime import timedelta
-# from pathlib import Path
-
-#import json
 from Classes.Base import Config
-# from API.Classes.Base.SyncS3 import SyncS3
 from Routes.Upload.UploadRoute import upload_api
 from Routes.Case.CaseRoute import case_api
 from Routes.Case.SyncS3Route import syncs3_api
@@ -28,19 +23,6 @@ WEBAPP_PATH = BASE_DIR / "WebAPP"
 
 template_dir = str(WEBAPP_PATH)
 static_dir = str(WEBAPP_PATH)
-
-# template_dir = Config.WebAPP_PATH.resolve()
-# static_dir = Config.WebAPP_PATH.resolve()
-
-# template_dir = os.path.join(sys._MEIPASS, 'WebAPP') 
-# static_dir = os.path.join(sys._MEIPASS, 'WebAPP') 
-
-#gets absolute path
-# template_dir = Path('WebAPP').resolve()
-# static_dir = Path('../WebAPP').resolve()
-
-# template_dir = 'WebAPP'
-# static_dir = '../WebAPP'
 
 app = Flask(__name__, static_url_path='', static_folder=static_dir,  template_folder=template_dir)
 
@@ -70,23 +52,9 @@ def add_headers(response):
     #response.headers['Content-Type'] = 'application/javascript'
     return response
 
-# @app.errorhandler(CustomException)
-# def handle_invalid_usage(error):
-#     response = jsonify(error.to_dict())
-#     response.status_code = error.status_code
-#     return response
-
 #entry point to frontend
 @app.route("/", methods=['GET'])
 def home():
-    #sync bucket with local storage
-    # if Config.AWS_SYNC == 1:
-    #     syncS3 = SyncS3()
-    #     cases = syncS3.getCasesSyncInit()
-    #     for case in cases:
-    #         syncS3.downloadSync(case, Config.DATA_STORAGE, Config.S3_BUCKET)
-    #     #downoload param file from S3 bucket
-    #     syncS3.downloadSync('Parameters.json', Config.DATA_STORAGE, Config.S3_BUCKET)
     return render_template('index.html')
 
 

@@ -41,14 +41,6 @@ DATA_STORAGE.mkdir(parents=True, exist_ok=True)
 # Validate writability instead of forcing permissions
 if not os.access(DATA_STORAGE, os.W_OK):
     raise PermissionError(f"Data storage path is not writable: {DATA_STORAGE}")
-#absolute paths
-# OSEMOSYS_ROOT = os.path.abspath(os.getcwd())
-# UPLOAD_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP')
-# WebAPP_PATH = Path(OSEMOSYS_ROOT, 'WebAPP')
-# DATA_STORAGE = Path(OSEMOSYS_ROOT, "WebAPP", 'DataStorage')
-# CLASS_FOLDER = Path(OSEMOSYS_ROOT, "WebAPP", 'Classes')
-# EXTRACT_FOLDER = Path(OSEMOSYS_ROOT, "")
-# SOLVERs_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP', 'SOLVERs')
 
 HEROKU_DEPLOY = 0
 AWS_SYNC = 0
