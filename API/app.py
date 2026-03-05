@@ -113,20 +113,33 @@ def getSession():
 
 @app.route("/setSession", methods=['POST'])
 def setSession():
+    # 1. Validate JSON payload
     try:
-        cs = request.json['case']
-        if cs is None:
-            session.pop('osycase', None)
-            return jsonify({"osycase": None}), 200
+        body = request.get_json(silent=True)
+    except Exception:
+        body = None
 
-        from pathlib import Path
-        if not Path(Config.DATA_STORAGE, cs).is_dir():
-            return jsonify({'message': 'Case not found.', 'status_code': 'error'}), 404
-        session['osycase'] = cs
-        response = {"osycase": session['osycase']}
-        return jsonify(response), 200
-    except KeyError:
-        return jsonify('No selected parameters!'), 404
+    if body is None:
+        return jsonify({"message": "Invalid JSON payload.", "status_code": "error"}), 400
+
+    # 2. Validate 'case' key exists
+    cs = body.get('case')
+    if cs is None:
+        session.pop('osycase', None)
+        return jsonify({"osycase": None}), 200
+
+    # 3. Validate 'case' is not empty/whitespace
+    if not isinstance(cs, str) or not cs.strip():
+        return jsonify({"message": "Case name cannot be empty.", "status_code": "error"}), 400
+
+    # 4. Validate case directory exists
+    from pathlib import Path
+    if not Path(Config.DATA_STORAGE, cs.strip()).is_dir():
+        return jsonify({"message": "Case not found.", "status_code": "error"}), 404
+
+    # 5. Set session
+    session['osycase'] = cs.strip()
+    return jsonify({"osycase": session['osycase']}), 200
 
 
 if __name__ == '__main__':
