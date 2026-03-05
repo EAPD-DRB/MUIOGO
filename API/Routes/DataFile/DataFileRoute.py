@@ -56,11 +56,14 @@ def updateCaseRun():
 
 @datafile_api.route("/deleteCaseRun", methods=['POST'])
 def deleteCaseRun():
-    try:        
+    try:
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         resultsOnly = request.json['resultsOnly']
-        
+
+        if not casename:
+            return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
+
         casePath = Path(Config.DATA_STORAGE, casename, 'res', caserunname)
         if not resultsOnly:
             shutil.rmtree(casePath)
@@ -68,31 +71,17 @@ def deleteCaseRun():
             for item in os.listdir(casePath):
                 item_path = os.path.join(casePath, item)
                 if os.path.isfile(item_path) or os.path.islink(item_path):
-                    os.remove(item_path)  # delete file
+                    os.remove(item_path)
                 elif os.path.isdir(item_path):
-                    shutil.rmtree(item_path)  # delete subfolder
+                    shutil.rmtree(item_path)
 
-        if casename != None:
-            caserun = DataFile(casename)
-            response = caserun.deleteCaseRun(caserunname, resultsOnly)    
+        caserun = DataFile(casename)
+        response = caserun.deleteCaseRun(caserunname, resultsOnly)
         return jsonify(response), 200
-
-        # if casename == session.get('osycase'):
-        #     session['osycase'] = None
-        #     response = {
-        #         "message": 'Case <b>'+ casename + '</b> deleted!',
-        #         "status_code": "success_session"
-        #     }
-        # else:
-        #     response = {
-        #         "message": 'Case <b>'+ casename + '</b> deleted!',
-        #         "status_code": "success"
-        #     }
-        # return jsonify(response), 200
-    except(IOError):
+    except FileNotFoundError:
         return jsonify('No existing cases!'), 404
     except OSError:
-        raise OSError
+        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500
 
 @datafile_api.route("/deleteScenarioCaseRuns", methods=['POST'])
 def deleteScenarioCaseRuns():
