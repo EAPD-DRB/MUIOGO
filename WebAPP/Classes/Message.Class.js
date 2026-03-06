@@ -1,19 +1,7 @@
 import { Html } from "./Html.Class.js";
 export class Message {
 
-    static isInitialEmptyState(message) {
-        if (!message) return true;
-
-        const text = message.toString().toLowerCase().trim();
-
-        return (
-            text === "" ||
-            text === "error!" ||
-            text.includes("no selected parameters") ||
-            text.includes("undefined") ||
-            text.includes("null")
-        );
-    }
+    
     static clearMessages() {
         $("#osy-warning").empty();
         $("#osy-success").empty();
@@ -53,18 +41,16 @@ export class Message {
 
     static danger(message) {
 
-    if (Message.isInitialEmptyState(message)) {
-        message = "No case loaded. Please create or load a case to begin.";
-    }
+ 
 
     $("#osy-danger").html(`<div class="alert alert-danger fade in">
             <button class="close" data-dismiss="alert">×</button>
             <i class="fa-fw fa fa-times"></i>
-            <strong>Notice:</strong> `+ message + `
+            <strong>Error!</strong> `+ message + `
         </div>`);
 }
 
-    static warningOsy(message) {
+    static danger(message) {
         $("#osy-warning-transparent").html(`
                                     <div class="alert alert-warning-osy fade in">
                                         <button class="close" data-dismiss="alert">×</button>
@@ -82,19 +68,15 @@ export class Message {
                                     </div>`);
     }
 
-    static infoOsy(message) {
-        $("#osy-info-transparent").html(`<div class="alert alert-info-osy fade in">
-                                        <button class="close" data-dismiss="alert">×</button>
-                                        <i class="fa-fw fa fa-info fa-2x info"></i>
-                                        <strong>Info!</strong> <i style="color:grey">`+ message + `</i>
-                                    </div>`);
-    }
+    // static infoOsy(message) {
+    //     $("#osy-info-transparent").html(`<div class="alert alert-info-osy fade in">
+    //                                     <button class="close" data-dismiss="alert">×</button>
+    //                                     <i class="fa-fw fa fa-info fa-2x info"></i>
+    //                                     <strong>Info!</strong> <i style="color:grey">`+ message + `</i>
+    //                                 </div>`);
+    // }
 
     static dangerOsy(message) {
-
-    if (Message.isInitialEmptyState(message)) {
-        message = "No case loaded. Please create or load a case to begin.";
-    }
 
     $("#osy-danger-transparent").html(`<div class="alert alert-danger-osy fade in">
             <button class="close" data-dismiss="alert">×</button>

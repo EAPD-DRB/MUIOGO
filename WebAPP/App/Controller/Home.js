@@ -14,9 +14,11 @@ export default class Home {
     static async onLoad(){
         Message.clearMessages();
 
-    if (!localStorage.getItem("osycase")) {
-        Message.infoOsy("No case loaded. Please create or select a model to begin.");
-    }
+         const session = await Base.getSession();
+
+        if (!session || !session.case) {
+              Message.infoOsy("No case loaded. Please create or select a model to begin.");
+            }
 
         if (Base.AWS_SYNC == 1 && Base.INIT_SYNC){
             $('#loadermain h4').text('Syncronizing with S3 Bucket!'); 
@@ -49,7 +51,7 @@ export default class Home {
     }
 
     static initPage(model){
-        Message.clearMessages();
+        // Message.clearMessages();
         Navbar.initPage(model.casename);
         // Sidebar.Load(model.genData, model.PARAMETERS, model.VARIABLES);
         Sidebar.Reload(model.casename);
