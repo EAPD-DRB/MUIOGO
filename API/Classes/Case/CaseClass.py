@@ -30,7 +30,7 @@ class Case:
             # File.writeFile( Rdata, self.Rpath)
             File.writeFile( Rdata, self.jsonPath['R'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RY(self):
         try:
@@ -50,7 +50,7 @@ class Case:
                     RYdata[ry['id']][sc['ScenarioId']].append(chunk)
             File.writeFile( RYdata, self.jsonPath['RY'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RT(self):
         try:
@@ -71,7 +71,7 @@ class Case:
 
             File.writeFile( RTdata, self.jsonPath['RT'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RE(self):
         try:
@@ -92,7 +92,7 @@ class Case:
 
             File.writeFile( REdata, self.jsonPath['RE'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RS(self):
         try:
@@ -113,7 +113,7 @@ class Case:
 
             File.writeFile( RSdata, self.jsonPath['RS'])
         except(IOError):
-            raise IOError
+            raise
         
     def default_RYCn(self):
         try:
@@ -138,7 +138,7 @@ class Case:
 
             File.writeFile( RYCndata, self.jsonPath['RYCn'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYTs(self):
         try:
@@ -162,7 +162,7 @@ class Case:
 
             File.writeFile( RYTsdata, self.jsonPath['RYTs'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYDtb(self):
         try:
@@ -186,7 +186,7 @@ class Case:
 
             File.writeFile( RYDtbdata, self.jsonPath['RYDtb'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYSeDt(self):
         try:
@@ -214,7 +214,7 @@ class Case:
 
             File.writeFile( RYSeDtsdata, self.jsonPath['RYSeDt'])
         except(IOError):
-            raise IOError
+            raise
            
     def default_RYT(self):
         try:
@@ -239,7 +239,7 @@ class Case:
 
             File.writeFile( RYTdata, self.jsonPath['RYT'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYS(self):
         try:
@@ -264,7 +264,7 @@ class Case:
 
             File.writeFile( RYSdata, self.jsonPath['RYS'])
         except(IOError):
-            raise IOError
+            raise
         
     def default_RYTCn(self):
         try:
@@ -292,7 +292,7 @@ class Case:
 
             File.writeFile( RYTCndata, self.jsonPath['RYTCn'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYTM(self):
         try:
@@ -320,7 +320,7 @@ class Case:
 
             File.writeFile( RYTMdata, self.jsonPath['RYTM'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYC(self):
         try:
@@ -345,7 +345,7 @@ class Case:
 
             File.writeFile( RYCdata, self.jsonPath['RYC'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYE(self):
         try:
@@ -370,7 +370,7 @@ class Case:
 
             File.writeFile( RYEdata, self.jsonPath['RYE'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYTC(self):
         try:
@@ -398,7 +398,7 @@ class Case:
 
             File.writeFile( RYTCdata, self.jsonPath['RYTC'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYTCM(self):
         try:
@@ -429,7 +429,7 @@ class Case:
 
             File.writeFile( RYTCMdata, self.jsonPath['RYTCM'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYTSM(self):
         try:
@@ -460,7 +460,7 @@ class Case:
 
             File.writeFile( RYTSMdata, self.jsonPath['RYTSM'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RTSM(self):
         try:
@@ -489,7 +489,7 @@ class Case:
 
             File.writeFile( RTSMdata, self.jsonPath['RTSM'])
         except(IOError):
-            raise IOError
+            raise
            
     def default_RYTE(self):
         try:
@@ -517,7 +517,7 @@ class Case:
 
             File.writeFile( RYTEdata, self.jsonPath['RYTE'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYTEM(self):
         try:
@@ -551,7 +551,7 @@ class Case:
 
             File.writeFile( RYTEMdata, self.jsonPath['RYTEM'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYTTs(self):
         try:
@@ -579,7 +579,7 @@ class Case:
 
             File.writeFile( RYTTsdata, self.jsonPath['RYTTs'])
         except(IOError):
-            raise IOError
+            raise
 
     def default_RYCTs(self):
         try:
@@ -607,15 +607,15 @@ class Case:
 
             File.writeFile( RYCTsdata, self.jsonPath['RYCTs'])
         except(IOError):
-            raise IOError
+            raise
 
     def createCase(self):
         try:
             for group, array in self.PARAMETERS.items():
                 if array:
-                    func_name = Config.DEFAULT_F[group]
-                    func = getattr(self,func_name) 
-                    func() 
+                    func_name = f"default_{group}"
+                    func = getattr(self, func_name)
+                    func()
             
         except(IOError):
-            raise IOError
+            raise

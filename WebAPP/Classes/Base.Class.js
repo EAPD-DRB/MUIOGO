@@ -9,15 +9,10 @@ export class Base {
     static INIT_SYNC = 1;
 
     static apiUrl() {
-        let apiUrl
-        if (this.HEROKU == 0) {
-            //localhost
-            apiUrl = "http://127.0.0.1:5002/";
-        } else {
-            //HEROKU
-            apiUrl = "https://osemosys.herokuapp.com/";
+        if (this.HEROKU == 1) {
+            return "https://osemosys.herokuapp.com/";
         }
-        return apiUrl
+        return `${window.location.origin}/`;
     }
 
     static initSyncS3() {

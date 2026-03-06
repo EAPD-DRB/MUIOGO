@@ -1,5 +1,7 @@
 from pathlib import Path
+import os
 import platform
+import shutil
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 
@@ -44,21 +46,8 @@ class Osemosys():
         
         self.osemosysFile = Path(Config.SOLVERs_FOLDER,'model.v.5.4.txt') 
         self.osemosysFileOriginal = Path(Config.SOLVERs_FOLDER,'osemosys.txt')
-        
-        if platform.system() == 'Windows':
-            #self.glpkFolder = Path(Config.SOLVERs_FOLDER, 'GLPK','glpk-4.65', 'w64')
-            # self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-2.7.5-win64-intel11.1', 'bin')
-            self.glpkFolder = Path(Config.SOLVERs_FOLDER, 'GLPK')
-            self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR')
-        
-            #self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-2.10-win64-msvc16-md', 'bin')
-
-            #Cbc-master-win64-msvc16-mt
-            #self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-master-win64-msvc16-md', 'bin')
-
-        else:
-            self.glpkFolder = Path(Config.SOLVERs_FOLDER, 'GLPK','glpk-4.65', 'w64')
-            self.cbcFolder = Path(Config.SOLVERs_FOLDER,'COIN-OR', 'Cbc-2.10-osx10.15-x86_64-gcc9', 'bin')
+        self._glpkFolder = None
+        self._cbcFolder = None
 
         self.resultsPath = Path(Config.DATA_STORAGE,case,'res')
         self.viewFolderPath = Path(Config.DATA_STORAGE,case,'view')
@@ -77,7 +66,7 @@ class Osemosys():
         for k, l in self.PARAMETERS.items():
             tmp = {}
             for de in l:
-                tmp[de['id']] = de['value'].replace(" ", "")
+                tmp[de['id']] = (de['value'] or "").replace(" ", "")
             d[k] = tmp
         self.PARAM = d
 
@@ -86,6 +75,94 @@ class Osemosys():
             for de in l:
                 a.append(de['name'])
         self.VARS = a
+
+    @property
+    def glpkFolder(self):
+        if self._glpkFolder is None:
+            self._glpkFolder = self._resolve_solver_folder(
+                env_var="SOLVER_GLPK_PATH",
+                binary_name="glpsol",
+                bundled_path=Path(Config.SOLVERs_FOLDER, "GLPK"),
+            )
+        return self._glpkFolder
+
+    @property
+    def cbcFolder(self):
+        if self._cbcFolder is None:
+            self._cbcFolder = self._resolve_solver_folder(
+                env_var="SOLVER_CBC_PATH",
+                binary_name="cbc",
+                bundled_path=Path(Config.SOLVERs_FOLDER, "COIN-OR"),
+            )
+        return self._cbcFolder
+
+    @staticmethod
+    def _solver_binary_names(binary_name: str):
+        names = [binary_name]
+        if platform.system() == "Windows" and not binary_name.lower().endswith(".exe"):
+            names.insert(0, f"{binary_name}.exe")
+        return names
+
+    @staticmethod
+    def _find_solver_binary(path: Path, binary_name: str, recursive: bool = False):
+        binary_names = Osemosys._solver_binary_names(binary_name)
+
+        if path.is_file():
+            lowered_names = {name.lower() for name in binary_names}
+            return path if path.name.lower() in lowered_names else None
+
+        if not path.is_dir():
+            return None
+
+        for name in binary_names:
+            candidate = path / name
+            if candidate.is_file():
+                return candidate
+
+        if recursive:
+            for name in binary_names:
+                for candidate in path.rglob(name):
+                    if candidate.is_file():
+                        return candidate
+
+        return None
+
+    @staticmethod
+    def _resolve_solver_folder(env_var: str, binary_name: str, bundled_path: Path) -> Path:
+        """Resolve a solver binary folder using a three-tier priority chain:
+
+        1. Environment variable (e.g. SOLVER_GLPK_PATH)
+        2. System PATH via shutil.which
+        3. Bundled binary folder inside SOLVERs_FOLDER
+
+        Raises RuntimeError when resolution is attempted and no solver can be
+        located, instead of silently storing a wrong path and failing mid-run.
+        """
+        env_val = os.environ.get(env_var, "").strip().strip("\"'")
+        if env_val:
+            env_path = Path(env_val).expanduser()
+            env_binary = Osemosys._find_solver_binary(env_path, binary_name, recursive=False)
+            if env_binary is not None:
+                return env_binary.resolve().parent
+
+            raise RuntimeError(
+                f"{env_var} is set to '{env_val}', but no '{binary_name}' binary was found there.\n"
+                f"Set {env_var} to the solver executable or to the directory containing it."
+            )
+
+        for solver_name in Osemosys._solver_binary_names(binary_name):
+            which = shutil.which(solver_name)
+            if which:
+                return Path(which).resolve().parent
+
+        bundled_binary = Osemosys._find_solver_binary(bundled_path, binary_name, recursive=True)
+        if bundled_binary is not None:
+            return bundled_binary.resolve().parent
+
+        raise RuntimeError(
+            f"Solver binary '{binary_name}' could not be found.\n"
+            f"Set {env_var}, install '{binary_name}' on PATH, or provide bundled binaries under '{bundled_path}'."
+        )
 
     def getParamDefaultValues(self):
         d = {}
@@ -876,4 +953,4 @@ class Osemosys():
                         obj[k] = value
             File.writeFile( jsonData, jsonPath)
         except(IOError):
-            raise IOError           
+            raise IOError
