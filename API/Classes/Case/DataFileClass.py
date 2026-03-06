@@ -2134,13 +2134,13 @@ class DataFile(Osemosys):
                     cwd=glpfolder,
                     capture_output=True,
                     text=True,
+                    timeout=Config.SOLVER_TIMEOUT,
                 )
                 cbc_out = subprocess.CompletedProcess(args=["cbc"], returncode=0, stdout="", stderr="")
             else:
                 #Matrix generation (creates an LP file with GLPK): glpsol --check -m [model].txt -d [data].txt --wlp [LPfile].lp
                 #Optimisation (solves LP file with CBC): cbc [LPfile].lp solve -solu [results].txt
                 #PREPROCESS data.txt
-                #subprocess.run('preprocess_data.py' + datafile + dataFile_processed)
                 cbc_exec = Osemosys._find_solver_binary(cbcfolder, "cbc", recursive=False)
                 if cbc_exec is None:
                     raise RuntimeError(
@@ -2158,43 +2158,21 @@ class DataFile(Osemosys):
                     cwd=glpfolder,
                     capture_output=True,
                     text=True,
+                    timeout=Config.SOLVER_TIMEOUT,
                 )
-            
 
-                #glpk_out = subprocess.run('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
-                
-
-                #original data file without preprocessing
-                #glpk_out = subprocess.run('glpsol --check -m ' + modelfile_original +' -d ' + datafile +' --wlp ' + lpfile, cwd=glpfolder,  capture_output=True, text=True, shell=True)
-                
                 print("CREATINON OF LP FILE DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                 txtOut = txtOut + ("Creation of LP file time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
-
-                ####output to logfile.txt
-                #subprocess.run('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile +'>'+  logfiletxt+'2>&1', cwd=glpfolder, text=True, shell=True)
-
-                # proc = subprocess.Popen('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=glpfolder, text=True, shell=True)
-                # try:
-                #     outs, errs = proc.communicate(timeout=25)
-                # except:
-                #     proc.kill()
-                #     outs, errs = proc.communicate()
-
-                #cbc_out = subprocess.run('cbc ' + lpfile +' -presolve off -postsolve on -logLevel 3 solve -printing all -solu '  + resultfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
-                # prin
                 cbc_out = subprocess.run(
                     [str(cbc_exec), lpfile, "solve", "-printing", "all", "-solu", resultfile],
                     cwd=cbcfolder,
                     capture_output=True,
                     text=True,
+                    timeout=Config.SOLVER_TIMEOUT,
                 )
-                # -printing all prints all constraints to result.txt
                 print("SOLUTION DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                 txtOut = txtOut + ("Solution time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
-                ####output to lg file .log i .txt with errors
-                # out = subprocess.run('cbc ' + lpfile +' solve -solu '  + resultfile +'>'+ logfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
-                #out = subprocess.run('cbc ' + lpfile +' solve -solu '  + resultfile +'>'+ logfiletxt +'2>&1', cwd=cbcfolder,  capture_output=True, text=True, shell=True)
                 
             #CBC or GLPK return error
             if cbc_out.returncode != 0 or glpk_out.returncode != 0:
@@ -2262,6 +2240,19 @@ class DataFile(Osemosys):
             return response
             # urllib.request.urlretrieve(self.dataFile, dataFile)
 
+        except subprocess.TimeoutExpired:
+            response = {
+                "cbc_message": "",
+                "cbc_stdmsg": "",
+                "glpk_message": "",
+                "glpk_stdmsg": "",
+                "timer": f"Solver timed out after {Config.SOLVER_TIMEOUT}s.",
+                "status_code": "error",
+                "caserun": caserunname
+            }
+            if lock is not None:
+                lock.release()
+            return response
         except Exception as ex:
             print(ex) # do whatever you want for debugging.
             raise    # re-raise exception.

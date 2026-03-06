@@ -81,6 +81,10 @@ if not os.access(DATA_STORAGE, os.W_OK):
 HEROKU_DEPLOY = 0
 AWS_SYNC = 0
 
+# Maximum time (seconds) a solver subprocess is allowed to run before being killed.
+# Override via the MUIOGO_SOLVER_TIMEOUT environment variable.
+SOLVER_TIMEOUT = int(os.environ.get("MUIOGO_SOLVER_TIMEOUT", 3600))
+
 PINNED_COLUMNS = ('Sc', 'Tech', 'Comm', 'Emis','Stg', 'Ts', 'MoO', 'UnitId', 'Se','Dt', 'Dtb', 'paramName','TechName', 'CommName', 'EmisName', 'ConName', 'MoId')
 
 TECH_GROUPS = ('RYT', 'RYTM', 'RYTC', 'RYTCn', 'RYTCM', 'RYTE', 'RYTEM', 'RYTTs')
