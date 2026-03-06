@@ -1,0 +1,14 @@
+# Build / packaging dependencies — only needed to generate the Windows .exe
+# NOT required to run the application on any platform.
+#
+# Install with: pip install -r requirements-build.txt
+# (on Windows only, alongside requirements.txt)
+#
+# These are PyInstaller and its transitive dependencies that were
+# previously mixed into requirements.txt from a Windows pip freeze.
+
+pyinstaller==5.13.2                    ; sys_platform == "win32"
+pyinstaller-hooks-contrib==2024.7      ; sys_platform == "win32"
+altgraph==0.17.4                       ; sys_platform == "win32"
+pefile==2023.2.7                       ; sys_platform == "win32"
+pywin32-ctypes==0.2.2                  ; sys_platform == "win32"

@@ -6,6 +6,7 @@ Please complete the following questionnaire so we can keep track of everybody’
 📄 **Apply** [here](https://forms.gle/8Yvw2H6Q7Qw6snSN9)
 
 ---
+
 <p align="center"><img src="assets/MUIOGO_Logo.png" width="50%"></p>
 
 <p><img src="assets/UN_Crest.png" width="75" align="left"></p>
@@ -13,6 +14,7 @@ Please complete the following questionnaire so we can keep track of everybody’
 **M**odelling **U**ser **I**nterface for **OG**-Core and **O**SeMOSYS
 
 The United Nations Department of Economic and Social Affairs (DESA) has applied open-source modelling tools during the last decade in more than 20 countries —particularly in Small Island Developing States, Land-Locked Countries, and Least Developed Countries— to support policies related to Nationally Determined Contributions (NDCs), climate adaptation, social protection, and fiscal sustainability:
+
 - CLEWS, built on OSeMOSYS, analyzes interactions and trade-offs across land, energy, and water systems under climate scenarios.
 - OG-Core is a dynamic overlapping-generations macroeconomic model that evaluates long-term fiscal, demographic, and economic policies.
 
@@ -56,8 +58,21 @@ scripts\start.bat
 ```
 
 For setup options, use the "--help" flag:
+
 - macOS / Linux: `./scripts/setup.sh --help`
 - Windows: `scripts\setup.bat --help`
+
+### Building the Windows `.exe` (Windows only)
+
+The runtime `requirements.txt` is sufficient to run the application on all platforms.
+To build the standalone Windows executable with PyInstaller, also install the build dependencies:
+
+```bat
+pip install -r requirements-build.txt
+```
+
+> `requirements-build.txt` contains PyInstaller and its transitive dependencies.
+> It is **not** needed for development or running the application.
 
 ## Demo Data
 
@@ -83,16 +98,19 @@ One of the core goals of MUIOGO is to become platform independent so separate pl
 ## Contributing
 
 Start with:
+
 - `CONTRIBUTING.md`
 - `docs/GSoC-2026.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DOCS_POLICY.md`
 
 Contribution rule:
+
 - Create (or use) an issue first.
 - Work in a feature branch (for example `feature/<issue-number>-short-description`).
 
 Templates:
+
 - `.github/ISSUE_TEMPLATE/`
 - `.github/pull_request_template.md`
 
