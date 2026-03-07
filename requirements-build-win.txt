@@ -1,6 +1,5 @@
-# Windows-only build/packaging dependencies
+# Windows packaging dependencies (PyInstaller + helpers)
 # Install with: pip install -r requirements-build-win.txt
-# NOTE: These packages only work on Windows.
 -r requirements.txt
 
 altgraph==0.17.4
