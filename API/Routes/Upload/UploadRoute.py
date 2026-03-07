@@ -41,12 +41,13 @@ def download_dir(prefix, local, bucket, client):
             kwargs.update({'ContinuationToken': next_token})
         results = client.list_objects_v2(**kwargs)
         contents = results.get('Contents')
-        for i in contents:
-            k = i.get('Key')
-            if k[-1] != '/':
-                keys.append(k)
-            else:
-                dirs.append(k)
+        if contents:
+            for i in contents:
+                k = i.get('Key')
+                if k and not k.endswith('/'):
+                    keys.append(k)
+                else:
+                    dirs.append(k)
         next_token = results.get('NextContinuationToken')
     for d in dirs:
         dest_pathname = os.path.join(local, d)
@@ -195,12 +196,6 @@ class Download(Thread):
         print("Deletion of zip archive done!")
 
 
-@upload_api.route('/myfunc', methods=["GET", "POST"])
-def myfunc():
-        thread_a = Download(request.__copy__())
-        thread_a.start()
-        return "Processing in background", 200
-
 @upload_api.route("/backupCase", methods=['GET'])
 def backupCase():
     try:    
@@ -208,8 +203,8 @@ def backupCase():
         #case = request.json['casename']
         case = request.args.get('case')
 
-        casePath = Path('WebAPP', 'DataStorage',case)
-        zippedFile = Path('WebAPP', 'DataStorage', case+'.zip')
+        casePath = Path(Config.validate_path(Config.DATA_STORAGE, case))
+        zippedFile = Path(Config.validate_path(Config.DATA_STORAGE, f"{case}.zip"))
 
         '''File system data storage'''
         with ZipFile(zippedFile, 'w') as zipObj:
@@ -238,6 +233,8 @@ def backupCase():
 
         return send_file(zippedFile.resolve(), as_attachment=True)
 
+    except PermissionError:
+        return jsonify({"error": "Invalid path"}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
     except OSError:
@@ -413,9 +410,10 @@ def handle_full_zip(file, filepath=None):
     # Ako je file objekat (upload iz browsera)
     if filepath is None:
         submitted_file = file.filename
-        filepath = os.path.join(Config.DATA_STORAGE, submitted_file)
+        filepath = Config.validate_path(Config.DATA_STORAGE, submitted_file)
         file.save(filepath)
     else:
+        filepath = Config.validate_path(Config.DATA_STORAGE, filepath)
         submitted_file = os.path.basename(filepath)
 
     case = os.path.splitext(submitted_file)[0]
@@ -565,7 +563,7 @@ def uploadCase():
         # -------------------------------
         # 2) Snimi chunk
         # -------------------------------
-        chunk_dir = os.path.join(Config.DATA_STORAGE, "_chunks", dz_uuid)
+        chunk_dir = Config.validate_path(Config.DATA_STORAGE, Path("_chunks", dz_uuid))
         os.makedirs(chunk_dir, exist_ok=True)
 
         chunk_path = os.path.join(chunk_dir, f"chunk_{dz_chunk_index}")
@@ -582,7 +580,7 @@ def uploadCase():
         # -------------------------------
         # 4) Spajanje ZIP fajla
         # -------------------------------
-        final_zip = os.path.join(Config.DATA_STORAGE, f"{dz_uuid}.zip")
+        final_zip = Config.validate_path(Config.DATA_STORAGE, f"{dz_uuid}.zip")
 
         with open(final_zip, "wb") as merged:
             for i in range(dz_total_chunks):
@@ -604,6 +602,8 @@ def uploadCase():
         #return handle_full_zip(open(final_zip, "rb"), final_zip)
         return handle_full_zip(None, final_zip) 
 
+    except PermissionError:
+        return jsonify({"error": "Invalid path"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
