@@ -12,6 +12,12 @@ def generateDataFile():
         casename = request.json['casename']
         caserunname = request.json['caserunname']
 
+        active_case = session.get('osycase')
+        if not active_case:
+            return jsonify({'message': 'No active session.', 'status_code': 'error'}), 403
+        if casename != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
+
         if casename != None:
             txtFile = DataFile(casename)
             txtFile.generateDatafile(caserunname)
@@ -30,6 +36,12 @@ def createCaseRun():
         caserunname = request.json['caserunname']
         data = request.json['data']
 
+        active_case = session.get('osycase')
+        if not active_case:
+            return jsonify({'message': 'No active session.', 'status_code': 'error'}), 403
+        if casename != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
+
         if casename != None:
             caserun = DataFile(casename)
             response = caserun.createCaseRun(caserunname, data)
@@ -45,6 +57,12 @@ def updateCaseRun():
         caserunname = request.json['caserunname']
         oldcaserunname = request.json['oldcaserunname']
         data = request.json['data']
+
+        active_case = session.get('osycase')
+        if not active_case:
+            return jsonify({'message': 'No active session.', 'status_code': 'error'}), 403
+        if casename != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
 
         if casename != None:
             caserun = DataFile(casename)
@@ -63,6 +81,12 @@ def deleteCaseRun():
 
         if not casename:
             return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
+
+        active_case = session.get('osycase')
+        if not active_case:
+            return jsonify({'message': 'No active session.', 'status_code': 'error'}), 403
+        if casename != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
 
         casePath = Path(Config.DATA_STORAGE, casename, 'res', caserunname)
         if not resultsOnly:
@@ -88,6 +112,12 @@ def deleteScenarioCaseRuns():
     try:
         scenarioId = request.json['scenarioId']
         casename = request.json['casename']
+
+        active_case = session.get('osycase')
+        if not active_case:
+            return jsonify({'message': 'No active session.', 'status_code': 'error'}), 403
+        if casename != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
 
         if casename != None:
             caserun = DataFile(casename)
@@ -234,13 +264,20 @@ def batchRun():
         start = time.time()
         modelname = request.json['modelname']
         cases = request.json['cases']
+        solver = request.json.get('solver', 'CBC')
+
+        active_case = session.get('osycase')
+        if not active_case:
+            return jsonify({'message': 'No active session.', 'status_code': 'error'}), 403
+        if modelname != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
 
         if modelname != None:
             txtFile = DataFile(modelname)
             for caserun in cases:
                 txtFile.generateDatafile(caserun)
 
-            response = txtFile.batchRun( 'CBC', cases) 
+            response = txtFile.batchRun(solver, cases)
         end = time.time()  
         response['time'] = end-start 
         return jsonify(response), 200
@@ -251,6 +288,12 @@ def batchRun():
 def cleanUp():
     try:
         modelname = request.json['modelname']
+
+        active_case = session.get('osycase')
+        if not active_case:
+            return jsonify({'message': 'No active session.', 'status_code': 'error'}), 403
+        if modelname != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
 
         if modelname != None:
             model = DataFile(modelname)
