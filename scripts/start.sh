@@ -31,6 +31,15 @@ if [ ! -x "$PYTHON" ]; then
     exit 1
 fi
 
+if ! command -v curl >/dev/null 2>&1; then
+    echo "ERROR: curl is required to launch MUIOGO but was not found on this system."
+    echo "Install it and re-run:"
+    echo "  Ubuntu / Debian : sudo apt-get install curl"
+    echo "  Alpine          : apk add curl"
+    echo "  macOS           : brew install curl"
+    exit 1
+fi
+
 echo "Starting MUIOGO on ${URL}"
 cd "$PROJECT_ROOT"
 "$PYTHON" API/app.py &
