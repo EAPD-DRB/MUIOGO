@@ -4,6 +4,24 @@ dist/
 build/
 venv/
 venv
+.venv/
+# Generic Python caches/artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
 API/__pycache__
 API/Classes/__pycache__
 API/Classes/Base/__pycache__
