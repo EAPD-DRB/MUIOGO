@@ -798,11 +798,11 @@ class DataFile(Osemosys):
                 os.makedirs(caseRunPath)
                 os.makedirs(csvPath)
                 if not os.path.exists(resDataPath):
-                    File.writeFile( data, resDataPath)
+                    File.writeFileAtomic( data, resDataPath)
                 else:
                     resData = File.readFile(resDataPath)
                     resData['osy-cases'].append(data)
-                    File.writeFile( resData, resDataPath)
+                    File.writeFileAtomic( resData, resDataPath)
                 response = {
                     "message": "You have created a case run!",
                     "status_code": "success"
@@ -831,7 +831,7 @@ class DataFile(Osemosys):
                         cs['Scenarios'].remove(sc)
 
 
-            File.writeFile(resData, self.resDataPath)
+            File.writeFileAtomic(resData, self.resDataPath)
             response = {
                 "message": "You have deleted scenario from caseruns!",
                 "status_code": "success"
@@ -865,7 +865,7 @@ class DataFile(Osemosys):
                     if case['Case'] == oldcaserunname:
                         resData['osy-cases'][i] = data
 
-                File.writeFile( resData, resDataPath)
+                File.writeFileAtomic( resData, resDataPath)
                 response = {
                     "message": "You have updated a case run!",
                     "status_code": "success"
@@ -881,7 +881,7 @@ class DataFile(Osemosys):
                     if case['Case'] == oldcaserunname:
                         resData['osy-cases'][i] = data
 
-                File.writeFile( resData, resDataPath)
+                File.writeFileAtomic( resData, resDataPath)
                 response = {
                     "message": "You have updated a case run!",
                     "status_code": "success"
@@ -934,7 +934,7 @@ class DataFile(Osemosys):
                     if obj['Case'] == caserunname:
                         resData['osy-cases'].remove(obj)
 
-                File.writeFile( resData, self.resDataPath)
+                File.writeFileAtomic( resData, self.resDataPath)
 
             #delete from view folder
             for group, array in self.VARIABLES.items():

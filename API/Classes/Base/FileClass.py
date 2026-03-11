@@ -47,3 +47,21 @@ class File:
             raise IOError
         except OSError:
             raise OSError
+
+    @staticmethod
+    def writeFileAtomic(data, path):
+        import os
+        import tempfile
+        path = str(path)
+        dir_name = os.path.dirname(path) or '.'
+        fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix='.tmp')
+        try:
+            with os.fdopen(fd, 'w') as f:
+                f.write(json.dumps(data, ensure_ascii=True, indent=4, sort_keys=False))
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, path)
+        except Exception as e:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+            raise e
