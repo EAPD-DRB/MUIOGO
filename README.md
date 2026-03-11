@@ -77,6 +77,35 @@ To install demo data locally:
 This mirrors the current MUIO-Mac demo-data flow and gives contributors a
 single source for test data in this repository.
 
+## Uninstall / Reset
+
+To reverse the changes made by setup and start fresh:
+
+**macOS / Linux:**
+```bash
+bash scripts/uninstall.sh
+```
+
+**Windows:**
+```
+scripts\uninstall.bat
+```
+
+The uninstall scripts will:
+- Remove the Python virtual environment (`~/.venvs/muiogo` or `%USERPROFILE%\.venvs\muiogo`)
+- Remove only setup-created entries from the repository `.env` file
+- Remove demo data if it was installed by setup (detected via a marker file)
+- *Windows only:* Remove solver fallback directories (`%LOCALAPPDATA%\glpk`, `%LOCALAPPDATA%\cbc`)
+- *Windows only:* Remove setup-created environment variables (`GLPK_PATH`, `CBC_PATH`) and PATH entries
+
+**Package-manager solver installs** (Homebrew, apt, Chocolatey, etc.) are **not**
+auto-removed because they may be used outside MUIOGO. The scripts will detect
+them and print the manual uninstall command, optionally asking for confirmation.
+
+All removals require confirmation before proceeding.
+
+After uninstalling, you can run setup again for a clean first-time install.
+
 ## What is in this repository
 
 - `API/`: Flask backend and run/data endpoints
