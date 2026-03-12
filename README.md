@@ -99,6 +99,36 @@ Templates:
 - `.github/ISSUE_TEMPLATE/`
 - `.github/pull_request_template.md`
 
+### Development Setup
+
+Contributors who plan to submit pull requests should install the development
+dependencies and enable pre-commit hooks:
+
+```bash
+pip install -r requirements-dev.txt
+pre-commit install
+```
+
+Once installed, hooks run automatically on `git commit` against staged files.
+To run them manually across the entire codebase:
+
+```bash
+pre-commit run --all-files
+```
+
+The hook set includes:
+- `trailing-whitespace` and `end-of-file-fixer` — file hygiene
+- `black` — Python formatter (line length 120)
+- `flake8` — Python linter
+- `eslint` — JavaScript linter for `WebAPP/App/` and `WebAPP/Classes/`
+  (requires Node.js; skip with `SKIP=eslint git commit ...` if unavailable)
+
+To run the test suite:
+
+```bash
+pytest tests/
+```
+
 ### Advanced Setup and Packaging
 
 If you need to install Python dependencies without the setup scripts:
