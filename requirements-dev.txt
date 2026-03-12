@@ -1,0 +1,6 @@
+# Development and testing dependencies
+# Install with: pip install -r requirements-dev.txt
+# Runtime dependencies are in requirements.txt
+
+pytest>=8.0
+pytest-flask>=1.3
