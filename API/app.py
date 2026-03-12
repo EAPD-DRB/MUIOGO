@@ -140,12 +140,12 @@ if __name__ == '__main__':
     def print_startup_info(host, current_port, server_name):
         mode = 'local' if Config.HEROKU_DEPLOY == 0 else 'heroku'
         access_host = '127.0.0.1' if host == '0.0.0.0' else host
-        print("MUIOGO API starting...")
-        print(f"Server: {server_name}")
-        print(f"Mode: {mode}")
-        print(f"Host: {host}")
-        print(f"Port: {current_port}")
-        print(f"Open: http://{access_host}:{current_port}")
+        logging.info("MUIOGO API starting...")
+        logging.info(f"Server: {server_name}")
+        logging.info(f"Mode: {mode}")
+        logging.info(f"Host: {host}")
+        logging.info(f"Port: {current_port}")
+        logging.info(f"Open: http://{access_host}:{current_port}")
 
     if Config.HEROKU_DEPLOY == 0: 
         #localhost

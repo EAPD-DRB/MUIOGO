@@ -34,6 +34,13 @@ def validate_path(base_dir, user_input):
 #load environment variables
 load_dotenv()
 
+import logging
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+)
+
 SYSTEM = platform.system()
 
 # S3_BUCKET = os.environ.get("S3_BUCKET")

@@ -4,6 +4,7 @@ from zipfile import ZipFile
 from pathlib import Path
 from werkzeug.utils import secure_filename
 import os, time, json, glob
+import logging
 
 from threading import Thread
 
@@ -11,6 +12,7 @@ from Classes.Base import Config
 from Classes.Base.FileClass import File
 
 upload_api = Blueprint('UploadRoute', __name__)
+logger = logging.getLogger(__name__)
 
 #File extension checking
 def allowed_filename(filename):
@@ -188,12 +190,12 @@ class Download(Thread):
         self.zippedFile = zippedFile
 
     def run(self):
-        print("wait few seconds for download to finish")
+        logger.info("wait few seconds for download to finish")
         time.sleep(20)
-        #print(self.request)
+        #logger.debug(self.request)
         #remove zipped file
         os.remove(self.zippedFile)
-        print("Deletion of zip archive done!")
+        logger.info("Deletion of zip archive done!")
 
 
 @upload_api.route("/backupCase", methods=['GET'])
