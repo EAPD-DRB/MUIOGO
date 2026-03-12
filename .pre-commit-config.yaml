@@ -1,0 +1,59 @@
+# Pre-commit hook configuration for MUIOGO
+#
+# Setup (first time):
+#   pip install -r requirements-dev.txt
+#   pre-commit install
+#
+# Run manually against all files:
+#   pre-commit run --all-files
+#
+# Hooks run automatically on `git commit` against staged files only.
+#
+# Note: the eslint hook requires Node.js and npm to be installed.
+# Skip it with: SKIP=eslint git commit ...
+
+repos:
+  # ── General file hygiene ──────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+
+  # ── Python formatting (black) ─────────────────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        language_version: python3
+        files: ^API/
+
+  # ── Python linting (flake8) ───────────────────────────────────────────────
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.0
+    hooks:
+      - id: flake8
+        files: ^API/
+        additional_dependencies:
+          - flake8==7.1.0
+          - Flake8-pyproject==1.2.3
+
+  # ── JavaScript linting (eslint) ───────────────────────────────────────────
+  # Uses the system-installed npx; requires Node.js on the developer's machine.
+  # Configuration is in .eslintrc.json at the project root.
+  # To skip: SKIP=eslint git commit ...
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        language: system
+        entry: npx
+        args: [eslint, --config, .eslintrc.json, --max-warnings, "0"]
+        files: ^WebAPP/(App|Classes)/.*\.js$
+        pass_filenames: true
+        require_serial: false

@@ -1,0 +1,13 @@
+# Development and testing dependencies
+# Install with: pip install -r requirements-dev.txt
+# Runtime dependencies are in requirements.txt
+
+# Testing
+pytest>=8.0
+pytest-flask>=1.3
+
+# Code quality
+pre-commit>=3.7
+black>=24.4
+flake8>=7.1
+Flake8-pyproject>=1.2

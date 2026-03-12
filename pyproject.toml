@@ -1,0 +1,48 @@
+# pyproject.toml — tool configuration for MUIOGO
+#
+# Tools configured here:
+#   black   — Python formatter
+#   flake8  — Python linter (read via Flake8-pyproject plugin)
+
+[tool.black]
+line-length = 120
+target-version = ["py310", "py311", "py312"]
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | venv
+  | __pycache__
+  | WebAPP/References
+)/
+'''
+
+[tool.flake8]
+max-line-length = 120
+# E203: whitespace before ':' — conflicts with black slice formatting
+# W503: line break before binary operator — conflicts with black
+# E711/E712: comparison-to-None/True — pervasive in legacy code, requires
+#   logic-style changes; suppressed globally until addressed in a follow-up
+extend-ignore = ["E203", "W503", "E711", "E712"]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "WebAPP/References",
+]
+# Legacy files — suppress style violations that pre-date linting.
+# F-codes (logic errors) are intentionally NOT suppressed; they represent
+# real issues to be fixed in separate PRs.
+# Exception: F821 in DataFileClass.py — 45 occurrences of an undefined
+# variable 'param_current'; investigation tracked in a separate issue.
+# These ignores should be tightened incrementally as the codebase is cleaned.
+per-file-ignores = [
+    "API/Classes/Case/DataFileClass.py:E,W,F401,F821,F841",
+    "API/Classes/Case/OsemosysClass.py:E,W,F401,F841",
+    "API/Routes/Upload/UploadRoute.py:E,W,F401,F841",
+    "API/Routes/Case/CaseRoute.py:E,W,F401,F841",
+    "API/Routes/Case/ViewDataRoute.py:E,W,F401,F841",
+    "API/Routes/DataFile/DataFileRoute.py:E,W,F401,F841",
+    "API/app.py:E2,E3,W,F401",
+]
