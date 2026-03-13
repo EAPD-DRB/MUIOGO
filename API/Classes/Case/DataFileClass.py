@@ -2093,6 +2093,41 @@ class DataFile(Osemosys):
                 lock.acquire()
                 caserunname = caserun
 
+            # Detect interrupted previous run
+            run_state_path = Path(Config.DATA_STORAGE, self.case, 'res', caserunname, 'run_state.json')
+            is_alive = False
+            if run_state_path.exists():
+                prev_state = File.readFile(run_state_path)
+                pid = prev_state.get('pid')
+                if pid:
+                    try:
+                        os.kill(pid, 0)
+                        is_alive = True
+                    except OSError:
+                        is_alive = False
+                    if not is_alive:
+                        # Previous run was interrupted
+                        File.writeFileAtomic({
+                            'status': 'interrupted',
+                            'case': self.case,
+                            'caserun': caserunname,
+                            'pid': pid
+                        }, run_state_path)
+                        return {
+                            'status_code': 'interrupted',
+                            'message': f'Previous run for "{caserunname}" was interrupted. Please restart.'
+                        }
+
+            # Write fresh state
+            File.writeFileAtomic({
+                'status': 'running',
+                'case': self.case,
+                'caserun': caserunname,
+                'pid': os.getpid(),
+                'solver': solver,
+                'started_at': time.time()
+            }, run_state_path)
+
             start_time = time.time()
             txtOut = ""
             self.dataFile = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
@@ -2254,17 +2289,19 @@ class DataFile(Osemosys):
                     "status_code": statusFlag,
                     "caserun": caserunname
                 } 
+            if run_state_path.exists():
+                run_state_path.unlink()
 
-           
             if lock is not None:
                 lock.release()
-
-            return response
+            return response 
             # urllib.request.urlretrieve(self.dataFile, dataFile)
 
         except Exception as ex:
-            print(ex) # do whatever you want for debugging.
-            raise    # re-raise exception.
+            if run_state_path.exists():
+                run_state_path.unlink()
+            print(ex)
+            raise
         except(IOError, IndexError):
             raise IndexError
         except OSError:
