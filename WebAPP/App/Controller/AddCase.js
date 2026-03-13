@@ -12,51 +12,36 @@ import { DEF } from "../../Classes/Definition.Class.js";
 import { Sidebar } from "./Sidebar.js";
 
 export default class AddCase {
-    static onLoad() {
-        Base.getSession()
-            .then(response => {
-                let casename = response.session;
-                const promise = [];
-                let genData = Osemosys.getData(casename, 'genData.json');
-                promise.push(genData);
-                const resData = Osemosys.getResultData(casename, 'resData.json');
-                promise.push(resData);
-                const PARAMETERS = Osemosys.getParamFile();
-                promise.push(PARAMETERS);
-                return Promise.all(promise);
-            })
-            .then(data => {
-                let [genData, resData, PARAMETERS] = data;
-                let model = new Model(genData, resData, PARAMETERS, "AddCase");
-                
-                this.initPage(model);
-            })
-            .catch(error => {
-                Message.danger(error);
-            });
+    static async onLoad() {
+        try {
+            const response = await Base.getSession();
+            const casename = response.session;
+            const [genData, resData, PARAMETERS] = await Promise.all([
+                Osemosys.getData(casename, 'genData.json'),
+                Osemosys.getResultData(casename, 'resData.json'),
+                Osemosys.getParamFile(),
+            ]);
+            const model = new Model(genData, resData, PARAMETERS, "AddCase");
+            this.initPage(model);
+        } catch (error) {
+            Message.danger(error);
+        }
     }
-    static refreshPage(casename) {
-        Base.setSession(casename)
-            .then(response => {
-                Message.clearMessages();
-                const promise = [];
-                let genData = Osemosys.getData(casename, 'genData.json');
-                promise.push(genData);
-                const resData = Osemosys.getResultData(casename, 'resData.json');
-                promise.push(resData);
-                const PARAMETERS = Osemosys.getParamFile();
-                promise.push(PARAMETERS);
-                return Promise.all(promise);
-            })
-            .then(data => {
-                let [genData, resData, PARAMETERS] = data;
-                let model = new Model(genData, resData, PARAMETERS, "AddCase");
-                AddCase.initPage(model);
-            })
-            .catch(error => {
-                console.log(' error ', error)
-                Message.bigBoxDanger(error);
-            })
+    static async refreshPage(casename) {
+        try {
+            await Base.setSession(casename);
+            Message.clearMessages();
+            const [genData, resData, PARAMETERS] = await Promise.all([
+                Osemosys.getData(casename, 'genData.json'),
+                Osemosys.getResultData(casename, 'resData.json'),
+                Osemosys.getParamFile(),
+            ]);
+            const model = new Model(genData, resData, PARAMETERS, "AddCase");
+            AddCase.initPage(model);
+        } catch (error) {
+            console.log(' error ', error);
+            Message.bigBoxDanger(error);
+        }
     }
 
     static initPage(model) {
@@ -207,14 +192,14 @@ export default class AddCase {
         });
 
         $("#osy-caseForm").off('validationSuccess');
-        $("#osy-caseForm").on('validationSuccess', function (event) {
+        $("#osy-caseForm").on('validationSuccess', async function (event) {
             event.preventDefault();
             event.stopImmediatePropagation();
 
             Message.loaderStart('Saving model data')
             var casename = $("#osy-casename").val().trim();
             var desc = $("#osy-desc").val().trim();
-            
+
             const timeElapsed = Date.now();
             const today = new Date(timeElapsed);
             let date = today.toDateString();
@@ -243,16 +228,16 @@ export default class AddCase {
                 "osy-se": model.seasons,
                 "osy-dt": model.daytypes,
                 "osy-dtb": model.dailytimebrackets,
-                
+
                 "osy-emis": model.emissions,
                 "osy-scenarios": model.scenarios,
                 "osy-constraints": model.constraints,
                 "osy-years": years
             }
 
-            Osemosys.saveCase(POSTDATA)
-            .then(response => {
-                Message.loaderEnd()
+            try {
+                const response = await Osemosys.saveCase(POSTDATA);
+                Message.loaderEnd();
                 if (response.status_code == "created") {
                     $("#osy-new").show();
                     $('#osy-update').show();
@@ -263,10 +248,8 @@ export default class AddCase {
                     Sidebar.Reload(casename);
                     $("#osy-case").html(casename);
                     if (Base.AWS_SYNC == 1) {
-                        SyncS3.deleteResultsPreSync(casename)
-                            .then(response => {
-                                SyncS3.uploadSync(casename);
-                            });
+                        await SyncS3.deleteResultsPreSync(casename);
+                        SyncS3.uploadSync(casename);
                     }
                 }
                 if (response.status_code == "edited") {
@@ -276,21 +259,18 @@ export default class AddCase {
                     Sidebar.Reload(casename);
                     Message.bigBoxInfo('Model message', response.message, 3000);
                     if (Base.AWS_SYNC == 1) {
-                        SyncS3.deleteResultsPreSync(casename)
-                            .then(response => {
-                                SyncS3.uploadSync(casename);
-                            });
+                        await SyncS3.deleteResultsPreSync(casename);
+                        SyncS3.uploadSync(casename);
                     }
                 }
                 if (response.status_code == "exist") {
                     $("#osy-new").show();
                     Message.bigBoxWarning('Model message', response.message, 3000);
                 }
-            })
-            .catch(error => {
-                Message.loaderEnd()
+            } catch (error) {
+                Message.loaderEnd();
                 Message.bigBoxDanger('Error message', error, null);
-            })
+            }
         });
 
         //TECHNOLOGIES GRID AND EVENTS
@@ -968,19 +948,19 @@ export default class AddCase {
                 }
                 else{
                     let scId = model.scenarios[id]['ScenarioId'];
-                    Osemosys.deleteScenarioCaseRuns(model.casename, scId)
-                    .then(response=>{
-                        //console.log('delete ', response)
-                        var rowid = $divScenario.jqxGrid('getrowid', id);
-                        $divScenario.jqxGrid('deleterow', rowid);
-                        model.scenarios.splice(id, 1);
-                        model.scenariosCount--;
-                        $("#scenariosCount").text(model.scenariosCount);
-                        Message.smallBoxInfo(response.message)
-                    })
-                    .catch(error => {
-                        Message.bigBoxDanger(error);
-                    })
+                    (async () => {
+                        try {
+                            const response = await Osemosys.deleteScenarioCaseRuns(model.casename, scId);
+                            var rowid = $divScenario.jqxGrid('getrowid', id);
+                            $divScenario.jqxGrid('deleterow', rowid);
+                            model.scenarios.splice(id, 1);
+                            model.scenariosCount--;
+                            $("#scenariosCount").text(model.scenariosCount);
+                            Message.smallBoxInfo(response.message);
+                        } catch (error) {
+                            Message.bigBoxDanger(error);
+                        }
+                    })();
 
                 }
             }

@@ -8,33 +8,26 @@ import { DefaultObj } from "../../Classes/DefaultObj.Class.js";
 import { Sidebar } from "./Sidebar.js";
 
 export default class DataFile {
-    static onLoad() {
+    static async onLoad() {
         Message.loaderStart('Loading data...');
-        Base.getSession()
-            .then(response => {
-                let casename = response.session;
-                const promise = [];
-                promise.push(casename);
-                let genData = Osemosys.getData(casename, 'genData.json');
-                promise.push(genData);
-                const resData = Osemosys.getResultData(casename, 'resData.json');
-                promise.push(resData);
-                return Promise.all(promise);
-            })
-            .then(data => {
-                let [casename, genData, resData] = data;
-                let model = new Model(casename, genData, resData, "DataFile");
-                if (casename) {
-                    this.initPage(model);
-                } else {
-                    Message.loaderEnd();
-                    MessageSelect.init(DataFile.refreshPage.bind(DataFile));
-                }
-            })
-            .catch(error => {
+        try {
+            const response = await Base.getSession();
+            const casename = response.session;
+            const [genData, resData] = await Promise.all([
+                Osemosys.getData(casename, 'genData.json'),
+                Osemosys.getResultData(casename, 'resData.json'),
+            ]);
+            const model = new Model(casename, genData, resData, "DataFile");
+            if (casename) {
+                this.initPage(model);
+            } else {
                 Message.loaderEnd();
-                Message.danger(error);
-            });
+                MessageSelect.init(DataFile.refreshPage.bind(DataFile));
+            }
+        } catch (error) {
+            Message.loaderEnd();
+            Message.danger(error);
+        }
     }
 
     static initPage(model) {
@@ -58,40 +51,31 @@ export default class DataFile {
         this.initEvents(model);
     }
 
-    static refreshPage(casename) {
+    static async refreshPage(casename) {
         Message.loaderStart('Loading data...');
-        Base.setSession(casename)
-            .then(response => {
-                Message.clearMessages();
-                const promise = [];
-                promise.push(casename);
-                let genData = Osemosys.getData(casename, 'genData.json');
-                promise.push(genData);
-                const resData = Osemosys.getResultData(casename, 'resData.json');
-                promise.push(resData);
-                return Promise.all(promise);
-            })
-            .then(data => {
-                let [casename, genData, resData] = data;
-                let model = new Model(casename, genData, resData, "DataFile");
-                $(".DataFile").hide();
-                $("#osy-DataFile").empty();
-                $("#osy-runOutput").empty();
-                $("#osy-lpOutput").empty();
-                // $("#osy-downloadDataFile").hide();
-                // $("#osy-downloadResultsFile").hide();
-                $("#osy-solver").hide();
-                $("#osy-run").hide();
-                $(".runOutput").hide();
-                $(".lpOutput").hide();
-                $(".Results").hide();
-                DataFile.initPage(model);
-                DataFile.initEvents(model);
-            })
-            .catch(error => {
-                Message.loaderEnd();
-                Message.bigBoxInfo(error);
-            })
+        try {
+            await Base.setSession(casename);
+            Message.clearMessages();
+            const [genData, resData] = await Promise.all([
+                Osemosys.getData(casename, 'genData.json'),
+                Osemosys.getResultData(casename, 'resData.json'),
+            ]);
+            const model = new Model(casename, genData, resData, "DataFile");
+            $(".DataFile").hide();
+            $("#osy-DataFile").empty();
+            $("#osy-runOutput").empty();
+            $("#osy-lpOutput").empty();
+            $("#osy-solver").hide();
+            $("#osy-run").hide();
+            $(".runOutput").hide();
+            $(".lpOutput").hide();
+            $(".Results").hide();
+            DataFile.initPage(model);
+            DataFile.initEvents(model);
+        } catch (error) {
+            Message.loaderEnd();
+            Message.bigBoxInfo(error);
+        }
     }
 
     static initEvents(model) {
@@ -254,7 +238,7 @@ export default class DataFile {
         });
 
         $("#osy-caseRun").off('validationSuccess');
-        $("#osy-caseRun").on('validationSuccess', function (event) {
+        $("#osy-caseRun").on('validationSuccess', async function (event) {
             event.preventDefault();
             event.stopImmediatePropagation();
             Pace.restart();
@@ -297,9 +281,9 @@ export default class DataFile {
                 "Scenarios": scOrder
             }
 
-            if (update) {
-                Osemosys.updateCaseRun(model.casename, caserunname, oldcaserunname, caseData)
-                .then(response => {
+            try {
+                if (update) {
+                    const response = await Osemosys.updateCaseRun(model.casename, caserunname, oldcaserunname, caseData);
                     Message.clearMessages();
                     if (response.status_code == 'success') {
                         model.cs = caserunname;
@@ -328,13 +312,8 @@ export default class DataFile {
                     if (response.status_code == 'exist') {
                         Message.smallBoxWarning('Generate message', response.message, 3000);
                     }
-                })
-                .catch(error => {
-                    Message.bigBoxDanger('Error message', error, null);
-                })
-            } else {
-                Osemosys.createCaseRun(model.casename, caserunname, caseData)
-                .then(response => {
+                } else {
+                    const response = await Osemosys.createCaseRun(model.casename, caserunname, caseData);
                     Message.clearMessages();
                     if (response.status_code == 'success') {
                         $("#osy-runCaseDiv").show();
@@ -357,72 +336,51 @@ export default class DataFile {
                     if (response.status_code == 'exist') {
                         Message.smallBoxWarning('Generate message', response.message, 3000);
                     }
-                })
-                .catch(error => {
-                    Message.bigBoxDanger('Error message', error, null);
-                })
+                }
+            } catch (error) {
+                Message.bigBoxDanger('Error message', error, null);
             }
-
         });
 
         $("#osy-generateDataFile").off('click');
-        $("#osy-generateDataFile").on('click', function (event) {
+        $("#osy-generateDataFile").on('click', async function (event) {
             Pace.restart();
-            Message.loaderStart('Generating data file!')
-            Osemosys.generateDataFile(model.casename, model.cs)
-            .then(response => {
-                if (response.status_code == "success") {
-                    const promise = [];
-                    let DataFile = Osemosys.readDataFile(model.casename, model.cs);
-                    promise.push(DataFile);
-                    promise.push(response.message);
-                    return Promise.all(promise);
+            Message.loaderStart('Generating data file!');
+            try {
+                const genResponse = await Osemosys.generateDataFile(model.casename, model.cs);
+                if (genResponse.status_code == "success") {
+                    const DataFile = await Osemosys.readDataFile(model.casename, model.cs);
+                    const message = genResponse.message;
+                    $(".DataFile").show();
+                    $("#osy-runOutput").empty();
+                    $("#osy-lpOutput").empty();
+                    $(".runOutput").hide();
+                    $(".lpOutput").hide();
+                    $(".Results").hide();
+                    $(".batchOutput").hide();
+                    Html.renderDataFile(DataFile, model);
+                    if (Base.HEROKU == 0) {
+                        $("#osy-run").show();
+                    }
+                    Message.loaderEnd();
+                    Message.smallBoxInfo('Generate message', message, 3000);
                 }
-            })
-            .then(response => {
-                let [DataFile, message] = response;
-                $(".DataFile").show();
-                $("#osy-runOutput").empty();
-                $("#osy-lpOutput").empty();
-                $(".runOutput").hide();
-                $(".lpOutput").hide();
-                $(".Results").hide();
-                $(".batchOutput").hide();
-                Html.renderDataFile(DataFile, model)
-                ///////////////////////////////////////////////////////////////////
-                //$("#osy-downloadDataFile").show();
-                //ne moramo updateovati S3 sa data file
-                // if (Base.AWS_SYNC == 1){
-                //     Base.updateSync(model.casename, "data.txt");
-                // }
-                if (Base.HEROKU == 0) {
-                    $("#osy-run").show();
-                    //$("#osy-solver").show();
-                }
-                //Message.clearMessages();
-                //Message.bigBoxSuccess('Generate message', message, 3000);
-                Message.loaderEnd();
-                Message.smallBoxInfo('Generate message', message, 3000);
-            })
-            .catch(error => {
+            } catch (error) {
                 Message.loaderEnd();
                 Message.bigBoxDanger('Error message', error, null);
-            })
+            }
         });
 
 
         $("#osy-run").off('click');
-        $("#osy-run").on('click', function (event) {
+        $("#osy-run").on('click', async function (event) {
             Pace.restart();
-            Message.loaderStart('Optimization in process!')
-            //promijenjeno da radimo samo sa cBCsolverom
-            //let solver = $('input[name="solver"]:checked').val();
+            Message.loaderStart('Optimization in process!');
             let solver = 'cbc';
-            Osemosys.run(model.casename, solver, model.cs)
-            .then(response => {
+            try {
+                const response = await Osemosys.run(model.casename, solver, model.cs);
                 Message.clearMessages();
-                //console.log('response ',response)
-                if (response.status_code == "success") {
+                if (response.status_code == "success" || response.status_code == "warning") {
                     Message.loaderEnd();
                     $(".runOutput").show();
                     $(".lpOutput").show();
@@ -430,36 +388,19 @@ export default class DataFile {
                     $(".batchOutput").hide();
                     $("#osy-batchOutput").empty();
                     $("#osy-runOutput").empty();
-                    $("#osy-runOutput").html('<pre class="log-output">' + response.cbc_message, response.cbc_stdmsg+ '</pre>');
+                    $("#osy-runOutput").html('<pre class="log-output">' + response.cbc_message, response.cbc_stdmsg + '</pre>');
                     $("#osy-lpOutput").empty();
-                    $("#osy-lpOutput").html('<pre class="log-output">' + response.glpk_message, response.glpk_stdmsg+ '</pre>');
-                    Base.getResultCSV(model.casename, model.cs)
-                        .then(csvs => {
-                            Html.renderCSV(csvs, model.cs)
-                        });
+                    $("#osy-lpOutput").html('<pre class="log-output">' + response.glpk_message, response.glpk_stdmsg + '</pre>');
+                    const csvs = await Base.getResultCSV(model.casename, model.cs);
+                    Html.renderCSV(csvs, model.cs);
                     Sidebar.Reload(model.casename);
                     Message.clearMessages();
-                    Message.successOsy( response.timer);
-                    Message.bigBoxSuccess('Run message', response.timer, 3000);
-                }
-                if (response.status_code == "warning") {
-                    Message.loaderEnd();
-                    $(".runOutput").show();
-                    $(".lpOutput").show();
-                    $(".Results").show();
-                    $(".batchOutput").hide();
-                    $("#osy-batchOutput").empty();
-                    $("#osy-runOutput").empty();
-                    $("#osy-runOutput").html('<pre class="log-output">' + response.cbc_message, response.cbc_stdmsg+ '</pre>');
-                    $("#osy-lpOutput").empty();
-                    $("#osy-lpOutput").html('<pre class="log-output">' + response.glpk_message, response.glpk_stdmsg+ '</pre>');
-                    Base.getResultCSV(model.casename, model.cs)
-                        .then(csvs => {
-                            Html.renderCSV(csvs, model.cs)
-                        });
-                    Sidebar.Reload(model.casename);
-                    Message.clearMessages();
-                    Message.warningOsy( response.timer );
+                    if (response.status_code == "success") {
+                        Message.successOsy(response.timer);
+                        Message.bigBoxSuccess('Run message', response.timer, 3000);
+                    } else {
+                        Message.warningOsy(response.timer);
+                    }
                 }
                 if (response.status_code == "error") {
                     Message.loaderEnd();
@@ -469,40 +410,29 @@ export default class DataFile {
                     $(".batchOutput").hide();
                     $("#osy-batchOutput").empty();
                     $("#osy-runOutput").empty();
-                    $("#osy-runOutput").html('<pre class="log-output">' + response.cbc_message, response.cbc_stdmsg+ '</pre>');
+                    $("#osy-runOutput").html('<pre class="log-output">' + response.cbc_message, response.cbc_stdmsg + '</pre>');
                     $("#osy-lpOutput").empty();
-                    $("#osy-lpOutput").html('<pre class="log-output">' + response.glpk_message, response.glpk_stdmsg+ '</pre>');
+                    $("#osy-lpOutput").html('<pre class="log-output">' + response.glpk_message, response.glpk_stdmsg + '</pre>');
                     Message.clearMessages();
-                    // let errormsg = '';
-                    // if (response.glpk_message != "" || response.glpk_stdmsg != "") {
-                    //     errormsg += 'Error occured during creation of LP file, GLPK run! See LP file (GLPK) log for more details. '
-                    // }
-                    // if (response.cbc_message != "" || response.cbc_stdmsg != "") {
-                    //     errormsg += 'Error occured during optimization process, CBC run! See CBC solver log for more details.'
-                    // }
-
-                    // Message.dangerOsy(errormsg);
-                    Message.dangerOsy( response.timer );
+                    Message.dangerOsy(response.timer);
                 }
-            })
-            .catch(error => {
-                console.log('error ',error)
+            } catch (error) {
+                console.log('error ', error);
                 Message.loaderEnd();
                 Message.bigBoxDanger('Error message', error, null);
-            })
+            }
         });
 
         //$("#osy-Cases").off('click');
-        $("#osy-Cases").on('click', '.selectCS', function (e) {
-            //$(document).delegate(".selectCS","click",function(e){
+        $("#osy-Cases").on('click', '.selectCS', async function (e) {
             e.preventDefault();
             e.stopImmediatePropagation();
-            Html.renderScOrder( model.scBycs[model.cs]);
+            Html.renderScOrder(model.scBycs[model.cs]);
             Message.clearMessages();
-            console.log('select, ', model)
+            console.log('select, ', model);
             var caserunanme = $(this).attr('data-ps');
             model.cs = caserunanme;
-            Html.renderScOrder( model.scBycs[model.cs]);
+            Html.renderScOrder(model.scBycs[model.cs]);
 
             Html.resData(model);
             Html.title(model.casename, model.title, caserunanme);
@@ -522,75 +452,60 @@ export default class DataFile {
             $("#osy-batchRun").hide();
             $('.checkbox').prop('checked', false);
 
-            Osemosys.readDataFile(model.casename, model.cs)
-            .then(response => {
-                let DataFile = response;
-                const promise = [];
-                promise.push(DataFile);
-                let ResultCSV = Base.getResultCSV(model.casename, model.cs)
-                promise.push(ResultCSV);
-                return Promise.all(promise);
-            })
-            .then(data => {
-                let [DataFile, ResultCSV] = data;
-                console.log('data ', data)
+            try {
+                const [DataFile, ResultCSV] = await Promise.all([
+                    Osemosys.readDataFile(model.casename, model.cs),
+                    Base.getResultCSV(model.casename, model.cs),
+                ]);
+                console.log('data ', [DataFile, ResultCSV]);
                 if (ResultCSV.length != 0) {
                     $(".Results").show();
-                    Html.renderCSV(ResultCSV, model.cs)
+                    Html.renderCSV(ResultCSV, model.cs);
                 }
                 if (DataFile) {
                     $(".DataFile").show();
                     $("#osy-runCaseDiv").show();
                     $("#osy-caseRunName").text(model.cs);
                     $("#osy-generateDataFile").show();
-
                     Html.renderDataFile(DataFile, model);
-                }
-                else if(!DataFile && ResultCSV.length == 0){
+                } else if (!DataFile && ResultCSV.length == 0) {
                     $(".DataFile").hide();
                     $(".Results").hide();
-                    //$("#osy-generateDataFile").hide();
-
                     $("#osy-runCaseDiv").show();
                     $("#osy-caseRunName").text(model.cs);
                     $("#osy-generateDataFile").show();
                     Message.smallBoxWarning("Run case message", "Please generate data file!", 3000);
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 Message.danger(error);
-            });
+            }
             Message.smallBoxInfo("Case selection", caserunanme + " is selected!", 3000);
         });
 
 
         //$("#osy-Cases").off('click');
-        $("#osy-Cases").on('click', '.validateInputs', function (e) {
+        $("#osy-Cases").on('click', '.validateInputs', async function (e) {
             e.preventDefault();
             e.stopImmediatePropagation();
             Message.clearMessages();
             var caserunanme = $(this).attr('data-ps');
-            //console.log('caserunanme ', caserunanme)
-            Osemosys.validateInputs(model.casename, caserunanme)
-            .then(response => {
-                //console.log('response ', response)
+            try {
+                const response = await Osemosys.validateInputs(model.casename, caserunanme);
                 if (response.status_code == "success") {
                     $('#osy-validation').modal('toggle');
-                    $("#valCasrunname").text(caserunanme)
-                    $("#valOutput").html('<pre class="log-output">' + response.msg+ '</pre>')
+                    $("#valCasrunname").text(caserunanme);
+                    $("#valOutput").html('<pre class="log-output">' + response.msg + '</pre>');
                 }
                 if (response.status_code == "warning") {
                     $('#osy-validation').modal('toggle');
-                    $("#valOutput").html('<pre class="log-output">' + response.msg+ '</pre>');
+                    $("#valOutput").html('<pre class="log-output">' + response.msg + '</pre>');
                 }
                 if (response.status_code == "error") {
-                    //Message.warningOsy(response.msg);
-                    Message.smallBoxWarning('Data file warning', response.msg, 8000)
+                    Message.smallBoxWarning('Data file warning', response.msg, 8000);
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 Message.danger(error);
-            });
+            }
         });
 
         //$(document).delegate(".deleteCase", "click", function (e) {
@@ -605,85 +520,58 @@ export default class DataFile {
                 title: "Confirmation Box!",
                 content: "You are about to delete <b class='danger'>" + caserunname + "</b> case run! Are you sure?",
                 buttons: '[No][Yes]'
-            }, function (ButtonPressed) {
+            }, async function (ButtonPressed) {
                 if (ButtonPressed === "Yes") {
                     Message.loaderStart('Deleteing case data...');
-                    Base.deleteCaseRun(model.casename, caserunname, false)
-                        .then(response => {
-                            Message.clearMessages();
-                            Message.loaderEnd();
-                            if (response.status_code == "success") {
-                                Message.bigBoxSuccess('Delete message', response.message, 3000);
-                                //REFRESH
-                                Html.removeCase(caserunname);
-                                //remove case from model
-                                model.cases = model.cases.filter(function(el) { return el.Case != caserunname; });
-                                delete model.scBycs[caserunname];
-
-                                //relod sidebar
-                                Sidebar.Reload(model.casename);
-
-                                if (model.cs == caserunname || model.cs == ''){
-                                    Html.title(model.casename, model.title, '');
-                                    model.cs = null;
-                                    $("#osy-casename").val(null);
-                                    $("#osy-desc").val(null);
-                                    $("#osy-createCaseRun").show();
-                                    $("#osy-updateCaseRun").hide();
-                                    $("#osy-newCaseRun").hide();
-
-                                    $("#osy-generateDataFile").hide();
-                                    $("#osy-runCaseDiv").hide();
-                                    $("#osy-solver").hide();
-                                    $("#osy-run").hide();
-
-                                    $(".runOutput").hide();
-                                    $(".lpOutput").hide();
-                                    $(".DataFile").hide();
-                                    $(".Results").hide();
-
-                                    $(".batchOutput").hide();
-                                    $("#osy-batchRun").hide();
-                                    $('.checkbox').prop('checked', false);
-                                }
-                                //remove case from view json files
-                                //sync with s3
-                                if (Base.AWS_SYNC == 1) {
-                                    SyncS3.deleteSync(caserunname);
-                                }
+                    try {
+                        const response = await Base.deleteCaseRun(model.casename, caserunname, false);
+                        Message.clearMessages();
+                        Message.loaderEnd();
+                        if (response.status_code == "success") {
+                            Message.bigBoxSuccess('Delete message', response.message, 3000);
+                            Html.removeCase(caserunname);
+                            model.cases = model.cases.filter(function(el) { return el.Case != caserunname; });
+                            delete model.scBycs[caserunname];
+                            Sidebar.Reload(model.casename);
+                            if (model.cs == caserunname || model.cs == '') {
+                                Html.title(model.casename, model.title, '');
+                                model.cs = null;
+                                $("#osy-casename").val(null);
+                                $("#osy-desc").val(null);
+                                $("#osy-createCaseRun").show();
+                                $("#osy-updateCaseRun").hide();
+                                $("#osy-newCaseRun").hide();
+                                $("#osy-generateDataFile").hide();
+                                $("#osy-runCaseDiv").hide();
+                                $("#osy-solver").hide();
+                                $("#osy-run").hide();
+                                $(".runOutput").hide();
+                                $(".lpOutput").hide();
+                                $(".DataFile").hide();
+                                $(".Results").hide();
+                                $(".batchOutput").hide();
+                                $("#osy-batchRun").hide();
+                                $('.checkbox').prop('checked', false);
                             }
-                            // if(response.status_code=="success_session"){
-                            //     Message.bigBoxSuccess('Delete message', response.message, 3000);
-                            //     Message.info( "Please select existing or create new case to proceed!");
-                            //     if (model.casename = casename){
-                            //         // Sidebar.Load(null, null);
-                            //         Sidebar.Reload(null);
-                            //         //Routes.removeRoutes(model.PARAMETERS);
-                            //     }
-                            //     //REFRESH
-                            //     Html.removeCase(casename);
-                            //     if (Base.AWS_SYNC == 1){
-                            //         Base.deleteSync(casename);
-                            //     }
-                            // }
-                            if (response.status_code == "info") {
-                                Message.info(response.message);
+                            if (Base.AWS_SYNC == 1) {
+                                SyncS3.deleteSync(caserunname);
                             }
-                            if (response.status_code == "warning") {
-                                Message.warning(response.message);
-                            }
-
-                        })
-                        .catch(error => {
-                            console.log(error)
-                            Message.danger(error);
-                        });
+                        }
+                        if (response.status_code == "info") {
+                            Message.info(response.message);
+                        }
+                        if (response.status_code == "warning") {
+                            Message.warning(response.message);
+                        }
+                    } catch (error) {
+                        console.log(error);
+                        Message.danger(error);
+                    }
                 }
                 if (ButtonPressed === "No") {
-                    Message.bigBoxInfo("Confirmation message", "You pressed No...", 3000)
+                    Message.bigBoxInfo("Confirmation message", "You pressed No...", 3000);
                 }
             });
-            //e.preventDefault();
             e.stopImmediatePropagation();
         });
 
@@ -695,72 +583,46 @@ export default class DataFile {
                 title: "Confirmation Box!",
                 content: "You are about to delete <b class='danger'>" + caserunname + "</b> case run results! Are you sure?",
                 buttons: '[No][Yes]'
-            }, function (ButtonPressed) {
+            }, async function (ButtonPressed) {
                 if (ButtonPressed === "Yes") {
                     Message.loaderStart('Deleteing case results...');
-                    Base.deleteCaseRun(model.casename, caserunname, true)
-                        .then(response => {
-                            Message.clearMessages();
-                            Message.loaderEnd();
-                            if (response.status_code == "success") {
-                                Message.bigBoxSuccess('Delete message', response.message, 3000);
-                                //REFRESH
-                                //Html.removeCase(caserunname);
-                                //remove case from model
-                                //model.cases = model.cases.filter(function(el) { return el.Case != caserunname; });
-                                //delete model.scBycs[caserunname];
-
-                                //relod sidebar
-                                Sidebar.Reload(model.casename);
-
-                                if (model.cs == caserunname || model.cs == ''){
-                                    Html.title(model.casename, model.title, '');
-                                    model.cs = null;
-                                    // $("#osy-casename").val(null);
-                                    // $("#osy-desc").val(null);
-                                    // $("#osy-createCaseRun").show();
-                                    // $("#osy-updateCaseRun").hide();
-                                    // $("#osy-newCaseRun").hide();
-
-                                    // $("#osy-generateDataFile").hide();
-                                    // $("#osy-runCaseDiv").hide();
-                                    // $("#osy-solver").hide();
-                                    // $("#osy-run").hide();
-
-                                    $(".runOutput").hide();
-                                    $(".lpOutput").hide();
-                                    $(".DataFile").hide();
-                                    $(".Results").hide();
-
-                                    $(".batchOutput").hide();
-                                    $("#osy-batchRun").hide();
-                                    $('.checkbox').prop('checked', false);
-                                }
-                                //remove case from view json files
-                                //sync with s3
-                                if (Base.AWS_SYNC == 1) {
-                                    SyncS3.deleteSync(caserunname);
-                                }
+                    try {
+                        const response = await Base.deleteCaseRun(model.casename, caserunname, true);
+                        Message.clearMessages();
+                        Message.loaderEnd();
+                        if (response.status_code == "success") {
+                            Message.bigBoxSuccess('Delete message', response.message, 3000);
+                            Sidebar.Reload(model.casename);
+                            if (model.cs == caserunname || model.cs == '') {
+                                Html.title(model.casename, model.title, '');
+                                model.cs = null;
+                                $(".runOutput").hide();
+                                $(".lpOutput").hide();
+                                $(".DataFile").hide();
+                                $(".Results").hide();
+                                $(".batchOutput").hide();
+                                $("#osy-batchRun").hide();
+                                $('.checkbox').prop('checked', false);
                             }
-
-                            if (response.status_code == "info") {
-                                Message.info(response.message);
+                            if (Base.AWS_SYNC == 1) {
+                                SyncS3.deleteSync(caserunname);
                             }
-                            if (response.status_code == "warning") {
-                                Message.warning(response.message);
-                            }
-
-                        })
-                        .catch(error => {
-                            console.log(error)
-                            Message.danger(error);
-                        });
+                        }
+                        if (response.status_code == "info") {
+                            Message.info(response.message);
+                        }
+                        if (response.status_code == "warning") {
+                            Message.warning(response.message);
+                        }
+                    } catch (error) {
+                        console.log(error);
+                        Message.danger(error);
+                    }
                 }
                 if (ButtonPressed === "No") {
-                    Message.bigBoxInfo("Confirmation message", "You pressed No...", 3000)
+                    Message.bigBoxInfo("Confirmation message", "You pressed No...", 3000);
                 }
             });
-            //e.preventDefault();
             e.stopImmediatePropagation();
         });
 
@@ -786,88 +648,63 @@ export default class DataFile {
           });
 
         $("#osy-batchRun").off('click');
-        $("#osy-batchRun").on('click', function (event) {
-            //console.log('BATCH RUN')
+        $("#osy-batchRun").on('click', async function (event) {
             Pace.restart();
             Message.loaderStart('BATCH RUN! Plese wait...');
 
             let batchRunCases = [];
-            $("input:checkbox[name=type]:checked").each(function(){
+            $("input:checkbox[name=type]:checked").each(function() {
                 batchRunCases.push($(this).val());
             });
 
-            Osemosys.batchRun(model.casename, batchRunCases)
-            //Osemosys.generateDataFile(model.casename, batchRunCases[0])
-            .then(response => {
+            try {
+                const response = await Osemosys.batchRun(model.casename, batchRunCases);
                 Message.loaderEnd();
-                //Message.smallBoxInfo('Generate message', response.message, 3000);
-                // console.log('response ', response.log);
-                // Message.bigBoxDefault("BATCH RUN!", response.log)
                 $(".runOutput").hide();
                 $(".lpOutput").hide();
                 $(".Results").hide();
                 $("#osy-runOutput").empty();
                 $("#osy-lpOutput").empty();
-
                 Sidebar.Reload(model.casename);
                 Message.clearMessages();
-
-                if(response.status == 'Success'){
+                if (response.status == 'Success') {
                     Message.successOsy('<pre>' + response.msg + '</pre>');
-                    //Message.successOsy('<pre>Run finished in ' + response.time + ' \n' + response.msg + '</pre>');
-                }
-                else{
+                } else {
                     Message.dangerOsy('<pre>' + response.msg + '</pre>');
                 }
-
-
                 $(".batchOutput").show();
                 $("#osy-batchOutput").empty();
-                $("#osy-batchOutput").html('<pre class="log-output">' + response.log+ '</pre>');
-
-            })
-            .catch(error => {
-                Message.bigBoxDanger(error)
-            })
-
+                $("#osy-batchOutput").html('<pre class="log-output">' + response.log + '</pre>');
+            } catch (error) {
+                Message.bigBoxDanger(error);
+            }
         });
 
         $("#osy-cleanUp").off('click');
-        $("#osy-cleanUp").on('click', function (event) {
-            //console.log('BATCH RUN')
+        $("#osy-cleanUp").on('click', async function () {
             Pace.restart();
             Message.loaderStart('Recycle all results! Plese wait...');
 
-            Osemosys.cleanUp(model.casename)
-            .then(response => {
+            try {
+                const response = await Osemosys.cleanUp(model.casename);
                 Message.loaderEnd();
-                //Message.smallBoxInfo('Generate message', response.message, 3000);
-                // console.log('response ', response.log);
-                // Message.bigBoxDefault("BATCH RUN!", response.log)
                 $(".runOutput").hide();
                 $(".lpOutput").hide();
                 $(".Results").hide();
                 $("#osy-runOutput").empty();
                 $("#osy-lpOutput").empty();
 
-                console.log('response clean up ', response) 
-
                 Sidebar.Reload(model.casename);
                 Message.clearMessages();
 
-                if(response.status_code == 'success'){
+                if (response.status_code == 'success') {
                     Message.bigBoxSuccess('Delete message', response.message, 3000);
-                    //Message.successOsy('<pre>' + response.message + '</pre>');
-                    //Message.successOsy('<pre>Run finished in ' + response.time + ' \n' + response.msg + '</pre>');
-                }
-                else{
+                } else {
                     Message.dangerOsy('<pre>' + response.message + '</pre>');
                 }
-            })
-            .catch(error => {
-                Message.bigBoxDanger(error)
-            })
-
+            } catch (error) {
+                Message.bigBoxDanger(error);
+            }
         });
 
         Message.loaderEnd();

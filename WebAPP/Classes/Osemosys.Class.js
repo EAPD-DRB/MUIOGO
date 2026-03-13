@@ -378,20 +378,20 @@ export class Osemosys {
     //         .catch(error => null);
     // }
 
-    static getData(casename, dataJson) {
+    static async getData(casename, dataJson) {
         if (!casename || casename === "null") {
             console.warn("getData called without valid casename");
-            return Promise.resolve(null);
+            return null;
         }
-        return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"}) 
-            .then((response) => {
-                if (response.ok) {
-                    return response;
-                }
+        try {
+            const response = await fetch('../../DataStorage/' + casename + '/' + dataJson, { cache: "no-store" });
+            if (!response.ok) {
                 throw new Error('Invalid casename');
-            })
-            .then(response => response.json())
-            .catch(error => null);
+            }
+            return await response.json();
+        } catch (error) {
+            return null;
+        }
     }
 
     static getData_(casename, dataJson) {
@@ -437,20 +437,20 @@ export class Osemosys {
     //         .catch(error => null);
     // }
 
-    static getResultData(casename, dataJson) {
+    static async getResultData(casename, dataJson) {
         if (!casename || casename === "null") {
             console.warn("getResultData called without valid casename");
-            return Promise.resolve(null);
+            return null;
         }
-        return fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
-            .then((response) => {
-                if (response.ok) {
-                    return response;
-                }
+        try {
+            const response = await fetch('../../DataStorage/' + casename + '/view/' + dataJson, { cache: "no-store" });
+            if (!response.ok) {
                 throw new Error('Invalid casename');
-            })
-            .then(response => response.json())
-            .catch(error => null);
+            }
+            return await response.json();
+        } catch (error) {
+            return null;
+        }
     }
 
     static updateData(data, param, dataJson) {

@@ -10,35 +10,28 @@ import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { Routes } from "../../Routes/Routes.Class.js";
 
 export default class Home {
-    static async onLoad(){
-        if (Base.AWS_SYNC == 1 && Base.INIT_SYNC){
-            $('#loadermain h4').text('Syncronizing with S3 Bucket!'); 
+    static async onLoad() {
+        if (Base.AWS_SYNC == 1 && Base.INIT_SYNC) {
+            $('#loadermain h4').text('Syncronizing with S3 Bucket!');
             $('#loadermain').show();
-            await Base.initSyncS3()
-            .then(response => {
-                Message.smallBoxInfo('Sync message', response.message, 3000);
+            try {
+                const syncResponse = await Base.initSyncS3();
+                Message.smallBoxInfo('Sync message', syncResponse.message, 3000);
                 Base.INIT_SYNC = 0;
-            })
+            } catch (syncError) {
+                Message.danger(syncError);
+            }
         }
-        Base.getSession()
-        .then(response =>{
-            let casename = response.session;
-            const promise = [];
-            promise.push(casename);
-
-            let cases = Base.getCaseStudies();
-            promise.push(cases);
+        try {
+            const response = await Base.getSession();
+            const casename = response.session;
             $('#loadermain').hide();
-            return Promise.all(promise);
-        })
-        .then(data => {
-            let [ casename, cases] = data;
-            let model = new Model(casename, cases);
+            const cases = await Base.getCaseStudies();
+            const model = new Model(casename, cases);
             this.initPage(model);
-        })
-        .catch(error =>{ 
+        } catch (error) {
             Message.danger(error);
-        });
+        }
     }
 
     static initPage(model){
@@ -51,23 +44,15 @@ export default class Home {
         loadScript("References/smartadmin/js/plugin/dropzone/dropzone5.min.js", Base.uploadFunction);
     }
 
-    static refreshPage(casename){
-        Base.setSession(casename)
-        .then(response =>{
-            const promise = [];
-            promise.push(casename);
-            let cases = Base.getCaseStudies();
-            promise.push(cases);
-            return Promise.all(promise);
-        })
-        .then(data => {
-            let [ casename, cases ] = data;
-            let model = new Model(casename, cases);
+    static async refreshPage(casename) {
+        try {
+            await Base.setSession(casename);
+            const cases = await Base.getCaseStudies();
+            const model = new Model(casename, cases);
             this.initPage(model);
-        })
-        .catch(error =>{ 
+        } catch (error) {
             Message.danger(error);
-        });
+        }
     }
 
     static initEvents(model){
@@ -75,49 +60,44 @@ export default class Home {
         $("#cases").tooltip({ selector: '[data-toggle=tooltip]' });
 
         $("#casePicker, #cases").off('click', '.selectCS');
-        $("#casePicker, #cases").on('click.homeSelect', '.selectCS', function(e) {
+        $("#casePicker, #cases").on('click.homeSelect', '.selectCS', async function(e) {
             //console.log('model ', model)
-        //$(document).delegate(".selectCS","click",function(e){
             e.preventDefault();
             e.stopImmediatePropagation();
             var casename = $(this).attr('data-ps');
-            //Html.updateCasePicker(casename);
-            //Sidebar.Load(casename, model.genData, model.PARAMETERS);
-            Osemosys.getData(casename, 'genData.json')
-            .then(genData => {
-                //console.log('genData ', genData["osy-version"])
+            try {
+                const genData = await Osemosys.getData(casename, 'genData.json');
                 Home.refreshPage(casename);
                 Message.smallBoxInfo("Case selection", casename + " is selected!", 3000);
-                if(parseFloat(genData["osy-version"]) < 4.5){
-                    //console.log('manje od 4.5')
+                if (parseFloat(genData["osy-version"]) < 4.5) {
                     Message.bigBoxWarning("Warning", "You have selected a model created in a earlier version of this UI. In order to update to the current version click <b>Update model</b> on the configuration page.", 10000);
                 }
-            })
+            } catch (error) {
+                Message.danger(error);
+            }
         });
 
         $("#cases").off('click.homeEdit', '.editPS');
-        $("#cases").on('click.homeEdit', '.editPS', function(e) {
+        $("#cases").on('click.homeEdit', '.editPS', async function(e) {
             e.preventDefault();
             e.stopImmediatePropagation();
             var casename = $(this).attr('data-ps');
             Html.updateCasePicker(casename);
-
-            Base.setSession(casename)
-            .then(response=>{
+            try {
+                await Base.setSession(casename);
                 $('#Navi>li').removeClass('active');
                 $('#Navi').children('li').eq(2).addClass('active');
                 hasher.setHash("#");
                 hasher.setHash("#AddCase");
-            })
-            .catch(error=>{
+            } catch (error) {
                 Message.danger(error);
-            })
+            }
         });
 
         //copy case
         $(document).off('click', '.copyCS');
         $("#cases").off('click', '.copyCS');
-        $("#cases").on('click.homeCopy', '.copyCS', function(e){
+        $("#cases").on('click.homeCopy', '.copyCS', async function(e) {
             e.stopImmediatePropagation();
             var casename = $(this).attr('data-ps');
             if (casename !== model.casename) {
@@ -125,41 +105,37 @@ export default class Home {
                     'Select <b>' + casename + '</b> first to copy it.', 4000);
                 return;
             }
-            Base.copyCaseStudy(casename)
-            .then(response => {
+            try {
+                const response = await Base.copyCaseStudy(casename);
                 Message.clearMessages();
-                if(response.status_code=="success"){
+                if (response.status_code == "success") {
                     Message.bigBoxSuccess('Copy message', response.message, 3000);
-                    //REFRESH
-                    Html.apendModel(casename+'_copy');
-                    Html.appendCasePicker(casename+'_copy', null)
-                    if (Base.AWS_SYNC == 1){
-                        SyncS3.deleteResultsPreSync(casename)
-                        .then(response =>{
-                            SyncS3.uploadSync(casename+'_copy');
-                        });  
+                    Html.apendModel(casename + '_copy');
+                    Html.appendCasePicker(casename + '_copy', null);
+                    if (Base.AWS_SYNC == 1) {
+                        await SyncS3.deleteResultsPreSync(casename);
+                        SyncS3.uploadSync(casename + '_copy');
                     }
                 }
-                if(response.status_code=="warning"){
+                if (response.status_code == "warning") {
                     Message.bigBoxWarning('Copy message', response.message, 3000);
                 }
-
-            })
-            .catch(error =>{ 
+            } catch (error) {
                 Message.danger(error);
-            });
+            }
         });
 
         //get descrition
         $("#cases").off('click.homeDescription', '.descriptionPS');
-        $("#cases").on('click.homeDescription', '.descriptionPS', function(e){
-            //e.stopImmediatePropagation();
+        $("#cases").on('click.homeDescription', '.descriptionPS', async function(e) {
             var titleps = $(this).attr('data-ps');
-            Base.getCaseDesc(titleps)
-            .then(response => {
+            try {
+                const response = await Base.getCaseDesc(titleps);
                 Message.clearMessages();
                 $('#mdescriptionps').html(response.desc);
-            })
+            } catch (error) {
+                Message.danger(error);
+            }
             $('#mtitleps_desc').html('<i class="ace-icon fa fa-info-circle"></i>  ' + titleps);
         });
 
@@ -178,35 +154,32 @@ export default class Home {
                 title : "Confirmation Box!",
                 content : "You are about to delete <b class='danger'>" + casename + "</b> Model! Are you sure?",
                 buttons : '[No][Yes]'
-            }, function(ButtonPressed) {
+            }, async function(ButtonPressed) {
                 if (ButtonPressed === "Yes") {
-                    Base.deleteCaseStudy(casename)
-                    .then(response => {
+                    try {
+                        const response = await Base.deleteCaseStudy(casename);
                         Message.clearMessages();
-                        if(response.status_code=="success_session"){
+                        if (response.status_code == "success_session") {
                             Message.bigBoxSuccess('Delete message', response.message, 3000);
-                            Message.info( "Please select existing or create new case to proceed!");
+                            Message.info("Please select existing or create new case to proceed!");
                             Sidebar.Reload(null);
-                            //REFRESH
                             Html.removeCase(casename);
-                            if (Base.AWS_SYNC == 1){
+                            if (Base.AWS_SYNC == 1) {
                                 SyncS3.deleteSync(casename);
                             }
                         }
-                        if(response.status_code=="info"){
+                        if (response.status_code == "info") {
                             Message.info(response.message);
                         }
-                        if(response.status_code=="warning"){
+                        if (response.status_code == "warning") {
                             Message.warning(response.message);
-                        }  
-                        
-                    })
-                    .catch(error =>{ 
+                        }
+                    } catch (error) {
                         Message.danger(error);
-                    });
+                    }
                 }
                 if (ButtonPressed === "No") {
-                    Message.bigBoxInfo("Confirmation message", "You pressed No...", 3000)
+                    Message.bigBoxInfo("Confirmation message", "You pressed No...", 3000);
                 }
             });
             //e.preventDefault();

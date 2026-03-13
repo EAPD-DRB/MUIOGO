@@ -8,41 +8,29 @@ import { DEF } from "../../Classes/Definition.Class.js";
 import { MessageSelect } from "./MessageSelect.js";
 
 export default class ViewData {
-    static onLoad() {
+    static async onLoad() {
         Message.loaderStart('Loading data...');
-        Base.getSession()
-            .then(response => {
-                let casename = response['session'];
-                if (casename) {
-                    const promise = [];
-                    promise.push(casename);
-                    const genData = Osemosys.getData(casename, 'genData.json');
-                    promise.push(genData);
-                    const viewData = Osemosys.viewData(casename);
-                    promise.push(viewData);
-                    const viewTEData = Osemosys.viewTEData(casename);
-                    promise.push(viewTEData);
-                    const PARAMETERS = Osemosys.getParamFile();
-                    promise.push(PARAMETERS);
-                    // const RTdata = Osemosys.getData(casename, 'RT.json');
-                    // promise.push(RTdata); 
-                    return Promise.all(promise);
-                    ;
-                } else {
-                    Message.loaderEnd();
-                    MessageSelect.init(ViewData.refreshPage.bind(ViewData));
-                }
-            })
-            .then(data => {
-                let [casename, genData, viewData, viewTEData, PARAMETERS] = data;
-                let model = new Model(casename, genData, viewData, viewTEData, PARAMETERS);
+        try {
+            const response = await Base.getSession();
+            const casename = response['session'];
+            if (casename) {
+                const [genData, viewData, viewTEData, PARAMETERS] = await Promise.all([
+                    Osemosys.getData(casename, 'genData.json'),
+                    Osemosys.viewData(casename),
+                    Osemosys.viewTEData(casename),
+                    Osemosys.getParamFile(),
+                ]);
+                const model = new Model(casename, genData, viewData, viewTEData, PARAMETERS);
                 this.initPage(model);
                 this.initEvents(model);
-            })
-            .catch(error => {
+            } else {
                 Message.loaderEnd();
-                Message.warning(error);
-            });
+                MessageSelect.init(ViewData.refreshPage.bind(ViewData));
+            }
+        } catch (error) {
+            Message.loaderEnd();
+            Message.warning(error);
+        }
     }
 
     static initPage(model) {
@@ -64,36 +52,24 @@ export default class ViewData {
         Grid.applyViewDataFilter($divGrid, model.years);
     }
 
-    static refreshPage(casename) {
+    static async refreshPage(casename) {
         Message.loaderStart('Loading data...');
         Pace.restart();
-        Base.setSession(casename)
-            .then(response => {
-                const promise = [];
-                promise.push(casename);
-
-                const genData = Osemosys.getData(casename, 'genData.json');
-                promise.push(genData);
-                const viewData = Osemosys.viewData(casename);
-                promise.push(viewData);
-                const viewTEData = Osemosys.viewTEData(casename);
-                promise.push(viewTEData);
-                const PARAMETERS = Osemosys.getParamFile();
-                promise.push(PARAMETERS);
-                return Promise.all(promise);
-            })
-            .then(data => {
-                let [casename, genData, viewData, viewTEData, PARAMETERS] = data;
-                let model = new Model(casename, genData, viewData, viewTEData, PARAMETERS);
-                this.initPage(model);
-                this.initEvents(model);
-
-            })
-            .catch(error => {
-                Message.loaderEnd();
-                //$('#loadermain').hide(); 
-                Message.warning(error);
-            });
+        try {
+            await Base.setSession(casename);
+            const [genData, viewData, viewTEData, PARAMETERS] = await Promise.all([
+                Osemosys.getData(casename, 'genData.json'),
+                Osemosys.viewData(casename),
+                Osemosys.viewTEData(casename),
+                Osemosys.getParamFile(),
+            ]);
+            const model = new Model(casename, genData, viewData, viewTEData, PARAMETERS);
+            this.initPage(model);
+            this.initEvents(model);
+        } catch (error) {
+            Message.loaderEnd();
+            Message.warning(error);
+        }
     }
 
     static initEvents(model) {
@@ -224,7 +200,7 @@ export default class ViewData {
                 pasteEvent = true;
                 Message.smallBoxInfo('View data form', 'Copy/paste option is not allowed on this form', 3000);
             }
-        }).on('cellvaluechanged', function (event) {
+        }).on('cellvaluechanged', async function (event) {
             if (!pasteEvent) {
                 Pace.restart();
 
@@ -268,17 +244,15 @@ export default class ViewData {
                     }
                 });
 
-                Osemosys.updateViewData(model.casename, year, ScId, GroupId, ParamId, TechId, CommId, EmisId, TsId, value)
-                    .then(response => {
-                        Message.bigBoxSuccess('Model message', response.message, 3000);
-                        //sync S3
-                        if (Base.AWS_SYNC == 1) {
-                            Base.updateSync(model.casename, GroupId + ".json");
-                        }
-                    })
-                    .catch(error => {
-                        Message.bigBoxDanger('Error message', error, null);
-                    })
+                try {
+                    const response = await Osemosys.updateViewData(model.casename, year, ScId, GroupId, ParamId, TechId, CommId, EmisId, TsId, value);
+                    Message.bigBoxSuccess('Model message', response.message, 3000);
+                    if (Base.AWS_SYNC == 1) {
+                        Base.updateSync(model.casename, GroupId + ".json");
+                    }
+                } catch (error) {
+                    Message.bigBoxDanger('Error message', error, null);
+                }
             }
         });
 
@@ -291,7 +265,7 @@ export default class ViewData {
                 pasteRTEvent = true;
                 Message.smallBoxInfo('View data form', 'Copy/paste option is not allowed on this form', 3000);
             }
-        }).on('cellvaluechanged', function (event) {
+        }).on('cellvaluechanged', async function (event) {
             if (!pasteRTEvent) {
                 Pace.restart();
 
@@ -340,17 +314,15 @@ export default class ViewData {
                     }
                 });
 
-                Osemosys.updateTEViewData(model.casename, ScId, GroupId, ParamId, TechId, EmisId, value)
-                    .then(response => {
-                        Message.bigBoxSuccess('Model message', response.message, 3000);
-                        //sync S3
-                        if (Base.AWS_SYNC == 1) {
-                            Base.updateSync(model.casename, GroupId + ".json");
-                        }
-                    })
-                    .catch(error => {
-                        Message.bigBoxDanger('Error message', error, null);
-                    })
+                try {
+                    const response = await Osemosys.updateTEViewData(model.casename, ScId, GroupId, ParamId, TechId, EmisId, value);
+                    Message.bigBoxSuccess('Model message', response.message, 3000);
+                    if (Base.AWS_SYNC == 1) {
+                        Base.updateSync(model.casename, GroupId + ".json");
+                    }
+                } catch (error) {
+                    Message.bigBoxDanger('Error message', error, null);
+                }
             }
         });
 
@@ -390,21 +362,19 @@ export default class ViewData {
         // });
 
         $("#xlsAll").off('click');
-        $("#xlsAll").click(function (e) {
+        $("#xlsAll").click(async function (e) {
             e.preventDefault();
             let rytData = $divGrid.jqxGrid('getdisplayrows');
             let data = JSON.parse(JSON.stringify(rytData, ['Sc', 'paramName', 'UnitId', 'TechName', "CommName", "EmisName", "ConName", 'Ts', 'MoId'].concat(model.years)));
 
-            console.log('data', data);
-            Base.prepareCSV(model.casename, data)
-            .then(response =>{
+            try {
+                const response = await Base.prepareCSV(model.casename, data);
                 Message.smallBoxInfo('Case study message', response.message, 3000);
                 $('#csvDownload').trigger('click');
                 window.location = $('#csvDownload').attr('href');
-            })
-            .catch(error=>{
+            } catch (error) {
                 Message.bigBoxDanger('Error message', error, null);
-            })
+            }
         });
 
 
