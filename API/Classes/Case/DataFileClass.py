@@ -1072,7 +1072,7 @@ class DataFile(Osemosys):
             if os.path.exists(dataFilePath):
                 f = open(dataFilePath, mode="r", encoding='utf-8-sig')
                 data =  f.read()
-                f.close
+                f.close()
             else:
                 data = None
 
