@@ -180,62 +180,36 @@ def updateTimeslices_OnlyTs(casename):
     RYTTsPath.write_text(RYTTsPath.read_text().replace('Timeslice', 'TsId'))
     RYCTsPath = Path(Config.DATA_STORAGE, casename, 'RYCTs.json')
     RYCTsPath.write_text(RYCTsPath.read_text().replace('Timeslice', 'TsId'))
-##############################################################Multithreading example#########################3
-class Download(Thread):
-    def __init__(self, request, zippedFile):
-        Thread.__init__(self)
-        self.request = request
-        self.zippedFile = zippedFile
-
-    def run(self):
-        print("wait few seconds for download to finish")
-        time.sleep(20)
-        #print(self.request)
-        #remove zipped file
-        os.remove(self.zippedFile)
-        print("Deletion of zip archive done!")
-
-
 @upload_api.route("/backupCase", methods=['GET'])
 def backupCase():
     try:    
-        #case = request.form['case']
-        #case = request.json['casename']
         case = request.args.get('case')
-
         casePath = Path(Config.validate_path(Config.DATA_STORAGE, case))
         zippedFile = Path(Config.validate_path(Config.DATA_STORAGE, f"{case}.zip"))
 
-        '''File system data storage'''
         with ZipFile(zippedFile, 'w') as zipObj:
-            # Iterate over all the files in directory
             for folderName, subfolders, filenames in os.walk(str(casePath)):
-
                 for filename in filenames:
                     if filename != 'lp.lp':
-                        #create complete filepath of file in directory
                         filePath = os.path.join(folderName, filename)
-                        # Add file to zip
                         zipObj.write(filePath)      
 
-            #osemosys 2.1 backup only input files
-            # for filename in os.listdir(str(casePath)):
-            #     folderName = os.path.join(str(casePath))
-            #     if os.path.isfile(os.path.join(folderName, filename)):
-            #         if filename != 'data.txt':
-            #             #create complete filepath of file in directory
-            #             filePath = os.path.join(folderName, filename)
-            #             # Add file to zip
-            #             zipObj.write(filePath)   
-
-        thread_a = Download(request.__copy__(), zippedFile)
-        thread_a.start()
+        # Fix for Issue #37: ZIP download race condition
+        # Instead of a Thread with sleep(20), use after_this_request
+        # to guarantee the file is deleted *after* Flask safely streams it.
+        @after_this_request
+        def remove_file(response):
+            try:
+                os.remove(zippedFile)
+            except Exception as e:
+                pass
+            return response
 
         return send_file(zippedFile.resolve(), as_attachment=True)
 
     except PermissionError:
         return jsonify({"error": "Invalid path"}), 400
-    except(IOError):
+    except IOError:
         return jsonify('No existing cases!'), 404
     except OSError:
         raise OSError

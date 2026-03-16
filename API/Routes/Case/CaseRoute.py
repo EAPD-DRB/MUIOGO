@@ -12,6 +12,15 @@ from Classes.Base.SyncS3 import SyncS3
 
 case_api = Blueprint('CaseRoute', __name__)
 
+
+def _safe_path(base: Path, *parts: str) -> Path:
+    """Resolve a path and raise ValueError if it escapes the base directory."""
+    resolved_base = base.resolve()
+    candidate = Path(base, *parts).resolve()
+    if not str(candidate).startswith(str(resolved_base) + os.sep) and candidate != resolved_base:
+        raise ValueError(f"Path traversal detected: {candidate!r} is not inside {resolved_base!r}")
+    return candidate
+
 @case_api.route("/initSyncS3", methods=['GET'])
 def initSyncS3():
     try:
@@ -416,29 +425,28 @@ def prepareCSV():
                 Pd.insert(i, p_col, col)
                 i=i+1
 
-        Pd.to_csv(Path(Config.DATA_STORAGE,casename,'export.csv'), index = None)
+        export_path = _safe_path(Path(Config.DATA_STORAGE), casename, 'export.csv')
+        Pd.to_csv(export_path, index=None)
 
-        # Pd.to_excel(Path(Config.DATA_STORAGE,casename,'export.xlsx'))
-        
         response = {
             "message": 'CSV data downloaded!',
             "status_code": "success"
         }
         return jsonify(response), 200
-
-    except(IOError):
+    except ValueError:
+        return jsonify({'error': 'invalid_path', 'message': 'Invalid file path.'}), 400
+    except IOError:
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/downloadCSV", methods=['GET'])
 def downloadCSV():
     try:
         casename = session.get('osycase', None)
-        dataFile = Path(Config.DATA_STORAGE,casename,'export.csv')
-        
-        dir = Path(Config.DATA_STORAGE,casename)
-        return send_file(dataFile.resolve(), as_attachment=True,mimetype='application/csv', max_age=0)
-        #return send_from_directory(dir, 'export.csv', as_attachment=True)
-    except(IOError):
+        dataFile = _safe_path(Path(Config.DATA_STORAGE), casename, 'export.csv')
+        return send_file(dataFile, as_attachment=True, mimetype='application/csv', max_age=0)
+    except ValueError:
+        return jsonify({'error': 'invalid_path', 'message': 'Invalid file path.'}), 400
+    except IOError:
         return jsonify('No existing cases!'), 404
 
 @case_api.route("/importTemplate", methods=['POST'])

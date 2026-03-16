@@ -2270,7 +2270,9 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
     
-    def generateCSVfromCBC(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC(self, data_file, results_file, base_folder=None):
+        if base_folder is None:
+            base_folder = os.getcwd()
         try:
             #pd.options.mode.chained_assignment = None
             #pd.options.mode.chained_assignment = None
@@ -3243,7 +3245,9 @@ class DataFile(Osemosys):
             raise OSError
 
     # Dodali u postprocessing Annualized Investment Cost - potrebo dodati nove parametre
-    def generateCSVfromCBC_20240228(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC_20240228(self, data_file, results_file, base_folder=None):
+        if base_folder is None:
+            base_folder = os.getcwd()
         try:
             #pd.options.mode.chained_assignment = None
             #pd.options.mode.chained_assignment = None
@@ -3416,7 +3420,9 @@ class DataFile(Osemosys):
             raise OSError
     
     ##izmjene da bi se napunili csv za InputToNewCapacity i InputToTotalCapacity
-    def generateCSVfromCBC09122023(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC09122023(self, data_file, results_file, base_folder=None):
+        if base_folder is None:
+            base_folder = os.getcwd()
         try:
             #pd.options.mode.chained_assignment = None
 
@@ -3995,7 +4001,9 @@ class DataFile(Osemosys):
 
             file_out.write('end;')
 
-    def generateCSVfromCBC_BKP(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC_BKP(self, data_file, results_file, base_folder=None):
+        if base_folder is None:
+            base_folder = os.getcwd()
         try:
             pd.set_option('mode.chained_assignment', None)
 

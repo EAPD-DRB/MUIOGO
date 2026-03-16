@@ -6,6 +6,19 @@ from Classes.Base import Config
 
 datafile_api = Blueprint('DataFileRoute', __name__)
 
+
+def _safe_path(base: Path, *parts: str) -> Path:
+    """Resolve a path and raise ValueError if it escapes the base directory.
+
+    Prevents path traversal attacks (issues #45, #34) by checking that the
+    resolved target is inside the trusted base directory.
+    """
+    resolved_base = base.resolve()
+    candidate = Path(base, *parts).resolve()
+    if not str(candidate).startswith(str(resolved_base) + os.sep) and candidate != resolved_base:
+        raise ValueError(f"Path traversal detected: {candidate!r} is not inside {resolved_base!r}")
+    return candidate
+
 @datafile_api.route("/generateDataFile", methods=['POST'])
 def generateDataFile():
     try:
@@ -160,22 +173,13 @@ def validateInputs():
 @datafile_api.route("/downloadDataFile", methods=['GET'])
 def downloadDataFile():
     try:
-        #casename = request.json['casename']
-        #casename = 'DEMO CASE'
-        # txtFile = DataFile(casename)
-        # downloadPath = txtFile.downloadDataFile()
-        # response = {
-        #     "message": "You have downloaded data.txt to "+ str(downloadPath) +"!",
-        #     "status_code": "success"
-        # }         
-        # return jsonify(response), 200
-        #path = "/Examples.pdf"
         case = session.get('osycase', None)
         caserunname = request.args.get('caserunname')
-        dataFile = Path(Config.DATA_STORAGE,case, 'res',caserunname, 'data.txt')
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
-    
-    except(IOError):
+        dataFile = _safe_path(Path(Config.DATA_STORAGE), case, 'res', caserunname, 'data.txt')
+        return send_file(dataFile, as_attachment=True, max_age=0)
+    except ValueError:
+        return jsonify({'error': 'invalid_path', 'message': 'Invalid file path.'}), 400
+    except IOError:
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/downloadFile", methods=['GET'])
@@ -183,10 +187,11 @@ def downloadFile():
     try:
         case = session.get('osycase', None)
         file = request.args.get('file')
-        dataFile = Path(Config.DATA_STORAGE,case,'res','csv',file)
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
-    
-    except(IOError):
+        dataFile = _safe_path(Path(Config.DATA_STORAGE), case, 'res', 'csv', file)
+        return send_file(dataFile, as_attachment=True, max_age=0)
+    except ValueError:
+        return jsonify({'error': 'invalid_path', 'message': 'Invalid file path.'}), 400
+    except IOError:
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/downloadCSVFile", methods=['GET'])
@@ -195,10 +200,11 @@ def downloadCSVFile():
         case = session.get('osycase', None)
         file = request.args.get('file')
         caserunname = request.args.get('caserunname')
-        dataFile = Path(Config.DATA_STORAGE,case,'res',caserunname,'csv',file)
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
-    
-    except(IOError):
+        dataFile = _safe_path(Path(Config.DATA_STORAGE), case, 'res', caserunname, 'csv', file)
+        return send_file(dataFile, as_attachment=True, max_age=0)
+    except ValueError:
+        return jsonify({'error': 'invalid_path', 'message': 'Invalid file path.'}), 400
+    except IOError:
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/downloadResultsFile", methods=['GET'])
@@ -206,10 +212,11 @@ def downloadResultsFile():
     try:
         case = session.get('osycase', None)
         caserunname = request.args.get('caserunname')
-        dataFile = Path(Config.DATA_STORAGE,case, 'res', caserunname,'results.txt')
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
-    
-    except(IOError):
+        dataFile = _safe_path(Path(Config.DATA_STORAGE), case, 'res', caserunname, 'results.txt')
+        return send_file(dataFile, as_attachment=True, max_age=0)
+    except ValueError:
+        return jsonify({'error': 'invalid_path', 'message': 'Invalid file path.'}), 400
+    except IOError:
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/run", methods=['POST'])

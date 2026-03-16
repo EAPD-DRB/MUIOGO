@@ -6,6 +6,10 @@ import secrets
 from flask import Flask, jsonify, request, session, render_template
 from flask_cors import CORS
 from datetime import timedelta
+from dotenv import load_dotenv
+
+# Load environment variables from .env if present (dev convenience)
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 # from pathlib import Path
 
 #import json
@@ -64,21 +68,35 @@ app.register_blueprint(viewdata_api)
 app.register_blueprint(datafile_api)
 app.register_blueprint(syncs3_api)
 
-CORS(app)
+# CORS: allow origin is now runtime-configurable via env var.
+# Default is localhost only (safe for local dev). Set MUIOGO_ALLOWED_ORIGIN
+# in .env or the environment to change it for production/staging.
+_ALLOWED_ORIGIN = os.environ.get(
+    "MUIOGO_ALLOWED_ORIGIN",
+    "http://127.0.0.1:5002"
+).strip().rstrip("/")
 
-#potrebno kad je front end na drugom serveru 127.0.0.1
+CORS(app, origins=[_ALLOWED_ORIGIN], supports_credentials=True)
+
 @app.after_request
 def add_headers(response):
-    if Config.HEROKU_DEPLOY == 0: 
-        #localhost
-        response.headers.add('Access-Control-Allow-Origin', 'http://127.0.0.1')
-    else:
-        #HEROKU
-        response.headers.add('Access-Control-Allow-Origin', 'https://osemosys.herokuapp.com/')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    #response.headers['Content-Type'] = 'application/javascript'
+    response.headers["Access-Control-Allow-Origin"] = _ALLOWED_ORIGIN
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
+
+
+# ── Global error handlers (issues #28) ──────────────────────────────────────
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "not_found", "message": str(e)}), 404
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    logging.exception("Unhandled server error")
+    return jsonify({"error": "internal_server_error", "message": "An unexpected error occurred."}), 500
 
 # @app.errorhandler(CustomException)
 # def handle_invalid_usage(error):
@@ -86,17 +104,18 @@ def add_headers(response):
 #     response.status_code = error.status_code
 #     return response
 
-#entry point to frontend
+# ── Health check endpoint (issue #29) ───────────────────────────────────────
+
+@app.route("/health", methods=["GET"])
+def health():
+    """Lightweight liveness probe — returns 200 when the server is ready."""
+    return jsonify({"status": "ok"}), 200
+
+
+# ── Entry point to frontend ──────────────────────────────────────────────────
+
 @app.route("/", methods=['GET'])
 def home():
-    #sync bucket with local storage
-    # if Config.AWS_SYNC == 1:
-    #     syncS3 = SyncS3()
-    #     cases = syncS3.getCasesSyncInit()
-    #     for case in cases:
-    #         syncS3.downloadSync(case, Config.DATA_STORAGE, Config.S3_BUCKET)
-    #     #downoload param file from S3 bucket
-    #     syncS3.downloadSync('Parameters.json', Config.DATA_STORAGE, Config.S3_BUCKET)
     return render_template('index.html')
 
 
