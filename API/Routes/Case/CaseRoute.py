@@ -106,7 +106,7 @@ def deleteCase():
         shutil.rmtree(casePath)
 
         if case == session.get('osycase'):
-            session['osycase'] = None
+            session.pop('osycase', None)
             response = {
                 "message": 'Model <b>'+ case + '</b> deleted!',
                 "status_code": "success_session"
@@ -120,7 +120,7 @@ def deleteCase():
     except(IOError):
         return jsonify('No existing cases!'), 404
     except OSError:
-        raise OSError
+        return jsonify({"message": "Error deleting case"}), 500
 
 @case_api.route("/getResultData", methods=['POST'])
 def getResultData():
