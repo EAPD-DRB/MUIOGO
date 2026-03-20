@@ -99,26 +99,29 @@ def copy():
 
 @case_api.route("/deleteCase", methods=['POST'])
 def deleteCase():
-    try:        
+    try:
         case = request.json['casename']
-        
+
         casePath = Path(Config.DATA_STORAGE, case)
         shutil.rmtree(casePath)
 
         if case == session.get('osycase'):
             session.pop('osycase', None)
             response = {
-                "message": 'Model <b>'+ case + '</b> deleted!',
+                "message": 'Model <b>' + case + '</b> deleted!',
                 "status_code": "success_session"
             }
         else:
             response = {
-                "message": 'Model <b>'+ case + '</b> deleted!',
+                "message": 'Model <b>' + case + '</b> deleted!',
                 "status_code": "success"
             }
+
         return jsonify(response), 200
-    except(IOError):
+
+    except IOError:
         return jsonify('No existing cases!'), 404
+
     except OSError:
         return jsonify({"message": "Error deleting case"}), 500
 
