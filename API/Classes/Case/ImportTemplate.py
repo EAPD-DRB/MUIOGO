@@ -837,9 +837,9 @@ class ImportTemplate():
             resDataPath = Path(Config.DATA_STORAGE,casename,'view','resData.json')
             viewDataPath = Path(Config.DATA_STORAGE,casename,'view','viewDefinitions.json')
             if not os.path.exists(resPath):
-                os.makedirs(resPath, mode=0o777, exist_ok=False)
+                os.makedirs(resPath, exist_ok=True)
             if not os.path.exists(viewPath):
-                os.makedirs(viewPath, mode=0o777, exist_ok=False)
+                os.makedirs(viewPath, exist_ok=True)
                 resData = {
                     "osy-cases":[]
                 }
