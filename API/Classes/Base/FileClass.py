@@ -21,7 +21,7 @@ class File:
             with open(path, mode="w") as f:
                 f.write(json.dumps(data, ensure_ascii=True, indent=4, sort_keys=False))
         except (IOError, IndexError):
-            raise IndexError
+            raise
         except OSError:
             raise OSError
 
@@ -31,7 +31,7 @@ class File:
             with open(path, mode="w") as f:
                 f.write(json.dumps(data))
         except (IOError, IndexError):
-            raise IndexError
+            raise
         except OSError:
             raise OSError
 
