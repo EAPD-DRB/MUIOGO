@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from Classes.Case.OsemosysClass import Osemosys
 
 viewdata_api = Blueprint('ViewDataRoute', __name__)
@@ -7,6 +7,9 @@ viewdata_api = Blueprint('ViewDataRoute', __name__)
 def viewData():
     try:
         casename = request.json['casename']
+        active_case = session.get('osycase')
+        if not active_case or casename != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
         if casename != None:
             osy = Osemosys(casename)
             data = {}
@@ -24,6 +27,9 @@ def viewData():
 def viewTEData():
     try:
         casename = request.json['casename']
+        active_case = session.get('osycase')
+        if not active_case or casename != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
         if casename != None:
             osy = Osemosys(casename)
             data = {}
@@ -41,6 +47,9 @@ def updateViewData():
     try:
         #casename, updateType, groupId, paramId, TechId, CommId, EmisId, Timeslice
         casename = request.json['casename']
+        active_case = session.get('osycase')
+        if not active_case or casename != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
         #updateType = request.json['updateType']
         year = request.json['year']
         ScId = request.json['ScId']
@@ -74,6 +83,9 @@ def updateTEViewData():
     try:
         #casename, updateType, groupId, paramId, TechId, CommId, EmisId, Timeslice
         casename = request.json['casename']
+        active_case = session.get('osycase')
+        if not active_case or casename != active_case:
+            return jsonify({'message': 'Unauthorised: case does not match active session.', 'status_code': 'error'}), 403
         scId = request.json['scId']
         groupId = request.json['groupId']
         paramId = request.json['paramId']
