@@ -1,0 +1,28 @@
+# Version control
+.git
+.gitignore
+
+# Python artefacts
+.env
+dist/
+build/
+venv/
+venv
+.venv/
+**/__pycache__
+**/*.py[cod]
+**/*.pyo
+
+# Editor / IDE
+.vscode
+
+# Sphinx build output (not needed in image)
+docs/source
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Demo data zip (not needed in image)
+assets/demo-data/
+

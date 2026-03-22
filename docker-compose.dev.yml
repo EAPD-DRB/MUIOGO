@@ -1,0 +1,17 @@
+# Dev override: live reload + source mount
+# Usage:
+# docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+services:
+  api:
+    volumes:
+      - .:/app
+      - datastorage:/app/WebAPP/DataStorage
+    environment:
+      PORT: "5002"
+      FLASK_DEBUG: "1"
+    working_dir: /app/API
+    command: >
+      sh -c "python /app/scripts/setup_dev.py --only-demo-data &&
+             python -m flask --app app run --debug --host=0.0.0.0 --port=$$PORT"
+    restart: "no"

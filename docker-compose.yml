@@ -1,0 +1,17 @@
+services:
+  api:
+    build:
+      context: .
+      args:
+        PORT: "5002"
+    ports:
+      - "${HOST_PORT:-5002}:5002"
+    volumes:
+      - datastorage:/app/WebAPP/DataStorage
+    command: >
+      sh -c "python /app/scripts/setup_dev.py --only-demo-data &&
+             python -m waitress --host=0.0.0.0 --port=$$PORT app:app"
+    restart: unless-stopped
+
+volumes:
+  datastorage:

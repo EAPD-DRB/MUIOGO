@@ -1381,4 +1381,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if "--only-demo-data" in sys.argv:
+        ok = install_demo_data(force=False, yes=True)
+        raise SystemExit(0 if ok else 1)
     raise SystemExit(main())

@@ -66,6 +66,21 @@ For setup options, use the "--help" flag:
 > the [Advanced Setup and Packaging](#advanced-setup-and-packaging) section
 > below.
 
+### Docker (Optional)
+
+```bash
+docker compose up --build
+```
+
+Open <http://localhost:5002>.
+
+See [docs/DOCKER.md](docs/DOCKER.md) for full usage, including:
+
+- Development mode (live reload)
+- Port override via HOST_PORT
+- Data persistence
+- Troubleshooting
+
 ## Demo Data
 
 The demo dataset (`CLEWs.Demo.zip`) is hosted as a [GitHub release asset](https://github.com/EAPD-DRB/MUIOGO/releases/tag/demo-data) and downloaded automatically during setup when not already cached locally.
