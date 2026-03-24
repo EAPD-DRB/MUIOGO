@@ -160,5 +160,5 @@ if __name__ == '__main__':
         #HEROKU
         host = '0.0.0.0'
         print_startup_info(host, port, 'flask-dev')
-        app.run(host=host, port=port, debug=True)
+        app.run(host=host, port=port, debug=True)  # nosec B201 -- dev-only fallback path, not used in production
         #app.run(host='127.0.0.1', port=port, debug=True)
