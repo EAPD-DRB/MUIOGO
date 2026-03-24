@@ -1,0 +1,86 @@
+name: Bandit Security Scan
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "API/**/*.py"
+      - ".github/workflows/bandit.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "API/**/*.py"
+      - ".github/workflows/bandit.yml"
+  workflow_dispatch:
+
+jobs:
+  bandit:
+    name: Python Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-bandit-1.9.4-sarif-1.1.1
+          restore-keys: |
+            ${{ runner.os }}-bandit-
+
+      - name: Install Bandit
+        run: pip install bandit[toml]==1.9.4 bandit-sarif-formatter==1.1.1
+
+      - name: Run Bandit (fail on high severity)
+        run: |
+          bandit -r API/ \
+            --severity-level high \
+            --confidence-level medium \
+            -f sarif \
+            -o bandit-high.sarif
+          bandit -r API/ \
+            --severity-level high \
+            --confidence-level medium \
+            -f txt
+
+      - name: Upload SARIF to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-high.sarif
+          category: bandit
+
+      - name: Run Bandit (full report — medium and low)
+        if: always()
+        run: |
+          bandit -r API/ \
+            --severity-level low \
+            --confidence-level medium \
+            -f sarif \
+            -o bandit-full.sarif; exit_code=$?
+          if [ $exit_code -ne 0 ] && [ $exit_code -ne 1 ]; then
+            echo "Bandit exited with unexpected code $exit_code (not a findings result)"
+            exit $exit_code
+          fi
+
+      - name: Upload full SARIF report
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-full.sarif
+          category: bandit-full
+
+      - name: Upload full report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-full.sarif
+          retention-days: 30
