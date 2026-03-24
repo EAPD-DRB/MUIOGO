@@ -13,6 +13,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Security scan artifacts
+*.sarif
+
 # Python tooling caches
 .pytest_cache/
 .mypy_cache/
