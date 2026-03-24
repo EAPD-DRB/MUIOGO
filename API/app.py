@@ -66,20 +66,6 @@ app.register_blueprint(syncs3_api)
 
 CORS(app)
 
-#potrebno kad je front end na drugom serveru 127.0.0.1
-@app.after_request
-def add_headers(response):
-    if Config.HEROKU_DEPLOY == 0: 
-        #localhost
-        response.headers.add('Access-Control-Allow-Origin', 'http://127.0.0.1')
-    else:
-        #HEROKU
-        response.headers.add('Access-Control-Allow-Origin', 'https://osemosys.herokuapp.com/')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    #response.headers['Content-Type'] = 'application/javascript'
-    return response
-
 # @app.errorhandler(CustomException)
 # def handle_invalid_usage(error):
 #     response = jsonify(error.to_dict())
