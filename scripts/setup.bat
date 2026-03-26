@@ -18,25 +18,41 @@ if not "%CONDA_DEFAULT_ENV%"=="" (
     exit /b 1
 )
 
-where python3.11 >nul 2>&1
-if %errorlevel% equ 0 (
-    set "PYTHON=python3.11"
-    goto :run
-)
-
-where py >nul 2>&1
-if %errorlevel% equ 0 (
-    py -3.11 -c "import sys" >nul 2>&1
-    if %errorlevel% equ 0 (
-        set "PYTHON=py -3.11"
+REM Try versioned executables first (3.12, 3.11, 3.10)
+for %%V in (3.12 3.11 3.10) do (
+    where python%%V >nul 2>&1
+    if !errorlevel! equ 0 (
+        set "PYTHON=python%%V"
         goto :run
     )
 )
 
-echo ERROR: Python 3.11 was not found in PATH.
-echo Install Python 3.11, then re-run setup.
-echo   In PowerShell (winget): winget install -e --id Python.Python.3.11
-echo   Python.org Windows installer: https://www.python.org/downloads/windows/
+REM Try the Python Launcher (py.exe) with each supported version
+where py >nul 2>&1
+if %errorlevel% equ 0 (
+    for %%V in (3.12 3.11 3.10) do (
+        py -%%V -c "import sys" >nul 2>&1
+        if !errorlevel! equ 0 (
+            set "PYTHON=py -%%V"
+            goto :run
+        )
+    )
+)
+
+REM Try plain `python` and let setup_dev.py validate the version
+where python >nul 2>&1
+if %errorlevel% equ 0 (
+    python -c "import sys; v=sys.version_info; exit(0 if (3,10)<=v<(3,13) else 1)" >nul 2>&1
+    if !errorlevel! equ 0 (
+        set "PYTHON=python"
+        goto :run
+    )
+)
+
+echo ERROR: No supported Python runtime found (requires 3.10, 3.11, or 3.12^).
+echo Install a supported version, then re-run setup.
+echo   winget: winget install -e --id Python.Python.3.12
+echo   Python.org: https://www.python.org/downloads/windows/
 exit /b 1
 
 :run

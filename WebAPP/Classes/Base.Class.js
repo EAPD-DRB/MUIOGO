@@ -155,7 +155,7 @@ export class Base {
                 },
                 error: function (xhr, status, error) {
                     //custom exception
-                    if (error == 'UNKNOWN') { error = xhr.responseJSON.message }
+                    if (xhr.responseJSON && xhr.responseJSON.message) { error = xhr.responseJSON.message }
                     reject(error);
                 }
             });
@@ -176,7 +176,7 @@ export class Base {
                 },
                 error: function (xhr, status, error) {
                     //custom exception
-                    if (error == 'UNKNOWN') { error = xhr.responseJSON.message }
+                    if (xhr.responseJSON && xhr.responseJSON.message) { error = xhr.responseJSON.message }
                     reject(error);
                 }
             });

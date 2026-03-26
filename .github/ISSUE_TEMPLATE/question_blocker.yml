@@ -1,7 +1,7 @@
 name: Question or blocker
 description: Ask for clarification or report a blocker.
 title: "[Question/Blocker] "
-labels: ["blocked"]
+labels: ["needs-decision"]
 body:
   - type: dropdown
     id: kind
@@ -33,4 +33,22 @@ body:
       description: What specific answer do you need?
     validations:
       required: true
-
+  - type: textarea
+    id: related_work
+    attributes:
+      label: Related work checked
+      description: List anything relevant you checked before opening this issue. Use issue/PR numbers like #123, or write `None found after search`.
+    validations:
+      required: false
+  - type: dropdown
+    id: proposed_track
+    attributes:
+      label: Proposed track
+      description: Optional. Maintainers will assign the final track label.
+      options:
+        - Track: Cross-Platform
+        - Track: OG Onboarding
+        - Track: Integration
+        - Track: Stability
+    validations:
+      required: false

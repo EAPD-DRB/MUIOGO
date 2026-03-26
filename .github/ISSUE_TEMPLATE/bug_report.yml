@@ -15,7 +15,7 @@ body:
     attributes:
       label: Expected behavior
     validations:
-      required: true
+      required: false
   - type: textarea
     id: steps
     attributes:
@@ -27,14 +27,32 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: OS, Python version, branch/commit.
+      description: OS, Python version, branch or commit if relevant.
     validations:
-      required: true
+      required: false
   - type: textarea
     id: evidence
     attributes:
       label: Logs or screenshots
-      description: Paste relevant output.
+      description: Paste relevant output or links to screenshots.
     validations:
       required: false
-
+  - type: textarea
+    id: related_work
+    attributes:
+      label: Related work checked
+      description: List anything relevant you checked before opening this issue. Use issue/PR numbers like #123, or write `None found after search`.
+    validations:
+      required: false
+  - type: dropdown
+    id: proposed_track
+    attributes:
+      label: Proposed track
+      description: Optional. Maintainers will assign the final track label.
+      options:
+        - Track: Cross-Platform
+        - Track: OG Onboarding
+        - Track: Integration
+        - Track: Stability
+    validations:
+      required: false
