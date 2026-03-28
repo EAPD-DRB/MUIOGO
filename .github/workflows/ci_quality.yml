@@ -1,0 +1,94 @@
+name: CI – Code Quality
+
+# ---------------------------------------------------------------------------
+# First *technical* CI in this repository.
+# All existing workflows (pr-intake.yml, sync-project-priority-from-labels.yml)
+# are governance-only.  This workflow is the first to gate on code correctness.
+# ---------------------------------------------------------------------------
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main          # also run on direct pushes to catch merge commits
+
+permissions:
+  contents: read
+
+jobs:
+  # Initial CI is focused on Ubuntu-latest. Windows and macOS runner support is planned for Phase 2 of the GSoC roadmap.
+  lint-and-test:
+    name: "Python ${{ matrix.python-version }} · lint + test"
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false          # let all matrix legs finish for full error picture
+      matrix:
+        python-version: ["3.10", "3.11"]
+
+    steps:
+      # -----------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      # -----------------------------------------------------------------------
+      - name: Install runtime + quality dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 pytest
+
+      # -----------------------------------------------------------------------
+      # Lint — run flake8 on all first-party Python sources.
+      #
+      # Scope:
+      #   API/           — Flask application & route handlers
+      #
+      # Excluded paths (vendored / generated):
+      #   WebAPP/References/   — vendored JS/CSS (no Python)
+      #   WebAPP/SOLVERs/      — solver binaries
+      #   **/__pycache__/      — bytecode
+      #
+      # Rule overrides (--extend-ignore):
+      #   E501  — line-too-long; deferred to a dedicated formatting PR
+      #   W503  — line break before binary operator (conflicts with Black)
+      #   E402  — module-level import not at top (Flask pattern in app.py)
+      # -----------------------------------------------------------------------
+      - name: Lint with flake8
+        run: |
+          flake8 API/ \
+            --count \
+            --show-source \
+            --statistics \
+            --max-line-length=120 \
+            --extend-ignore=E501,W503,E402 \
+            --exclude=__pycache__,*.pyc
+
+      # -----------------------------------------------------------------------
+      # Test — run pytest from the API directory so relative imports resolve.
+      # Zero tests is a valid state; this step establishes the runner contract
+      # and will surface import / syntax errors immediately.
+      # '|| true' is a temporary measure to establish the runner contract until the first test is authored.
+      # -----------------------------------------------------------------------
+      - name: Run pytest
+        working-directory: API
+        env:
+          # Provide a stable secret key so Flask doesn't emit a warning
+          MUIOGO_SECRET_KEY: "ci-test-secret-key-not-for-production"
+          # Point to a temp DataStorage so Config.py mkdir doesn't fail
+          MUIOGO_DATA_STORAGE: "/tmp/muiogo_datastorage"
+        run: |
+          python -m pytest \
+            --tb=short \
+            --import-mode=importlib \
+            -v \
+            || true   # remove `|| true` once the first real test is added
