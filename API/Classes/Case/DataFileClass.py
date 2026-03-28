@@ -1073,9 +1073,8 @@ class DataFile(Osemosys):
             #f = open(self.dataFile, mode="r")
             dataFilePath = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
             if os.path.exists(dataFilePath):
-                f = open(dataFilePath, mode="r", encoding='utf-8-sig')
-                data =  f.read()
-                f.close
+                with open(dataFilePath, mode="r", encoding='utf-8-sig') as f:
+                    data = f.read()
             else:
                 data = None
 
