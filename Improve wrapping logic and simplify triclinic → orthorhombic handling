@@ -1,0 +1,5 @@
+Summary
+
+This PR simplifies and standardizes the wrapping workflow by introducing a cleaner abstraction for handling triclinic and orthorhombic box representations.
+
+It removes redundant wrapping logic and ensures consistent behavior across different box types.
