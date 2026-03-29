@@ -625,7 +625,7 @@ class ImportTemplate():
             if not techsArray:
                 techs.append(self.defaultTech('TEC_0', first=True)[0])
             else:
-                for obj in techsArray:
+                for i, obj in enumerate(techsArray):
                     tech = obj['TECHNOLOGY']
                     if obj.get('DESCRIPTION') is not None:
                         desc = obj['DESCRIPTION']
@@ -641,7 +641,7 @@ class ImportTemplate():
                     else:
                         unitact = "PJ"
 
-                    if obj==0:
+                    if i==0:
                         techs.append(self.defaultTech(tech, desc, unitcap, unitact, first=True)[0])
                     else:
                         techs.append(self.defaultTech(tech, desc, unitcap, unitact)[0])
@@ -650,7 +650,7 @@ class ImportTemplate():
             if not commsArray:
                 comms.append(self.defaultComm('COM_0', first=True)[0])
             else:
-                for obj in commsArray:
+                for i, obj in enumerate(commsArray):
                     com = obj['COMMODITY']
                     if obj.get('DESCRIPTION') is not None:
                         desc = obj['DESCRIPTION']
@@ -660,7 +660,7 @@ class ImportTemplate():
                         unit = obj['UNIT']
                     else:
                         unit = "PJ"
-                    if obj==0:
+                    if i==0:
                         comms.append(self.defaultComm(com, desc, unit, True)[0])
                     else:
                         comms.append(self.defaultComm(com, desc, unit)[0])
@@ -669,7 +669,7 @@ class ImportTemplate():
             if not emisArray:
                 emis.append(self.defaultEmi('EMI_0', first=True)[0])
             else:
-                for obj in emisArray:
+                for i, obj in enumerate(emisArray):
                     emi = obj['EMISSION']
                     if obj.get('DESCRIPTION') is not None:
                         desc = obj['DESCRIPTION']
@@ -679,7 +679,7 @@ class ImportTemplate():
                         unit = obj['UNIT']
                     else:
                         unit = "Ton"
-                    if obj==0:
+                    if i==0:
                         emis.append(self.defaultEmi(emi, desc, unit, True)[0])
                     else:
                         emis.append(self.defaultEmi(emi, desc, unit)[0])
@@ -690,7 +690,7 @@ class ImportTemplate():
             #     stgs.append(self.defaultStg('STG_0', first=True)[0])
             # else:
             if stgsArray:
-                for obj in stgsArray:
+                for i, obj in enumerate(stgsArray):
                     stg = obj['STORAGE']
                     if obj.get('DESCRIPTION') is not None:
                         desc = obj['DESCRIPTION']
@@ -700,7 +700,7 @@ class ImportTemplate():
                         unit = obj['UNIT']
                     else:
                         unit = "MW"
-                    if obj==0:
+                    if i==0:
                         stgs.append(self.defaultStg(stg, desc, unit, True)[0])
                     else:
                         stgs.append(self.defaultStg(stg, desc, unit)[0])
