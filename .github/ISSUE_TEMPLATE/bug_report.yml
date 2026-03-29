@@ -43,7 +43,7 @@ body:
       label: Related work checked
       description: List anything relevant you checked before opening this issue. Use issue/PR numbers like #123, or write `None found after search`.
     validations:
-      required: false
+      required: true
   - type: dropdown
     id: proposed_track
     attributes:
