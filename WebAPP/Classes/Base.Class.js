@@ -2,6 +2,13 @@ import { Message } from "./Message.Class.js";
 import { Html } from "./Html.Class.js";
 import { SyncS3 } from "./SyncS3.Class.js";
 
+function getApiError(xhr, error) {
+    if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+        return xhr.responseJSON.message;
+    }
+    return error;
+}
+
 export class Base {
     static HEROKU = 0;
     static AWS_SYNC = 0;
@@ -29,8 +36,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function (xhr, status, error) {
-                    if (error == 'UNKNOWN') { error = xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -50,8 +56,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function (xhr, status, error) {
-                    if (error == 'UNKNOWN') { error = xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -73,8 +78,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function (xhr, status, error) {
-                    if (error == 'UNKNOWN') { error = xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -93,9 +97,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function (xhr, status, error) {
-                    if (error == 'UNKNOWN') { error = xhr.responseJSON.message }
-
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -114,8 +116,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function (xhr, status, error) {
-                    if (error == 'UNKNOWN') { error = xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -134,8 +135,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function (xhr, status, error) {
-                    if (error == 'UNKNOWN') { error = xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -154,9 +154,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function (xhr, status, error) {
-                    //custom exception
-                    if (xhr.responseJSON && xhr.responseJSON.message) { error = xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -175,9 +173,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function (xhr, status, error) {
-                    //custom exception
-                    if (xhr.responseJSON && xhr.responseJSON.message) { error = xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -196,9 +192,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function (xhr, status, error) {
-                    //custom exception
-                    if (error == 'UNKNOWN') { error = xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -219,9 +213,7 @@ export class Base {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    //custom exception
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });

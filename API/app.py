@@ -27,6 +27,7 @@ from datetime import timedelta
 
 #import json
 from Classes.Base import Config
+from Classes.Base.CustomExceptionClass import CustomException
 # from API.Classes.Base.SyncS3 import SyncS3
 from Routes.Upload.UploadRoute import upload_api
 from Routes.Case.CaseRoute import case_api
@@ -97,11 +98,11 @@ def add_headers(response):
     #response.headers['Content-Type'] = 'application/javascript'
     return response
 
-# @app.errorhandler(CustomException)
-# def handle_invalid_usage(error):
-#     response = jsonify(error.to_dict())
-#     response.status_code = error.status_code
-#     return response
+@app.errorhandler(CustomException)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
 
 #entry point to frontend
 @app.route("/", methods=['GET'])

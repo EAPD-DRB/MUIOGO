@@ -85,12 +85,11 @@ export default class Home {
             //Sidebar.Load(casename, model.genData, model.PARAMETERS);
             Osemosys.getData(casename, 'genData.json')
             .then(genData => {
-                //console.log('genData ', genData["osy-version"])
+                let modelVersion = parseFloat(genData.modelVersion || genData["osy-version"] || 0);
                 Home.refreshPage(casename);
                 Message.smallBoxInfo("Case selection", casename + " is selected!", 3000);
-                if(parseFloat(genData["osy-version"]) < 4.5){
-                    //console.log('manje od 4.5')
-                    Message.bigBoxWarning("Warning", "You have selected a model created in a earlier version of this UI. In order to update to the current version click <b>Update model</b> on the configuration page.", 10000);
+                if(modelVersion < 5.0){
+                    Message.bigBoxWarning("Warning", "You have selected a model created with an older schema version. Open <b>Model configuration</b> and click <b>Update model</b> before generating data or running the solver.", 10000);
                 }
             })
         });

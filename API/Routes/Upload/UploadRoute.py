@@ -9,6 +9,7 @@ from threading import Thread
 
 from Classes.Base import Config
 from Classes.Base.FileClass import File
+from Classes.Base.ModelVersionClass import stamp_model_version
 
 upload_api = Blueprint('UploadRoute', __name__)
 
@@ -137,6 +138,12 @@ def updateStorageSet(casename):
     genData["osy-stg"] = []
 
     File.writeFile( genData, genDataPath)
+
+def stampCurrentModelVersion(casename):
+    genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
+    genData = File.readParamFile(genDataPath)
+    stamp_model_version(genData)
+    File.writeFile(genData, genDataPath)
 
 def updateViewDefintions(casename):
     viewDataPath = Path(Config.DATA_STORAGE,casename,'view','viewDefinitions.json')
@@ -371,6 +378,7 @@ def uploadCaseUnchunked_old():
                                 elif name == '5.0': 
                                     zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
                                     updateViewDefintions(casename)
+                                    stampCurrentModelVersion(casename)
                                     msg.append({
                                         "message": "Model " + casename +" have been uploaded!",
                                         "status_code": "success",
@@ -511,6 +519,7 @@ def handle_full_zip(file, filepath=None):
                     elif name == '5.0':
                         zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
                         updateViewDefintions(casename)
+                        stampCurrentModelVersion(casename)
                         msg.append({
                             "message": "Model " + casename +" have been uploaded!",
                             "status_code": "success",

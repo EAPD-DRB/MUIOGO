@@ -4,6 +4,7 @@ import platform
 import shutil
 from Classes.Base import Config
 from Classes.Base.FileClass import File
+from Classes.Base.ModelVersionClass import validate_model_version
 
 class Osemosys():
     def __init__(self, case):
@@ -11,6 +12,7 @@ class Osemosys():
         self.PARAMETERS = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
         self.VARIABLES = File.readParamFile(Path(Config.DATA_STORAGE, 'Variables.json'))
         self.genData =  File.readFile(Path(Config.DATA_STORAGE,case,'genData.json'))
+        validate_model_version(self.genData, case)
         self.resData = File.readFile( Path(Config.DATA_STORAGE, case,'view', 'resData.json'))
         
         #Case.__init__(self, case)

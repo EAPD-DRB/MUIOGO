@@ -1,5 +1,12 @@
 import { Base } from "./Base.Class.js";
 
+function getApiError(xhr, error) {
+    if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+        return xhr.responseJSON.message;
+    }
+    return error;
+}
+
 export class Osemosys {
     
     static getParamFile(dataJson='Parameters.json') {
@@ -16,8 +23,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -37,8 +43,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -57,8 +62,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -80,8 +84,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -100,8 +103,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -120,8 +122,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -143,8 +144,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -166,8 +166,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -186,8 +185,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -209,8 +207,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -233,8 +230,7 @@ export class Osemosys {
                 },
                 error: function(xhr, status, error) {
                     console.log("xhr, status, error ", xhr, status, error )
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -257,8 +253,7 @@ export class Osemosys {
                 },
                 error: function(xhr, status, error) {
                     console.log("xhr, status, error ", xhr, status, error )
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -281,8 +276,7 @@ export class Osemosys {
                 },
                 error: function(xhr, status, error) {
                     console.log("xhr, status, error ", xhr, status, error )
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -304,8 +298,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -327,8 +320,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -347,8 +339,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -466,8 +457,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -486,8 +476,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -521,8 +510,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -542,8 +530,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -563,8 +550,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });
@@ -583,8 +569,7 @@ export class Osemosys {
                     resolve(result);
                 },
                 error: function(xhr, status, error) {
-                    if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-                    reject(error);
+                    reject(getApiError(xhr, error));
                 }
             });
         });

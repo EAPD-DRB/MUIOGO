@@ -5,6 +5,7 @@ import string, random, json, os.path, time
 from Classes.Base import Config
 from Classes.Case.CaseClass import Case
 from Classes.Base.FileClass import File
+from Classes.Base.ModelVersionClass import stamp_model_version
 
 class ImportTemplate():
     def __init__(self,template):
@@ -814,6 +815,7 @@ class ImportTemplate():
             genData["osy-scenarios"] = self.defaultScenario(True)
             genData["osy-constraints"] = []
             genData["osy-years"] = yearsArray
+            stamp_model_version(genData, version)
 
             casename = genData['osy-casename']
 

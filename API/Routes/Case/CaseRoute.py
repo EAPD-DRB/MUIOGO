@@ -5,6 +5,7 @@ import shutil
 import pandas as pd
 from Classes.Base import Config
 from Classes.Base.FileClass import File
+from Classes.Base.ModelVersionClass import stamp_model_version
 from Classes.Case.CaseClass import Case
 from Classes.Case.UpdateCaseClass import UpdateCase
 from Classes.Case.ImportTemplate import ImportTemplate
@@ -248,6 +249,7 @@ def updateData():
 def saveCase():
     try:
         genData = request.json['data']
+        stamp_model_version(genData)
         casename = genData['osy-casename']
         case = session.get('osycase', None)
 

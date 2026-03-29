@@ -229,6 +229,7 @@ export default class AddCase {
             });
 
             let POSTDATA = {
+                "modelVersion": "5.0",
                 "osy-version": "5.0",
                 "osy-casename": casename,
                 "osy-desc": desc,
@@ -1140,7 +1141,6 @@ export default class AddCase {
         });
     }
 }
-
 
 
 

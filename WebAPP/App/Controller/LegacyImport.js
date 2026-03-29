@@ -117,6 +117,7 @@ export default class LegacyImport {
             }
 
             let POSTDATA = {
+                "modelVersion": "5.0",
                 "osy-version": "5.0",
                 "osy-casename": casename,
                 "osy-desc": desc,
