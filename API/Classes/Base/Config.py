@@ -78,7 +78,8 @@ if not os.access(DATA_STORAGE, os.W_OK):
 # EXTRACT_FOLDER = Path(OSEMOSYS_ROOT, "")
 # SOLVERs_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP', 'SOLVERs')
 
-HEROKU_DEPLOY = 0
+HEROKU_DEPLOY = int(os.environ.get("HEROKU_DEPLOY", 0))
+API_BASE_URL = os.environ.get("API_BASE_URL", "")
 AWS_SYNC = 0
 
 PINNED_COLUMNS = ('Sc', 'Tech', 'Comm', 'Emis','Stg', 'Ts', 'MoO', 'UnitId', 'Se','Dt', 'Dtb', 'paramName','TechName', 'CommName', 'EmisName', 'ConName', 'MoId')

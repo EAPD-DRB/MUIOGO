@@ -83,6 +83,9 @@
 		<!-- iOS web-app metas : hides Safari UI Components and Changes Status Bar Appearance -->
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<!-- API base URL injected by Flask; falls back to window.location.origin in Base.Class.js -->
+		<script>window.API_BASE_URL = "{{ api_base_url }}";</script>
 	</head>
 
 	<body class=" minified smart-style-4  fixed-header ">

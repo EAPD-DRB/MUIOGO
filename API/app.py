@@ -83,18 +83,12 @@ app.register_blueprint(syncs3_api)
 
 CORS(app)
 
-#potrebno kad je front end na drugom serveru 127.0.0.1
 @app.after_request
 def add_headers(response):
-    if Config.HEROKU_DEPLOY == 0: 
-        #localhost
-        response.headers.add('Access-Control-Allow-Origin', 'http://127.0.0.1')
-    else:
-        #HEROKU
-        response.headers.add('Access-Control-Allow-Origin', 'https://osemosys.herokuapp.com/')
+    allowed_origin = Config.API_BASE_URL if Config.API_BASE_URL else 'http://127.0.0.1'
+    response.headers.add('Access-Control-Allow-Origin', allowed_origin)
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    #response.headers['Content-Type'] = 'application/javascript'
     return response
 
 # @app.errorhandler(CustomException)
@@ -114,7 +108,7 @@ def home():
     #         syncS3.downloadSync(case, Config.DATA_STORAGE, Config.S3_BUCKET)
     #     #downoload param file from S3 bucket
     #     syncS3.downloadSync('Parameters.json', Config.DATA_STORAGE, Config.S3_BUCKET)
-    return render_template('index.html')
+    return render_template('index.html', api_base_url=Config.API_BASE_URL)
 
 
 @app.route("/getSession", methods=['GET'])
