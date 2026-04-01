@@ -209,6 +209,12 @@ export class Html {
 
     }
 
+    static renderModelFile(ModelFile){
+        $("#osy-ModelFile").empty();
+        $("#osy-ModelFile").html('');
+        $("#osy-ModelFile").html('<pre class="log-output">'+ModelFile+'</pre>');
+    }
+
     static appendCasePicker(value, selectedCS, pageId) {
         let res = `
         <li id=p_${value.replace(/[^A-Z0-9]/ig, "")}>

@@ -288,6 +288,46 @@ export class Osemosys {
         });
     }
 
+    static readModelFile() {
+        return fetch(Base.apiUrl() + "readModelFile", {
+            method: "GET",
+            cache: "no-store"
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Could not load model file");
+            }
+            return response.text();
+        })
+        .then(text => {
+            return text;
+        })
+        .catch(error => {
+            console.error("readModelFile error:", error);
+            return null;
+        });
+    }
+
+    static readLogFile() {
+        return fetch(Base.apiUrl() + "readLogFile", {
+            method: "GET",
+            cache: "no-store"
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Could not load log file");
+            }
+            return response.text();
+        })
+        .then(text => {
+            return text;
+        })
+        .catch(error => {
+            console.error("readLogFile error:", error);
+            return null;
+        });
+    }
+
     static readDataFile(casename, caserunname) {
         return new Promise((resolve, reject) => {
             $.ajax({

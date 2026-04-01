@@ -19,11 +19,13 @@ export default class DataFile {
                 promise.push(genData);
                 const resData = Osemosys.getResultData(casename, 'resData.json');
                 promise.push(resData);
+                const modelFile = Osemosys.readModelFile();
+                promise.push(modelFile);
                 return Promise.all(promise);
             })
             .then(data => {
-                let [casename, genData, resData] = data;
-                let model = new Model(casename, genData, resData, "DataFile");
+                let [casename, genData, resData, modelFile] = data;
+                let model = new Model(casename, genData, resData, modelFile, "DataFile");
                 if (casename) {
                     this.initPage(model);
                 } else {
@@ -43,6 +45,7 @@ export default class DataFile {
         //Navbar.initPage(model.casename, model.pageId);
         Html.title(model.casename, model.title, "");
         Html.renderCases(model.cases);
+        Html.renderModelFile(model.modelFile);
         //potrebno je napraviti render svih scenarija (mozda je dodan novi scenario u medjuvremenu), on mora biti dodan u listu scenarija po case run samo sto nece biti aktivan
         // Html.renderScOrder(model.scBycs[model.cs]);
         //console.log('model.scenarios ',model.scenarios)
@@ -69,11 +72,13 @@ export default class DataFile {
                 promise.push(genData);
                 const resData = Osemosys.getResultData(casename, 'resData.json');
                 promise.push(resData);
+                const modelFile = Osemosys.readModelFile();
+                promise.push(modelFile);
                 return Promise.all(promise);
             })
             .then(data => {
-                let [casename, genData, resData] = data;
-                let model = new Model(casename, genData, resData, "DataFile");
+                let [casename, genData, resData, modelFile] = data;
+                let model = new Model(casename, genData, resData, modelFile, "DataFile");
                 $(".DataFile").hide();
                 $("#osy-DataFile").empty();
                 $("#osy-runOutput").empty();
@@ -95,7 +100,6 @@ export default class DataFile {
     }
 
     static initEvents(model) {
-
         $("#casePicker").off('click');
         $("#casePicker").on('click', '.selectCS', function (e) {
             e.preventDefault();
@@ -104,6 +108,22 @@ export default class DataFile {
             Html.updateCasePicker(casename);
             DataFile.refreshPage(casename);
             Message.smallBoxInfo("Case selection", casename + " is selected!", 3000);
+        });
+
+        $("#osy-logFile").off('click');
+        $("#osy-logFile").on('click', function (event) {
+            Message.loaderStart('Generating log file!')
+            Osemosys.readLogFile()
+            .then(response => {
+                Message.loaderEnd();
+                console.log('resposne ', response)
+                $("#osy-logFiletxt").html('<pre class="log-output">'+response+'</pre>');
+                $("#osy-LogFileModal").modal("show");
+            })
+            .catch(error => {
+                Message.loaderEnd();
+                Message.bigBoxDanger('Error message', error, null);
+            })
         });
 
         $("#osy-btnScOrder").off('click');
@@ -143,10 +163,39 @@ export default class DataFile {
 
         });
 
+        function setAllCheckboxes(state) {
+            $('#osy-scOrder input[type="checkbox"]:not(:disabled)')
+                .prop('checked', state)
+                .trigger('change');
+        }
+
+        $("#toggle-all").off('click');
+        $('#toggle-all').on('click', function (e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+            const $boxes = $('#osy-scOrder input[type="checkbox"]:not(:disabled)');
+            const anyUnchecked = $boxes.is(':not(:checked)');
+
+            setAllCheckboxes(anyUnchecked);
+
+            const $icon = $btn.find('i.fa');
+            if (anyUnchecked) {
+                $icon.removeClass('fa-square-o').addClass('fa-check-square-o');
+                $btn.find('span').text('Uncheck all');
+            } else {
+                $icon.removeClass('fa-check-square-o').addClass('fa-square-o');
+                $btn.find('span').text('Check all');
+            }
+
+        });
+
         $("#btnSaveOrder").off('click');
         $("#btnSaveOrder").on('click', function (event) {
             Message.clearMessages();
-            Message.bigBoxSuccess('Sceanario order', 'You have updated scenarios order data!', 3000);
+            Message.bigBoxWarning('Scenario Order Updated', 'You have updated the order of scenarios. To apply your changes, please click Update Case.', 4000);
             $('#osy-order').modal('toggle');
 
             //nema potrebe da spasavmo scenario order jer se on ada nalazi u resData

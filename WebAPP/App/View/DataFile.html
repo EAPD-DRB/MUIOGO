@@ -38,7 +38,7 @@
 
                                     </div>
                                     <br />
-                                    <!-- 
+                                    <!--
                                     <hr><br /> -->
                                     <div class="row no-gutter">
                                         <section class="col col-8">
@@ -161,13 +161,6 @@
             </article>
 
             <article class="col-sm-9 col-md-9 col-lg-9">
-                <!-- <div class="jarviswidget" id="wid-id-1" data-widget-colorbutton="false" data-widget-editbutton="false"
-                    data-widget-custombutton="false" data-widget-deletebutton="false">
-                    <header>
-                        <span class="widget-icon"> <i class="fa fa-edit"></i> </span>
-                        <h2> Case runs </h2>
-                    </header>
-                    <div> -->
                 <div id="tabs">
                     <ul class="nav nav-tabs in">
                         <li class="active">
@@ -175,6 +168,7 @@
                                 <span class="hidden-mobile hidden-tablet"> Cases </span>
                             </a>
                         </li>
+
                         <li>
                             <a data-toggle="tab" href="#tabDataFile" class="DataFile" style="display: none;"> <i
                                     class="fa fa-lg fa-file-text"></i>
@@ -207,6 +201,17 @@
                         </li>
 
                         <li class="pull-right">
+
+                            <button id="osy-logFile"
+                                    class="btn btn-white btn-default btn-bold">
+                                <i class="fa fa-clipboard fa-lg text-info"></i> LOG FILE
+                            </button>
+
+                            <button data-toggle="modal" data-target="#osy-ModelFileModal"
+                                    class="btn btn-white btn-default btn-bold">
+                                <i class="fa fa-cogs fa-lg text-danger"></i> MODEL FILE
+                            </button>
+
                             <button id="osy-batchRun" class="btn btn-white btn-default btn-bold"
                                 style="display: none;">
                                 <i class="fa fa-play-circle fa-lg osy-second-color"></i> BATCH RUN
@@ -333,23 +338,20 @@
     </section>
 </div>
 
-
 <!-- Modal -->
 <div class="modal fade" id="osy-order" tabindex="-1" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <!-- <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-					&times;
-				</button> -->
-
-                <button type="button" class="btn btn-white btn-default pull-right" data-dismiss="modal">
-                    <i class="fa fa-times fa-lg" aria-hidden="true"></i> Cancel
-                </button>
 
                 <button type="button" class="btn btn-white btn-default pull-right" id='btnSaveOrder'>
-                    <i class="fa fa-save fa-lg"></i> Save
+                    <i class="fa fa-check fa-lg"></i> Confirm
                 </button>
+
+                <button type="button" id="toggle-all" class="btn btn-white btn-default pull-right">
+                    <i class="fa fa-check-square-o fa-lg osy-second-color" aria-hidden="true"></i>
+                </button>
+
                 <h4 class="modal-title">
                     <i class="fa fa-sort osy-second-color" aria-hidden="true"></i> Scenario order
                 </h4>
@@ -388,6 +390,56 @@
                     <div class="row">
                         <div class="col-md-12 col-lg-12">
                             <div id='valOutput'></div>
+                        </div>
+                    </div>
+                </fieldset>
+                <footer></footer>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="osy-ModelFileModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-wide">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title">
+                    <i class="fa  fa-info-circle fa-lg osy-second-color" aria-hidden="true"></i> MUIO Model File
+                </h4>
+            </div>
+            <div class="modal-body" style="padding-top: 0px;">
+                <fieldset style="padding-top: 15px;">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12">
+                            <div id='osy-ModelFile'></div>
+                        </div>
+                    </div>
+                </fieldset>
+                <footer></footer>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="osy-LogFileModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-wide">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title">
+                    <i class="fa  fa-info-circle fa-lg text-info" aria-hidden="true"></i> MUIO Log File
+                </h4>
+            </div>
+            <div class="modal-body" style="padding-top: 0px;">
+                <fieldset style="padding-top: 15px;">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12">
+                            <div id='osy-logFiletxt'></div>
                         </div>
                     </div>
                 </fieldset>
