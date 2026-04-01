@@ -1,8 +1,10 @@
-from flask import Blueprint, jsonify, request, send_file, session
+from flask import Blueprint, Response, jsonify, request, send_file, session
 from pathlib import Path
-import shutil, datetime, time, os
+import shutil, datetime, time, os, logging
 from Classes.Case.DataFileClass import DataFile
 from Classes.Base import Config
+
+logger = logging.getLogger(__name__)
 
 datafile_api = Blueprint('DataFileRoute', __name__)
 
@@ -141,7 +143,30 @@ def readDataFile():
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
-    
+
+@datafile_api.route("/readModelFile", methods=['GET'])
+def readModelFile():
+    """Return the OSeMOSYS model text file as plain text (v5.5 diagnostic feature)."""
+    try:
+        model_path = Path(Config.SOLVERs_FOLDER, 'model.v.5.4.txt')
+        text = model_path.read_text(encoding="utf-8", errors="replace")
+        return Response(text, mimetype="text/plain; charset=utf-8")
+    except IOError:
+        return jsonify('Model file not found!'), 404
+
+@datafile_api.route("/readLogFile", methods=['GET'])
+def readLogFile():
+    """Return the application log as plain text (v5.5 diagnostic feature).
+
+    MUIOGO-safe: reads from Config.LOG_FILE (API/app.log), NOT from WebAPP/
+    as upstream does, to avoid exposing logs from the web root.
+    """
+    try:
+        text = Config.LOG_FILE.read_text(encoding="utf-8", errors="replace")
+        return Response(text, mimetype="text/plain; charset=utf-8")
+    except IOError:
+        return jsonify('Log file not found!'), 404
+
 @datafile_api.route("/validateInputs", methods=['POST'])
 def validateInputs():
     try:
@@ -218,13 +243,11 @@ def run():
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         solver = request.json['solver']
+        logger.info("Starting optimization process for model -- %s -- caserun -- %s --!", casename, caserunname)
         txtFile = DataFile(casename)
-        response = txtFile.run(solver, caserunname)     
+        response = txtFile.run(solver, caserunname)
+        logger.info("Optimization finished for model -- %s -- caserun -- %s --!", casename, caserunname)
         return jsonify(response), 200
-    # except Exception as ex:
-    #     print(ex)
-    #     return ex, 404
-    
     except(IOError):
         return jsonify('No existing cases!'), 404
     
@@ -238,7 +261,9 @@ def batchRun():
         if modelname != None:
             txtFile = DataFile(modelname)
             for caserun in cases:
+                logger.info("Data file generation process started for model %s caserun %s!", modelname, caserun)
                 txtFile.generateDatafile(caserun)
+                logger.info("Data file generation process finished for model %s caserun %s!", modelname, caserun)
 
             response = txtFile.batchRun( 'CBC', cases) 
         end = time.time()  
@@ -254,7 +279,9 @@ def cleanUp():
 
         if modelname != None:
             model = DataFile(modelname)
-            response = model.cleanUp()    
+            logger.info("Clean up process started!")
+            response = model.cleanUp()
+            logger.info("Clean up process finished!")
 
         return jsonify(response), 200
     except(IOError):

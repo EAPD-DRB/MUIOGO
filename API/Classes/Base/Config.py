@@ -56,6 +56,11 @@ ALLOWED_EXTENSIONS_XLS = set(['xls', 'xlsx'])
 BASE_DIR = Path(__file__).resolve().parents[3]
 
 WEBAPP_PATH = BASE_DIR / "WebAPP"
+API_PATH = BASE_DIR / "API"
+
+# Log file in a safe location (not under WebAPP, to avoid serving logs to clients).
+# Upstream v5.5 uses WebAPP/app.log which we explicitly reject (see #390).
+LOG_FILE = API_PATH / "app.log"
 
 UPLOAD_FOLDER = WEBAPP_PATH
 DATA_STORAGE = WEBAPP_PATH / "DataStorage"
