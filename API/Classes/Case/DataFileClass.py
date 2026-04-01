@@ -2262,13 +2262,14 @@ class DataFile(Osemosys):
             return response
             # urllib.request.urlretrieve(self.dataFile, dataFile)
 
-        except Exception as ex:
-            print(ex) # do whatever you want for debugging.
-            raise    # re-raise exception.
-        except(IOError, IndexError):
-            raise IndexError
+        # Handle specific exceptions first to avoid unreachable handlers
+        except (IOError, IndexError):
+            raise
         except OSError:
-            raise OSError
+            raise
+        except Exception as ex:
+            print(ex)     # do whatever you want for debugging
+            raise # re-raise exception
     
     def generateCSVfromCBC(self, data_file, results_file, base_folder=os.getcwd()):
         try:
@@ -2532,13 +2533,15 @@ class DataFile(Osemosys):
                     df_ACI = df_ACI_temp[['r','t','y','AnnualizedInvestmentCost']]
                     df_ACI = df_ACI[df_ACI['AnnualizedInvestmentCost']!=0]
                     df_ACI.to_csv(os.path.join(base_folder, 'csv', 'AnnualizedInvestmentCost.csv'), index=None)
-        except Exception as ex:
-            print(ex) # do whatever you want for debugging.
-            raise    # re-raise exception.
-        except(IOError, IndexError):
-            raise IndexError
+         # Handle specific exceptions first to avoid unreachable handlers
+        except (IOError, IndexError):
+            raise
         except OSError:
-            raise OSError
+            raise
+        except Exception as ex:
+            print(ex)     # do whatever you want for debugging
+            raise # re-raise exception
+    
     
     def generateResultsViewer(self, caserunname):
         try:
