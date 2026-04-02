@@ -3,14 +3,15 @@ import { Html } from "./Html.Class.js";
 import { SyncS3 } from "./SyncS3.Class.js";
 
 export class Base {
-    static HEROKU = 0;
     static AWS_SYNC = 0;
     //init sync flag to pull from S3 only one time when visit home page
     static INIT_SYNC = 1;
 
     static apiUrl() {
-        if (this.HEROKU == 1) {
-            return "https://osemosys.herokuapp.com/";
+        // Reads window.API_BASE_URL injected at deploy time (e.g. via index.html).
+        // Falls back to window.location.origin for local/standard same-origin deployments.
+        if (window.API_BASE_URL) {
+        return window.API_BASE_URL.replace(/\/$/, "") + "/";
         }
         return `${window.location.origin}/`;
     }
