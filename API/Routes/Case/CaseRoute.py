@@ -484,7 +484,7 @@ def run():
 #         resPath = Path(Config.DATA_STORAGE, case, 'res')
 #         dataPath = Path(Config.DATA_STORAGE, case, 'data.txt')
 #         shutil.rmtree(resPath)
-#         os.remove(dataPath)
+#         dataPath.unlink(missing_ok=True)
 
 #         response = {
 #             "message": 'Case <b>'+ case + '</b> deleted!',

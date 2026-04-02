@@ -1,6 +1,6 @@
 from pathlib import Path
 import pandas as pd
-import string, random, json, os.path, time
+import string, random, json, time
 
 from Classes.Base import Config
 from Classes.Case.CaseClass import Case
@@ -823,8 +823,9 @@ class ImportTemplate():
                     viewDef[list['id']] = []
 
 
-            if not os.path.exists(Path(Config.DATA_STORAGE,casename)):
-                os.makedirs(Path(Config.DATA_STORAGE,casename))
+            case_path = Path(Config.DATA_STORAGE,casename)
+            if not case_path.exists():
+                case_path.mkdir(parents=True, exist_ok=True)
 
             genDataPath = Path( Config.DATA_STORAGE,casename, "genData.json")
             File.writeFile(genData, genDataPath)
@@ -836,10 +837,10 @@ class ImportTemplate():
             viewPath = Path(Config.DATA_STORAGE,casename,'view')
             resDataPath = Path(Config.DATA_STORAGE,casename,'view','resData.json')
             viewDataPath = Path(Config.DATA_STORAGE,casename,'view','viewDefinitions.json')
-            if not os.path.exists(resPath):
-                os.makedirs(resPath, exist_ok=True)
-            if not os.path.exists(viewPath):
-                os.makedirs(viewPath, exist_ok=True)
+            if not resPath.exists():
+                resPath.mkdir(parents=True, exist_ok=True)
+            if not viewPath.exists():
+                viewPath.mkdir(parents=True, exist_ok=True)
                 resData = {
                     "osy-cases":[]
                 }
@@ -1089,7 +1090,7 @@ class ImportTemplate():
 
                         File.writeFile( jsonData, path)
 
-            os.remove(self.TEMPLATE_PATH)
+            self.TEMPLATE_PATH.unlink(missing_ok=True)
             print('IMPOERT FINISHED WITH DATA!')
             print("--- %s seconds ---" % (time.time() - start_time))
             txtOut = txtOut + ("IMPORT FINISHED WITH DATA IN  --- {} seconds ---{}".format( time.time() - start_time, '\n'))

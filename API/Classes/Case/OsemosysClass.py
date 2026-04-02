@@ -7,52 +7,52 @@ from Classes.Base.FileClass import File
 
 class Osemosys():
     def __init__(self, case):
-        self.case = case
-        self.PARAMETERS = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
-        self.VARIABLES = File.readParamFile(Path(Config.DATA_STORAGE, 'Variables.json'))
-        self.genData =  File.readFile(Path(Config.DATA_STORAGE,case,'genData.json'))
-        self.resData = File.readFile( Path(Config.DATA_STORAGE, case,'view', 'resData.json'))
+        self.case = case 
+        self.PARAMETERS = File.readParamFile(Config.DATA_STORAGE / 'Parameters.json')
+        self.VARIABLES = File.readParamFile(Config.DATA_STORAGE / 'Variables.json')
+        self.genData =  File.readFile(Config.DATA_STORAGE / case / 'genData.json')
+        self.resData = File.readFile(Config.DATA_STORAGE / case / 'view' / 'resData.json')
         
         #Case.__init__(self, case)
-        self.casePath = Path(Config.DATA_STORAGE,case)
-        self.zipPath = Path(Config.DATA_STORAGE,case+'.zip')
+        self.casePath = Config.DATA_STORAGE / case
+        self.zipPath = Config.DATA_STORAGE / (case + '.zip')
 
-        #self.genData = Path(Config.DATA_STORAGE,case,'genData.json')
+        #self.genData = Config.DATA_STORAGE / case / 'genData.json'
 
-        self.rPath = Path(Config.DATA_STORAGE,case,'R.json')
-        self.ryPath = Path(Config.DATA_STORAGE,case,'RY.json')
-        self.rtPath = Path(Config.DATA_STORAGE,case,'RT.json')
-        self.rePath = Path(Config.DATA_STORAGE,case,'RE.json')
-        self.rsPath = Path(Config.DATA_STORAGE,case,'RS.json')
-        self.rycnPath = Path(Config.DATA_STORAGE,case,'RYCn.json')
-        self.rytPath = Path(Config.DATA_STORAGE,case,'RYT.json')
-        self.rysPath = Path(Config.DATA_STORAGE,case,'RYS.json')
-        self.rytcnPath = Path(Config.DATA_STORAGE,case,'RYTCn.json')
-        self.rytmPath = Path(Config.DATA_STORAGE,case,'RYTM.json')
-        self.rytcPath = Path(Config.DATA_STORAGE,case,'RYTC.json')
-        self.rytcmPath = Path(Config.DATA_STORAGE,case,'RYTCM.json')
-        self.rytsmPath = Path(Config.DATA_STORAGE,case,'RYTSM.json')
-        self.rtsmPath = Path(Config.DATA_STORAGE,case,'RTSM.json')
-        self.rytsPath = Path(Config.DATA_STORAGE,case,'RYTs.json')
-        self.rydtbPath = Path(Config.DATA_STORAGE,case,'RYDtb.json')
-        self.rysedtPath = Path(Config.DATA_STORAGE,case,'RYSeDt.json')
-        self.rycPath = Path(Config.DATA_STORAGE,case,'RYC.json')
-        self.ryePath = Path(Config.DATA_STORAGE,case,'RYE.json')
-        self.ryttsPath = Path(Config.DATA_STORAGE,case,'RYTTs.json')
-        self.ryctsPath = Path(Config.DATA_STORAGE,case,'RYCTs.json')
-        self.rytePath = Path(Config.DATA_STORAGE,case,'RYTE.json')
-        self.rytemPath = Path(Config.DATA_STORAGE,case,'RYTEM.json')
+        self.rPath = Config.DATA_STORAGE / case / 'R.json'
+        self.ryPath = Config.DATA_STORAGE / case / 'RY.json'
+        self.rtPath = Config.DATA_STORAGE / case / 'RT.json'
+        self.rePath = Config.DATA_STORAGE / case / 'RE.json'
+        self.rsPath = Config.DATA_STORAGE / case / 'RS.json'
+        self.rycnPath = Config.DATA_STORAGE / case / 'RYCn.json'
+        self.rytPath = Config.DATA_STORAGE / case / 'RYT.json'
+        self.rysPath = Config.DATA_STORAGE / case / 'RYS.json'
+        self.rytcnPath = Config.DATA_STORAGE / case / 'RYTCn.json'
+        self.rytmPath = Config.DATA_STORAGE / case / 'RYTM.json'
+        self.rytcPath = Config.DATA_STORAGE / case / 'RYTC.json'
+        self.rytcmPath = Config.DATA_STORAGE / case / 'RYTCM.json'
+        self.rytsmPath = Config.DATA_STORAGE / case / 'RYTSM.json'
+        self.rtsmPath = Config.DATA_STORAGE / case / 'RTSM.json'
+        self.rytsPath = Config.DATA_STORAGE / case / 'RYTs.json'
+        self.rydtbPath = Config.DATA_STORAGE / case / 'RYDtb.json'
+        self.rysedtPath = Config.DATA_STORAGE / case / 'RYSeDt.json'
+        self.rycPath = Config.DATA_STORAGE / case / 'RYC.json'
+        self.ryePath = Config.DATA_STORAGE / case / 'RYE.json'
+        self.ryttsPath = Config.DATA_STORAGE / case / 'RYTTs.json'
+        self.ryctsPath = Config.DATA_STORAGE / case / 'RYCTs.json'
+        self.rytePath = Config.DATA_STORAGE / case / 'RYTE.json'
+        self.rytemPath = Config.DATA_STORAGE / case / 'RYTEM.json'
 
         
-        self.osemosysFile = Path(Config.SOLVERs_FOLDER,'model.v.5.4.txt') 
-        self.osemosysFileOriginal = Path(Config.SOLVERs_FOLDER,'osemosys.txt')
+        self.osemosysFile = Config.SOLVERs_FOLDER / 'model.v.5.4.txt' 
+        self.osemosysFileOriginal = Config.SOLVERs_FOLDER / 'osemosys.txt'
         self._glpkFolder = None
         self._cbcFolder = None
 
-        self.resultsPath = Path(Config.DATA_STORAGE,case,'res')
-        self.viewFolderPath = Path(Config.DATA_STORAGE,case,'view')
+        self.resultsPath = Config.DATA_STORAGE / case / 'res'
+        self.viewFolderPath = Config.DATA_STORAGE / case / 'view'
         
-        self.resDataPath = Path(Config.DATA_STORAGE,case,'view', 'resData.json')
+        self.resDataPath = Config.DATA_STORAGE / case / 'view' / 'resData.json'
 
         # self.resPath = Path(Config.DATA_STORAGE,case,'res', 'csv')
         
@@ -82,7 +82,7 @@ class Osemosys():
             self._glpkFolder = self._resolve_solver_folder(
                 env_var="SOLVER_GLPK_PATH",
                 binary_name="glpsol",
-                bundled_path=Path(Config.SOLVERs_FOLDER, "GLPK"),
+                bundled_path=Config.SOLVERs_FOLDER / "GLPK",
             )
         return self._glpkFolder
 
@@ -92,7 +92,7 @@ class Osemosys():
             self._cbcFolder = self._resolve_solver_folder(
                 env_var="SOLVER_CBC_PATH",
                 binary_name="cbc",
-                bundled_path=Path(Config.SOLVERs_FOLDER, "COIN-OR"),
+                bundled_path=Config.SOLVERs_FOLDER / "COIN-OR",
             )
         return self._cbcFolder
 
@@ -787,7 +787,7 @@ class Osemosys():
             data[tech['TechId']] = []
             for group, array in self.PARAMETERS.items():
                 if group in Config.TECH_GROUPS:
-                    jsonData[group] =  File.readFile(Path(Config.DATA_STORAGE,self.case, group+'.json'))
+                    jsonData[group] =  File.readFile(Config.DATA_STORAGE / self.case / (group + '.json'))
                     for obj in array:
                         byTech = {}
                         byTech['groupId'] = group
@@ -821,7 +821,7 @@ class Osemosys():
             data[tech['CommId']] = []
             for group, array in self.PARAMETERS.items():
                 if group in Config.COMM_GROUPS:
-                    jsonData[group] =  File.readFile(Path(Config.DATA_STORAGE,self.case, group+'.json'))
+                    jsonData[group] =  File.readFile(Config.DATA_STORAGE / self.case / (group + '.json'))
                     for obj in array:
                         byComm = {}
                         byComm['groupId'] = group
@@ -855,7 +855,7 @@ class Osemosys():
             data[tech['EmisId']] = []
             for group, array in self.PARAMETERS.items():
                 if group in Config.EMIS_GROUPS:
-                    jsonData[group] =  File.readFile(Path(Config.DATA_STORAGE,self.case, group+'.json'))
+                    jsonData[group] =  File.readFile(Config.DATA_STORAGE / self.case / (group + '.json'))
                     for obj in array:
                         byEmi = {}
                         byEmi['groupId'] = group
@@ -889,7 +889,7 @@ class Osemosys():
             data[tech['TechId']] = []
             for group, array in self.PARAMETERS.items():
                 if group in Config.SINGLE_TECH_GROUPS:
-                    jsonData[group] =  File.readFile(Path(Config.DATA_STORAGE,self.case, group+'.json'))
+                    jsonData[group] =  File.readFile(Config.DATA_STORAGE / self.case / (group + '.json'))
                     for obj in array:
                         byTech = {}
                         byTech['groupId'] = group
@@ -911,7 +911,7 @@ class Osemosys():
             data[tech['EmisId']] = []
             for group, array in self.PARAMETERS.items():
                 if group in Config.SINGLE_EMIS_GROUPS:
-                    jsonData[group] =  File.readFile(Path(Config.DATA_STORAGE,self.case, group+'.json'))
+                    jsonData[group] =  File.readFile(Config.DATA_STORAGE / self.case / (group + '.json'))
                     for obj in array:
                         byEmi = {}
                         byEmi['groupId'] = group
@@ -928,7 +928,7 @@ class Osemosys():
 
     def updateViewData(self, casename, year, ScId, GroupId, ParamId, TechId, CommId, EmisId, Timeslice, value):
         try:
-            jsonPath = Path(Config.DATA_STORAGE,casename, GroupId+'.json')
+            jsonPath = Config.DATA_STORAGE / casename / (GroupId + '.json')
             jsonData = File.readFile(jsonPath)
 
             for obj in jsonData[ParamId][ScId]:
@@ -943,7 +943,7 @@ class Osemosys():
 
     def updateTEViewData(self, casename, ScId, GroupId, ParamId, TechId, EmisId, value):
         try:
-            jsonPath = Path(Config.DATA_STORAGE,casename, GroupId+'.json')
+            jsonPath = Config.DATA_STORAGE / casename / (GroupId + '.json')
             jsonData = File.readFile(jsonPath)
 
             for obj in jsonData[ParamId][ScId]:

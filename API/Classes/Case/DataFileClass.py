@@ -722,7 +722,7 @@ class DataFile(Osemosys):
             self.resPath = Path('..', '..', '..', '..', 'WebAPP', 'DataStorage', self.case, 'res',caserunname, 'csv')
             path = '"{}"'.format(self.resPath)
 
-            dataFilePath = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
+            dataFilePath = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'data.txt'
 
 
             # self.f = open(self.dataFile, mode="w", encoding='utf-8')
@@ -776,11 +776,11 @@ class DataFile(Osemosys):
                 self.f.write('{}{}'.format('#', '\n'))
                 self.f.write('{}'.format('end;'))
             # self.f.close
-            # if not os.path.exists(Path(Config.DATA_STORAGE,self.case,'res', 'csv')):
+            # if not Path(Config.DATA_STORAGE,self.case,'res', 'csv').exists():
             #     resName = Path(Config.DATA_STORAGE,self.case,'res', 'csv')
-            #     os.makedirs(resName, mode=0o777, exist_ok=False)
+            #     resName.mkdir(mode=0o777, exist_ok=False)
 
-                #os.makedirs(name,0777)
+                #name.mkdir(mode=0o777)
 
         #ovako prosljedjujemo exception u prethodnom slucaju vracamo response u funkciju koja poziva writeFile
         except(IOError, IndexError):
@@ -790,14 +790,14 @@ class DataFile(Osemosys):
 
     def createCaseRun(self, caserunname, data):
         try:
-            caseRunPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname)
-            csvPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname, 'csv')
-            resDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'resData.json')
+            caseRunPath = Config.DATA_STORAGE / self.case / 'res' / caserunname
+            csvPath = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'csv'
+            resDataPath = Config.DATA_STORAGE / self.case / 'view' / 'resData.json'
 
-            if not os.path.exists(caseRunPath):
-                os.makedirs(caseRunPath)
-                os.makedirs(csvPath)
-                if not os.path.exists(resDataPath):
+            if not caseRunPath.exists():
+                caseRunPath.mkdir(parents=True, exist_ok=True)
+                csvPath.mkdir(parents=True, exist_ok=True)
+                if not resDataPath.exists():
                     File.writeFile( data, resDataPath)
                 else:
                     resData = File.readFile(resDataPath)
@@ -847,16 +847,16 @@ class DataFile(Osemosys):
 
     def updateCaseRun(self, caserunname, oldcaserunname, data):
         try:
-            caseRunPath = Path(Config.DATA_STORAGE,self.case,'res', oldcaserunname)
-            newcaseRunPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname)
-            csvPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname, 'csv')
-            resDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'resData.json')
+            caseRunPath = Config.DATA_STORAGE / self.case / 'res' / oldcaserunname
+            newcaseRunPath = Config.DATA_STORAGE / self.case / 'res' / caserunname
+            csvPath = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'csv'
+            resDataPath = Config.DATA_STORAGE / self.case / 'view' / 'resData.json'
 
-            if not os.path.exists(newcaseRunPath):
-                os.rename(caseRunPath, newcaseRunPath)
+            if not newcaseRunPath.exists():
+                caseRunPath.rename(newcaseRunPath)
 
-                if not os.path.exists(csvPath):
-                    os.makedirs(csvPath)
+                if not csvPath.exists():
+                    csvPath.mkdir(parents=True, exist_ok=True)
 
                 resData = File.readFile(resDataPath)
 
@@ -870,9 +870,9 @@ class DataFile(Osemosys):
                     "message": "You have updated a case run!",
                     "status_code": "success"
                 } 
-            elif os.path.exists(newcaseRunPath) and caserunname==oldcaserunname:
-                if not os.path.exists(csvPath):
-                    os.makedirs(csvPath)
+            elif newcaseRunPath.exists() and caserunname==oldcaserunname:
+                if not csvPath.exists():
+                    csvPath.mkdir(parents=True, exist_ok=True)
 
                 resData = File.readFile(resDataPath)
 
@@ -902,7 +902,7 @@ class DataFile(Osemosys):
     def deleteCaseResultsJSON(self, caserunname):
         try:
             csvPath = Path(self.resultsPath, caserunname, "csv")
-            if os.path.exists(csvPath):
+            if csvPath.exists():
                 shutil.rmtree(csvPath)
 
             for group, array in self.VARIABLES.items():
@@ -970,35 +970,32 @@ class DataFile(Osemosys):
             # self.viewFolderPath = Path(Config.DATA_STORAGE,case,'view')
             # folder_path = "C:/putanja/do/foldera"
 
-            for caserunname in os.listdir( self.resultsPath):
-                caserunname_path = os.path.join(self.resultsPath, caserunname)
+            for caserunname_path in self.resultsPath.iterdir():
                 # Skip files such as .DS_Store that can appear on macOS.
-                if not os.path.isdir(caserunname_path):
+                if not caserunname_path.is_dir():
                     continue
-                for carerunData in os.listdir( caserunname_path):
-                    file_path = os.path.join(caserunname_path, carerunData)
+                for file_path in caserunname_path.iterdir():
                     try:
-                        if os.path.isfile(file_path) or os.path.islink(file_path):
-                            os.remove(file_path)
-                        elif os.path.isdir(file_path):
+                        if file_path.is_file() or file_path.is_symlink():
+                            file_path.unlink()
+                        elif file_path.is_dir():
                             shutil.rmtree(file_path)
                     except Exception as e:
                         print(f"Greška pri brisanju {file_path}: {e}")
 
-            for filename in os.listdir( self.viewFolderPath):
-                if filename !='resData.json':
-                    file_path = os.path.join(self.viewFolderPath, filename)
+            for file_path in self.viewFolderPath.iterdir():
+                if file_path.name !='resData.json':
                     try:
-                        if os.path.isfile(file_path) or os.path.islink(file_path):
-                            os.remove(file_path)
-                        elif os.path.isdir(file_path):
+                        if file_path.is_file() or file_path.is_symlink():
+                            file_path.unlink()
+                        elif file_path.is_dir():
                             shutil.rmtree(file_path)
                     except Exception as e:
                         print(f"Greška pri brisanju {file_path}: {e}")
 
             #sad moramo napraviti defualt definitions file
             viewDefPath = Path(self.viewFolderPath, 'viewDefinitions.json')
-            configPath = Path(Config.DATA_STORAGE, 'Variables.json')
+            configPath = Config.DATA_STORAGE / 'Variables.json'
             vars = File.readParamFile(configPath)
             viewDef = {}
             for group, lists in vars.items():
@@ -1026,7 +1023,7 @@ class DataFile(Osemosys):
     def saveView(self, data, param):
         try:
 
-            viewDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'viewDefinitions.json')
+            viewDataPath = Config.DATA_STORAGE / self.case / 'view' / 'viewDefinitions.json'
 
             viewData = File.readFile(viewDataPath)
             viewData["osy-views"][param].append(data)
@@ -1048,7 +1045,7 @@ class DataFile(Osemosys):
     def updateViews(self, data, param):
         try:
 
-            viewDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'viewDefinitions.json')
+            viewDataPath = Config.DATA_STORAGE / self.case / 'view' / 'viewDefinitions.json'
 
             viewData = File.readFile(viewDataPath)
             viewData["osy-views"][param] = data
@@ -1071,8 +1068,8 @@ class DataFile(Osemosys):
         try:
             
             #f = open(self.dataFile, mode="r")
-            dataFilePath = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
-            if os.path.exists(dataFilePath):
+            dataFilePath = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'data.txt'
+            if dataFilePath.exists():
                 f = open(dataFilePath, mode="r", encoding='utf-8-sig')
                 data =  f.read()
                 f.close
@@ -1191,7 +1188,7 @@ class DataFile(Osemosys):
             start_year = self.getYears()[0]
             msg = ""
 
-            dataFilePath = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
+            dataFilePath = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'data.txt'
             if dataFilePath.is_file():
                 # with open(dataFilePath, 'r') as f:
 
@@ -2095,13 +2092,13 @@ class DataFile(Osemosys):
 
             start_time = time.time()
             txtOut = ""
-            self.dataFile = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
-            self.dataFile_processed = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data_processed.txt')
-            self.resFile = Path(Config.DATA_STORAGE,self.case, 'res',caserunname,'results.txt')
-            self.logFile = Path(Config.DATA_STORAGE,self.case, 'res',caserunname,'logfile.log')
-            self.logFileTxt = Path(Config.DATA_STORAGE,self.case, 'res',caserunname,'logfile.txt')
-            self.lpFile = Path(Config.DATA_STORAGE,self.case, 'res',caserunname,'lp.lp')
-            self.resPath = Path(Config.DATA_STORAGE,self.case, 'res',caserunname)
+            self.dataFile = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'data.txt'
+            self.dataFile_processed = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'data_processed.txt'
+            self.resFile = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'results.txt'
+            self.logFile = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'logfile.log'
+            self.logFileTxt = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'logfile.txt'
+            self.lpFile = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'lp.lp'
+            self.resPath = Config.DATA_STORAGE / self.case / 'res' / caserunname
             
             modelfile = str(self.osemosysFile.resolve())
             modelfile_original = str(self.osemosysFileOriginal.resolve())
@@ -2270,7 +2267,7 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
     
-    def generateCSVfromCBC(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC(self, data_file, results_file, base_folder=Path.cwd()):
         try:
             #pd.options.mode.chained_assignment = None
             #pd.options.mode.chained_assignment = None
@@ -2283,7 +2280,7 @@ class DataFile(Osemosys):
             data = self.parseDataFile(data_file)
 
             try:
-                os.makedirs(os.path.join(base_folder, 'csv'))
+                (base_folder / 'csv').mkdir(parents=True, exist_ok=True)
             except FileExistsError:
                 pass
             
@@ -2305,7 +2302,7 @@ class DataFile(Osemosys):
 
             #load data into a DataFrame object:
             dfOV = pd.DataFrame(ov)
-            dfOV.to_csv(os.path.join(base_folder, 'csv', 'ObjectiveValue.csv'), index=None)
+            dfOV.to_csv(base_folder / 'csv' / 'ObjectiveValue.csv', index=None)
             ######################################## end optimal value parse    
             #                                      
             df.columns = ['temp']
@@ -2369,7 +2366,7 @@ class DataFile(Osemosys):
                             all_params[each] = all_params[each].rename(columns={'dual':each})
                         else:
                             all_params[each] = all_params[each].rename(columns={'value':each})
-                            all_params[each].to_csv(os.path.join(base_folder, 'csv', each+'.csv'), index=None)
+                            all_params[each].to_csv(base_folder / 'csv' / (each + '.csv'), index=None)
 
                 ########################################Vars koje se izracunavaju u ovoj script nisu izlaz iz solvera###########
                 ################################################################################################################
@@ -2382,7 +2379,7 @@ class DataFile(Osemosys):
                     #     df_EB['y'] = df_EB['y'].astype(int)
                     #     df_EB_d = pd.merge(df_EB, df_DR, on=['r'], how='outer')
                     #     df_EB_d['EBb4_EnergyBalanceEachYear4_ICR'] = df_EB_d['EBb4_EnergyBalanceEachYear4_ICR'] * pow((1 + df_EB_d['DiscountRate']), df_EB_d['y'] - start_year + 0.5)
-                    #     df_EB_d.to_csv(os.path.join(base_folder, 'csv', 'EBb4_EnergyBalanceEachYear4_ICR.csv'), index=None)
+                    #     df_EB_d.to_csv(base_folder / 'csv' / 'EBb4_EnergyBalanceEachYear4_ICR.csv', index=None)
                     if dual in all_params:
                         df_DR = pd.DataFrame(data['DiscountRate'], columns=Config.PARAMETERS_C_full['DiscountRate'])
                         df_DR['DiscountRate'] = df_DR['DiscountRate'].astype(float)
@@ -2390,7 +2387,7 @@ class DataFile(Osemosys):
                         df_EB['y'] = df_EB['y'].astype(int)
                         df_EB_d = pd.merge(df_EB, df_DR, on=['r'], how='outer')
                         df_EB_d[dual] = df_EB_d[dual] * pow((1 + df_EB_d['DiscountRate']), df_EB_d['y'] - start_year + 0.5)
-                        df_EB_d.to_csv(os.path.join(base_folder, 'csv', dual+'.csv'), index=None)
+                        df_EB_d.to_csv(base_folder / 'csv' / (dual + '.csv'), index=None)
 
                 if 'AccumulatedNewStorageCapacity' in all_params:
                     df_ANSC = all_params['AccumulatedNewStorageCapacity'].rename(columns={'value':'AccumulatedNewStorageCapacity'})
@@ -2412,7 +2409,7 @@ class DataFile(Osemosys):
 
                     df_TSC = df_TSC_tmp[['s','y','TotalStorageCapacity']]
                     df_TSC = df_TSC[df_TSC['TotalStorageCapacity']!=0]
-                    df_TSC.to_csv(os.path.join(base_folder, 'csv', 'TotalStorageCapacity.csv'), index=None)
+                    df_TSC.to_csv(base_folder / 'csv' / 'TotalStorageCapacity.csv', index=None)
             
                 if 'RateOfActivity' in all_params:
                     #year split data frame
@@ -2434,7 +2431,7 @@ class DataFile(Osemosys):
                     # df_emi = pd.DataFrame(data['EmissionActivityRatio'], columns=['r', 'e','t','y','m','EmissionActivityRatio'])
                     df_emi = pd.DataFrame(data['EmissionActivityRatio'], columns=Config.PARAMETERS_C_full['EmissionActivityRatio'])
                     df_emi['EmissionActivityRatio'] = df_emi['EmissionActivityRatio'].astype(float)
-                    #df_emi.to_csv(os.path.join(base_folder, 'emi_table.csv'), index=None)
+                    #df_emi.to_csv(base_folder / 'emi_table.csv', index=None)
 
                     #########################################Demand#################################################################
                     #SpecifiedAnnualDemand[r,f,y]*SpecifiedDemandProfile[r,f,l,y]+ AccumulatedAnnualDemand[r,f,y]
@@ -2453,7 +2450,7 @@ class DataFile(Osemosys):
                         df_prod['ProductionByTechnologyByMode'] = df_prod['ProductionByTechnologyByMode'].astype(float).round(4)
                         df_prod = df_prod.sort_values(by=['r','l','t','f','y'])
                         df_prod = df_prod[df_prod['ProductionByTechnologyByMode']!=0]
-                        df_prod.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnologyByMode.csv'), index=None)
+                        df_prod.to_csv(base_folder / 'csv' / 'ProductionByTechnologyByMode.csv', index=None)
 
                         ########################################RateOfProductionByTechnologyByMode############################################
                         df_ropbt = pd.merge(df_out_ys, df_activity, how='left', on=['t','m','l','y'])
@@ -2466,7 +2463,7 @@ class DataFile(Osemosys):
                         df_ropbt['RateOfProductionByTechnologyByMode'] = df_ropbt['RateOfProductionByTechnologyByMode'].astype(float).round(4)
                         df_ropbt = df_ropbt.sort_values(by=['r','l','t','f','y'])
                         df_ropbt = df_ropbt[df_ropbt['RateOfProductionByTechnologyByMode']!=0]
-                        df_ropbt.to_csv(os.path.join(base_folder, 'csv', 'RateOfProductionByTechnologyByMode.csv'), index=None)
+                        df_ropbt.to_csv(base_folder / 'csv' / 'RateOfProductionByTechnologyByMode.csv', index=None)
 
                     
 
@@ -2482,7 +2479,7 @@ class DataFile(Osemosys):
                         df_use['UseByTechnologyByMode'] = df_use['UseByTechnologyByMode'].astype(float).round(4)
                         df_use = df_use.sort_values(by=['r','l','t','f','y'])
                         df_use = df_use[df_use['UseByTechnologyByMode']!=0]
-                        df_use.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnologyByMode.csv'), index=None)
+                        df_use.to_csv(base_folder / 'csv' / 'UseByTechnologyByMode.csv', index=None)
 
                         ######################################RateOfUseByTechnologyByMode##############################################
                         df_roubt = pd.merge(df_in_ys, df_activity, how='left', on=['t','m','l','y'])
@@ -2495,7 +2492,7 @@ class DataFile(Osemosys):
                         df_roubt['RateOfUseByTechnologyByMode'] = df_roubt['RateOfUseByTechnologyByMode'].astype(float).round(4)
                         df_roubt = df_roubt.sort_values(by=['r','l','t','f','y'])
                         df_roubt = df_roubt[df_roubt['RateOfUseByTechnologyByMode']!=0]
-                        df_roubt.to_csv(os.path.join(base_folder, 'csv', 'RateOfUseByTechnologyByMode.csv'), index=None)
+                        df_roubt.to_csv(base_folder / 'csv' / 'RateOfUseByTechnologyByMode.csv', index=None)
 
                 if 'CapitalInvestment' in all_params:
                     #########################################AnnualizedInvestmentCost################################################
@@ -2531,7 +2528,7 @@ class DataFile(Osemosys):
 
                     df_ACI = df_ACI_temp[['r','t','y','AnnualizedInvestmentCost']]
                     df_ACI = df_ACI[df_ACI['AnnualizedInvestmentCost']!=0]
-                    df_ACI.to_csv(os.path.join(base_folder, 'csv', 'AnnualizedInvestmentCost.csv'), index=None)
+                    df_ACI.to_csv(base_folder / 'csv' / 'AnnualizedInvestmentCost.csv', index=None)
         except Exception as ex:
             print(ex) # do whatever you want for debugging.
             raise    # re-raise exception.
@@ -2542,10 +2539,10 @@ class DataFile(Osemosys):
     
     def generateResultsViewer(self, caserunname):
         try:
-            csvFolderPath = Path(Config.DATA_STORAGE,self.case,'res',caserunname, 'csv')
+            csvFolderPath = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'csv'
 
             #CSV
-            csvs = [f.name for f in os.scandir(csvFolderPath) ]
+            csvs = [f.name for f in csvFolderPath.iterdir() ]
 
             paramByName = {}
             for group, array in self.VARIABLES.items():
@@ -2558,7 +2555,7 @@ class DataFile(Osemosys):
             DATA = {}
             for csv in csvs:
                 #read csv file
-                csv_path = Path(Config.DATA_STORAGE,self.case,'res', caserunname, 'csv', csv)
+                csv_path = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'csv' / csv
                 if csv_path.is_file():
                     df = pd.read_csv(csv_path)
                     data = df.to_json(orient='records', indent=2)
@@ -2569,7 +2566,7 @@ class DataFile(Osemosys):
 
                             if param in jsondata[0]:
 
-                                viewGroupPath = Path(Config.DATA_STORAGE,self.case,'view', paramobj['group']+ '.json')
+                                viewGroupPath = Config.DATA_STORAGE / self.case / 'view' / (paramobj['group'] + '.json')
                                 if viewGroupPath.is_file():
                                     viewData = File.readFile(viewGroupPath)
                                 else:
@@ -2908,15 +2905,15 @@ class DataFile(Osemosys):
     ############################################################################################### OBSOLETE METHODS 
     def generateResultsViewer_AllCases20240118(self, caserunname):
         try:
-            csvFolderPath = Path(Config.DATA_STORAGE,self.case,'res',caserunname, 'csv')
+            csvFolderPath = Config.DATA_STORAGE / self.case / 'res' / caserunname / 'csv'
             #viewFolderPath = Path(Config.DATA_STORAGE,self.case,'view')
 
             #CSV
-            csvs = [f.name for f in os.scandir(csvFolderPath) ]
-            # cases = [f.name for f in os.scandir(self.resultsPath) if not os.listdir(csvFolderPath) ]
+            csvs = [f.name for f in csvFolderPath.iterdir() ]
+            # cases = [f.name for f in self.resultsPath.iterdir() if not csvFolderPath.iterdir() ]
 
             #uzeti samo caseRunove koji imaju csv fileve, sto znaci da su imalu success run
-            cases = [f.name for f in os.scandir(self.resultsPath) if os.path.isdir(Path(self.resultsPath, f.name, 'csv')) and len(os.listdir(Path(self.resultsPath, f.name, 'csv'))) != 0 ]
+            cases = [f.name for f in self.resultsPath.iterdir() if Path(self.resultsPath, f.name, 'csv').is_dir() and any(Path(self.resultsPath, f.name, 'csv').iterdir()) ]
             
             paramByName = {}
             for group, array in self.VARIABLES.items():
@@ -2933,7 +2930,7 @@ class DataFile(Osemosys):
                 for csv in csvs:
 
                     #read csv file
-                    csv_path = Path(Config.DATA_STORAGE,self.case,'res', case, 'csv', csv)
+                    csv_path = Config.DATA_STORAGE / self.case / 'res' / case / 'csv' / csv
                     if csv_path.is_file():
                         df = pd.read_csv(csv_path)
                         data = df.to_json(orient='records', indent=2)
@@ -3243,7 +3240,7 @@ class DataFile(Osemosys):
             raise OSError
 
     # Dodali u postprocessing Annualized Investment Cost - potrebo dodati nove parametre
-    def generateCSVfromCBC_20240228(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC_20240228(self, data_file, results_file, base_folder=Path.cwd()):
         try:
             #pd.options.mode.chained_assignment = None
             #pd.options.mode.chained_assignment = None
@@ -3291,7 +3288,7 @@ class DataFile(Osemosys):
                         parsing = True
 
             try:
-                os.makedirs(os.path.join(base_folder, 'csv'))
+                (base_folder / 'csv').mkdir(parents=True, exist_ok=True)
             except FileExistsError:
                 pass
             
@@ -3337,7 +3334,7 @@ class DataFile(Osemosys):
 
                     #napravi csv
                     all_params[each] = all_params[each].rename(columns={'value':each})
-                    all_params[each].to_csv(os.path.join(base_folder, 'csv', each+'.csv'), index=None)
+                    all_params[each].to_csv(base_folder / 'csv' / (each + '.csv'), index=None)
 
                 ########################################Vars koje se izracunavaju u ovoj script nisu izlaz iz solvera###########
                 ################################################################################################################
@@ -3358,7 +3355,7 @@ class DataFile(Osemosys):
                 
                 df_emi = pd.DataFrame(emi_table, columns=['t','e','m','y','EmissionActivityRatio'])
                 df_emi['EmissionActivityRatio'] = df_emi['EmissionActivityRatio'].astype(float)
-                #df_emi.to_csv(os.path.join(base_folder, 'emi_table.csv'), index=None)
+                #df_emi.to_csv(base_folder / 'emi_table.csv', index=None)
    
                 ########################################ProductionByTechnologyByMode############################################
                 df_prod = pd.merge(df_out_ys, df_activity, how='left', on=['t','m','l','y'])
@@ -3370,7 +3367,7 @@ class DataFile(Osemosys):
                 df_prod = df_prod.drop(['OutputActivityRatio','YearSplit','RateOfActivity'], axis=1)
                 df_prod['ProductionByTechnologyByMode'] = df_prod['ProductionByTechnologyByMode'].astype(float).round(4)
                 df_prod = df_prod.sort_values(by=['r','l','t','f','y'])
-                df_prod.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnologyByMode.csv'), index=None)
+                df_prod.to_csv(base_folder / 'csv' / 'ProductionByTechnologyByMode.csv', index=None)
 
                 ########################################RateOfProductionByTechnologyByMode############################################
                 df_ropbt = pd.merge(df_out_ys, df_activity, how='left', on=['t','m','l','y'])
@@ -3382,7 +3379,7 @@ class DataFile(Osemosys):
                 df_ropbt = df_ropbt.drop(['OutputActivityRatio','YearSplit','RateOfActivity'], axis=1)
                 df_ropbt['RateOfProductionByTechnologyByMode'] = df_ropbt['RateOfProductionByTechnologyByMode'].astype(float).round(4)
                 df_ropbt = df_ropbt.sort_values(by=['r','l','t','f','y'])
-                df_ropbt.to_csv(os.path.join(base_folder, 'csv', 'RateOfProductionByTechnologyByMode.csv'), index=None)
+                df_ropbt.to_csv(base_folder / 'csv' / 'RateOfProductionByTechnologyByMode.csv', index=None)
 
                 ######################################UseByTechnologyByMode##############################################
 
@@ -3395,7 +3392,7 @@ class DataFile(Osemosys):
                 df_use = df_use.drop(['InputActivityRatio','YearSplit','RateOfActivity'], axis=1)
                 df_use['UseByTechnologyByMode'] = df_use['UseByTechnologyByMode'].astype(float).round(4)
                 df_use = df_use.sort_values(by=['r','l','t','f','y'])
-                df_use.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnologyByMode.csv'), index=None)
+                df_use.to_csv(base_folder / 'csv' / 'UseByTechnologyByMode.csv', index=None)
 
                 ######################################RateOfUseByTechnologyByMode##############################################
 
@@ -3408,7 +3405,7 @@ class DataFile(Osemosys):
                 df_roubt = df_roubt.drop(['InputActivityRatio','YearSplit','RateOfActivity'], axis=1)
                 df_roubt['RateOfUseByTechnologyByMode'] = df_roubt['RateOfUseByTechnologyByMode'].astype(float).round(4)
                 df_roubt = df_roubt.sort_values(by=['r','l','t','f','y'])
-                df_roubt.to_csv(os.path.join(base_folder, 'csv', 'RateOfUseByTechnologyByMode.csv'), index=None)
+                df_roubt.to_csv(base_folder / 'csv' / 'RateOfUseByTechnologyByMode.csv', index=None)
 
         except(IOError, IndexError):
             raise IndexError
@@ -3416,7 +3413,7 @@ class DataFile(Osemosys):
             raise OSError
     
     ##izmjene da bi se napunili csv za InputToNewCapacity i InputToTotalCapacity
-    def generateCSVfromCBC09122023(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC09122023(self, data_file, results_file, base_folder=Path.cwd()):
         try:
             #pd.options.mode.chained_assignment = None
 
@@ -3469,7 +3466,7 @@ class DataFile(Osemosys):
                         parsing = True
 
             try:
-                os.makedirs(os.path.join(base_folder, 'csv'))
+                (base_folder / 'csv').mkdir(parents=True, exist_ok=True)
             except FileExistsError:
                 pass
             
@@ -3529,7 +3526,7 @@ class DataFile(Osemosys):
             
             df_emi = pd.DataFrame(emi_table, columns=['t','e','m','y','EmissionActivityRatio'])
             df_emi['EmissionActivityRatio'] = df_emi['EmissionActivityRatio'].astype(float)
-            #df_emi.to_csv(os.path.join(base_folder, 'emi_table.csv'), index=None)
+            #df_emi.to_csv(base_folder / 'emi_table.csv', index=None)
             
             ##################################################################################
             
@@ -3659,13 +3656,13 @@ class DataFile(Osemosys):
                 df_combinations = df_combinations[final_cols]
                 
                 
-                df_combinations.to_csv(os.path.join(base_folder, 'csv', each_result+'.csv'), index=None)
+                df_combinations.to_csv(base_folder / 'csv' / (each_result + '.csv'), index=None)
 
             ##08122023 VK InputToNewCapacity InputToTotalCapacity
             # df_InputToNewCapacity = all_params['InputToNewCapacity'].rename(columns={'value':'InputToNewCapacity'})
             # df_InputToTotalCapacity = all_params['InputToTotalCapacity'].rename(columns={'value':'InputToTotalCapacity'})
-            # df_InputToNewCapacity.to_csv(os.path.join(base_folder, 'csv', 'InputToNewCapacity.csv'), index=None)
-            # df_InputToTotalCapacity.to_csv(os.path.join(base_folder, 'csv', 'InputToTotalCapacity.csv'), index=None)
+            # df_InputToNewCapacity.to_csv(base_folder / 'csv' / 'InputToNewCapacity.csv', index=None)
+            # df_InputToTotalCapacity.to_csv(base_folder / 'csv' / 'InputToTotalCapacity.csv', index=None)
             
             ########################################Vars koje se izracunavaju u ovoj script nisu izlaz iz solvera###########
             ########################################ProductionByTechnologyAnnual############################################
@@ -3680,7 +3677,7 @@ class DataFile(Osemosys):
                 df_prod = df_prod.drop(['OutputActivityRatio','YearSplit','RateOfActivity'], axis=1)
                 df_prod['ProductionByTechnology'] = df_prod['ProductionByTechnology'].astype(float).round(4)
                 df_prod = df_prod.sort_values(by=['r','l','t','f','y'])
-                df_prod.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnology.csv'), index=None)
+                df_prod.to_csv(base_folder / 'csv' / 'ProductionByTechnology.csv', index=None)
 
 
                 # df_prodAn = pd.merge(df_out_ys, df_activity, how='left', on=['t','m','l','y'])
@@ -3693,7 +3690,7 @@ class DataFile(Osemosys):
                 # df_prodAn = df_prodAn.groupby(['r','t','f','y'])['ProductionByTechnologyAnnual'].sum().reset_index()
                 # df_prodAn['ProductionByTechnologyAnnual'] = df_prodAn['ProductionByTechnologyAnnual'].astype(float).round(4)
                 # df_prodAn = df_prodAn.sort_values(by=['r','t','f','y'])
-                # df_prodAn.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnologyAnnual.csv'), index=None)
+                # df_prodAn.to_csv(base_folder / 'csv' / 'ProductionByTechnologyAnnual.csv', index=None)
 
 
   
@@ -3710,14 +3707,14 @@ class DataFile(Osemosys):
                 #df_use = df_use.drop(['InputActivityRatio','YearSplit','RateOfActivity'], axis=1)
                 df_use['UseByTechnology'] = df_use['UseByTechnology'].astype(float).round(4)
                 df_use = df_use.sort_values(by=['r','l','t','f','y'])
-                df_use.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnology.csv'), index=None)
+                df_use.to_csv(base_folder / 'csv' / 'UseByTechnology.csv', index=None)
 
                 # df_use['UseByTechnologyAnnual'] = df_use['InputActivityRatio']*df_use['YearSplit']*df_use['RateOfActivity']
                 # df_use = df_use.drop(['InputActivityRatio','YearSplit','RateOfActivity'], axis=1)
                 # df_use = df_use.groupby(['r','t','f','y'])['UseByTechnologyAnnual'].sum().reset_index()
                 # df_use['UseByTechnologyAnnual'] = df_use['UseByTechnologyAnnual'].astype(float).round(4)
                 # df_use = df_use.sort_values(by=['r','t','f','y'])
-                # df_use.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnologyAnnual.csv'), index=None)
+                # df_use.to_csv(base_folder / 'csv' / 'UseByTechnologyAnnual.csv', index=None)
 
         except(IOError, IndexError):
             raise IndexError
@@ -3995,7 +3992,7 @@ class DataFile(Osemosys):
 
             file_out.write('end;')
 
-    def generateCSVfromCBC_BKP(self, data_file, results_file, base_folder=os.getcwd()):
+    def generateCSVfromCBC_BKP(self, data_file, results_file, base_folder=Path.cwd()):
         try:
             pd.set_option('mode.chained_assignment', None)
 
@@ -4092,7 +4089,7 @@ class DataFile(Osemosys):
                         parsing = True
 
             try:
-                os.makedirs(os.path.join(base_folder, 'csv'))
+                (base_folder / 'csv').mkdir(parents=True, exist_ok=True)
             except FileExistsError:
                 pass
 
@@ -4168,7 +4165,7 @@ class DataFile(Osemosys):
                     df_p = df_p[result_cols] # Reorder dataframe to include 'value' as last column
                     all_params[each] = pd.DataFrame(df_p) # Create a dataframe for each parameter
                     df_p = df_p.rename(columns={'value':each})
-                    # df_p.to_csv(os.path.join(base_folder, 'csv', str(each) + '.csv'), index=None) # Print data for each parameter to a CSV file
+                    # df_p.to_csv(base_folder / 'csv' / (str(each) + '.csv'), index=None) # Print data for each parameter to a CSV file
             
             
             results_list = ['TotalTechnologyModelPeriodActivity',
@@ -4245,7 +4242,7 @@ class DataFile(Osemosys):
             
             df_emi = pd.DataFrame(emi_table, columns=['t','e','m','y','EmissionActivityRatio'])
             df_emi['EmissionActivityRatio'] = df_emi['EmissionActivityRatio'].astype(float)
-            #df_emi.to_csv(os.path.join(base_folder, 'emi_table.csv'), index=None)
+            #df_emi.to_csv(base_folder / 'emi_table.csv', index=None)
             
             ##################################################################################
             
@@ -4390,7 +4387,7 @@ class DataFile(Osemosys):
                 df_combinations = df_combinations[final_cols]
                 
                 
-                df_combinations.to_csv(os.path.join(base_folder, 'csv', each_result+'.csv'), index=None)
+                df_combinations.to_csv(base_folder / 'csv' / (each_result + '.csv'), index=None)
                 
             ####################################################################################
             
@@ -4400,14 +4397,14 @@ class DataFile(Osemosys):
                 region = [x for x in list(df_prod.r.unique()) if str(x) != 'nan']
                 df_prod['r'] = str(region[0])
                 df_prod['RateOfActivity'].fillna(0, inplace=True)
-                #df_prod.to_csv(os.path.join(base_folder, 'output_table.csv'), index=None)
+                #df_prod.to_csv(base_folder / 'output_table.csv', index=None)
                 
                 df_prod['ProductionByTechnologyAnnual'] = df_prod['OutputActivityRatio']*df_prod['YearSplit']*df_prod['RateOfActivity']
                 df_prod = df_prod.drop(['OutputActivityRatio','YearSplit','RateOfActivity'], axis=1)
                 df_prod = df_prod.groupby(['r','t','f','y'])['ProductionByTechnologyAnnual'].sum().reset_index()
                 df_prod['ProductionByTechnologyAnnual'] = df_prod['ProductionByTechnologyAnnual'].astype(float).round(4)
                 df_prod = df_prod.sort_values(by=['r','t','f','y'])
-                df_prod.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnologyAnnual.csv'), index=None)
+                df_prod.to_csv(base_folder / 'csv' / 'ProductionByTechnologyAnnual.csv', index=None)
                 all_params['ProductionByTechnologyAnnual'] = df_prod.rename(columns={'ProductionByTechnologyAnnual':'value'})
 
                 ####################################################################################
@@ -4417,14 +4414,14 @@ class DataFile(Osemosys):
                 region = [x for x in list(df_use.r.unique()) if str(x) != 'nan']
                 df_use['r'] = str(region[0])
                 df_use['RateOfActivity'].fillna(0, inplace=True)
-                #df_use.to_csv(os.path.join(base_folder, 'input_table.csv'), index=None)
+                #df_use.to_csv(base_folder / 'input_table.csv', index=None)
 
                 df_use['UseByTechnologyAnnual'] = df_use['InputActivityRatio']*df_use['YearSplit']*df_use['RateOfActivity']
                 df_use = df_use.drop(['InputActivityRatio','YearSplit','RateOfActivity'], axis=1)
                 df_use = df_use.groupby(['r','t','f','y'])['UseByTechnologyAnnual'].sum().reset_index()
                 df_use['UseByTechnologyAnnual'] = df_use['UseByTechnologyAnnual'].astype(float).round(4)
                 df_use = df_use.sort_values(by=['r','t','f','y'])
-                df_use.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnologyAnnual.csv'), index=None)
+                df_use.to_csv(base_folder / 'csv' / 'UseByTechnologyAnnual.csv', index=None)
                 all_params['UseByTechnologyAnnual'] = df_use.rename(columns={'UseByTechnologyAnnual':'value'})
 
                 ###################################################################################
@@ -4440,7 +4437,7 @@ class DataFile(Osemosys):
                 # df_emi = df_emi.groupby(['r','t','e','y'])['AnnualEmissions'].sum().reset_index()
                 # df_emi['AnnualEmissions'] = df_emi['AnnualEmissions'].astype(float).round(4)
                 # df_emi = df_emi.sort_values(by=['r','t','e','y'])
-                # df_emi.to_csv(os.path.join(base_folder, 'csv', 'AnnualEmissions.csv'), index=None)
+                # df_emi.to_csv(base_folder / 'csv' / 'AnnualEmissions.csv', index=None)
                 # all_params['AnnualEmissions'] = df_emi.rename(columns={'AnnualEmissions':'value'})
 
                 ## 26052023 This variable is calculated in solver, added equation in model file for AnnuallEmisssions V.K.
@@ -4449,7 +4446,7 @@ class DataFile(Osemosys):
                 # df_emi = df_emi.groupby(['r','e','y'])['AnnualEmissions'].sum().reset_index()
                 # df_emi['AnnualEmissions'] = df_emi['AnnualEmissions'].astype(float).round(4)
                 # df_emi = df_emi.sort_values(by=['r','e','y'])
-                # df_emi.to_csv(os.path.join(base_folder, 'csv', 'AnnualEmissions.csv'), index=None)
+                # df_emi.to_csv(base_folder / 'csv' / 'AnnualEmissions.csv', index=None)
                 # all_params['AnnualEmissions'] = df_emi.rename(columns={'AnnualEmissions':'value'})
         except(IOError, IndexError):
             raise IndexError

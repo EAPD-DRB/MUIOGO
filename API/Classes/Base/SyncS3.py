@@ -1,5 +1,4 @@
 import boto3
-import os
 import glob
 from pathlib import Path
 from collections.abc import Iterable 
@@ -65,17 +64,15 @@ class SyncS3():
                         dirs.append(k)
             next_token = results.get('NextContinuationToken')
         for d in dirs:
-            dest_pathname = os.path.join(local, d)
-            if not os.path.exists(os.path.dirname(dest_pathname)):
-                os.makedirs(os.path.dirname(dest_pathname))
+            dest_pathname = Path(local, d)
+            dest_pathname.parent.mkdir(parents=True, exist_ok=True)
         for k in keys:
-            dest_pathname = os.path.join(local, k)
-            if not os.path.exists(os.path.dirname(dest_pathname)):
-                os.makedirs(os.path.dirname(dest_pathname))
-            client.download_file(bucket, k, dest_pathname)
+            dest_pathname = Path(local, k)
+            dest_pathname.parent.mkdir(parents=True, exist_ok=True)
+            client.download_file(bucket, k, str(dest_pathname))
 
     #s3.uploadSync(localDir, case, Config.S3_BUCKET, '*')
-    def uploadSync(self, localDir, awsInitDir, bucketName, tag, prefix=os.sep):
+    def uploadSync(self, localDir, awsInitDir, bucketName, tag, prefix='/'):
         """
         from current working directory, upload a 'localDir' with all its subcontents (files and subdirectories...)
         to a aws bucket
@@ -96,7 +93,7 @@ class SyncS3():
         # mydirs daje listu svvih file i folder u localDir npr WebApp/DataStorage/Demo/genData.json
         mydirs = list(localDir.glob('**'))
         for mydir in mydirs:
-            dirNames = glob.glob(os.path.join(mydir, tag))
+            dirNames = list(mydir.glob(tag))
             fileNames = [f for f in dirNames if not Path(f).is_dir()]
             #rows = len(fileNames)
             for i, FullfileName in enumerate(fileNames):
@@ -104,10 +101,10 @@ class SyncS3():
                 fileName = str(FullfileName).replace(str(localDir), '')
                 if fileName.startswith(prefix):  # only modify the text if it starts with the prefix
                     fileName = fileName.replace(prefix, "", 1) # remove one instance of prefix
-                    fileName = fileName.replace(os.sep, '/')
+                    fileName = fileName.replace('\\', '/').replace('/', '/') # Handles Windows separator and normal separator
 
                 awsPath = str(awsInitDir) + '/' + str(fileName)
-                resource.meta.client.upload_file(FullfileName, bucketName, awsPath)
+                resource.meta.client.upload_file(str(FullfileName), bucketName, awsPath)
 
     def deleteSync(self, case):
         try:
@@ -130,10 +127,11 @@ class SyncS3():
         None
         """
         resource = self.resource
-        fileName = localFile.name
-        localFile = str(localFile).replace(os.sep, '/')
+        localFile_path = Path(localFile)
+        fileName = localFile_path.name
+        localFile_str = str(localFile_path).replace('\\', '/').replace('/', '/')
         if awsInitDir != '':
             awsPath = str(awsInitDir) + '/' + str(fileName)
         else:
             awsPath = str(fileName)
-        resource.meta.client.upload_file(localFile, bucketName, awsPath)
+        resource.meta.client.upload_file(localFile_str, bucketName, awsPath)

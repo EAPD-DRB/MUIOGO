@@ -1,4 +1,3 @@
-import os
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 from Classes.Case.OsemosysClass import Osemosys
@@ -114,7 +113,7 @@ class UpdateCase(Osemosys):
 
     def update_RS(self):
         try:
-            if os.path.isfile(self.rsPath):
+            if self.rsPath.is_file():
                 rsJson = File.readFile(self.rsPath) 
                 RSsource = self.RS(rsJson)
                 stgs = self.genDataUpdate['osy-stg']
@@ -143,7 +142,7 @@ class UpdateCase(Osemosys):
         
     def update_RTSM(self):
         try:
-            if os.path.isfile(self.rtsmPath):
+            if self.rtsmPath.is_file():
                 rtsmJson = File.readFile(self.rtsmPath) 
                 RTSMsource = self.RTSM(rtsmJson)
 
@@ -242,7 +241,7 @@ class UpdateCase(Osemosys):
 
     def update_RYS(self):
         try:
-            if os.path.isfile(self.rysPath):
+            if self.rysPath.is_file():
                 rysJson = File.readFile(self.rysPath) 
                 RYSsource = self.RYS(rysJson)
                 years = self.genDataUpdate['osy-years']
@@ -431,7 +430,7 @@ class UpdateCase(Osemosys):
 
     def update_RYDtb(self):
         try:
-            if os.path.isfile(self.rydtbPath):
+            if self.rydtbPath.is_file():
                 rydtbJson = File.readFile(self.rydtbPath) 
                 RYDtbsource = self.RYDtb(rydtbJson)
                 years = self.genDataUpdate['osy-years']
@@ -463,7 +462,7 @@ class UpdateCase(Osemosys):
 
     def update_RYSeDt(self):
         try:
-            if os.path.isfile(self.rysedtPath):
+            if self.rysedtPath.is_file():
                 rysedtJson = File.readFile(self.rysedtPath) 
                 RYSeDtsource = self.RYSeDt(rysedtJson)
 
@@ -572,7 +571,7 @@ class UpdateCase(Osemosys):
 
     def update_RYTSM(self):
         try:
-            if os.path.isfile(self.rytsmPath):
+            if self.rytsmPath.is_file():
                 rytsmJson = File.readFile(self.rytsmPath) 
                 RYTSMsource = self.RYTSM(rytsmJson)
 

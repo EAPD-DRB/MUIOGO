@@ -16,17 +16,10 @@ def validate_path(base_dir, user_input):
     if "\x00" in base_raw or "\x00" in user_raw:
         raise PermissionError("Path Traversal Attempt Detected")
 
-    base_abs = os.path.realpath(os.path.abspath(os.path.normpath(base_raw)))
-    target_abs = os.path.realpath(
-        os.path.abspath(os.path.normpath(os.path.join(base_abs, user_raw)))
-    )
+    base_abs = Path(base_raw).resolve()
+    target_abs = Path(base_abs, user_raw).resolve()
 
-    try:
-        common = os.path.commonpath([base_abs, target_abs])
-    except ValueError:
-        raise PermissionError("Path Traversal Attempt Detected")
-
-    if common != base_abs or target_abs == base_abs:
+    if not target_abs.is_relative_to(base_abs) or target_abs == base_abs:
         raise PermissionError("Path Traversal Attempt Detected")
 
     return target_abs
@@ -70,7 +63,7 @@ DATA_STORAGE.mkdir(parents=True, exist_ok=True)
 if not os.access(DATA_STORAGE, os.W_OK):
     raise PermissionError(f"Data storage path is not writable: {DATA_STORAGE}")
 #absolute paths
-# OSEMOSYS_ROOT = os.path.abspath(os.getcwd())
+# OSEMOSYS_ROOT = str(Path.cwd().resolve())
 # UPLOAD_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP')
 # WebAPP_PATH = Path(OSEMOSYS_ROOT, 'WebAPP')
 # DATA_STORAGE = Path(OSEMOSYS_ROOT, "WebAPP", 'DataStorage')

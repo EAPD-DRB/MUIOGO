@@ -68,11 +68,10 @@ def deleteCaseRun():
         if not resultsOnly:
             shutil.rmtree(casePath)
         else:
-            for item in os.listdir(casePath):
-                item_path = os.path.join(casePath, item)
-                if os.path.isfile(item_path) or os.path.islink(item_path):
-                    os.remove(item_path)
-                elif os.path.isdir(item_path):
+            for item_path in casePath.iterdir():
+                if item_path.is_file() or item_path.is_symlink():
+                    item_path.unlink()
+                elif item_path.is_dir():
                     shutil.rmtree(item_path)
 
         caserun = DataFile(casename)

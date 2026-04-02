@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify, send_file, after_this_request
 from zipfile import ZipFile
 from pathlib import Path
 from werkzeug.utils import secure_filename
-import os, time, json, glob
+import time, json
 
 from threading import Thread
 
@@ -49,17 +49,16 @@ def download_dir(prefix, local, bucket, client):
                 else:
                     dirs.append(k)
         next_token = results.get('NextContinuationToken')
+    local = Path(local)
     for d in dirs:
-        dest_pathname = os.path.join(local, d)
-        if not os.path.exists(os.path.dirname(dest_pathname)):
-            os.makedirs(os.path.dirname(dest_pathname))
+        dest_path = local / d
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
     for k in keys:
-        dest_pathname = os.path.join(local, k)
-        if not os.path.exists(os.path.dirname(dest_pathname)):
-            os.makedirs(os.path.dirname(dest_pathname))
-        client.download_file(bucket, k, dest_pathname)
+        dest_path = local / k
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        client.download_file(bucket, k, str(dest_path))
 
-def upload_dir(s3, localDir, awsInitDir, bucketName, tag, prefix=os.sep):
+def upload_dir(s3, localDir, awsInitDir, bucketName, tag, prefix='/'):
     """
     from current working directory, upload a 'localDir' with all its subcontents (files and subdirectories...)
     to a aws bucket
@@ -80,19 +79,16 @@ def upload_dir(s3, localDir, awsInitDir, bucketName, tag, prefix=os.sep):
     # mydirs daje listu svvih file i folder u localDir npr WebApp/DataStorage/Demo/genData.json
     mydirs = list(localDir.glob('**'))
     for mydir in mydirs:
-        fileNames = glob.glob(os.path.join(mydir, tag))
-        fileNames = [f for f in fileNames if not Path(f).is_dir()]
-        #rows = len(fileNames)
-        for i, FullfileName in enumerate(fileNames):
+        fileNames = [f for f in mydir.glob(tag) if not f.is_dir()]
+        for FullfileName in fileNames:
             #dobijemo ime file npr, genData.json
             fileName = str(FullfileName).replace(str(localDir), '')
             if fileName.startswith(prefix):  # only modify the text if it starts with the prefix
-                fileName = fileName.replace(prefix, "", 1) # remove one instance of prefix
-                fileName = fileName.replace(os.sep, '/')
+                fileName = fileName.replace(prefix, "", 1)  # remove one instance of prefix
+                fileName = fileName.replace('\\', '/').replace('/', '/')
 
             awsPath = str(awsInitDir) + '/' + str(fileName)
-            # S3.resource.meta.client.upload_file(FullfileName, bucketName, awsPath)
-            s3.resource.meta.client.upload_file(FullfileName, bucketName, awsPath)
+            s3.resource.meta.client.upload_file(str(FullfileName), bucketName, awsPath)
 
 def updateTimeslices(casename):
     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
@@ -185,14 +181,14 @@ class Download(Thread):
     def __init__(self, request, zippedFile):
         Thread.__init__(self)
         self.request = request
-        self.zippedFile = zippedFile
+        self.zippedFile = Path(zippedFile)
 
     def run(self):
         print("wait few seconds for download to finish")
         time.sleep(20)
         #print(self.request)
         #remove zipped file
-        os.remove(self.zippedFile)
+        self.zippedFile.unlink(missing_ok=True)
         print("Deletion of zip archive done!")
 
 
@@ -208,24 +204,15 @@ def backupCase():
 
         '''File system data storage'''
         with ZipFile(zippedFile, 'w') as zipObj:
-            # Iterate over all the files in directory
-            for folderName, subfolders, filenames in os.walk(str(casePath)):
-
-                for filename in filenames:
-                    if filename != 'lp.lp':
-                        #create complete filepath of file in directory
-                        filePath = os.path.join(folderName, filename)
-                        # Add file to zip
-                        zipObj.write(filePath)      
+            for filePath in casePath.rglob('*'):
+                if filePath.is_file() and filePath.name != 'lp.lp':
+                    zipObj.write(filePath)
 
             #osemosys 2.1 backup only input files
-            # for filename in os.listdir(str(casePath)):
-            #     folderName = os.path.join(str(casePath))
-            #     if os.path.isfile(os.path.join(folderName, filename)):
-            #         if filename != 'data.txt':
-            #             #create complete filepath of file in directory
-            #             filePath = os.path.join(folderName, filename)
-            #             # Add file to zip
+            # for filePath in casePath.iterdir():
+            #     if filePath.is_file():
+            #         if filePath.name != 'data.txt':
+            #             zipObj.write(filePath)
             #             zipObj.write(filePath)   
 
         thread_a = Download(request.__copy__(), zippedFile)
@@ -249,14 +236,14 @@ def uploadCaseUnchunked_old():
             file = files[1]
             submitted_file = file.filename
             
-            case = os.path.splitext(submitted_file)[0]
+            case = Path(submitted_file).stem
 
             if submitted_file and allowed_filename(submitted_file):
                 filename = secure_filename(submitted_file)
                 #spasiti zip u data storage
-                file.save(os.path.join(Config.DATA_STORAGE, filename))
+                file.save(Config.DATA_STORAGE / filename)
                 #zipfiles = []
-                with ZipFile(os.path.join(Config.DATA_STORAGE, filename)) as zf:
+                with ZipFile(Config.DATA_STORAGE / filename) as zf:
                     errorcode = 1
                     for zippedfile in zf.namelist():
                         # one = zippedfile
@@ -269,13 +256,13 @@ def uploadCaseUnchunked_old():
                         if 'genData.json' == zippedfilename:
                             errorcode = 0
                             
-                            if not os.path.exists(Path(Config.DATA_STORAGE,casename)):
+                            if not Path(Config.DATA_STORAGE, casename).exists():
                                 data = json.loads(zf.read(zippedfile).decode('ISO-8859-1'))
                                 #name = data['else-version']
                                 name = data.get('osy-version', None)
 
                                 if name == '1.0' or name == '2.0':
-                                    zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                                    zf.extractall(Config.EXTRACT_FOLDER)
 
                                     #add res view folders with json default files
                                     configPath = Path(Config.DATA_STORAGE, 'Variables.json')
@@ -285,21 +272,20 @@ def uploadCaseUnchunked_old():
                                         for list in lists:
                                             viewDef[list['id']] = []
 
-                                    resPath = Path(Config.DATA_STORAGE,case,'res')
-                                    viewPath = Path(Config.DATA_STORAGE,case,'view')
-                                    resDataPath = Path(Config.DATA_STORAGE,case,'view','resData.json')
-                                    viewDataPath = Path(Config.DATA_STORAGE,case,'view','viewDefinitions.json')
+                                    resPath = Path(Config.DATA_STORAGE, case, 'res')
+                                    viewPath = Path(Config.DATA_STORAGE, case, 'view')
+                                    resDataPath = Path(Config.DATA_STORAGE, case, 'view', 'resData.json')
+                                    viewDataPath = Path(Config.DATA_STORAGE, case, 'view', 'viewDefinitions.json')
 
                                     # remove res and view folder if ver 1.0
-                                    if os.path.exists(resPath):
+                                    if resPath.exists():
                                         shutil.rmtree(resPath)
 
-                                    if os.path.exists(viewPath):
+                                    if viewPath.exists():
                                         shutil.rmtree(viewPath)
 
-                                    
-                                    os.makedirs(resPath, exist_ok=True)
-                                    os.makedirs(viewPath, exist_ok=True)
+                                    resPath.mkdir(parents=True, exist_ok=True)
+                                    viewPath.mkdir(parents=True, exist_ok=True)
                                     resData = {
                                         "osy-cases":[]
                                     }
@@ -322,7 +308,7 @@ def uploadCaseUnchunked_old():
                                 elif name == '3.0': 
                                     #potrebno dodati tech groups
                                     #case = data.get('osy-casename', None)
-                                    zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                                    zf.extractall(Config.EXTRACT_FOLDER)
                                     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                                     genData = File.readParamFile(genDataPath)
                                     genData["osy-techGroups"] = []
@@ -341,7 +327,7 @@ def uploadCaseUnchunked_old():
                                         "casename": casename
                                     })
                                 elif name == '4.0' or name == '4.5' or name == '4.9': 
-                                    zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                                    zf.extractall(Config.EXTRACT_FOLDER)
                                     # potrebno updatevoati YearSplit u verziji 5.0 su dinamicki
                                     #update for dynamic timeslicec
                                     updateTimeslices(casename)
@@ -357,7 +343,7 @@ def uploadCaseUnchunked_old():
                                     })
 
                                 # elif name == '4.9': 
-                                #     zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                                #     zf.extractall(Config.EXTRACT_FOLDER)
                                 #     # potrebno updatevoati YearSplit u verziji 5.0 su dinamicki
                                 #     #update for dynamic timeslicec
                                 #     updateTimeslices(casename)
@@ -369,7 +355,7 @@ def uploadCaseUnchunked_old():
                                 #         })
 
                                 elif name == '5.0': 
-                                    zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                                    zf.extractall(Config.EXTRACT_FOLDER)
                                     updateViewDefintions(casename)
                                     msg.append({
                                         "message": "Model " + casename +" have been uploaded!",
@@ -392,7 +378,7 @@ def uploadCaseUnchunked_old():
                             "message": "ZIP archive " + case +" is not valid archive!",
                             "status_code": "error"
                         })
-                os.remove(os.path.join(Config.DATA_STORAGE, filename))
+                (Config.DATA_STORAGE / filename).unlink(missing_ok=True)
         
         response = {
             "response" :msg
@@ -410,13 +396,13 @@ def handle_full_zip(file, filepath=None):
     # Ako je file objekat (upload iz browsera)
     if filepath is None:
         submitted_file = file.filename
-        filepath = Config.validate_path(Config.DATA_STORAGE, submitted_file)
+        filepath = Path(Config.validate_path(Config.DATA_STORAGE, submitted_file))
         file.save(filepath)
     else:
-        filepath = Config.validate_path(Config.DATA_STORAGE, filepath)
-        submitted_file = os.path.basename(filepath)
+        filepath = Path(Config.validate_path(Config.DATA_STORAGE, filepath))
+        submitted_file = filepath.name
 
-    case = os.path.splitext(submitted_file)[0]
+    case = filepath.stem
 
     if submitted_file and allowed_filename(submitted_file):
         filename = secure_filename(submitted_file)
@@ -446,14 +432,14 @@ def handle_full_zip(file, filepath=None):
             casename = zippedfilepath.parent.name
             if 'genData.json' == zippedfilename:
                 errorcode = 0
-                if not os.path.exists(Path(Config.DATA_STORAGE,casename)):
+                if not Path(Config.DATA_STORAGE, casename).exists():
                     data = json.loads(zf.read(target_info).decode('ISO-8859-1'))
                     name = data.get('osy-version', None)
                     # --------------------------- 
                     #     TVOJA ORIGINALNA LOGIKA
                     # ---------------------------
                     if name == '1.0' or name == '2.0':
-                        zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                        zf.extractall(Config.EXTRACT_FOLDER)
                         configPath = Path(Config.DATA_STORAGE, 'Variables.json')
                         vars = File.readParamFile(configPath)
                         viewDef = {}
@@ -464,12 +450,12 @@ def handle_full_zip(file, filepath=None):
                         viewPath = Path(Config.DATA_STORAGE,casename,'view')
                         resDataPath = Path(Config.DATA_STORAGE,case,'view','resData.json')
                         viewDataPath = Path(Config.DATA_STORAGE,case,'view','viewDefinitions.json')
-                        if os.path.exists(resPath):
+                        if resPath.exists():
                             shutil.rmtree(resPath)
-                        if os.path.exists(viewPath):
+                        if viewPath.exists():
                             shutil.rmtree(viewPath)
-                        os.makedirs(resPath, exist_ok=True)
-                        os.makedirs(viewPath, exist_ok=True)
+                        resPath.mkdir(parents=True, exist_ok=True)
+                        viewPath.mkdir(parents=True, exist_ok=True)
                         resData = {"osy-cases":[]}
                         File.writeFile(resData, resDataPath)
                         viewData = {"osy-views": viewDef}
@@ -482,7 +468,7 @@ def handle_full_zip(file, filepath=None):
                             "casename": casename
                         })
                     elif name == '3.0':
-                        zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                        zf.extractall(Config.EXTRACT_FOLDER)
                         genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                         genData = File.readParamFile(genDataPath)
                         genData["osy-techGroups"] = []
@@ -498,7 +484,7 @@ def handle_full_zip(file, filepath=None):
                             "casename": casename
                         })
                     elif name in ['4.0', '4.5', '4.9']:
-                        zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                        zf.extractall(Config.EXTRACT_FOLDER)
                         updateTimeslices(casename)
                         updateStorageSet(casename)
                         updateViewDefintions(casename)
@@ -509,7 +495,7 @@ def handle_full_zip(file, filepath=None):
                             "casename": casename
                         })
                     elif name == '5.0':
-                        zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
+                        zf.extractall(Config.EXTRACT_FOLDER)
                         updateViewDefintions(casename)
                         msg.append({
                             "message": "Model " + casename +" have been uploaded!",
@@ -534,7 +520,7 @@ def handle_full_zip(file, filepath=None):
                     "status_code": "error"
                 })
 
-        os.remove(filepath)
+        filepath.unlink(missing_ok=True)
 
     return jsonify({"response": msg}), 200
 
@@ -563,16 +549,16 @@ def uploadCase():
         # -------------------------------
         # 2) Snimi chunk
         # -------------------------------
-        chunk_dir = Config.validate_path(Config.DATA_STORAGE, Path("_chunks", dz_uuid))
-        os.makedirs(chunk_dir, exist_ok=True)
+        chunk_dir = Path(Config.validate_path(Config.DATA_STORAGE, Path("_chunks", dz_uuid)))
+        chunk_dir.mkdir(parents=True, exist_ok=True)
 
-        chunk_path = os.path.join(chunk_dir, f"chunk_{dz_chunk_index}")
+        chunk_path = chunk_dir / f"chunk_{dz_chunk_index}"
         file.save(chunk_path)
 
         # -------------------------------
         # 3) Provjeri jesu li stigli svi
         # -------------------------------
-        chunks_received = len(os.listdir(chunk_dir))
+        chunks_received = sum(1 for _ in chunk_dir.iterdir())
 
         if chunks_received < dz_total_chunks:
             return jsonify({"status": f"received {chunks_received}/{dz_total_chunks}"}), 200
@@ -580,11 +566,11 @@ def uploadCase():
         # -------------------------------
         # 4) Spajanje ZIP fajla
         # -------------------------------
-        final_zip = Config.validate_path(Config.DATA_STORAGE, f"{dz_uuid}.zip")
+        final_zip = Path(Config.validate_path(Config.DATA_STORAGE, f"{dz_uuid}.zip"))
 
         with open(final_zip, "wb") as merged:
             for i in range(dz_total_chunks):
-                part_path = os.path.join(chunk_dir, f"chunk_{i}")
+                part_path = chunk_dir / f"chunk_{i}"
                 with open(part_path, "rb") as part:
                     merged.write(part.read())
 
@@ -592,9 +578,9 @@ def uploadCase():
         shutil.rmtree(chunk_dir)
 
         # Now remove parent folder if it is empty
-        parent = os.path.dirname(chunk_dir)
-        if os.path.exists(parent) and not os.listdir(parent):
-            os.rmdir(parent)
+        parent = chunk_dir.parent
+        if parent.exists() and not any(parent.iterdir()):
+            parent.rmdir()
 
         # -------------------------------
         # 5) Pokreni TVOJ originalni ZIP handler
@@ -616,18 +602,18 @@ def uploadXls():
             file = files[1]
             submitted_file = file.filename
             
-            case = os.path.splitext(submitted_file)[0]
+            case = Path(submitted_file).stem
 
             if submitted_file and allowed_filename_xls(submitted_file):
                 filename = secure_filename(submitted_file)
                 #spasiti zip u data storage
-                file.save(os.path.join(Config.DATA_STORAGE, filename))
+                file.save(Config.DATA_STORAGE / filename)
 
                 #ako ima space u umenu rename file
                 # filename_nosapces = filename[:]
                 # filename_nosapces.replace(" ","")
                 # if( filename_nosapces != filename):
-                #     os.rename(os.path.join(Config.DATA_STORAGE, filename), os.path.join(Config.DATA_STORAGE, filename_nosapces))
+                #     (Config.DATA_STORAGE / filename).rename(Config.DATA_STORAGE / filename_nosapces)
                 #     filename = filename_nosapces
         
                 msg.append({
