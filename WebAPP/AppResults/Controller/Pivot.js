@@ -443,6 +443,10 @@ export default class Pivot {
                 app.engine.fields.getField('Emi').isContentHtml = true;
                 app.engine.fields.getField('Emi Desc').isContentHtml = true;
             }
+            else if (group == "RYCn") { 
+                app.engine.fields.getField('Con').isContentHtml = true;
+                app.engine.fields.getField('Con Desc').isContentHtml = true;
+            }
             else{
                 app.engine.fields.getField('Tech').isContentHtml = true;
                 app.engine.fields.getField('Tech Desc').isContentHtml = true;
@@ -571,6 +575,10 @@ export default class Pivot {
                     app.engine.rowFields.push('Case');
                     app.engine.valueFields.push('Value');
                 }
+                else if (model.group == 'RY') {
+                    app.engine.rowFields.push('Case', 'Year');
+                    app.engine.valueFields.push('Value');
+                }
                 else if(model.group == 'RYE' ){
                     app.engine.columnFields.push('Emi');
                     app.engine.rowFields.push('Case','Year');
@@ -640,11 +648,11 @@ export default class Pivot {
                 }
                 console.log('view ok')
                 app.engine.fields.getField('Unit').isContentHtml = true;
-                if(model.group != "RYS" && model.group != "RYCTs" && model.group != "RYC" && model.group != "RYE" && model.group != "RYCn"&& model.group != "R"){
+                if (model.group != "RYS" && model.group != "RYCTs" && model.group != "RYC" && model.group != "RYE" && model.group != "RYCn" && model.group != "R" && model.group != "RY"){
                     app.engine.fields.getField('Tech').isContentHtml = true;
                     app.engine.fields.getField('Tech Desc').isContentHtml = true;
                 }
-                if(model.group == "RYTC" || model.group == "RYCTs" || model.group == "RYTCMTs" || model.group == "RYC"){
+                if (model.group == "RYTC" || model.group == "RYCTs" || model.group == "RYTCMTs" || model.group == "RYC"){
                     app.engine.fields.getField('Comm').isContentHtml = true;
                     app.engine.fields.getField('Comm Desc').isContentHtml = true;
                 }
@@ -664,6 +672,7 @@ export default class Pivot {
                 Message.loaderEnd();
             }
             else{
+                app.engine.itemsSource = [];
                 Message.dangerOsy("Results do not contain values for variable <b>"+model.VARNAMES[model.group][model.param] + "</b> please check input data and rerun the model.")
                 Message.loaderEnd();
             }
@@ -679,21 +688,25 @@ export default class Pivot {
         if(model.VIEW == 'null'){
             app.engine.viewDefinition = model.DEFAULTVIEW;
             app.pivotChart.header = '';
-            if(model.group != "RYS" && model.group != "RYCTs"){
+            if (model.group != "RYS" && model.group != "RYCTs" && model.group != "RYC" && model.group != "RYE" && model.group != "RYCn" && model.group != "R") {
                 app.engine.fields.getField('Tech').isContentHtml = true;
                 app.engine.fields.getField('Tech Desc').isContentHtml = true;
             }
-            if(model.group == "RYTC" || model.group == "RYCTs" || model.group == "RYTCMTs"){
+            if (model.group == "RYTC" || model.group == "RYCTs" || model.group == "RYTCMTs" || model.group == "RYC"){
                 app.engine.fields.getField('Comm').isContentHtml = true;
                 app.engine.fields.getField('Comm Desc').isContentHtml = true;
             }
-            if(model.group == "RYTE" || model.group == "RYTEM"){
+            if(model.group == "RYTE" || model.group == "RYTEM" || model.group == "RYE"){
                 app.engine.fields.getField('Emi').isContentHtml = true;
                 app.engine.fields.getField('Emi Desc').isContentHtml = true;
             }
             if(model.group == "RYS"){
                 app.engine.fields.getField('Stg').isContentHtml = true;
                 app.engine.fields.getField('Stg Desc').isContentHtml = true;
+            }
+            if(model.group == "RYCn"){
+                app.engine.fields.getField('Con').isContentHtml = true;
+                app.engine.fields.getField('Con Desc').isContentHtml = true;
             }
             Html.title(model.casename, model.VARNAMES[model.group][model.param], model.group+' Default view');
         }
@@ -721,15 +734,15 @@ export default class Pivot {
                             // app.engine.fields.getField('Unit').isContentHtml = true;
                             // app.engine.fields.getField('Tech').isContentHtml = true;
                             // app.engine.fields.getField('Tech Desc').isContentHtml = true;
-                            if(model.group != "RYS" && model.group != "RYCTs"){
+                            if (model.group != "RYS" && model.group != "RYCTs" && model.group != "RYC" && model.group != "RYE" && model.group != "RYCn" && model.group != "R"){
                                 app.engine.fields.getField('Tech').isContentHtml = true;
                                 app.engine.fields.getField('Tech Desc').isContentHtml = true;
                             }
-                            if(model.group == "RYTC" || model.group == "RYCTs" || model.group == "RYTCMTs"){
+                            if (model.group == "RYTC" || model.group == "RYCTs" || model.group == "RYTCMTs" || model.group == "RYC"){
                                 app.engine.fields.getField('Comm').isContentHtml = true;
                                 app.engine.fields.getField('Comm Desc').isContentHtml = true;
                             }
-                            if(model.group == "RYTE" || model.group == "RYTEM"){
+                            if (model.group == "RYTE" || model.group == "RYTEM" || model.group == "RYE"){
                                 app.engine.fields.getField('Emi').isContentHtml = true;
                                 app.engine.fields.getField('Emi Desc').isContentHtml = true;
                             }
@@ -737,7 +750,10 @@ export default class Pivot {
                                 app.engine.fields.getField('Stg').isContentHtml = true;
                                 app.engine.fields.getField('Stg Desc').isContentHtml = true;
                             }
-
+                            if (model.group == "RYCn") {
+                                app.engine.fields.getField('Con').isContentHtml = true;
+                                app.engine.fields.getField('Con Desc').isContentHtml = true;
+                            }
                         } 
                     }
                     else{

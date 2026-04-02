@@ -1,6 +1,6 @@
 
 import { DataModel} from "./DataModel.Class.js"
-import { UNITDEFINITION, VAR_TECH_GROUPS, VAR_COMM_GROUPS, VAR_EMIS_GROUPS, VAR_STORAGE_GROUPS } from "./Const.Class.js";
+import { VAR_TECH_GROUPS, VAR_COMM_GROUPS, VAR_EMIS_GROUPS, VAR_STORAGE_GROUPS, VAR_CON_GROUPS } from "./Const.Class.js";
 
 export class DataModelResult{
 
@@ -145,6 +145,7 @@ export class DataModelResult{
                         unitData[group][obj.id][tObj.Tech]['CapUnitId'] = techUnits[tObj.TechId]['CapUnitId'];
                         unitData[group][obj.id][tObj.Tech]['ActUnitId'] = techUnits[tObj.TechId]['ActUnitId'];
                         unitData[group][obj.id][tObj.Tech]['Currency'] = genData['osy-currency'];
+                        unitData[group][obj.id][tObj.Tech]['number'] = 'number';
                     });
                 }
                 //comm parameters
@@ -191,6 +192,21 @@ export class DataModelResult{
                         unitData[group][obj.id][eObj.Stg]['Currency'] = genData['osy-currency'];
                     });
                 }
+                // con parameters
+                if (VAR_CON_GROUPS.includes(group)) {
+                    $.each(genData['osy-constraints'], function (id, cObj) {
+                        unitData[group][obj.id][cObj.Con] = {};
+                        unitData[group][obj.id][cObj.Con]['years'] = 'years';
+                        unitData[group][obj.id][cObj.Con]['percent'] = '%';
+                        unitData[group][obj.id][cObj.Con]['divide'] = '/';
+                        unitData[group][obj.id][cObj.Con]['multiply'] = '*';
+                        unitData[group][obj.id][cObj.Con]['hundert'] = '100';
+                        unitData[group][obj.id][cObj.Con]['thousand'] = '10<sup>3</sup>';
+                        unitData[group][obj.id][cObj.Con]['milion'] = '10<sup>6</sup>';
+                        unitData[group][obj.id][cObj.Con]['Currency'] = genData['osy-currency'];
+                        unitData[group][obj.id][cObj.Con]['number'] = 'number';
+                    });
+                }
                 unitData[group][obj.id]['years'] = 'years';
                 unitData[group][obj.id]['number'] = 'number';
                 unitData[group][obj.id]['percent'] = '%';
@@ -199,8 +215,6 @@ export class DataModelResult{
                 unitData[group][obj.id]['hundert'] = '100';
                 unitData[group][obj.id]['thousand'] = '10<sup>3</sup>';
                 unitData[group][obj.id]['milion'] = '10<sup>6</sup>';
-                unitData[group][obj.id]['hundert'] = '100';
-                unitData[group][obj.id]['thousand'] = '10<sup>3</sup>';
             });
         });
         return unitData;       
@@ -228,6 +242,7 @@ export class DataModelResult{
         let dataC = {};
         let dataE = {};
         let dataS = {};
+        let dataCon = {};
 
         $.each(DATA[param], function (cs, array) {    
             //console.log('DATA ', DATA[param]) 
@@ -275,7 +290,7 @@ export class DataModelResult{
                         // chunk['Unit'] = jsonLogic.apply(rule, data);
                         
 
-                        if(obj.Comm){
+                        if (obj.Comm && !obj.Tech) {
                             
                             //uslov dodan vk 18072924 ako smo izbrisali commodity a postoji u resulttima
                             if(obj.Comm in commData){
@@ -298,8 +313,10 @@ export class DataModelResult{
                             if(obj.Con in conData){
                                 chunk['Con'] = obj.Con;
                                 chunk['ConDesc'] = conData[obj.Con]["Desc"];
-                                chunk['Unit'] = 'n/a';
-                               
+
+                                dataCon = unitData[group][param][obj.Con];
+                                let rule = paramById[group][param]['unitRule'];
+                                chunk['Unit'] = jsonLogic.apply(rule, { ...dataCon });
                             }
                             else{
                                 chunk['Con'] = '<i class="fa fa-exclamation-triangle danger" aria-hidden="true"></i> ' +obj.Con;
@@ -338,7 +355,7 @@ export class DataModelResult{
                                 chunk['Unit'] = '<i class="fa fa-exclamation-triangle danger" aria-hidden="true"></i> n/a';
                             }
                         }
-                        if(obj.Tech){
+                        if (obj.Tech && !obj.Comm) {
                             //console.log('techData ', obj.Tech, '------',  techData[obj.Tech])   //DEMINDLFO 
                             //vk 18972024 ovaj uslov dodat - ako korisnik izbrise tech on ce ostati u view json filovima i doci ce do greske, ovaj tech se mora ignorisati u pivotdata
                             if(obj.Tech in techData){
@@ -380,6 +397,54 @@ export class DataModelResult{
                                 pivotData.push(chunk);
                             }
     
+                        }
+                        if (obj.Tech && obj.Comm) {
+                            if (obj.Tech in techData && obj.Comm in commData) {
+                                let rule = paramById[group][param]['unitRule'];
+                                dataT = unitData[group][param][obj.Tech];
+                                dataC = unitData[group][param][obj.Comm];
+
+                                // console.log('dataT ', dataT, 'dataC ', dataC, 'rule ', rule, 'group ', group, 'param ', param)
+                                if (techData[obj.Tech].TG.length != 0) {
+                                    $.each(techData[obj.Tech].TG, function (id, tg) {
+                                        let tmp = {};
+                                        tmp = JSON.parse(JSON.stringify(chunk));
+                                        tmp['Tech'] = obj.Tech;
+                                        tmp['TechGroup'] = techGroupNames[tg];
+                                        tmp['TechDesc'] = techData[obj.Tech]["Desc"];
+                                        tmp['TechGroupDesc'] = techGroupData[tg]["Desc"];
+
+                                        console.log('jsonLogic.apply(rule, {...dataT, ...dataC}) ', jsonLogic.apply(rule, { ...dataT, ...dataC }));
+                                        tmp['Unit'] = jsonLogic.apply(rule, { ...dataT, ...dataC });
+
+                                        tmp['Comm'] = obj.Comm;
+                                        tmp['CommDesc'] = commData[obj.Comm]["Desc"];
+                                        pivotData.push(tmp);
+                                    })
+                                }
+                                else {
+                                    chunk['Tech'] = obj.Tech;
+                                    chunk['TechGroup'] = 'No group';
+                                    chunk['TechDesc'] = techData[obj.Tech]["Desc"];
+                                    chunk['TechGroupDesc'] = 'No group';
+                                    chunk['Unit'] = jsonLogic.apply(rule, { ...dataT, ...dataC });
+                                    //pivotData.push(chunk);
+                                    chunk['Comm'] = obj.Comm;
+                                    chunk['CommDesc'] = commData[obj.Comm]["Desc"];
+                                    pivotData.push(chunk);
+                                }
+                            }
+                            else {
+                                chunk['Tech'] = '<i class="fa fa-exclamation-triangle danger" aria-hidden="true"></i> ' + obj.Tech;
+                                chunk['TechGroup'] = 'No group';
+                                chunk['TechDesc'] = '<i class="fa fa-exclamation-triangle danger" aria-hidden="true"></i> ' + obj.Tech + " deleted from model";
+                                chunk['TechGroupDesc'] = 'No group';
+                                chunk['Unit'] = '<i class="fa fa-exclamation-triangle danger" aria-hidden="true"></i> n/a';
+
+                                chunk['Comm'] = '<i class="fa fa-exclamation-triangle danger" aria-hidden="true"></i> ' + obj.Comm;
+                                chunk['CommDesc'] = '<i class="fa fa-exclamation-triangle danger" aria-hidden="true"></i> ' + obj.Comm + " deleted from model";
+                                pivotData.push(chunk);
+                            }
                         }
                         if(!obj.Tech){
                             pivotData.push(chunk);

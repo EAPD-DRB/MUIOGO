@@ -63,11 +63,13 @@ export const PARAM_TECH_GROUPS = ['RT', 'RYT', 'RYTM', 'RYTC', 'RYTCn', 'RYTCM',
 export const PARAM_COMM_GROUPS = ['RYC', 'RYTC', 'RYTCM','RYCTs']
 export const PARAM_EMIS_GROUPS = ['RE', 'RYE', 'RYTE', 'RYTEM']
 export const PARAM_STORAGE_GROUPS = ['RS', 'RYS', 'RTSM', 'RYTEM']
+export const PARAM_CON_GROUPS = ['RYCn']
 
 export const VAR_TECH_GROUPS = ['RT', 'RYT', 'RYTM', 'RYTC', 'RYTE', 'RYTEM', 'RYTMTs', 'RYTCMTs']
-export const VAR_COMM_GROUPS = ['RYTC','RYCTs','RYTCMTs']
-export const VAR_EMIS_GROUPS = ['RYTE', 'RYTEM']
+export const VAR_COMM_GROUPS = ['RYTC', 'RYCTs', 'RYTCMTs', 'RYC']
+export const VAR_EMIS_GROUPS = ['RYTE', 'RYTEM', 'RYE']
 export const VAR_STORAGE_GROUPS = ['RYS']
+export const VAR_CON_GROUPS = ['RYCn']
 
 export const GROUPNAMES = {
     "R": "Region",
@@ -96,10 +98,14 @@ export const GROUPNAMES = {
 }
 
 export const RESULTGROUPNAMES = {
+    "R": "Region",
+    "RY"    :"Region, year",
     "RT"    :"Region, technology",
     "RYT"    :"Region, year, technology",
     "RYE"    :"Region, year, emission",
     "RYS"    :"Region, year, storage",
+    "RYC"   : "Region, year, commodity",
+    "RYCn"  : "Region, year, constraint",
     "RYTM"  :"Region, year, technology, mode of operation",
     "RYTC"  :"Region, year, technology, commodity",
     "RYTE"      :"Region, year, technology, emission",
@@ -141,7 +147,6 @@ export const PARAMCOLORS = {
     "RE": "yellow",
     "RYCn": "pink",
     "RYTs": "red",
-    "RYDtb": "blue",
     "RYDtb": "red",
     "RYT": "greenLight",
     "RYTCn": "pink",
@@ -161,8 +166,10 @@ export const PARAMCOLORS = {
 export const RESULTPARAMORDER = [ 
     "RT"    ,     
     "RYT"    ,     
-    "RYE"    , 
-    "RYS"    ,
+    "RYC",
+    "RYE",
+    "RYS",
+    "RYCn",
     "RYTM"  ,   
     "RYTC" , 
     "RYTE"  ,     
@@ -187,7 +194,9 @@ export const RESULTPARAMCOLORS = {
     "RYTEM": "grey",
     "RYTCTs": "pink",
     "RYTMTs": "teal",
-    "RYTCMTs": "blue"
+    "RYTCMTs": "blue",
+    "RYC": "grey",
+    "RYCn": "pink",
 }
 
 export const UNITS = 
