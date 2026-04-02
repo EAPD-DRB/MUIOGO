@@ -7,7 +7,7 @@
             "unitRule": {
                 "cat": [
                     {
-                        "var": ""
+                        "var": "number"
                     }
                 ]
             }
@@ -117,7 +117,11 @@
             "value": "Number Of New Technology Units",
             "name": "NumberOfNewTechnologyUnits",
             "unitRule": {
-                "cat": []
+                "cat": [
+                    {
+                        "var": "number"
+                    }
+                ]
             }
         },
         {
@@ -154,21 +158,10 @@
             "unitRule": {
                 "cat": [
                     {
-                        "var": "CapUnitId"
-                    }
-                ]
-            }
-        }
-    ],
-    "RYC": [
-        {
-            "id": "EB_d",
-            "value": "Shadow price - Annual Commodity Balance",
-            "name": "EBb4_EnergyBalanceEachYear4_ICR",
-            "unitRule": {
-                "cat": [
+                        "var": "milion"
+                    },
                     {
-                        "var": "CapUnitId"
+                        "var": "Currency"
                     }
                 ]
             }
@@ -182,33 +175,16 @@
             "unitRule": {
                 "cat": [
                     {
+                        "var": "milion"
+                    },
+                    {
+                        "var": "Currency"
+                    },
+                    {
+                        "var": "divide"
+                    },
+                    {
                         "var": "EmiUnit"
-                    }
-                ]
-            }
-        }
-    ],
-    "RYCn": [
-        {
-            "id": "UDCI_d",
-            "value": "Shadow price - UDC Inequality",
-            "name": "UDC1_UserDefinedConstraintInequality",
-            "unitRule": {
-                "cat": [
-                    {
-                        "var": ""
-                    }
-                ]
-            }
-        },
-        {
-            "id": "UDCE_d",
-            "value": "Shadow price - UDC Equality",
-            "name": "UDC2_UserDefinedConstraintEquality",
-            "unitRule": {
-                "cat": [
-                    {
-                        "var": ""
                     }
                 ]
             }
@@ -251,7 +227,6 @@
                 ]
             }
         },
-
         {
             "id": "SVS",
             "value": "Salvage Value Storage",
@@ -278,6 +253,55 @@
                     },
                     {
                         "var": "Currency"
+                    }
+                ]
+            }
+        }
+    ],
+    "RYC": [
+        {
+            "id": "EB_d",
+            "value": "Shadow price - Energy Balance",
+            "name": "EBb4_EnergyBalanceEachYear4_ICR",
+            "unitRule": {
+                "cat": [
+                    {
+                        "var": "milion"
+                    },
+                    {
+                        "var": "Currency"
+                    },
+                    {
+                        "var": "divide"
+                    },
+                    {
+                        "var": "EmiUnit"
+                    }
+                ]
+            }
+        }
+    ],
+    "RYCn": [
+        {
+            "id": "UDCI_d",
+            "value": "Shadow price - UDC Inequality",
+            "name": "UDC1_UserDefinedConstraintInequality",
+            "unitRule": {
+                "cat": [
+                    {
+                        "var": "number"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "UDCE_d",
+            "value": "Shadow price - UDC Equality",
+            "name": "UDC2_UserDefinedConstraintEquality",
+            "unitRule": {
+                "cat": [
+                    {
+                        "var": "number"
                     }
                 ]
             }
@@ -386,6 +410,12 @@
                 "cat": [
                     {
                         "var": "ActUnitId"
+                    },
+                    {
+                        "var": "divide"
+                    },
+                    {
+                        "var": "years"
                     }
                 ]
             }
@@ -412,6 +442,12 @@
                 "cat": [
                     {
                         "var": "CommUnit"
+                    },
+                    {
+                        "var": "divide"
+                    },
+                    {
+                        "var": "years"
                     }
                 ]
             }
@@ -424,6 +460,12 @@
                 "cat": [
                     {
                         "var": "CommUnit"
+                    },
+                    {
+                        "var": "divide"
+                    },
+                    {
+                        "var": "years"
                     }
                 ]
             }
