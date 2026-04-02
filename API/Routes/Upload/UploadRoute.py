@@ -215,8 +215,12 @@ def backupCase():
                     if filename != 'lp.lp':
                         #create complete filepath of file in directory
                         filePath = os.path.join(folderName, filename)
+                        
+                        # Calculate relative path so archive stores 'CaseName/...' instead of absolute system paths
+                        arcname = os.path.relpath(filePath, str(casePath.parent))
+                        
                         # Add file to zip
-                        zipObj.write(filePath)      
+                        zipObj.write(filePath, arcname=arcname)      
 
             #osemosys 2.1 backup only input files
             # for filename in os.listdir(str(casePath)):
