@@ -171,6 +171,8 @@ def downloadDataFile():
         # return jsonify(response), 200
         #path = "/Examples.pdf"
         case = session.get('osycase', None)
+        if case is None:
+            return jsonify({'message': 'No active session. Please select a model first.', 'status_code': 'error'}), 400
         caserunname = request.args.get('caserunname')
         dataFile = Path(Config.DATA_STORAGE,case, 'res',caserunname, 'data.txt')
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
@@ -182,6 +184,8 @@ def downloadDataFile():
 def downloadFile():
     try:
         case = session.get('osycase', None)
+        if case is None:
+            return jsonify({'message': 'No active session. Please select a model first.', 'status_code': 'error'}), 400
         file = request.args.get('file')
         dataFile = Path(Config.DATA_STORAGE,case,'res','csv',file)
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
@@ -193,6 +197,8 @@ def downloadFile():
 def downloadCSVFile():
     try:
         case = session.get('osycase', None)
+        if case is None:
+            return jsonify({'message': 'No active session. Please select a model first.', 'status_code': 'error'}), 400
         file = request.args.get('file')
         caserunname = request.args.get('caserunname')
         dataFile = Path(Config.DATA_STORAGE,case,'res',caserunname,'csv',file)
@@ -205,6 +211,8 @@ def downloadCSVFile():
 def downloadResultsFile():
     try:
         case = session.get('osycase', None)
+        if case is None:
+            return jsonify({'message': 'No active session. Please select a model first.', 'status_code': 'error'}), 400
         caserunname = request.args.get('caserunname')
         dataFile = Path(Config.DATA_STORAGE,case, 'res', caserunname,'results.txt')
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
