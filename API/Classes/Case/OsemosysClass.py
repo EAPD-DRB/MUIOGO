@@ -947,10 +947,11 @@ class Osemosys():
             jsonData = File.readFile(jsonPath)
 
             for obj in jsonData[ParamId][ScId]:
-                for k,v in obj.items():
-                    if ((k == TechId if TechId is not None else True) and 
-                        (k == EmisId if EmisId is not None else True)):
-                        obj[k] = value
+                if TechId is not None and TechId in obj:
+                    if EmisId is not None and EmisId in obj[TechId]:
+                        obj[TechId][EmisId] = value
+                    elif EmisId is None:
+                        obj[TechId] = value
             File.writeFile( jsonData, jsonPath)
         except(IOError):
             raise IOError
