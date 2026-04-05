@@ -1,0 +1,55 @@
+name: Feature or task
+description: Propose implementation work with clear acceptance criteria.
+title: "[Task] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem are we solving?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe scope and approach.
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List objective criteria for completion.
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: false
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and constraints
+      description: Upstream or downstream constraints, blocked items, or external dependencies.
+    validations:
+      required: false
+  - type: textarea
+    id: related_work
+    attributes:
+      label: Related work checked
+      description: List anything relevant you checked before opening this issue. Use issue/PR numbers like #123, or write `None found after search`.
+    validations:
+      required: false
+  - type: dropdown
+    id: proposed_track
+    attributes:
+      label: Proposed track
+      description: Optional. Maintainers will assign the final track label.
+      options:
+        - Track: Cross-Platform
+        - Track: OG Onboarding
+        - Track: Integration
+        - Track: Stability
+    validations:
+      required: false

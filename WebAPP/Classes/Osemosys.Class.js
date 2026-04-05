@@ -415,19 +415,35 @@ export class Osemosys {
     //     .catch(error => error);
     // }
 
-    static getData(casename, dataJson) {
-        // return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"})
-        // .then(response => response.json())
-        // .catch(error => error);
+    // static getData(casename, dataJson) {
+    //     // return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"})
+    //     // .then(response => response.json())
+    //     // .catch(error => error);
 
+    //     return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"}) 
+    //         .then((response) => {
+    //             if (response.ok) {
+    //                 //console.log('response1 ', response)
+    //                 //console.log('data ', response.json())
+    //             return response;
+    //             }
+    //             throw new Error('No casename selecetd');
+    //         })
+    //         .then(response => response.json())
+    //         .catch(error => null);
+    // }
+
+    static getData(casename, dataJson) {
+        if (!casename || casename === "null") {
+            console.warn("getData called without valid casename");
+            return Promise.resolve(null);
+        }
         return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"}) 
             .then((response) => {
                 if (response.ok) {
-                    //console.log('response1 ', response)
-                    //console.log('data ', response.json())
-                return response;
+                    return response;
                 }
-                throw new Error('No casename selecetd');
+                throw new Error('Invalid casename');
             })
             .then(response => response.json())
             .catch(error => null);
@@ -451,28 +467,44 @@ export class Osemosys {
         });
     }
 
-    static getResultData(casename, dataJson) {
-        // return new Promise((resolve, reject) => {
-        //     fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
-        //     .then(DATA => {
-        //         DATA = DATA.json();
-        //         resolve(DATA);
-        //     })
-        //     .catch(error => {
-        //         if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-        //         reject(error);
-        //     });
-        // });
+    // static getResultData(casename, dataJson) {
+    //     // return new Promise((resolve, reject) => {
+    //     //     fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
+    //     //     .then(DATA => {
+    //     //         DATA = DATA.json();
+    //     //         resolve(DATA);
+    //     //     })
+    //     //     .catch(error => {
+    //     //         if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
+    //     //         reject(error);
+    //     //     });
+    //     // });
 
+    //     return fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
+    //         .then((response) => {
+    //             if (response.ok) {
+    //                 //console.log('response1 ', response)
+    //                 return response;
+    //             }
+    //             throw new Error('No casename selecetd');
+    //         })
+    //         .then(response =>  response.json())
+    //         .catch(error => null);
+    // }
+
+    static getResultData(casename, dataJson) {
+        if (!casename || casename === "null") {
+            console.warn("getResultData called without valid casename");
+            return Promise.resolve(null);
+        }
         return fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
             .then((response) => {
                 if (response.ok) {
-                    //console.log('response1 ', response)
                     return response;
                 }
-                throw new Error('No casename selecetd');
+                throw new Error('Invalid casename');
             })
-            .then(response =>  response.json())
+            .then(response => response.json())
             .catch(error => null);
     }
 

@@ -1,0 +1,84 @@
+name: PR Intake
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out base repository
+        uses: actions/checkout@v4
+
+      - name: Check PR intake structure
+        id: intake
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          python3 scripts/check_pr_intake.py \
+            --repo "${{ github.repository }}" \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            > intake_report.txt 2>&1
+          status=$?
+          cat intake_report.txt
+          if [ "$status" -eq 0 ]; then
+            echo "needs_fix=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needs_fix=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Add intake label when structure is incomplete
+        if: steps.intake.outputs.needs_fix == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: ["needs-intake-fix"],
+              });
+            } catch (error) {
+              console.log(`Warning: unable to add needs-intake-fix label: ${error.message}`);
+            }
+
+      - name: Remove intake label when structure is complete
+        if: steps.intake.outputs.needs_fix != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                name: "needs-intake-fix",
+              });
+            } catch (error) {
+              if (error.status !== 404) {
+                console.log(`Warning: unable to remove needs-intake-fix label: ${error.message}`);
+              }
+            }
+
+      - name: Write intake summary
+        if: always()
+        run: |
+          if [ "${{ steps.intake.outputs.needs_fix }}" = "true" ]; then
+            echo "PR intake review: needs follow-up" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            cat intake_report.txt >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "PR intake review: structure looks complete" >> "$GITHUB_STEP_SUMMARY"
+          fi

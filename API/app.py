@@ -1,8 +1,26 @@
-#import sys
+from pathlib import Path
+import logging
 import os
+import secrets
 import sys
 
-from flask import Flask, Response, jsonify, request, session, render_template
+# Fail fast: unsupported Python hits cryptic pandas/numpy import errors without this.
+SUPPORTED_PYTHON_MIN = (3, 10)
+SUPPORTED_PYTHON_MAX = (3, 13)
+
+if not (SUPPORTED_PYTHON_MIN <= sys.version_info[:2] < SUPPORTED_PYTHON_MAX):
+    detected_version = ".".join(str(part) for part in sys.version_info[:3])
+    min_str = f"{SUPPORTED_PYTHON_MIN[0]}.{SUPPORTED_PYTHON_MIN[1]}"
+    max_str = f"{SUPPORTED_PYTHON_MAX[0]}.{SUPPORTED_PYTHON_MAX[1] - 1}"
+    print(
+        f"Unsupported Python version: {detected_version}\n"
+        f"MUIOGO currently supports Python {min_str} to {max_str} (recommended: 3.11).\n"
+        "Use scripts/setup.sh or scripts\\setup.bat with a supported Python installation.",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+
+from flask import Flask, jsonify, request, session, render_template
 from flask_cors import CORS
 from datetime import timedelta
 # from pathlib import Path
@@ -24,8 +42,17 @@ from queue import Queue, Empty
 from threading import Event
 
 #RADI
-template_dir = os.path.abspath('WebAPP')
-static_dir = os.path.abspath('WebAPP')
+# -------------------------
+# FIX: Make template/static paths independent of cwd
+# -------------------------
+
+# This file is in: API/app.py
+# So project root is 1 level up
+BASE_DIR = Path(__file__).resolve().parents[1]
+WEBAPP_PATH = BASE_DIR / "WebAPP"
+
+template_dir = str(WEBAPP_PATH)
+static_dir = str(WEBAPP_PATH)
 
 
 # ========================= DELETE LOG FILE ON START =========================
@@ -84,12 +111,19 @@ sys.excepthook = log_exception
 
 # ============= end logger             ============
 
-
-
 app = Flask(__name__, static_url_path='', static_folder=static_dir,  template_folder=template_dir)
 
 app.permanent_session_lifetime = timedelta(days=5)
-app.config['SECRET_KEY'] = '12345'
+secret_key = os.environ.get("MUIOGO_SECRET_KEY", "").strip()
+if not secret_key:
+    secret_key = secrets.token_hex(32)
+    logging.warning(
+        "MUIOGO_SECRET_KEY is not configured. Using a temporary in-memory key. "
+        "Run setup to create a persistent secret in .env."
+    )
+app.config['SECRET_KEY'] = secret_key
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config["MAX_CONTENT_LENGTH"] = None
 
 app.register_blueprint(upload_api)
@@ -148,11 +182,17 @@ def getSession():
 def setSession():
     try:
         cs = request.json['case']
-        #session.permanent= True
+        if cs is None:
+            session.pop('osycase', None)
+            return jsonify({"osycase": None}), 200
+
+        from pathlib import Path
+        if not Path(Config.DATA_STORAGE, cs).is_dir():
+            return jsonify({'message': 'Case not found.', 'status_code': 'error'}), 404
         session['osycase'] = cs
         response = {"osycase": session['osycase']}
         return jsonify(response), 200
-    except( KeyError ):
+    except KeyError:
         return jsonify('No selected parameters!'), 404
 
 
@@ -163,11 +203,25 @@ if __name__ == '__main__':
     import mimetypes
     mimetypes.add_type('application/javascript', '.js')
     port = int(os.environ.get("PORT", 5002))
+
+    def print_startup_info(host, current_port, server_name):
+        mode = 'local' if Config.HEROKU_DEPLOY == 0 else 'heroku'
+        access_host = '127.0.0.1' if host == '0.0.0.0' else host
+        print("MUIOGO API starting...")
+        print(f"Server: {server_name}")
+        print(f"Mode: {mode}")
+        print(f"Host: {host}")
+        print(f"Port: {current_port}")
+        print(f"Open: http://{access_host}:{current_port}")
+
     if Config.HEROKU_DEPLOY == 0: 
         from waitress import serve
-        serve(app, host='127.0.0.1', port=port,  threads=8)
+        host = '127.0.0.1'
+        print_startup_info(host, port, 'waitress')
+        serve(app, host=host, port=port)
     else:
         #HEROKU
-        app.run(host='0.0.0.0', port=port, debug=True)
+        host = '0.0.0.0'
+        print_startup_info(host, port, 'flask-dev')
+        app.run(host=host, port=port, debug=True)
         #app.run(host='127.0.0.1', port=port, debug=True)
-

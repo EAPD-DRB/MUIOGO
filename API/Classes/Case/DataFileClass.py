@@ -775,9 +775,9 @@ class DataFile(Osemosys):
                 #dznamicaly call function depending on defined params
                 for group, array in self.PARAM.items():
                     if array:
-                        func_name = Config.GEN_F[group]
-                        func = getattr(self,func_name) 
-                        func() 
+                        func_name = f"gen_{group}"
+                        func = getattr(self, func_name)
+                        func()
 
                 self.f.write('{}{}'.format('#', '\n'))
                 self.f.write('{}'.format('end;'))
@@ -1001,54 +1001,46 @@ class DataFile(Osemosys):
             # self.viewFolderPath = Path(Config.DATA_STORAGE,case,'view')
             # folder_path = "C:/putanja/do/foldera"
 
-            if os.path.exists(self.resultsPath) and os.path.isdir(self.resultsPath):
-                if os.listdir(self.resultsPath):   # returns list of files/folders
-                    for caserunname in os.listdir( self.resultsPath):
-                        caserunname_path = os.path.join(self.resultsPath, caserunname)
-                        for carerunData in os.listdir( caserunname_path):
-                            file_path = os.path.join(caserunname_path, carerunData)
-                            try:
-                                if os.path.isfile(file_path) or os.path.islink(file_path):
-                                    os.remove(file_path)
-                                elif os.path.isdir(file_path):
-                                    shutil.rmtree(file_path)
-                            except Exception as e:
-                                print(f"Greška pri brisanju {file_path}: {e}")
+            for caserunname in os.listdir( self.resultsPath):
+                caserunname_path = os.path.join(self.resultsPath, caserunname)
+                # Skip files such as .DS_Store that can appear on macOS.
+                if not os.path.isdir(caserunname_path):
+                    continue
+                for carerunData in os.listdir( caserunname_path):
+                    file_path = os.path.join(caserunname_path, carerunData)
+                    try:
+                        if os.path.isfile(file_path) or os.path.islink(file_path):
+                            os.remove(file_path)
+                        elif os.path.isdir(file_path):
+                            shutil.rmtree(file_path)
+                    except Exception as e:
+                        print(f"Greška pri brisanju {file_path}: {e}")
 
-            if os.path.exists(self.viewFolderPath) and os.path.isdir(self.viewFolderPath):
-                if os.listdir(self.viewFolderPath):   # returns list of files/folders
-                    for filename in os.listdir( self.viewFolderPath):
-                        if filename !='resData.json' and filename != 'viewDefinitions.json':
-                            file_path = os.path.join(self.viewFolderPath, filename)
-                            try:
-                                if os.path.isfile(file_path) or os.path.islink(file_path):
-                                    os.remove(file_path)
-                                elif os.path.isdir(file_path):
-                                    shutil.rmtree(file_path)
-                            except Exception as e:
-                                print(f"Greška pri brisanju {file_path}: {e}")
+            for filename in os.listdir( self.viewFolderPath):
+                if filename !='resData.json':
+                    file_path = os.path.join(self.viewFolderPath, filename)
+                    try:
+                        if os.path.isfile(file_path) or os.path.islink(file_path):
+                            os.remove(file_path)
+                        elif os.path.isdir(file_path):
+                            shutil.rmtree(file_path)
+                    except Exception as e:
+                        print(f"Greška pri brisanju {file_path}: {e}")
 
-            #sad moramo napraviti defualt definitions file - ovo smo napustili 18022026 zelimo da ostanu definicije view-ova
-            ##viewDefPath = Path(self.viewFolderPath, 'viewDefinitions.json')
-            # configPath = Path(Config.DATA_STORAGE, 'Variables.json')
-            # vars = File.readParamFile(configPath)
-            # viewDef = {}
-            # for group, lists in vars.items():
-            #     for list in lists:
-            #         viewDef[list['id']] = []
+            #sad moramo napraviti defualt definitions file
+            viewDefPath = Path(self.viewFolderPath, 'viewDefinitions.json')
+            configPath = Path(Config.DATA_STORAGE, 'Variables.json')
+            vars = File.readParamFile(configPath)
+            viewDef = {}
+            for group, lists in vars.items():
+                for list in lists:
+                    viewDef[list['id']] = []
 
-            # viewData = {
-            #         "osy-views": viewDef
-            #     }
-            # File.writeFile( viewData, viewDefPath)
+            viewData = {
+                    "osy-views": viewDef
+                }
+            File.writeFile( viewData, viewDefPath)
 
-            ######### treba provjeriti da li res fodler ima subfolde sa imenom case is resData.json
-
-            case_names = [c["Case"] for c in self.resData.get("osy-cases", [])]
-            for case in case_names:
-                case_path = Path(self.resultsPath, case)
-                if not case_path.exists():
-                    case_path.mkdir(parents=True, exist_ok=True)
 
             response = {
                 "message": "You have recycled results!",
@@ -2294,32 +2286,50 @@ class DataFile(Osemosys):
             self.lpFile = Path(Config.DATA_STORAGE,self.case, 'res',caserunname,'lp.lp')
             self.resPath = Path(Config.DATA_STORAGE,self.case, 'res',caserunname)
             
-            modelfile = '"{}"'.format(self.osemosysFile.resolve())
-            modelfile_original = '"{}"'.format(self.osemosysFileOriginal.resolve())
-            datafile = '"{}"'.format(self.dataFile.resolve())
-            datafile_processed = '"{}"'.format(self.dataFile_processed.resolve())
-            resultfile = '"{}"'.format(self.resFile.resolve())
-            logfile = '"{}"'.format(self.logFile.resolve())
-            logfiletxt = '"{}"'.format(self.logFileTxt.resolve())
-            lpfile = '"{}"'.format(self.lpFile.resolve())
+            modelfile = str(self.osemosysFile.resolve())
+            modelfile_original = str(self.osemosysFileOriginal.resolve())
+            datafile = str(self.dataFile.resolve())
+            datafile_processed = str(self.dataFile_processed.resolve())
+            resultfile = str(self.resFile.resolve())
+            logfile = str(self.logFile.resolve())
+            logfiletxt = str(self.logFileTxt.resolve())
+            lpfile = str(self.lpFile.resolve())
 
 
             
 
-            glpfolder =self.glpkFolder.resolve()
-            cbcfolder =self.cbcFolder.resolve()
+            glpfolder = self.glpkFolder.resolve()
+            cbcfolder = self.cbcFolder.resolve()
+            glpsol_exec = Osemosys._find_solver_binary(glpfolder, "glpsol", recursive=False)
+            if glpsol_exec is None:
+                raise RuntimeError(
+                    f"Could not find 'glpsol' in resolved folder '{glpfolder}'. "
+                    "Check SOLVER_GLPK_PATH or solver installation."
+                )
             # respath = self.resPath.resolve()
             # resCBCPath = self.resCBCPath.resolve()
 
             self.deleteCaseResultsJSON(caserunname)
 
             if solver == 'glpk':
-                out = subprocess.run('glpsol -m ' + modelfile +' -d ' + datafile +' -o ' + resultfile, cwd=glpfolder,  capture_output=True, text=True, shell=True)
+                glpk_out = subprocess.run(
+                    [str(glpsol_exec), "-m", modelfile, "-d", datafile, "-o", resultfile],
+                    cwd=glpfolder,
+                    capture_output=True,
+                    text=True,
+                )
+                cbc_out = subprocess.CompletedProcess(args=["cbc"], returncode=0, stdout="", stderr="")
             else:
                 #Matrix generation (creates an LP file with GLPK): glpsol --check -m [model].txt -d [data].txt --wlp [LPfile].lp
                 #Optimisation (solves LP file with CBC): cbc [LPfile].lp solve -solu [results].txt
                 #PREPROCESS data.txt
                 #subprocess.run('preprocess_data.py' + datafile + dataFile_processed)
+                cbc_exec = Osemosys._find_solver_binary(cbcfolder, "cbc", recursive=False)
+                if cbc_exec is None:
+                    raise RuntimeError(
+                        f"Could not find 'cbc' in resolved folder '{cbcfolder}'. "
+                        "Check SOLVER_CBC_PATH or solver installation."
+                    )
 
                 logger.debug("Starting preprocessing step for case %s", caserunname)
 
@@ -2330,7 +2340,11 @@ class DataFile(Osemosys):
 
                 #return output to variable preprocessed data file
                 glpk_out = subprocess.run(
-                    'glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=glpfolder,  capture_output=True, text=True, shell=True)
+                    [str(glpsol_exec), "--check", "-m", modelfile, "-d", datafile_processed, "--wlp", lpfile],
+                    cwd=glpfolder,
+                    capture_output=True,
+                    text=True,
+                )
             
 
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
@@ -2356,7 +2370,12 @@ class DataFile(Osemosys):
 
                 #cbc_out = subprocess.run('cbc ' + lpfile +' -presolve off -postsolve on -logLevel 3 solve -printing all -solu '  + resultfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
                 # prin
-                cbc_out = subprocess.run('cbc ' + lpfile +' solve -printing all -solu '  + resultfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
+                cbc_out = subprocess.run(
+                    [str(cbc_exec), lpfile, "solve", "-printing", "all", "-solu", resultfile],
+                    cwd=cbcfolder,
+                    capture_output=True,
+                    text=True,
+                )
                 # -printing all prints all constraints to result.txt
                 #print("SOLUTION DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                 logger.info("SOLUTION DONE! --- %s seconds --- %s", time.time() - start_time, caserunname)
@@ -2492,12 +2511,7 @@ class DataFile(Osemosys):
                 #ovdje parsa result.txt file
                 df[['temp','value']] = df['temp'].str.split(')', expand=True)                
 
-                #FutureWarning: pd.DataFrame.applymap has been deprecated. Use pd.DataFrame.map instead.
-                #df = df.applymap(lambda x: x.strip() if isinstance(x,str) else x)
-                
-                for col in df.select_dtypes(include="object"):
-                    df[col] = df[col].map(lambda x: x.strip() if isinstance(x, str) else x)
-
+                df = df.map(lambda x: x.strip() if isinstance(x,str) else x)
 
                 #error when moved to ython 3.11, Columns must have smae length as key
                 # df['value'] = df['value'].str.split(' ', expand=True)
@@ -3588,7 +3602,7 @@ class DataFile(Osemosys):
             
             if len(df) > 0:
                 df[['temp','value']] = df['temp'].str.split(')', expand=True)
-                df = df.applymap(lambda x: x.strip() if isinstance(x,str) else x)
+                df = df.map(lambda x: x.strip() if isinstance(x,str) else x)
                 #error when moved to ython 3.11, Columns must have smae length as key
                 # df['value'] = df['value'].str.split(' ', expand=True)
                 df['value'] = df['value'].str.split(' ', expand=True)[0]
@@ -3769,7 +3783,7 @@ class DataFile(Osemosys):
             
             if len(df) > 0:
                 df[['temp','value']] = df['temp'].str.split(')', expand=True)
-                df = df.applymap(lambda x: x.strip() if isinstance(x,str) else x)
+                df = df.map(lambda x: x.strip() if isinstance(x,str) else x)
                 #error when moved to ython 3.11, Columns must have smae length as key
                 # df['value'] = df['value'].str.split(' ', expand=True)
                 df['value'] = df['value'].str.split(' ', expand=True)[0]
@@ -4435,7 +4449,7 @@ class DataFile(Osemosys):
             
             if len(df) > 0:
                 df[['temp','value']] = df['temp'].str.split(')', expand=True)
-                df = df.applymap(lambda x: x.strip() if isinstance(x,str) else x)
+                df = df.map(lambda x: x.strip() if isinstance(x,str) else x)
                 #error when moved to ython 3.11, Columns must have smae length as key
                 # df['value'] = df['value'].str.split(' ', expand=True)
                 df['value'] = df['value'].str.split(' ', expand=True)[0]
