@@ -265,7 +265,10 @@ def uploadCaseUnchunked_old():
                         #zipfiles.append(Path(zippedfile).name)
                         zippedfilepath = Path(zippedfile)
                         zippedfilename = zippedfilepath.name
-                        casename = zippedfilepath.parent.name
+                        casename_raw = zippedfilepath.parent.name
+                        if not casename_raw:
+                            casename_raw = case
+                        casename = casename_raw[:-4] if casename_raw.lower().endswith('.zip') else casename_raw
                         if 'genData.json' == zippedfilename:
                             errorcode = 0
                             
@@ -285,10 +288,10 @@ def uploadCaseUnchunked_old():
                                         for list in lists:
                                             viewDef[list['id']] = []
 
-                                    resPath = Path(Config.DATA_STORAGE,case,'res')
-                                    viewPath = Path(Config.DATA_STORAGE,case,'view')
-                                    resDataPath = Path(Config.DATA_STORAGE,case,'view','resData.json')
-                                    viewDataPath = Path(Config.DATA_STORAGE,case,'view','viewDefinitions.json')
+                                    resPath = Path(Config.DATA_STORAGE,casename,'res')
+                                    viewPath = Path(Config.DATA_STORAGE,casename,'view')
+                                    resDataPath = Path(Config.DATA_STORAGE,casename,'view','resData.json')
+                                    viewDataPath = Path(Config.DATA_STORAGE,casename,'view','viewDefinitions.json')
 
                                     # remove res and view folder if ver 1.0
                                     if os.path.exists(resPath):
@@ -381,6 +384,12 @@ def uploadCaseUnchunked_old():
                                         "message": "Model " + casename +" is not valid OSEMOSYS ver 1.0, 2.0, 3.0, 4.0 or 5.0 model!",
                                         "status_code": "error"
                                     })
+                                
+                                if casename_raw != casename:
+                                    old_dir = Path(Config.DATA_STORAGE, casename_raw)
+                                    new_dir = Path(Config.DATA_STORAGE, casename)
+                                    if old_dir.exists():
+                                        os.rename(old_dir, new_dir)
                             else:
                                 msg.append({
                                     "message": "Model " + casename + " already exists!",
@@ -443,15 +452,16 @@ def handle_full_zip(file, filepath=None):
 
             zippedfilepath = Path(target_info.filename)
             zippedfilename = zippedfilepath.name
-            casename = zippedfilepath.parent.name
+            casename_raw = zippedfilepath.parent.name
+            if not casename_raw:
+                casename_raw = case
+            casename = casename_raw[:-4] if casename_raw.lower().endswith('.zip') else casename_raw
             if 'genData.json' == zippedfilename:
                 errorcode = 0
                 if not os.path.exists(Path(Config.DATA_STORAGE,casename)):
                     data = json.loads(zf.read(target_info).decode('ISO-8859-1'))
                     name = data.get('osy-version', None)
-                    # --------------------------- 
-                    #     TVOJA ORIGINALNA LOGIKA
-                    # ---------------------------
+                    # Proceed with original version logic
                     if name == '1.0' or name == '2.0':
                         zf.extractall(os.path.join(Config.EXTRACT_FOLDER))
                         configPath = Path(Config.DATA_STORAGE, 'Variables.json')
@@ -462,8 +472,8 @@ def handle_full_zip(file, filepath=None):
                                 viewDef[list['id']] = []
                         resPath = Path(Config.DATA_STORAGE,casename,'res')
                         viewPath = Path(Config.DATA_STORAGE,casename,'view')
-                        resDataPath = Path(Config.DATA_STORAGE,case,'view','resData.json')
-                        viewDataPath = Path(Config.DATA_STORAGE,case,'view','viewDefinitions.json')
+                        resDataPath = Path(Config.DATA_STORAGE,casename,'view','resData.json')
+                        viewDataPath = Path(Config.DATA_STORAGE,casename,'view','viewDefinitions.json')
                         if os.path.exists(resPath):
                             shutil.rmtree(resPath)
                         if os.path.exists(viewPath):
@@ -521,6 +531,12 @@ def handle_full_zip(file, filepath=None):
                             "message": "Model " + casename +" is not valid OSEMOSYS!",
                             "status_code": "error"
                         })
+                    
+                    if casename_raw != casename:
+                        old_dir = Path(Config.DATA_STORAGE, casename_raw)
+                        new_dir = Path(Config.DATA_STORAGE, casename)
+                        if old_dir.exists():
+                            os.rename(old_dir, new_dir)
 
                 else:
                     msg.append({
@@ -551,9 +567,7 @@ def uploadCase():
 
         # Ako nije chunked upload (chrome browser dev mode)
         if dz_uuid is None:
-            # ==========================
-            #     TVOJ ORIGINALNI KOD
-            # ==========================
+            # Fallback to non-chunked handler
             return handle_full_zip(file)
 
         # Pretvaranje u int
@@ -596,9 +610,7 @@ def uploadCase():
         if os.path.exists(parent) and not os.listdir(parent):
             os.rmdir(parent)
 
-        # -------------------------------
-        # 5) Pokreni TVOJ originalni ZIP handler
-        # -------------------------------
+        # Initialize standard zip extraction pipeline
         #return handle_full_zip(open(final_zip, "rb"), final_zip)
         return handle_full_zip(None, final_zip) 
 
