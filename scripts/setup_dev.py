@@ -6,7 +6,7 @@ Sets up a complete development environment for MUIOGO:
   1. Creates or validates a Python virtual environment (venv)
   2. Installs Python dependencies from requirements.txt
   3. Installs solver dependencies (GLPK, CBC) via OS package managers
-  4. Installs demo data from local archive (default; can be skipped)
+  4. Installs demo data (downloads from release asset if not cached locally; can be skipped)
   5. Runs post-setup verification checks
 
 Usage:
@@ -53,6 +53,9 @@ MAX_PYTHON = (3, 13)  # exclusive
 DATA_STORAGE_DIR = PROJECT_ROOT / "WebAPP" / "DataStorage"
 DEMO_DATA_ARCHIVE = PROJECT_ROOT / "assets" / "demo-data" / "CLEWs.Demo.zip"
 DEMO_DATA_ARCHIVE_SHA256 = "facf4bda703f67b3c8b8697fea19d7d49be72bc2029fc05a68c61fd12ba7edde"
+DEMO_DATA_ARCHIVE_URL = (
+    "https://github.com/EAPD-DRB/MUIOGO/releases/download/demo-data/CLEWs.Demo.zip"
+)
 DEMO_DATA_REQUIRED_DIRS = [DATA_STORAGE_DIR / "CLEWs Demo"]
 DEMO_DATA_MARKER = DATA_STORAGE_DIR / ".demo_data_installed.json"
 _CBC_WINDOWS_VERSION = "2.10.12"
@@ -440,16 +443,45 @@ def _demo_data_paths_to_remove() -> list[Path]:
 def install_demo_data(force: bool, yes: bool) -> bool:
     _print_header("Step 4: Demo data")
 
-    if not DEMO_DATA_ARCHIVE.exists():
-        _print_fail("Demo-data archive not found", str(DEMO_DATA_ARCHIVE))
-        return False
-
     if not _confirm_force_demo_data(force=force, yes=yes):
         return False
 
     if demo_data_present() and not force:
         _print_pass("Demo data already installed", str(DEMO_DATA_REQUIRED_DIRS[0]))
         return True
+
+    if not DEMO_DATA_ARCHIVE.exists():
+        print("  Demo-data archive not found locally; downloading from release asset ...")
+        DEMO_DATA_ARCHIVE.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path: Path | None = None
+        try:
+            fd, tmp_str = tempfile.mkstemp(suffix=".zip")
+            os.close(fd)
+            tmp_path = Path(tmp_str)
+            req = urllib.request.Request(
+                DEMO_DATA_ARCHIVE_URL, headers={"User-Agent": "Mozilla/5.0"}
+            )
+            with urllib.request.urlopen(req, timeout=120) as response:
+                with open(tmp_path, "wb") as f:
+                    f.write(response.read())
+            dl_sha = _sha256(tmp_path)
+            if dl_sha != DEMO_DATA_ARCHIVE_SHA256:
+                _print_fail(
+                    "Demo-data download checksum mismatch",
+                    f"expected {DEMO_DATA_ARCHIVE_SHA256}, got {dl_sha}",
+                )
+                return False
+            shutil.move(str(tmp_path), str(DEMO_DATA_ARCHIVE))
+            _print_pass("Demo-data archive downloaded", str(DEMO_DATA_ARCHIVE))
+        except Exception as exc:
+            _print_fail("Failed to download demo-data archive", str(exc))
+            return False
+        finally:
+            if tmp_path is not None and tmp_path.exists():
+                try:
+                    tmp_path.unlink()
+                except OSError:
+                    pass
 
     if force:
         targets = [p for p in _demo_data_paths_to_remove() if p.exists()]
@@ -1214,7 +1246,7 @@ def main() -> int:
         "--with-demo-data",
         action="store_true",
         dest="with_demo_data",
-        help="Install demo data from local archive (default behavior).",
+        help="Install demo data (uses local archive if present, otherwise downloads from release asset). This is the default.",
     )
     parser.add_argument(
         "--no-demo-data",

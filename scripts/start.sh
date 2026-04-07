@@ -42,10 +42,26 @@ cleanup() {
     fi
 }
 
+probe_ready() {
+    "$PYTHON" -c '
+import sys
+import urllib.request
+
+url = sys.argv[1]
+
+try:
+    with urllib.request.urlopen(url, timeout=2) as response:
+        status = getattr(response, "status", 200)
+        raise SystemExit(0 if 200 <= status < 400 else 1)
+except Exception:
+    raise SystemExit(1)
+' "$URL"
+}
+
 trap cleanup INT TERM
 
 elapsed=0
-while ! curl -fsS "$URL" >/dev/null 2>&1; do
+while ! probe_ready; do
     if ! kill -0 "$SERVER_PID" >/dev/null 2>&1; then
         echo "ERROR: MUIOGO server exited before becoming ready."
         exit 1

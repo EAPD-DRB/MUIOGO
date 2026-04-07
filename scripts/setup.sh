@@ -18,30 +18,30 @@ if [ -n "${CONDA_DEFAULT_ENV:-}" ]; then
     exit 1
 fi
 
-PYTHON="python3.11"
-if ! command -v "$PYTHON" &>/dev/null; then
-    echo "ERROR: python3.11 was not found in PATH."
-    echo "Install Python 3.11 and re-run setup."
-    if [ "$(uname -s)" = "Darwin" ]; then
-        echo "  In Terminal (Homebrew): brew install python@3.11"
-        echo "  Python.org macOS installer: https://www.python.org/downloads/macos/"
-    else
-        echo "  Linux package manager (example): sudo apt install python3.11 python3.11-venv"
-        echo "  Python.org downloads: https://www.python.org/downloads/"
+# Try versioned executables in order (3.12, 3.11, 3.10)
+PYTHON=""
+for VER in 3.12 3.11 3.10; do
+    if command -v "python${VER}" &>/dev/null; then
+        PYTHON="python${VER}"
+        break
     fi
-    exit 1
+done
+
+# Fall back to plain python3 if it's in the supported range
+if [ -z "$PYTHON" ] && command -v python3 &>/dev/null; then
+    if python3 -c "import sys; v=sys.version_info; exit(0 if (3,10)<=v<(3,13) else 1)" 2>/dev/null; then
+        PYTHON="python3"
+    fi
 fi
 
-is_py311=$("$PYTHON" -c "import sys; print(sys.version_info[:2] == (3, 11))" 2>/dev/null || echo "False")
-if [ "$is_py311" != "True" ]; then
-    echo "ERROR: Found '$($PYTHON --version)', but MUIOGO setup expects Python 3.11."
+if [ -z "$PYTHON" ]; then
+    echo "ERROR: No supported Python runtime found (requires 3.10, 3.11, or 3.12)."
     if [ "$(uname -s)" = "Darwin" ]; then
-        echo "Install/upgrade Python 3.11 in Terminal:"
-        echo "  brew install python@3.11"
+        echo "  Homebrew: brew install python@3.12"
         echo "  Python.org macOS installer: https://www.python.org/downloads/macos/"
     else
-        echo "Install/upgrade Python 3.11 with your package manager."
-        echo "Python.org downloads: https://www.python.org/downloads/"
+        echo "  Linux package manager (example): sudo apt install python3.12 python3.12-venv"
+        echo "  Python.org downloads: https://www.python.org/downloads/"
     fi
     exit 1
 fi

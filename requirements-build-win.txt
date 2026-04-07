@@ -1,0 +1,9 @@
+# Windows packaging dependencies (PyInstaller + helpers)
+# Install with: pip install -r requirements-build-win.txt
+-r requirements.txt
+
+altgraph==0.17.4
+pefile==2023.2.7
+pyinstaller==5.13.2
+pyinstaller-hooks-contrib==2024.7
+pywin32-ctypes==0.2.2
