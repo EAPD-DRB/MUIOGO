@@ -74,8 +74,8 @@ export default class Home {
         
         $("#cases").tooltip({ selector: '[data-toggle=tooltip]' });
 
-        $("#casePicker").off('click');
-        $("#casePicker, #cases").on('click', '.selectCS', function(e) {
+        $("#casePicker, #cases").off('click', '.selectCS');
+        $("#casePicker, #cases").on('click.homeSelect', '.selectCS', function(e) {
             //console.log('model ', model)
         //$(document).delegate(".selectCS","click",function(e){
             e.preventDefault();
@@ -95,7 +95,8 @@ export default class Home {
             })
         });
 
-        $("#cases").on('click', '.editPS', function(e) {
+        $("#cases").off('click.homeEdit', '.editPS');
+        $("#cases").on('click.homeEdit', '.editPS', function(e) {
             e.preventDefault();
             e.stopImmediatePropagation();
             var casename = $(this).attr('data-ps');
@@ -114,9 +115,16 @@ export default class Home {
         });
 
         //copy case
-        $(document).delegate(".copyCS","click",function(e){
+        $(document).off('click', '.copyCS');
+        $("#cases").off('click', '.copyCS');
+        $("#cases").on('click.homeCopy', '.copyCS', function(e){
             e.stopImmediatePropagation();
             var casename = $(this).attr('data-ps');
+            if (casename !== model.casename) {
+                Message.bigBoxWarning('Copy message',
+                    'Select <b>' + casename + '</b> first to copy it.', 4000);
+                return;
+            }
             Base.copyCaseStudy(casename)
             .then(response => {
                 Message.clearMessages();
@@ -143,7 +151,8 @@ export default class Home {
         });
 
         //get descrition
-        $(document).delegate(".descriptionPS","click",function(e){
+        $("#cases").off('click.homeDescription', '.descriptionPS');
+        $("#cases").on('click.homeDescription', '.descriptionPS', function(e){
             //e.stopImmediatePropagation();
             var titleps = $(this).attr('data-ps');
             Base.getCaseDesc(titleps)
@@ -155,8 +164,16 @@ export default class Home {
         });
 
         //delete case
-        $(document).delegate(".deleteModel","click",function(e){
+        $(document).off('click', '.deleteModel');
+        $("#cases").off('click', '.deleteModel');
+        $("#cases").on('click.homeDelete', '.deleteModel', function(e){
             var casename = $(this).attr('data-ps');
+            if (casename !== model.casename) {
+                Message.bigBoxWarning('Delete message',
+                    'Select <b>' + casename + '</b> first to delete it.', 4000);
+                e.stopImmediatePropagation();
+                return;
+            }
             $.SmartMessageBox({
                 title : "Confirmation Box!",
                 content : "You are about to delete <b class='danger'>" + casename + "</b> Model! Are you sure?",
@@ -166,27 +183,14 @@ export default class Home {
                     Base.deleteCaseStudy(casename)
                     .then(response => {
                         Message.clearMessages();
-                        if(response.status_code=="success"){
-                            Message.bigBoxSuccess('Delete message', response.message, 3000);
-                            //REFRESH
-                            Html.removeCase(casename);
-                            //sync with s3
-                            if (Base.AWS_SYNC == 1){
-                                SyncS3.deleteSync(casename);
-                            }
-                        }
                         if(response.status_code=="success_session"){
                             Message.bigBoxSuccess('Delete message', response.message, 3000);
                             Message.info( "Please select existing or create new case to proceed!");
-                            if (model.casename = casename){
-                                // Sidebar.Load(null, null);
-                                Sidebar.Reload(null);
-                                //Routes.removeRoutes(model.PARAMETERS);
-                            }
+                            Sidebar.Reload(null);
                             //REFRESH
                             Html.removeCase(casename);
                             if (Base.AWS_SYNC == 1){
-                                Base.deleteSync(casename);
+                                SyncS3.deleteSync(casename);
                             }
                         }
                         if(response.status_code=="info"){
@@ -210,7 +214,8 @@ export default class Home {
         });
 
         //Search cases
-        $('#CaseSearch').keyup(function () {
+        $('#CaseSearch').off('keyup.homeSearch');
+        $('#CaseSearch').on('keyup.homeSearch', function () {
             var query = $.trim($('#CaseSearch').val()).toLowerCase();
             //console.log('query ', query)
             $('.selectCS').each(function () {
@@ -221,7 +226,8 @@ export default class Home {
             });
         })
 
-        $("#showLog").click(function (e) {
+        $("#showLog").off('click.homeLog');
+        $("#showLog").on('click.homeLog', function (e) {
             e.preventDefault();
             $('#definition').html(`
                 <h5>${DEF[model.pageID].title}</h5>

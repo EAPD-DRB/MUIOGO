@@ -6,7 +6,7 @@ Sets up a complete development environment for MUIOGO:
   1. Creates or validates a Python virtual environment (venv)
   2. Installs Python dependencies from requirements.txt
   3. Installs solver dependencies (GLPK, CBC) via OS package managers
-  4. Installs demo data from local archive (default; can be skipped)
+  4. Installs demo data (downloads from release asset if not cached locally; can be skipped)
   5. Runs post-setup verification checks
 
 Usage:
@@ -53,6 +53,9 @@ MAX_PYTHON = (3, 13)  # exclusive
 DATA_STORAGE_DIR = PROJECT_ROOT / "WebAPP" / "DataStorage"
 DEMO_DATA_ARCHIVE = PROJECT_ROOT / "assets" / "demo-data" / "CLEWs.Demo.zip"
 DEMO_DATA_ARCHIVE_SHA256 = "facf4bda703f67b3c8b8697fea19d7d49be72bc2029fc05a68c61fd12ba7edde"
+DEMO_DATA_ARCHIVE_URL = (
+    "https://github.com/EAPD-DRB/MUIOGO/releases/download/demo-data/CLEWs.Demo.zip"
+)
 DEMO_DATA_REQUIRED_DIRS = [DATA_STORAGE_DIR / "CLEWs Demo"]
 DEMO_DATA_MARKER = DATA_STORAGE_DIR / ".demo_data_installed.json"
 _CBC_WINDOWS_VERSION = "2.10.12"
@@ -61,6 +64,14 @@ _CBC_WINDOWS_URL = (
     f"Cbc-releases.{_CBC_WINDOWS_VERSION}-w64-msvc17-md.zip"
 )
 _CBC_WINDOWS_SHA256 = "6acf3e300945b815b2cbb2b16d3732eeeec968a4962249167827062bbf83b3a3"
+_GLPK_WINDOWS_VERSION = "4.65"
+_GLPK_WINDOWS_URL = (
+    "https://github.com/EAPD-DRB/MUIOGO/releases/download/solver-binaries/"
+    f"winglpk-{_GLPK_WINDOWS_VERSION}.zip"
+)
+# SHA-1 published by SourceForge for winglpk-4.65.zip — used for upstream
+# traceability so anyone can verify this is the same file.
+_GLPK_WINDOWS_SHA1 = "c232374bd706e39fdbe5cc4a7c38116e819daafa"
 
 # Core packages that must be importable after setup
 REQUIRED_IMPORTS = [
@@ -133,6 +144,153 @@ def _requirements_hash_file() -> Path:
     return VENV_DIR / ".requirements.sha256"
 
 
+def _read_env_lines() -> list[str] | None:
+    if not ENV_FILE.exists():
+        return []
+    try:
+        return ENV_FILE.read_text(encoding="utf-8").splitlines()
+    except Exception:
+        return None
+
+
+def _read_env_var(name: str) -> str | None:
+    lines = _read_env_lines()
+    if lines is None:
+        return None
+
+    prefix = f"{name}="
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line or line.startswith("#") or not line.startswith(prefix):
+            continue
+
+        value = line.split("=", 1)[1].strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        return value or None
+
+    return None
+
+
+def _format_env_value(value: str) -> str:
+    if value and not any(ch in value for ch in " \t#'\""):
+        return value
+    return "'" + value.replace("'", "\\'") + "'"
+
+
+def _upsert_env_var(name: str, value: str) -> bool:
+    lines = _read_env_lines()
+    if lines is None:
+        return False
+
+    new_entry = f"{name}={_format_env_value(value)}"
+    prefix = f"{name}="
+
+    for i, raw_line in enumerate(lines):
+        if raw_line.strip().startswith(prefix):
+            lines[i] = new_entry
+            break
+    else:
+        if lines and lines[-1] != "":
+            lines.append("")
+        lines.append(new_entry)
+
+    try:
+        ENV_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    except Exception:
+        return False
+
+    if SYSTEM != "Windows":
+        try:
+            os.chmod(ENV_FILE, 0o600)
+        except OSError:
+            pass
+
+    return True
+
+
+def _configured_env_var(name: str) -> str | None:
+    value = os.environ.get(name, "").strip()
+    if not value:
+        value = _read_env_var(name) or ""
+    value = value.strip().strip("\"'")
+    return value or None
+
+
+def _solver_binary_names(binary_name: str) -> list[str]:
+    names = [binary_name]
+    if SYSTEM == "Windows" and not binary_name.lower().endswith(".exe"):
+        names.insert(0, f"{binary_name}.exe")
+    return names
+
+
+def _find_solver_binary(path: Path, binary_name: str) -> Path | None:
+    binary_names = _solver_binary_names(binary_name)
+
+    if path.is_file():
+        lowered_names = {name.lower() for name in binary_names}
+        return path if path.name.lower() in lowered_names else None
+
+    if not path.is_dir():
+        return None
+
+    for name in binary_names:
+        candidate = path / name
+        if candidate.is_file():
+            return candidate
+
+    return None
+
+
+def _find_solver_binary_on_path(binary_name: str) -> Path | None:
+    for solver_name in _solver_binary_names(binary_name):
+        which = _which(solver_name)
+        if which:
+            return Path(which).resolve()
+
+    return None
+
+
+def _validate_configured_solver_binary(binary_name: str, env_var: str) -> Path | None:
+    env_val = _configured_env_var(env_var)
+    if not env_val:
+        return None
+
+    env_path = Path(env_val).expanduser()
+    env_binary = _find_solver_binary(env_path, binary_name)
+    if env_binary is not None:
+        return env_binary.resolve()
+
+    raise RuntimeError(
+        f"{env_var} is set to '{env_val}', but no '{binary_name}' binary was found there. "
+        f"Set {env_var} to the solver executable or to the directory containing it."
+    )
+
+
+def _resolve_solver_binary(binary_name: str, env_var: str) -> Path | None:
+    env_val = _configured_env_var(env_var)
+    if env_val:
+        env_path = Path(env_val).expanduser()
+        env_binary = _find_solver_binary(env_path, binary_name)
+        if env_binary is not None:
+            return env_binary.resolve()
+
+    return _find_solver_binary_on_path(binary_name)
+
+
+def _persist_solver_env_path(env_var: str, bin_dir: Path) -> None:
+    bin_dir_str = str(bin_dir)
+    os.environ[env_var] = bin_dir_str
+
+    if _upsert_env_var(env_var, bin_dir_str):
+        _print_pass(f"Persisted {env_var}", str(ENV_FILE))
+    else:
+        _print_warn(
+            f"Could not persist {env_var} to .env",
+            "Solver may only be available in new terminals via PATH.",
+        )
+
+
 def _ensure_secret_key_in_env() -> bool:
     """Create a persistent MUIOGO secret key in .env if one does not exist."""
     _print_header("Step 2a: App secret key")
@@ -198,6 +356,14 @@ def _resolve_venv_dir(venv_dir_arg: str | None) -> Path:
 
 def _sha256(path: Path) -> str:
     hasher = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def _sha1(path: Path) -> str:
+    hasher = hashlib.sha1()
     with path.open("rb") as f:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             hasher.update(chunk)
@@ -277,16 +443,45 @@ def _demo_data_paths_to_remove() -> list[Path]:
 def install_demo_data(force: bool, yes: bool) -> bool:
     _print_header("Step 4: Demo data")
 
-    if not DEMO_DATA_ARCHIVE.exists():
-        _print_fail("Demo-data archive not found", str(DEMO_DATA_ARCHIVE))
-        return False
-
     if not _confirm_force_demo_data(force=force, yes=yes):
         return False
 
     if demo_data_present() and not force:
         _print_pass("Demo data already installed", str(DEMO_DATA_REQUIRED_DIRS[0]))
         return True
+
+    if not DEMO_DATA_ARCHIVE.exists():
+        print("  Demo-data archive not found locally; downloading from release asset ...")
+        DEMO_DATA_ARCHIVE.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path: Path | None = None
+        try:
+            fd, tmp_str = tempfile.mkstemp(suffix=".zip")
+            os.close(fd)
+            tmp_path = Path(tmp_str)
+            req = urllib.request.Request(
+                DEMO_DATA_ARCHIVE_URL, headers={"User-Agent": "Mozilla/5.0"}
+            )
+            with urllib.request.urlopen(req, timeout=120) as response:
+                with open(tmp_path, "wb") as f:
+                    f.write(response.read())
+            dl_sha = _sha256(tmp_path)
+            if dl_sha != DEMO_DATA_ARCHIVE_SHA256:
+                _print_fail(
+                    "Demo-data download checksum mismatch",
+                    f"expected {DEMO_DATA_ARCHIVE_SHA256}, got {dl_sha}",
+                )
+                return False
+            shutil.move(str(tmp_path), str(DEMO_DATA_ARCHIVE))
+            _print_pass("Demo-data archive downloaded", str(DEMO_DATA_ARCHIVE))
+        except Exception as exc:
+            _print_fail("Failed to download demo-data archive", str(exc))
+            return False
+        finally:
+            if tmp_path is not None and tmp_path.exists():
+                try:
+                    tmp_path.unlink()
+                except OSError:
+                    pass
 
     if force:
         targets = [p for p in _demo_data_paths_to_remove() if p.exists()]
@@ -400,7 +595,7 @@ def _windows_add_to_user_path(bin_dir: Path) -> None:
         )
     except Exception as exc:
         _print_warn(
-            "Could not persist CBC to user PATH; add manually", f"{bin_dir} ({exc})"
+            "Could not persist solver to user PATH; add manually", f"{bin_dir} ({exc})"
         )
     print("  Note: open a NEW terminal for this PATH change to take effect.")
 
@@ -451,11 +646,90 @@ def _install_cbc_windows_manual() -> bool:
             bin_dir = matches[0].parent
 
         _windows_add_to_user_path(bin_dir)
+        _persist_solver_env_path("SOLVER_CBC_PATH", bin_dir)
         _print_pass("CBC installed", str(bin_dir))
         return True
 
     except Exception as exc:
         _print_fail("CBC manual install failed", str(exc))
+        return False
+
+    finally:
+        if tmp_path is not None and tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
+
+
+def _install_glpk_windows_manual() -> bool:
+    """
+    Fallback: download the original winglpk-4.65.zip (mirrored on the
+    project's GitHub releases), verify against SourceForge's published
+    SHA-1 checksum, extract, and add to PATH.
+
+    This is only used when Chocolatey is unavailable or
+    ``choco install glpk`` fails.
+    """
+    install_dir = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "glpk"
+    tmp_path: Path | None = None
+
+    try:
+        _print_warn("Attempting manual GLPK installation...")
+        install_dir.mkdir(parents=True, exist_ok=True)
+
+        fd, tmp_str = tempfile.mkstemp(suffix=".zip")
+        os.close(fd)
+        tmp_path = Path(tmp_str)
+
+        print(f"  Downloading GLPK {_GLPK_WINDOWS_VERSION} from GitHub ...")
+        req = urllib.request.Request(_GLPK_WINDOWS_URL, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=120) as response:
+            with open(tmp_path, "wb") as f:
+                f.write(response.read())
+
+        print("  Verifying GLPK archive checksum ...")
+        actual_sha = _sha1(tmp_path)
+        if actual_sha.lower() != _GLPK_WINDOWS_SHA1.lower():
+            _print_fail(
+                "GLPK download checksum mismatch — aborting installation",
+                f"expected {_GLPK_WINDOWS_SHA1}, got {actual_sha}",
+            )
+            return False
+        _print_pass("GLPK archive checksum verified", actual_sha)
+
+        print("  Extracting GLPK ...")
+        with zipfile.ZipFile(tmp_path, "r") as zf:
+            _safe_extract_zip(zf, install_dir)
+
+        extract_root = install_dir / f"glpk-{_GLPK_WINDOWS_VERSION}"
+        machine = platform.machine().lower()
+
+        # Windows ARM64 uses the x64 GLPK build via emulation.
+        preferred_subdirs = (
+            ["w64", "w32"]
+            if machine in {"amd64", "x86_64", "arm64", "aarch64"}
+            else ["w32", "w64"]
+        )
+
+        bin_dir: Path | None = None
+        for subdir in preferred_subdirs:
+            candidate = extract_root / subdir / "glpsol.exe"
+            if candidate.is_file():
+                bin_dir = candidate.parent
+                break
+
+        if bin_dir is None:
+            _print_fail("glpsol.exe not found in extracted archive")
+            return False
+
+        _windows_add_to_user_path(bin_dir)
+        _persist_solver_env_path("SOLVER_GLPK_PATH", bin_dir)
+        _print_pass("GLPK installed", str(bin_dir))
+        return True
+
+    except Exception as exc:
+        _print_fail("GLPK manual install failed", str(exc))
         return False
 
     finally:
@@ -590,11 +864,11 @@ def install_solvers() -> bool:
     """Install GLPK and CBC solver binaries using OS package managers."""
     _print_header("Step 3: Solver dependencies (GLPK & CBC)")
 
-    glpk_ok = _which("glpsol") is not None
-    cbc_ok = _which("cbc") is not None
+    glpk_ok = _resolve_solver_binary("glpsol", "SOLVER_GLPK_PATH") is not None
+    cbc_ok = _resolve_solver_binary("cbc", "SOLVER_CBC_PATH") is not None
 
     if glpk_ok and cbc_ok:
-        _print_pass("  Both solvers are already available in PATH — skipping.")
+        _print_pass("  Both solvers are already available — skipping.")
         return True
 
     success = True
@@ -606,19 +880,19 @@ def install_solvers() -> bool:
                 "Homebrew not found",
                 "Install from https://brew.sh then re-run this script.",
             )
-            return False
+            success = False
+        else:
+            if not glpk_ok:
+                r = _run(["brew", "install", "glpk"], capture_output=True, text=True)
+                if r.returncode != 0:
+                    _print_fail("brew install glpk", r.stderr.strip())
+                    success = False
 
-        if not glpk_ok:
-            r = _run(["brew", "install", "glpk"], capture_output=True, text=True)
-            if r.returncode != 0:
-                _print_fail("brew install glpk", r.stderr.strip())
-                success = False
-
-        if not cbc_ok:
-            r = _run(["brew", "install", "cbc"], capture_output=True, text=True)
-            if r.returncode != 0:
-                _print_fail("brew install cbc", r.stderr.strip())
-                success = False
+            if not cbc_ok:
+                r = _run(["brew", "install", "cbc"], capture_output=True, text=True)
+                if r.returncode != 0:
+                    _print_fail("brew install cbc", r.stderr.strip())
+                    success = False
 
     # ── Linux ─────────────────────────────────────────────────────────────
     elif SYSTEM == "Linux":
@@ -628,22 +902,22 @@ def install_solvers() -> bool:
                 "No supported package manager found (apt, dnf, pacman)",
                 "Install GLPK and CBC manually, then re-run with --check.",
             )
-            return False
+            success = False
+        else:
+            mgr_name, glpk_cmd, cbc_cmd = pkg
+            print(f"  Detected package manager: {mgr_name}")
 
-        mgr_name, glpk_cmd, cbc_cmd = pkg
-        print(f"  Detected package manager: {mgr_name}")
+            if not glpk_ok:
+                r = _run(glpk_cmd, capture_output=True, text=True)
+                if r.returncode != 0:
+                    _print_fail(" ".join(glpk_cmd), r.stderr.strip())
+                    success = False
 
-        if not glpk_ok:
-            r = _run(glpk_cmd, capture_output=True, text=True)
-            if r.returncode != 0:
-                _print_fail(" ".join(glpk_cmd), r.stderr.strip())
-                success = False
-
-        if not cbc_ok:
-            r = _run(cbc_cmd, capture_output=True, text=True)
-            if r.returncode != 0:
-                _print_fail(" ".join(cbc_cmd), r.stderr.strip())
-                success = False
+            if not cbc_ok:
+                r = _run(cbc_cmd, capture_output=True, text=True)
+                if r.returncode != 0:
+                    _print_fail(" ".join(cbc_cmd), r.stderr.strip())
+                    success = False
 
     # ── Windows ───────────────────────────────────────────────────────────
     elif SYSTEM == "Windows":
@@ -651,22 +925,22 @@ def install_solvers() -> bool:
             if not _is_admin():
                 _print_warn(
                     "Not running as Administrator",
-                    "choco installs may fail; CBC will use manual fallback if needed.",
+                    "choco installs may fail; solvers will use manual fallback if needed.",
                 )
 
             if not glpk_ok:
                 r = _run(["choco", "install", "glpk", "-y"],
                          capture_output=True, text=True)
                 if r.returncode != 0:
-                    _print_fail("choco install glpk", r.stderr.strip())
-                    success = False
+                    _print_warn("choco install glpk failed, using manual fallback")
+                    if not _install_glpk_windows_manual():
+                        success = False
 
             if not cbc_ok:
                 r = _run(["choco", "install", "coinor-cbc", "-y"],
                          capture_output=True, text=True)
                 if r.returncode != 0:
                     _print_warn("coinor-cbc not available via Chocolatey, using manual fallback")
-
                     if not _install_cbc_windows_manual():
                         success = False
 
@@ -674,55 +948,91 @@ def install_solvers() -> bool:
             _print_warn("winget detected but GLPK/CBC not available via winget.")
 
             if not glpk_ok:
-                success = False
+                if not _install_glpk_windows_manual():
+                    success = False
 
             if not cbc_ok:
                 if not _install_cbc_windows_manual():
                     success = False
 
         else:
-            _print_warn(
-                "No supported package manager (choco/winget) found on Windows",
-                "Install Chocolatey (https://chocolatey.org/) or install GLPK manually.",
-            )
+            _print_warn("No supported package manager (choco/winget) found on Windows.")
 
             if not glpk_ok:
-                success = False
+                if not _install_glpk_windows_manual():
+                    success = False
 
             if not cbc_ok:
                 if not _install_cbc_windows_manual():
                     success = False
 
-    if success:
-        print(f"  {GREEN}Solver dependencies installed.{RESET}")
+    # ── Report per-solver status ─────────────────────────────────────────
+    glpk_exec = _resolve_solver_binary("glpsol", "SOLVER_GLPK_PATH")
+    cbc_exec = _resolve_solver_binary("cbc", "SOLVER_CBC_PATH")
+
+    if glpk_exec is not None:
+        _print_pass("GLPK (glpsol) available", str(glpk_exec.parent))
     else:
-        _print_warn("Some solvers could not be installed automatically.")
+        _print_fail("GLPK (glpsol) not available")
+        success = False
+
+    if cbc_exec is not None:
+        _print_pass("CBC available", str(cbc_exec.parent))
+    else:
+        _print_fail("CBC not available")
+        success = False
+
+    if success:
+        print(f"\n  {GREEN}Solver dependencies installed.{RESET}")
+    else:
         _print_solver_manual_instructions()
 
     return success
 
 
 def _print_solver_manual_instructions() -> None:
-    """Print manual installation instructions for solvers."""
-    print(textwrap.dedent(f"""
-    {YELLOW}Manual solver installation:{RESET}
+    """Print targeted manual installation instructions for missing solvers."""
+    glpk_missing = _resolve_solver_binary("glpsol", "SOLVER_GLPK_PATH") is None
+    cbc_missing = _resolve_solver_binary("cbc", "SOLVER_CBC_PATH") is None
 
-    GLPK:
-      macOS:   brew install glpk
-      Ubuntu:  sudo apt-get install -y glpk-utils
-      Fedora:  sudo dnf install -y glpk-utils
-      Arch:    sudo pacman -S glpk
-      Windows: choco install glpk
-               or download from https://www.gnu.org/software/glpk/
+    if not glpk_missing and not cbc_missing:
+        return
 
-    CBC (COIN-OR):
-      macOS:   brew install cbc
-      Ubuntu:  sudo apt-get install -y coinor-cbc
-      Fedora:  sudo dnf install -y coin-or-Cbc
-      Arch:    sudo pacman -S coin-or-cbc
-      Windows: choco install coinor-cbc
-               or download from https://github.com/coin-or/Cbc/releases
-    """))
+    print(f"\n  {YELLOW}Manual solver installation:{RESET}\n")
+
+    if SYSTEM == "Windows":
+        print("  The easiest way to install solvers on Windows is via Chocolatey.")
+        print("  Install Chocolatey: https://chocolatey.org/install")
+        print()
+        if glpk_missing:
+            print("  GLPK:")
+            print("    choco install glpk")
+            print("    or download from https://sourceforge.net/projects/winglpk/")
+            print()
+        if cbc_missing:
+            print("  CBC (COIN-OR):")
+            print("    choco install coinor-cbc")
+            print("    or download from https://github.com/coin-or/Cbc/releases")
+            print()
+    elif SYSTEM == "Darwin":
+        if glpk_missing:
+            print("  GLPK:  brew install glpk")
+        if cbc_missing:
+            print("  CBC:   brew install cbc")
+        print()
+    else:
+        if glpk_missing:
+            print("  GLPK:")
+            print("    Ubuntu:  sudo apt-get install -y glpk-utils")
+            print("    Fedora:  sudo dnf install -y glpk-utils")
+            print("    Arch:    sudo pacman -S glpk")
+            print()
+        if cbc_missing:
+            print("  CBC (COIN-OR):")
+            print("    Ubuntu:  sudo apt-get install -y coinor-cbc")
+            print("    Fedora:  sudo dnf install -y coin-or-Cbc")
+            print("    Arch:    sudo pacman -S coin-or-cbc")
+            print()
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -767,52 +1077,68 @@ def run_checks() -> bool:
     print("  Checking solver binaries:")
 
     # GLPK: glpsol --version works normally
-    glpsol_path = _which("glpsol")
-    if glpsol_path:
-        try:
-            r = subprocess.run(
-                ["glpsol", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            version_line = (r.stdout or r.stderr or "").strip().split("\n")[0]
-            if r.returncode == 0:
-                _print_pass("GLPK (glpsol)", version_line)
-            else:
-                _print_fail("GLPK (glpsol)", f"exit={r.returncode}; {version_line}")
-                all_ok = False
-        except subprocess.TimeoutExpired:
-            _print_fail("GLPK (glpsol)", "timed out while checking solver")
-            all_ok = False
-    else:
-        _print_fail("GLPK (glpsol)", "'glpsol' not found in PATH")
+    try:
+        glpsol_exec = _validate_configured_solver_binary("glpsol", "SOLVER_GLPK_PATH")
+    except RuntimeError as exc:
+        _print_fail("GLPK (glpsol)", str(exc))
         all_ok = False
+    else:
+        if glpsol_exec is None:
+            glpsol_exec = _find_solver_binary_on_path("glpsol")
+
+        if glpsol_exec is None:
+            _print_fail("GLPK (glpsol)", "not found via SOLVER_GLPK_PATH or PATH")
+            all_ok = False
+        else:
+            try:
+                r = subprocess.run(
+                    [str(glpsol_exec), "--version"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                version_line = (r.stdout or r.stderr or "").strip().split("\n")[0]
+                if r.returncode == 0:
+                    _print_pass("GLPK (glpsol)", version_line)
+                else:
+                    _print_fail("GLPK (glpsol)", f"exit={r.returncode}; {version_line}")
+                    all_ok = False
+            except subprocess.TimeoutExpired:
+                _print_fail("GLPK (glpsol)", "timed out while checking solver")
+                all_ok = False
 
     # CBC: probe with -stop for a non-interactive check.
-    cbc_path = _which("cbc")
-    if cbc_path:
-        try:
-            r = subprocess.run(
-                ["cbc", "-stop"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            output = (r.stdout or r.stderr or "").strip()
-            lines = [line.strip() for line in output.splitlines() if line.strip()]
-            version_info = lines[1] if len(lines) > 1 else (lines[0] if lines else "cbc responded")
-            if r.returncode == 0:
-                _print_pass("CBC", version_info)
-            else:
-                _print_fail("CBC", f"exit={r.returncode}; {version_info}")
-                all_ok = False
-        except subprocess.TimeoutExpired:
-            _print_fail("CBC", "timed out while checking solver")
-            all_ok = False
-    else:
-        _print_fail("CBC", "'cbc' not found in PATH")
+    try:
+        cbc_exec = _validate_configured_solver_binary("cbc", "SOLVER_CBC_PATH")
+    except RuntimeError as exc:
+        _print_fail("CBC", str(exc))
         all_ok = False
+    else:
+        if cbc_exec is None:
+            cbc_exec = _find_solver_binary_on_path("cbc")
+
+        if cbc_exec is None:
+            _print_fail("CBC", "not found via SOLVER_CBC_PATH or PATH")
+            all_ok = False
+        else:
+            try:
+                r = subprocess.run(
+                    [str(cbc_exec), "-stop"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                output = (r.stdout or r.stderr or "").strip()
+                lines = [line.strip() for line in output.splitlines() if line.strip()]
+                version_info = lines[1] if len(lines) > 1 else (lines[0] if lines else "cbc responded")
+                if r.returncode == 0:
+                    _print_pass("CBC", version_info)
+                else:
+                    _print_fail("CBC", f"exit={r.returncode}; {version_info}")
+                    all_ok = False
+            except subprocess.TimeoutExpired:
+                _print_fail("CBC", "timed out while checking solver")
+                all_ok = False
 
     # 4d – Basic app startup check (import the Flask app module)
     print()
@@ -920,7 +1246,7 @@ def main() -> int:
         "--with-demo-data",
         action="store_true",
         dest="with_demo_data",
-        help="Install demo data from local archive (default behavior).",
+        help="Install demo data (uses local archive if present, otherwise downloads from release asset). This is the default.",
     )
     parser.add_argument(
         "--no-demo-data",
