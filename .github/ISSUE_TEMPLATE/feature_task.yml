@@ -16,7 +16,7 @@ body:
       label: Proposed solution
       description: Describe scope and approach.
     validations:
-      required: true
+      required: false
   - type: textarea
     id: acceptance
     attributes:
@@ -26,12 +26,30 @@ body:
         - [ ] Criterion 1
         - [ ] Criterion 2
     validations:
-      required: true
+      required: false
   - type: textarea
     id: dependencies
     attributes:
       label: Dependencies and constraints
-      description: Upstream/downstream constraints, blocked items, external dependencies.
+      description: Upstream or downstream constraints, blocked items, or external dependencies.
     validations:
       required: false
-
+  - type: textarea
+    id: related_work
+    attributes:
+      label: Related work checked
+      description: List anything relevant you checked before opening this issue. Use issue/PR numbers like #123, or write `None found after search`.
+    validations:
+      required: false
+  - type: dropdown
+    id: proposed_track
+    attributes:
+      label: Proposed track
+      description: Optional. Maintainers will assign the final track label.
+      options:
+        - Track: Cross-Platform
+        - Track: OG Onboarding
+        - Track: Integration
+        - Track: Stability
+    validations:
+      required: false

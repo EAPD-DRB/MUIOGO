@@ -52,14 +52,14 @@ export class Html {
                             </td>
                             <td style="width:40px; text-align:center">
                                 <span data-toggle="modal" data-target="#modalcopy">
-                                    <span class="copyCS" data-ps="${value}"' + 'id="copy_${value}"  data-toggle="tooltip" data-placement="top" title="Copy model" >
+                                    <span class="copyCS" data-ps="${value}" id="copy_${value}" data-toggle="tooltip" data-placement="top" title="${selectedCS == value ? 'Copy model' : 'Select model first to copy'}">
                                         <span class="glyphicon glyphicon-duplicate text-info icon-btn"></span>
                                     </span>
                                 </span>
                             </td>
                             <td style="width:40px; text-align:center">
                                 <span>
-                                    <span class="deleteModel" data-ps="${value}"'+'data-toggle="tooltip" data-placement="top" title="Delete model">
+                                    <span class="deleteModel" data-ps="${value}" data-toggle="tooltip" data-placement="top" title="${selectedCS == value ? 'Delete model' : 'Select model first to delete'}">
                                         <span  class="glyphicon glyphicon-trash danger icon-btn"></span>
                                     </span>
                                 </span>
