@@ -19,11 +19,13 @@ export default class DataFile {
                 promise.push(genData);
                 const resData = Osemosys.getResultData(casename, 'resData.json');
                 promise.push(resData);
+                const modelFile = Osemosys.readModelFile();
+                promise.push(modelFile);
                 return Promise.all(promise);
             })
             .then(data => {
-                let [casename, genData, resData] = data;
-                let model = new Model(casename, genData, resData, "DataFile");
+                let [casename, genData, resData, modelFile] = data;
+                let model = new Model(casename, genData, resData, modelFile, "DataFile");
                 if (casename) {
                     this.initPage(model);
                 } else {
@@ -43,6 +45,7 @@ export default class DataFile {
         //Navbar.initPage(model.casename, model.pageId);
         Html.title(model.casename, model.title, "");
         Html.renderCases(model.cases);
+        Html.renderModelFile(model.modelFile);
         //potrebno je napraviti render svih scenarija (mozda je dodan novi scenario u medjuvremenu), on mora biti dodan u listu scenarija po case run samo sto nece biti aktivan
         // Html.renderScOrder(model.scBycs[model.cs]);
         //console.log('model.scenarios ',model.scenarios)
@@ -69,11 +72,13 @@ export default class DataFile {
                 promise.push(genData);
                 const resData = Osemosys.getResultData(casename, 'resData.json');
                 promise.push(resData);
+                const modelFile = Osemosys.readModelFile();
+                promise.push(modelFile);
                 return Promise.all(promise);
             })
             .then(data => {
-                let [casename, genData, resData] = data;
-                let model = new Model(casename, genData, resData, "DataFile");
+                let [casename, genData, resData, modelFile] = data;
+                let model = new Model(casename, genData, resData, modelFile, "DataFile");
                 $(".DataFile").hide();
                 $("#osy-DataFile").empty();
                 $("#osy-runOutput").empty();
@@ -95,6 +100,9 @@ export default class DataFile {
     }
 
     static initEvents(model) {
+        const renderLogText = (selector, primary, secondary = '') => {
+            Html.renderPreformatted(selector, `${primary || ''}${secondary || ''}`);
+        };
 
         $("#casePicker").off('click');
         $("#casePicker").on('click', '.selectCS', function (e) {
@@ -104,6 +112,21 @@ export default class DataFile {
             Html.updateCasePicker(casename);
             DataFile.refreshPage(casename);
             Message.smallBoxInfo("Case selection", casename + " is selected!", 3000);
+        });
+
+        $("#osy-logFile").off('click');
+        $("#osy-logFile").on('click', function (event) {
+            Message.loaderStart('Generating log file!')
+            Osemosys.readLogFile()
+            .then(response => {
+                Message.loaderEnd();
+                Html.renderPreformatted('#osy-logFiletxt', response, 'No runtime log available yet.\n');
+                $("#osy-LogFileModal").modal("show");
+            })
+            .catch(error => {
+                Message.loaderEnd();
+                Message.bigBoxDanger('Error message', error, null);
+            })
         });
 
         $("#osy-btnScOrder").off('click');
@@ -143,10 +166,54 @@ export default class DataFile {
 
         });
 
+        function setAllCheckboxes(state) {
+            // Targetiramo checkboxove SAMO u #osy-scOrder (SC_0 ostaje netaknut jer je disabled i u #osy-sc0)
+            $('#osy-scOrder input[type="checkbox"]:not(:disabled)')
+                .prop('checked', state)
+                .trigger('change'); // ako imaš logiku na change eventu
+        }
+
+        function syncToggleAllButton() {
+            const $btn = $('#toggle-all');
+            const $boxes = $('#osy-scOrder input[type="checkbox"]:not(:disabled)');
+            const allChecked = $boxes.length > 0 && !$boxes.is(':not(:checked)');
+            const $icon = $btn.find('i.fa');
+
+            if (allChecked) {
+                $icon.removeClass('fa-square-o').addClass('fa-check-square-o');
+                $btn.find('span').text('Uncheck all');
+            } else {
+                $icon.removeClass('fa-check-square-o').addClass('fa-square-o');
+                $btn.find('span').text('Check all');
+            }
+        }
+
+        syncToggleAllButton();
+
+        $("#toggle-all").off('click');
+        $('#toggle-all').on('click', function (e) {
+            
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $btn = $(this);
+            // Skup svih "normalnih" checkboxova (osim disabled i osim SC_0)
+            const $boxes = $('#osy-scOrder input[type="checkbox"]:not(:disabled)');
+            // Provjera: ima li ijedan nečekiran?
+            const anyUnchecked = $boxes.is(':not(:checked)');
+
+            // Ako ima nečekiranih → čekiraj sve, inače → poništi sve
+            setAllCheckboxes(anyUnchecked);
+
+            syncToggleAllButton();
+
+        });
+
+
         $("#btnSaveOrder").off('click');
         $("#btnSaveOrder").on('click', function (event) {
             Message.clearMessages();
-            Message.bigBoxSuccess('Sceanario order', 'You have updated scenarios order data!', 3000);
+            Message.bigBoxWarning('Scenario Order Updated', 'You have updated the order of scenarios. To apply your changes, please click Update Case.', 4000);
             $('#osy-order').modal('toggle');
 
             //nema potrebe da spasavmo scenario order jer se on ada nalazi u resData
@@ -410,11 +477,27 @@ export default class DataFile {
             })
         });
 
-
         $("#osy-run").off('click');
         $("#osy-run").on('click', function (event) {
             Pace.restart();
             Message.loaderStart('Optimization in process!')
+
+            
+            // const logBox = document.getElementById("logBox");
+            // const eventSource = new EventSource("http://127.0.0.1:5002/stream_logs");
+
+            // eventSource.onmessage = function (e) {
+            //     console.log('e.data ', e.data)
+            //     logBox.innerHTML += e.data + "<br>";
+            //     logBox.scrollTop = logBox.scrollHeight;   // auto-scroll
+            // };
+
+
+
+
+
+            //////////////////////////////////////////////////////////////////////////////////////
+
             //promijenjeno da radimo samo sa cBCsolverom
             //let solver = $('input[name="solver"]:checked').val();
             let solver = 'cbc';
@@ -430,9 +513,9 @@ export default class DataFile {
                     $(".batchOutput").hide();
                     $("#osy-batchOutput").empty();
                     $("#osy-runOutput").empty();
-                    $("#osy-runOutput").html('<pre class="log-output">' + response.cbc_message, response.cbc_stdmsg+ '</pre>');
+                    renderLogText('#osy-runOutput', response.cbc_message, response.cbc_stdmsg);
                     $("#osy-lpOutput").empty();
-                    $("#osy-lpOutput").html('<pre class="log-output">' + response.glpk_message, response.glpk_stdmsg+ '</pre>');
+                    renderLogText('#osy-lpOutput', response.glpk_message, response.glpk_stdmsg);
                     Base.getResultCSV(model.casename, model.cs)
                         .then(csvs => {
                             Html.renderCSV(csvs, model.cs)
@@ -450,9 +533,9 @@ export default class DataFile {
                     $(".batchOutput").hide();
                     $("#osy-batchOutput").empty();
                     $("#osy-runOutput").empty();
-                    $("#osy-runOutput").html('<pre class="log-output">' + response.cbc_message, response.cbc_stdmsg+ '</pre>');
+                    renderLogText('#osy-runOutput', response.cbc_message, response.cbc_stdmsg);
                     $("#osy-lpOutput").empty();
-                    $("#osy-lpOutput").html('<pre class="log-output">' + response.glpk_message, response.glpk_stdmsg+ '</pre>');
+                    renderLogText('#osy-lpOutput', response.glpk_message, response.glpk_stdmsg);
                     Base.getResultCSV(model.casename, model.cs)
                         .then(csvs => {
                             Html.renderCSV(csvs, model.cs)
@@ -469,9 +552,9 @@ export default class DataFile {
                     $(".batchOutput").hide();
                     $("#osy-batchOutput").empty();
                     $("#osy-runOutput").empty();
-                    $("#osy-runOutput").html('<pre class="log-output">' + response.cbc_message, response.cbc_stdmsg+ '</pre>');
+                    renderLogText('#osy-runOutput', response.cbc_message, response.cbc_stdmsg);
                     $("#osy-lpOutput").empty();
-                    $("#osy-lpOutput").html('<pre class="log-output">' + response.glpk_message, response.glpk_stdmsg+ '</pre>');
+                    renderLogText('#osy-lpOutput', response.glpk_message, response.glpk_stdmsg);
                     Message.clearMessages();
                     // let errormsg = '';
                     // if (response.glpk_message != "" || response.glpk_stdmsg != "") {
@@ -577,11 +660,11 @@ export default class DataFile {
                 if (response.status_code == "success") {
                     $('#osy-validation').modal('toggle');
                     $("#valCasrunname").text(caserunanme)
-                    $("#valOutput").html('<pre class="log-output">' + response.msg+ '</pre>')
+                    Html.renderPreformatted('#valOutput', response.msg);
                 }
                 if (response.status_code == "warning") {
                     $('#osy-validation').modal('toggle');
-                    $("#valOutput").html('<pre class="log-output">' + response.msg+ '</pre>');
+                    Html.renderPreformatted('#valOutput', response.msg);
                 }
                 if (response.status_code == "error") {
                     //Message.warningOsy(response.msg);
@@ -734,6 +817,7 @@ export default class DataFile {
 
                                     $(".batchOutput").hide();
                                     $("#osy-batchRun").hide();
+                                    $("#osy-runCaseDiv").hide();
                                     $('.checkbox').prop('checked', false);
                                 }
                                 //remove case from view json files
@@ -763,7 +847,6 @@ export default class DataFile {
             //e.preventDefault();
             e.stopImmediatePropagation();
         });
-
 
         //$(".Cases").off('click');
         $('#osy-Cases').on('click', '.checkbox', function(e){
@@ -823,7 +906,7 @@ export default class DataFile {
 
                 $(".batchOutput").show();
                 $("#osy-batchOutput").empty();
-                $("#osy-batchOutput").html('<pre class="log-output">' + response.log+ '</pre>');
+                Html.renderPreformatted('#osy-batchOutput', response.log);
 
             })
             .catch(error => {
@@ -841,14 +924,15 @@ export default class DataFile {
             Osemosys.cleanUp(model.casename)
             .then(response => {
                 Message.loaderEnd();
-                //Message.smallBoxInfo('Generate message', response.message, 3000);
-                // console.log('response ', response.log);
-                // Message.bigBoxDefault("BATCH RUN!", response.log)
                 $(".runOutput").hide();
+                $(".DataFile").hide();
                 $(".lpOutput").hide();
                 $(".Results").hide();
+                $(".batchOutput").hide();
+                $("#osy-runCaseDiv").hide();
                 $("#osy-runOutput").empty();
                 $("#osy-lpOutput").empty();
+                $('.Cases').tab('show');
 
                 console.log('response clean up ', response) 
 
@@ -873,8 +957,4 @@ export default class DataFile {
         Message.loaderEnd();
     }
 }
-
-
-
-
 

@@ -20,9 +20,6 @@ export class Model {
         let varById = DataModelResult.getVarById(VARIABLES);
         let varNames = DataModelResult.AllVarName(VARIABLES);
 
-        console.log('unitsDef ', unitsDef)
-        console.log('PARAMETERS[group] ', PARAMETERS['RYS'])
-
         let gridParamData = []
         $.each(PARAMORDER, function (id, group) {   
             $.each(PARAMETERS[group], function (id, obj) {

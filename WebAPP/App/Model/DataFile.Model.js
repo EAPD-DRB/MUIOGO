@@ -1,6 +1,6 @@
 
 export class Model {
-    constructor (casename, genData, resData, pageId) {
+    constructor (casename, genData, resData, modelFile, pageId) {
       if(casename){
 
         let cases = resData['osy-cases'];
@@ -54,6 +54,7 @@ export class Model {
         
         this.casename = casename;
         this.cs = cs;
+        this.modelFile = modelFile;
         this.scBycs = scBycs;
         this.title = "Run model";
         this.scenarios = scenarios;

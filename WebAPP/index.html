@@ -2,7 +2,7 @@
 <html lang="en-us">
 	<head>
 		<meta charset="utf-8">
-		<title>MUIO 5.4</title>
+		<title>MUIO 5.5</title>
 		<meta name="description" content="">
 		<meta name="author" content="">
 			
@@ -31,13 +31,29 @@
 		
 		 <script src="References/wijmo/controls/wijmo.odata.min.js"></script>
 		 <script src="References/wijmo/controls/wijmo.olap.min.js"></script>
+		<script src="References/wijmo/licence.js"></script>
 		<script src="References/jszip/jszip.min.js"></script>
 
 		<!-- plotly -->
 		<script src="References/plotly/plotly-2.27.0.min.js"></script>
 		<!-- <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js'></script> -->
 
-
+		
+		<!-- MathJax 3 -->
+		<script>
+			window.MathJax = {
+				tex: {
+					// Dodaj AMS paket
+					packages: {'[+]': ['ams']},
+					inlineMath: [['\\(','\\)']],
+					displayMath: [['$$','$$']],
+					processEscapes: true,
+					processEnvironments: true,
+					linebreaks: { automatic: true }  // dozvoli automatske prijelome
+				}
+			};
+		</script>
+		<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" defer></script>
 
 		<!-- SmartAdmin Styles : Caution! DO NOT change the order -->
 		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/smartadmin-production-plugins.min.css">
@@ -49,16 +65,13 @@
 		<link rel="stylesheet" href="References/jqwidgets/styles/jqx.material.css" type="text/css" />
 		<link rel="stylesheet" href="References/jqwidgets/styles/jqx.fluent.css" type="text/css" />
 
-
-
 		<!-- #FAVICONS -->
 		<!-- <link rel="shortcut icon" href="References/smartadmin/img/favicon/favicon.ico" type="image/x-icon"> -->
 		<link rel="icon" href="References/smartadmin/img/favicon/favicon.ico" type="image/x-icon">
 
 		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/demo.css">
 
-		<!-- We recommend you use "your_style.css" to override SmartAdmin-->
-		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/osy.css"> 
+
 
 		<!-- jquery-->    
 		<script type="text/javascript" src="References/jquery/jquery-3.4.1.min.js"></script>
@@ -83,6 +96,9 @@
 		<!-- iOS web-app metas : hides Safari UI Components and Changes Status Bar Appearance -->
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+				<!-- We recommend you use "your_style.css" to override SmartAdmin-->
+		<link rel="stylesheet" type="text/css" media="screen" href="References/smartadmin/css/osy.css"> 
 	</head>
 
 	<body class=" minified smart-style-4  fixed-header ">
@@ -124,7 +140,7 @@
 			<div class="page-footer">
 				<div class="row">
 					<div class="col-xs-12 col-sm-6">
-						<span class="txt-color-white">MUIO ver.5.4<span class="hidden-xs"> - Modelling User Interface for Osemosys</span> © 2020-2025</span>
+						<span class="txt-color-white">MUIO ver.5.5<span class="hidden-xs"> - Modelling User Interface for Osemosys</span> © 2020-2025</span>
 					</div>
 				</div>
 				<!-- end row -->

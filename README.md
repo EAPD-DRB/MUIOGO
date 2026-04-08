@@ -1,9 +1,6 @@
-# 🎓 Applications for MUIOGO Are Now Open!
+# 🎓 Applications for MUIOGO Are Now Closed
 
-Please complete the following questionnaire so we can keep track of everybody’s application in a structured way:
-
-🗓 **Deadline**: 16 March  
-📄 **Apply** [here](https://forms.gle/8Yvw2H6Q7Qw6snSN9)
+For the broader project description, see [OG–CLEWS: Integrating Open-Source Economic and Environmental Models for Sustainable Development](https://opensource.unicc.org/un/unoict/mentorship-programme/google-summer-of-code/-/blob/main/README.md#ogclews-integrating-open-source-economic-and-environmental-models-for-sustainable-development).
 
 ---
 <p align="center"><img src="assets/MUIOGO_Logo.png" width="50%"></p>
@@ -89,6 +86,7 @@ One of the core goals of MUIOGO is to become platform independent so separate pl
 Start with:
 - `CONTRIBUTING.md`
 - `docs/GSoC-2026.md`
+- `SUPPORT.md`
 - `docs/ARCHITECTURE.md`
 - `docs/DOCS_POLICY.md`
 

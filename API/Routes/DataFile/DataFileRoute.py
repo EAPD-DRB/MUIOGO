@@ -1,8 +1,11 @@
-from flask import Blueprint, jsonify, request, send_file, session
+from flask import Blueprint, Response, jsonify, request, send_file, session
 from pathlib import Path
-import shutil, datetime, time, os
+import shutil, datetime, time, os, logging
 from Classes.Case.DataFileClass import DataFile
 from Classes.Base import Config
+from utils import validate_json_fields
+
+logger = logging.getLogger(__name__)
 
 datafile_api = Blueprint('DataFileRoute', __name__)
 
@@ -26,6 +29,9 @@ def generateDataFile():
 @datafile_api.route("/createCaseRun", methods=['POST'])
 def createCaseRun():
     try:
+        err, code = validate_json_fields('casename', 'caserunname', 'data')
+        if err:
+            return err, code
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         data = request.json['data']
@@ -41,6 +47,9 @@ def createCaseRun():
 @datafile_api.route("/updateCaseRun", methods=['POST'])
 def updateCaseRun():
     try:
+        err, code = validate_json_fields('casename', 'caserunname', 'oldcaserunname', 'data')
+        if err:
+            return err, code
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         oldcaserunname = request.json['oldcaserunname']
@@ -57,6 +66,10 @@ def updateCaseRun():
 @datafile_api.route("/deleteCaseRun", methods=['POST'])
 def deleteCaseRun():
     try:
+        err, code = validate_json_fields('casename', 'caserunname', 'resultsOnly')
+        if err:
+            return err, code
+
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         resultsOnly = request.json['resultsOnly']
@@ -64,6 +77,7 @@ def deleteCaseRun():
         if not casename:
             return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
 
+        Config.validate_path(Config.DATA_STORAGE, os.path.join(casename, 'res', caserunname or ''))
         casePath = Path(Config.DATA_STORAGE, casename, 'res', caserunname)
         if not resultsOnly:
             shutil.rmtree(casePath)
@@ -141,6 +155,31 @@ def readDataFile():
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
+
+@datafile_api.route("/readModelFile", methods=['GET'])
+def readModelFile():
+    model_path = Path(Config.SOLVERs_FOLDER, 'model.v.5.4.txt')
+    if not model_path.is_file():
+        return jsonify({'message': 'Model file not found.', 'status_code': 'error'}), 404
+
+    text = model_path.read_text(encoding="utf-8", errors="replace")
+    return Response(text, mimetype="text/plain; charset=utf-8")
+
+
+@datafile_api.route("/readLogFile", methods=['GET'])
+def readLogFile():
+    try:
+        log_path = Config.get_runtime_log_path()
+    except OSError:
+        return Response("Runtime logging is not available.\n", mimetype="text/plain; charset=utf-8")
+
+    if not log_path.is_file():
+        return Response("No runtime log available yet.\n", mimetype="text/plain; charset=utf-8")
+
+    text = log_path.read_text(encoding="utf-8", errors="replace")
+    if not text.strip():
+        return Response("No runtime log available yet.\n", mimetype="text/plain; charset=utf-8")
+    return Response(text, mimetype="text/plain; charset=utf-8")
     
 @datafile_api.route("/validateInputs", methods=['POST'])
 def validateInputs():
@@ -172,9 +211,12 @@ def downloadDataFile():
         #path = "/Examples.pdf"
         case = session.get('osycase', None)
         caserunname = request.args.get('caserunname')
+        Config.validate_path(Config.DATA_STORAGE, os.path.join(case or '', 'res', caserunname or ''))
         dataFile = Path(Config.DATA_STORAGE,case, 'res',caserunname, 'data.txt')
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
-    
+
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -183,9 +225,12 @@ def downloadFile():
     try:
         case = session.get('osycase', None)
         file = request.args.get('file')
+        Config.validate_path(Config.DATA_STORAGE, os.path.join(case or '', 'res', 'csv', file or ''))
         dataFile = Path(Config.DATA_STORAGE,case,'res','csv',file)
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
-    
+
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -195,9 +240,12 @@ def downloadCSVFile():
         case = session.get('osycase', None)
         file = request.args.get('file')
         caserunname = request.args.get('caserunname')
+        Config.validate_path(Config.DATA_STORAGE, os.path.join(case or '', 'res', caserunname or '', 'csv', file or ''))
         dataFile = Path(Config.DATA_STORAGE,case,'res',caserunname,'csv',file)
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
-    
+
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -206,20 +254,28 @@ def downloadResultsFile():
     try:
         case = session.get('osycase', None)
         caserunname = request.args.get('caserunname')
+        Config.validate_path(Config.DATA_STORAGE, os.path.join(case or '', 'res', caserunname or ''))
         dataFile = Path(Config.DATA_STORAGE,case, 'res', caserunname,'results.txt')
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
-    
+
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
 @datafile_api.route("/run", methods=['POST'])
 def run():
     try:
+        err, code = validate_json_fields('casename', 'caserunname', 'solver')
+        if err:
+            return err, code
         casename = request.json['casename']
         caserunname = request.json['caserunname']
         solver = request.json['solver']
+        logger.info("Starting optimization process for model %s caserun %s", casename, caserunname)
         txtFile = DataFile(casename)
-        response = txtFile.run(solver, caserunname)     
+        response = txtFile.run(solver, caserunname)
+        logger.info("Optimization finished for model %s caserun %s", casename, caserunname)
         return jsonify(response), 200
     # except Exception as ex:
     #     print(ex)
@@ -231,6 +287,9 @@ def run():
 @datafile_api.route("/batchRun", methods=['POST'])
 def batchRun():
     try:
+        err, code = validate_json_fields('modelname', 'cases')
+        if err:
+            return err, code
         start = time.time()
         modelname = request.json['modelname']
         cases = request.json['cases']
@@ -238,6 +297,7 @@ def batchRun():
         if modelname != None:
             txtFile = DataFile(modelname)
             for caserun in cases:
+                logger.info("Generating data file for model %s caserun %s", modelname, caserun)
                 txtFile.generateDatafile(caserun)
 
             response = txtFile.batchRun( 'CBC', cases) 
@@ -254,7 +314,8 @@ def cleanUp():
 
         if modelname != None:
             model = DataFile(modelname)
-            response = model.cleanUp()    
+            logger.info("Cleaning up results for model %s", modelname)
+            response = model.cleanUp()
 
         return jsonify(response), 200
     except(IOError):

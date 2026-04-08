@@ -4,7 +4,7 @@ Thanks for contributing.
 
 ## Before starting
 
-1. Read `README.md`, `docs/GSoC-2026.md`, `docs/ARCHITECTURE.md`, and `docs/DOCS_POLICY.md`
+1. Read `README.md`, `docs/GSoC-2026.md`, `SUPPORT.md`, `docs/ARCHITECTURE.md`, and `docs/DOCS_POLICY.md`
 2. Search existing issues and PRs before proposing implementation work
 3. Create or reuse an issue before starting implementation work
 4. Fill in the issue's required related-work fields so overlap is explicit

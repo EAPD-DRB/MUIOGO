@@ -1,51 +1,51 @@
 name: Feature or task
-description: Propose implementation work with clear acceptance criteria.
+description: Share an idea or task that could help MUIOGO.
 title: "[Task] "
 labels: ["enhancement"]
 body:
   - type: textarea
     id: problem
     attributes:
-      label: Problem statement
-      description: What problem are we solving?
+      label: What needs work?
+      description: What are you trying to improve or make easier?
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Proposed solution
-      description: Describe scope and approach.
+      label: Possible approach (optional)
+      description: If you have an idea for the direction, add it here.
     validations:
       required: false
   - type: textarea
     id: acceptance
     attributes:
-      label: Acceptance criteria
-      description: List objective criteria for completion.
+      label: What good looks like (optional)
+      description: If helpful, list the outcome you are aiming for.
       placeholder: |
-        - [ ] Criterion 1
-        - [ ] Criterion 2
+        - setup is easier to follow
+        - current behavior still works
     validations:
       required: false
   - type: textarea
     id: dependencies
     attributes:
-      label: Dependencies and constraints
-      description: Upstream or downstream constraints, blocked items, or external dependencies.
+      label: Anything to keep in mind? (optional)
+      description: Upstream impact, related decisions, blocked items, or anything else that shapes the work.
     validations:
       required: false
   - type: textarea
     id: related_work
     attributes:
-      label: Related work checked
-      description: List anything relevant you checked before opening this issue. Use issue/PR numbers like #123, or write `None found after search`.
+      label: Related issue, PR, or discussion (optional)
+      description: If you already found something relevant, link it here.
     validations:
       required: false
   - type: dropdown
     id: proposed_track
     attributes:
       label: Proposed track
-      description: Optional. Maintainers will assign the final track label.
+      description: Optional. Pick one if it helps.
       options:
         - Track: Cross-Platform
         - Track: OG Onboarding

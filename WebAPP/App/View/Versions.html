@@ -1,4 +1,14 @@
 
+<h3>MUIO ver.5.5.0, <small>20260331</small></h3>
+<ol style="font-style: italic; font-weight: normal;">
+    <li><kbd style="font-weight: bold; background-color:#6FB3E0">Func</kbd>&nbsp;Added DataFile diagnostics for viewing the current model file and runtime log from the UI.</li>
+    <li><kbd style="font-weight: bold; background-color:#6FB3E0">Func</kbd>&nbsp;Added a standalone ModelFile page with MathJax-based equation rendering and readable fallback when MathJax is unavailable.</li>
+    <li><kbd style="font-weight: bold; background-color:#6FB3E0">Func</kbd>&nbsp;Scenario-order dialog now includes toggle-all selection without changing the locked base scenario behavior.</li>
+    <li><kbd style="font-weight: bold; background-color:#c74219">Code</kbd>&nbsp;Cleanup and case-run bookkeeping were aligned with upstream v5.5 so saved view definitions are preserved and result metadata stays consistent.</li>
+    <li><kbd style="font-weight: bold; background-color:#c74219">Code</kbd>&nbsp;Updated the solver model and synchronized frontend result metadata with upstream v5.5 definitions.</li>
+    <li><kbd style="font-weight: bold; background-color:#33cc33">Tech</kbd>&nbsp;Runtime logging now uses a backend-managed log path outside the static web tree, with read-only UI access through backend routes.</li>
+</ol>
+
 <h3>MUIO ver.5.4.0, <small>20260131</small></h3>
 <ol style="font-style: italic; font-weight: normal;">
     <li><kbd style="font-weight: bold; background-color:#c74219">Code</kbd>&nbsp;Default salvage value calculation has been changed from straight-line depreciation to sinking fund depreciation.</li>
