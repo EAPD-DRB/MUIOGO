@@ -205,8 +205,6 @@ def downloadCSVFile():
 def downloadResultsFile():
     try:
         case = session.get('osycase', None)
-        if case is None:
-            return jsonify({'message': 'No active session. Please select a model first.', 'status_code': 'error'}), 400
         caserunname = request.args.get('caserunname')
         dataFile = Path(Config.DATA_STORAGE,case, 'res', caserunname,'results.txt')
         return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
