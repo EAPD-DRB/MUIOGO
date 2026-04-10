@@ -65,3 +65,19 @@ def live_server():
 def base_url(live_server):
     """Overrides the pytest-playwright base_url fixture."""
     return live_server
+
+from playwright.sync_api import sync_playwright
+
+@pytest.fixture(scope="session")
+def browser():
+    with sync_playwright() as p:
+        yield p.chromium.launch()
+
+@pytest.fixture
+def page(browser, base_url):
+    page = browser.new_page()
+    page.goto(base_url)
+    # Wait for the main app container to load (as recommended)
+    page.wait_for_selector("#app-content, .container-fluid", timeout=10000)
+    yield page
+    page.close()
