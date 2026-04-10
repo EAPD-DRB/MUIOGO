@@ -122,5 +122,61 @@ class AppSmokeTests(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), "")
 
 
+class DownloadRouteGuardTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(API_DIR))
+        os.environ.setdefault("MUIOGO_SECRET_KEY", "smoke-test-secret")
+        cls.app_module = importlib.import_module("app")
+
+    def setUp(self):
+        self.client = self.app_module.app.test_client()
+
+    def test_download_routes_require_active_session(self):
+        endpoints = [
+            ("/downloadDataFile", {"caserunname": "run1"}),
+            ("/downloadFile", {"file": "result.csv"}),
+            ("/downloadCSVFile", {"file": "result.csv", "caserunname": "run1"}),
+            ("/downloadResultsFile", {"caserunname": "run1"}),
+            ("/downloadCSV", {}),
+        ]
+
+        for path, query in endpoints:
+            with self.subTest(path=path):
+                response = self.client.get(path, query_string=query)
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(
+                    response.get_json(),
+                    {
+                        "message": "No active session. Please select a model first.",
+                        "status_code": "error",
+                    },
+                )
+
+    def test_download_routes_require_query_params(self):
+        with self.client.session_transaction() as session_data:
+            session_data["osycase"] = "demo"
+
+        cases = [
+            ("/downloadDataFile", {}, "Missing required parameter: caserunname."),
+            ("/downloadFile", {}, "Missing required parameter: file."),
+            ("/downloadCSVFile", {"caserunname": "run1"}, "Missing required parameter: file."),
+            ("/downloadCSVFile", {"file": "result.csv"}, "Missing required parameter: caserunname."),
+            ("/downloadResultsFile", {}, "Missing required parameter: caserunname."),
+        ]
+
+        for path, query, message in cases:
+            with self.subTest(path=path, query=query):
+                response = self.client.get(path, query_string=query)
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(
+                    response.get_json(),
+                    {
+                        "message": message,
+                        "status_code": "error",
+                    },
+                )
+
+
 if __name__ == "__main__":
     unittest.main()
