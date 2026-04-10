@@ -26,6 +26,9 @@ def test_case_management(page: Page, live_server: str):
     # Click Save new model using role and text
     page.get_by_role("button", name=re.compile("Save new model", re.IGNORECASE)).click()
     
+    # Wait to allow AJAX save request to complete before navigating away
+    page.wait_for_timeout(3000)
+    
     # Go to Home
     page.goto(f"{live_server}/#Home")
     
@@ -51,6 +54,6 @@ def test_navigation_diagnostics(page: Page, live_server: str):
     expect(page.get_by_text("Model", exact=False).first).to_be_visible(timeout=10000)
     
     # Check Parameters / Config page
-    page.goto(f"{live_server}/#Parameters")
-    expect(page.get_by_text("Parameters", exact=False).first).to_be_visible(timeout=10000)
+    page.goto(f"{live_server}/#Config")
+    expect(page.get_by_role("heading", name=re.compile("Parameters", re.IGNORECASE)).first).to_be_visible(timeout=10000)
 
