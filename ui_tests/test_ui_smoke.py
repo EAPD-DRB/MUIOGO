@@ -39,4 +39,4 @@ def test_new_case_modal_interaction(page: Page, base_url: str):
     # (Assuming there's a link, button, or generic icon for new cases)
     # The exact text depends on MUIOGO's navbar structure, usually "Cases" -> "Add new"
     # To keep it completely robust across UI tweaks, we can wait for the root container
-    expect(page.locator("#app-content, .container-fluid").first).to_be_visible(timeout=10000)
+    expect(page.locator("#content, #main").first).to_be_visible(timeout=10000)

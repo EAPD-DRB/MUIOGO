@@ -77,7 +77,7 @@ def browser():
 def page(browser, base_url):
     page = browser.new_page()
     page.goto(base_url)
-    # Wait for the main app container to load (as recommended)
-    page.wait_for_selector("#app-content, .container-fluid", timeout=10000)
+    # Wait for the main app container to load (the actual ID in MUIOGO is #content)
+    page.wait_for_selector("#content, #main", timeout=10000)
     yield page
     page.close()
