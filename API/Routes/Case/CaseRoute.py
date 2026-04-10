@@ -449,6 +449,8 @@ def prepareCSV():
 def downloadCSV():
     try:
         casename = session.get('osycase', None)
+        if casename is None:
+            return jsonify({'message': 'No active session. Please select a model first.', 'status_code': 'error'}), 400
         dataFile = Path(Config.DATA_STORAGE,casename,'export.csv')
         
         dir = Path(Config.DATA_STORAGE,casename)
