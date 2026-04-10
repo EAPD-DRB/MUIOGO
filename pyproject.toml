@@ -1,0 +1,16 @@
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "--browser chromium -v"
+testpaths = [
+    "tests/ui",
+]
+pythonpath = ["API"]
+
+[project]
+name = "muiogo"
+version = "5.5.0"
+dependencies = [
+    "pytest>=7.0.0",
+    "pytest-playwright>=0.4.3",
+    "requests>=2.28.0"
+]
