@@ -61,7 +61,7 @@ def live_server():
     server.shutdown()
     server.join(timeout=2)
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def base_url(live_server):
     """Overrides the pytest-playwright base_url fixture."""
     return live_server
