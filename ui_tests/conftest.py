@@ -4,7 +4,7 @@ import threading
 import time
 import pytest
 import requests
-from werkzeug.serving import make_server
+from waitress import serve
 
 # Ensure API module can be imported
 sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
@@ -14,21 +14,20 @@ from API.app import app
 class ServerThread(threading.Thread):
     def __init__(self, host='127.0.0.1', port=5003):
         threading.Thread.__init__(self)
-        # Disable werkzeug logging to keep test output clean
-        import logging
-        log = logging.getLogger('werkzeug')
-        log.setLevel(logging.ERROR)
-        
-        self.server = make_server(host, port, app)
+        self.host = host
+        self.port = port
         self.ctx = app.app_context()
         self.ctx.push()
 
     def run(self):
-        self.server.serve_forever()
+        import logging
+        logging.getLogger('waitress').setLevel(logging.ERROR)
+        serve(app, host=self.host, port=self.port, threads=8)
 
     def shutdown(self):
-        self.server.shutdown()
         self.ctx.pop()
+        # Note: waitress does not expose a graceful shutdown method when run this way,
+        # but the parent fixture sets daemon=True, so it will correctly exit on pytest completion.
 
 @pytest.fixture(scope="session", autouse=True)
 def live_server():
