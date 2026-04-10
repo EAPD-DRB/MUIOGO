@@ -114,6 +114,23 @@ pip install -r requirements.txt
 pip install -r requirements-build-win.txt
 ```
 
+### Running UI Tests Locally (Playwright E2E)
+
+Because the Playwright dependencies are intentionally kept out of the main `requirements.txt` to keep the production bundle lightweight, you will need to install them manually when developing locally:
+
+```bash
+# 1. Install testing dependencies
+pip install "pytest>=7" pytest-playwright requests
+
+# 2. Install Playwright browser binaries
+playwright install chromium
+
+# 3. Run the UI test suite
+pytest ui_tests/ -v
+```
+
+The E2E test suite automatically spawns an isolated Flask server instance on port `5003` (to avoid conflicting with standard instances) and waits for the application to be fully ready before it executes DOM checks.
+
 ## Project Boundaries
 
 This repository is downstream and separately managed from upstream:

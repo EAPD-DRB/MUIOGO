@@ -168,6 +168,11 @@ def setSession():
         return jsonify('No selected parameters!'), 404
 
 
+@app.route("/health", methods=['GET'])
+def health_check():
+    return jsonify({"status": "ok"}), 200
+
+
 if __name__ == '__main__':
 # if __name__ == 'app':
     #potrebno radi module js importa u index.html ES6 modules
