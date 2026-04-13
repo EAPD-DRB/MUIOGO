@@ -9,6 +9,11 @@ logger = logging.getLogger(__name__)
 
 datafile_api = Blueprint('DataFileRoute', __name__)
 
+
+def _safe_child_path(base_dir, *parts):
+    relative_path = os.path.join(*[part for part in parts if part not in (None, "")])
+    return Path(Config.validate_path(base_dir, relative_path))
+
 @datafile_api.route("/generateDataFile", methods=['POST'])
 def generateDataFile():
     try:
@@ -77,8 +82,8 @@ def deleteCaseRun():
         if not casename:
             return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
 
-        Config.validate_path(Config.DATA_STORAGE, os.path.join(casename, 'res', caserunname or ''))
-        casePath = Path(Config.DATA_STORAGE, casename, 'res', caserunname)
+        case_results_dir = _safe_child_path(Config.DATA_STORAGE, casename, 'res')
+        casePath = _safe_child_path(case_results_dir, caserunname)
         if not resultsOnly:
             shutil.rmtree(casePath)
         else:
@@ -92,6 +97,8 @@ def deleteCaseRun():
         caserun = DataFile(casename)
         response = caserun.deleteCaseRun(caserunname, resultsOnly)
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except FileNotFoundError:
         return jsonify('No existing cases!'), 404
     except OSError:
@@ -215,9 +222,10 @@ def downloadDataFile():
         caserunname = request.args.get('caserunname')
         if not caserunname:
             return jsonify({'message': 'Missing required parameter: caserunname.', 'status_code': 'error'}), 400
-        Config.validate_path(Config.DATA_STORAGE, os.path.join(case or '', 'res', caserunname or ''))
-        dataFile = Path(Config.DATA_STORAGE,case, 'res',caserunname, 'data.txt')
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
+        case_results_dir = _safe_child_path(Config.DATA_STORAGE, case, 'res')
+        caserun_dir = _safe_child_path(case_results_dir, caserunname)
+        dataFile = _safe_child_path(caserun_dir, 'data.txt')
+        return send_file(dataFile, as_attachment=True, max_age=0)
 
     except PermissionError:
         return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
@@ -233,9 +241,9 @@ def downloadFile():
         file = request.args.get('file')
         if not file:
             return jsonify({'message': 'Missing required parameter: file.', 'status_code': 'error'}), 400
-        Config.validate_path(Config.DATA_STORAGE, os.path.join(case or '', 'res', 'csv', file or ''))
-        dataFile = Path(Config.DATA_STORAGE,case,'res','csv',file)
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
+        csv_dir = _safe_child_path(Config.DATA_STORAGE, case, 'res', 'csv')
+        dataFile = _safe_child_path(csv_dir, file)
+        return send_file(dataFile, as_attachment=True, max_age=0)
 
     except PermissionError:
         return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
@@ -254,9 +262,11 @@ def downloadCSVFile():
             return jsonify({'message': 'Missing required parameter: file.', 'status_code': 'error'}), 400
         if not caserunname:
             return jsonify({'message': 'Missing required parameter: caserunname.', 'status_code': 'error'}), 400
-        Config.validate_path(Config.DATA_STORAGE, os.path.join(case or '', 'res', caserunname or '', 'csv', file or ''))
-        dataFile = Path(Config.DATA_STORAGE,case,'res',caserunname,'csv',file)
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
+        case_results_dir = _safe_child_path(Config.DATA_STORAGE, case, 'res')
+        caserun_dir = _safe_child_path(case_results_dir, caserunname)
+        csv_dir = _safe_child_path(caserun_dir, 'csv')
+        dataFile = _safe_child_path(csv_dir, file)
+        return send_file(dataFile, as_attachment=True, max_age=0)
 
     except PermissionError:
         return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
@@ -272,9 +282,10 @@ def downloadResultsFile():
         caserunname = request.args.get('caserunname')
         if not caserunname:
             return jsonify({'message': 'Missing required parameter: caserunname.', 'status_code': 'error'}), 400
-        Config.validate_path(Config.DATA_STORAGE, os.path.join(case or '', 'res', caserunname or ''))
-        dataFile = Path(Config.DATA_STORAGE,case, 'res', caserunname,'results.txt')
-        return send_file(dataFile.resolve(), as_attachment=True, max_age=0)
+        case_results_dir = _safe_child_path(Config.DATA_STORAGE, case, 'res')
+        caserun_dir = _safe_child_path(case_results_dir, caserunname)
+        dataFile = _safe_child_path(caserun_dir, 'results.txt')
+        return send_file(dataFile, as_attachment=True, max_age=0)
 
     except PermissionError:
         return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
