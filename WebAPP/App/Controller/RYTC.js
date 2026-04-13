@@ -53,7 +53,6 @@ export default class RYTC {
                 }
             })
             .catch(error => {
-                console.log('error ', error)
                 if (error.status_code == 'CaseError') {
                     MessageSelect.init(RYTC.refreshPage.bind(RYTC));
                 }

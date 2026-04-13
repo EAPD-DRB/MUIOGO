@@ -10,9 +10,6 @@ export class Model {
         let resData = DataModel.RESData(genData, DemandComms);
         let techData = DataModel.getTechData(genData);
         let commData = DataModel.getCommData(genData);
-        
-
-        console.log('resData ', resData)
 
         let index = 0;
         let labelIndex = {};
@@ -207,12 +204,6 @@ export class Model {
         });
 
 
-
-        console.log('source ', source)  
-        console.log('target ', target)  
-        console.log('value ', value)  
-        console.log('labelLink ', labelLink)  
-        console.log('colorLink ', colorLink)  
 
         let labelCount = source.length;
         this.selectedTechs = selectedTechs;

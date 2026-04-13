@@ -211,7 +211,6 @@ export default class RTSM {
             e.stopImmediatePropagation();
             var sc = $("#osy-scenarios").val();
             Html.lblScenario(sc);
-            console.log('sc ', sc)
             Grid.applyRSTMFilter($divGrid, sc, model.param);
             Message.smallBoxInfo('Info', 'Scenario data opened!', 2000);
         });

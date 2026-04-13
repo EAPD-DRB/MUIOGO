@@ -224,7 +224,6 @@ export default class RYTTs {
             }
         }).on('cellvaluechanged', function (event) {
             if (!pasteEvent) {
-                console.log('not paste')
                 //Pace.restart();
                 pasteEvent = false;
                 var args = event.args;

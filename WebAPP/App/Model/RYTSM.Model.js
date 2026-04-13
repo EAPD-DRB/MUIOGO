@@ -18,7 +18,6 @@ export class Model {
 
             let RYTSMgrid = DataModel.RYTSMgrid(genData, RYTSMdata, PARAMETERS);
 
-            console.log('RYTSMgrid ', RYTSMgrid)
             let techIds = DataModel.TechId(genData);
             let ActivityTechs = DataModel.activityTechs(techs);
             let ActivityComms = DataModel.activityComms(genData);

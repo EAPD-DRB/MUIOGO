@@ -60,7 +60,6 @@ export class Model {
                 if (['TMPAL', 'TMPAU'].includes(this.param)){
                     return true;
                 }else{
-                    console.log('Number.isInteger(value) ', value,  Number.isInteger(value))
                     if (value < 0) {
                         return { result: false, message: 'Value must be positive!' };
                     } 

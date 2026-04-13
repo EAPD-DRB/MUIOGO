@@ -54,7 +54,6 @@ export default class ViewData {
         let $divTEGrid = $('#osy-gridRT');
 
         var daRTGrid = new $.jqx.dataAdapter(model.srcRTGrid, { autoBind: true });
-        console.log('daRTGrid', daRTGrid.records);
         Grid.Grid($divTEGrid, daRTGrid, model.columnsRT, { height:200});
         Grid.applyTEviewDataFilter($divTEGrid);
 
@@ -395,7 +394,6 @@ export default class ViewData {
             let rytData = $divGrid.jqxGrid('getdisplayrows');
             let data = JSON.parse(JSON.stringify(rytData, ['Sc', 'paramName', 'UnitId', 'TechName', "CommName", "EmisName", "ConName", 'Ts', 'MoId'].concat(model.years)));
 
-            console.log('data', data);
             Base.prepareCSV(model.casename, data)
             .then(response =>{
                 Message.smallBoxInfo('Case study message', response.message, 3000);

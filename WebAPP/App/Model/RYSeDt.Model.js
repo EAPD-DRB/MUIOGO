@@ -13,8 +13,6 @@ export class Model {
             let PARAMNAMES = DataModel.ParamName(PARAMETERS[group]);
             let RYSeDtgrid = DataModel.RYSeDtgrid(genData, RYCTsdata, PARAMETERS);
 
-            console.log('RYSeDtgrid ',RYSeDtgrid)
-
             let years = genData['osy-years'];
             let seasons = genData['osy-se'];
             let scenarios = genData['osy-scenarios'];

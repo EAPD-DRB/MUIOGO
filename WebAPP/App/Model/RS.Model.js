@@ -19,7 +19,6 @@ export class Model {
             let scenarios = genData['osy-scenarios'];
             this.param = param;
 
-            console.log(RSdata, group, PARAMETERS, param)
             let RSgrid = DataModel.RSgrid(genData, RSdata, PARAMETERS);
             let RSchart = DataModel.RSchart(genData, RSdata);
             let PARAMNAMES = DataModel.ParamName(PARAMETERS[group]);

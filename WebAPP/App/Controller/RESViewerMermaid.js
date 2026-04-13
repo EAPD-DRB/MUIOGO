@@ -30,7 +30,6 @@ export default class RESViewer {
                 this.initEvents(model);
             })
             .catch(error => {
-                console.log('error ', error)
                 Message.warning(error);
             });
     }
