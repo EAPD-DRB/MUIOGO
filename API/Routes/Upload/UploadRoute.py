@@ -1,3 +1,4 @@
+import re
 import shutil
 from flask import Blueprint, request, jsonify, send_file, after_this_request
 from zipfile import ZipFile
@@ -538,6 +539,12 @@ def handle_full_zip(file, filepath=None):
 
     return jsonify({"response": msg}), 200
 
+def sanitize_uuid(value: str) -> str:
+    """Allow only safe UUID-like characters to prevent path traversal."""
+    if not value or not re.fullmatch(r'[a-zA-Z0-9_\-]{1,64}', value):
+        raise ValueError(f"Invalid dzuuid: {value!r}")
+    return value
+
 @upload_api.route('/uploadCase', methods=['POST'])
 def uploadCase():
     try:
@@ -545,6 +552,8 @@ def uploadCase():
         # 1) Primanje Dropzone chunk meta
         # -------------------------------
         dz_uuid = request.form.get("dzuuid")
+        if dz_uuid is not None:
+            dz_uuid = sanitize_uuid(dz_uuid)
         dz_chunk_index = request.form.get("dzchunkindex")
         dz_total_chunks = request.form.get("dztotalchunkcount")
         file = request.files.get("file")
@@ -602,8 +611,8 @@ def uploadCase():
         #return handle_full_zip(open(final_zip, "rb"), final_zip)
         return handle_full_zip(None, final_zip) 
 
-    except PermissionError:
-        return jsonify({"error": "Invalid path"}), 400
+    except (PermissionError, ValueError) as e:
+        return jsonify({"error": "Invalid request parameter"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
