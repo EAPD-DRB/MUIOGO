@@ -158,7 +158,7 @@ export class Html {
         $('#csvFiles').empty();
 
         $.each(csvs, function (index, value) {
-            $('#osy-downloadResultsFile').html(`<a class="btn btn btn-default pull-right"
+            $('#osy-downloadResultsFile').html(`<a class="btn btn-default pull-right"
                 href="downloadResultsFile?caserunname=${cs}"><i class="fa fa-download default"></i> Download Results File
             </a>`);
 
@@ -209,7 +209,7 @@ export class Html {
 
         $('#tabs a[href="#tabDataFile"]').tab('show');
 
-        $('#osy-DataFileDownload').html(`<a id="osy-downloadDataFile" class="btn btn btn-default"
+        $('#osy-DataFileDownload').html(`<a id="osy-downloadDataFile" class="btn btn-default"
                 href="downloadDataFile?caserunname=${model.cs}"><i class="fa fa-download default"></i> Download Data
                 File
             </a>`);

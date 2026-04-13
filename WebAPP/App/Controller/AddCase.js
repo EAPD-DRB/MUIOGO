@@ -211,7 +211,7 @@ export default class AddCase {
             event.preventDefault();
             event.stopImmediatePropagation();
 
-            Message.loaderStart('Saving model data')
+            Message.loaderStart('Saving model data...')
             var casename = $("#osy-casename").val().trim();
             var desc = $("#osy-desc").val().trim();
             
@@ -964,7 +964,7 @@ export default class AddCase {
                 if(model.caserunByScenario[model.scenarios[id]['ScenarioId']].length != 0){
                     Message.bigBoxDanger('Alert', 
                         `You cannot delete this scenario. It is used in ${model.caserunByScenario[model.scenarios[id]['ScenarioId']]}  caserun(s)! 
-                        Plese reomve these scenario from caseruns before deletion.`, null)
+                        Please remove this scenario from caseruns before deletion.`, null)
                 }
                 else{
                     let scId = model.scenarios[id]['ScenarioId'];

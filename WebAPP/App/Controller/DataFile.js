@@ -116,7 +116,7 @@ export default class DataFile {
 
         $("#osy-logFile").off('click');
         $("#osy-logFile").on('click', function (event) {
-            Message.loaderStart('Generating log file!')
+            Message.loaderStart('Generating log file...')
             Osemosys.readLogFile()
             .then(response => {
                 Message.loaderEnd();
@@ -435,7 +435,7 @@ export default class DataFile {
         $("#osy-generateDataFile").off('click');
         $("#osy-generateDataFile").on('click', function (event) {
             Pace.restart();
-            Message.loaderStart('Generating data file!')
+            Message.loaderStart('Generating data file...')
             Osemosys.generateDataFile(model.casename, model.cs)
             .then(response => {
                 if (response.status_code == "success") {
@@ -480,7 +480,7 @@ export default class DataFile {
         $("#osy-run").off('click');
         $("#osy-run").on('click', function (event) {
             Pace.restart();
-            Message.loaderStart('Optimization in process!')
+            Message.loaderStart('Optimization in process...')
 
             
             // const logBox = document.getElementById("logBox");
@@ -690,7 +690,7 @@ export default class DataFile {
                 buttons: '[No][Yes]'
             }, function (ButtonPressed) {
                 if (ButtonPressed === "Yes") {
-                    Message.loaderStart('Deleteing case data...');
+                    Message.loaderStart('Deleting case data...');
                     Base.deleteCaseRun(model.casename, caserunname, false)
                         .then(response => {
                             Message.clearMessages();
@@ -780,7 +780,7 @@ export default class DataFile {
                 buttons: '[No][Yes]'
             }, function (ButtonPressed) {
                 if (ButtonPressed === "Yes") {
-                    Message.loaderStart('Deleteing case results...');
+                    Message.loaderStart('Deleting case results...');
                     Base.deleteCaseRun(model.casename, caserunname, true)
                         .then(response => {
                             Message.clearMessages();
@@ -872,7 +872,7 @@ export default class DataFile {
         $("#osy-batchRun").on('click', function (event) {
             //console.log('BATCH RUN')
             Pace.restart();
-            Message.loaderStart('BATCH RUN! Plese wait...');
+            Message.loaderStart('BATCH RUN! Please wait...');
 
             let batchRunCases = [];
             $("input:checkbox[name=type]:checked").each(function(){
@@ -919,7 +919,7 @@ export default class DataFile {
         $("#osy-cleanUp").on('click', function (event) {
             //console.log('BATCH RUN')
             Pace.restart();
-            Message.loaderStart('Recycle all results! Plese wait...');
+            Message.loaderStart('Recycle all results! Please wait...');
 
             Osemosys.cleanUp(model.casename)
             .then(response => {

@@ -134,7 +134,7 @@ export default class ModelFile {
             <div class="mb-3" style="text-align:left;">
                 <div class="text-secondary small mb-1">${eq.name}</div>
 
-                <div class="math-wrapper">
+                <div class="math-wrapper" style="overflow-x: auto;">
                     $$
               
                     \\begin{align}

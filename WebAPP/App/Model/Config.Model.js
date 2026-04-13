@@ -1,4 +1,4 @@
-import { DataModel } from "../../Classes/DataModel.Class.js";
+﻿import { DataModel } from "../../Classes/DataModel.Class.js";
 import { DataModelResult} from "../../Classes/DataModelResult.Class.js"
 import { GROUPNAMES, PARAMORDER, UNITDEFINITION, RESULTGROUPNAMES } from "../../Classes/Const.Class.js";
 
