@@ -1584,7 +1584,7 @@ class DataFile(Osemosys):
                 tech_current = row['t']
 
             if not merge102:
-                df_merge102 = pd.DataFrame(columns=['r', 't', 'y', 'Sum'])
+                df_merge102 = pd.DataFrame(columns=['r', 't', 'y', 'Sum'], dtype='object')
             else:
                 df_merge102 = pd.DataFrame(merge102)
 
