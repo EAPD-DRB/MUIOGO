@@ -15,13 +15,15 @@ def generateDataFile():
         casename = request.json['casename']
         caserunname = request.json['caserunname']
 
-        if casename != None:
-            txtFile = DataFile(casename)
-            txtFile.generateDatafile(caserunname)
-            response = {
-                "message": "You have created data file!",
-                "status_code": "success"
-            }      
+        if not casename:
+            return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
+
+        txtFile = DataFile(casename)
+        txtFile.generateDatafile(caserunname)
+        response = {
+            "message": "You have created data file!",
+            "status_code": "success"
+        }
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -36,10 +38,11 @@ def createCaseRun():
         caserunname = request.json['caserunname']
         data = request.json['data']
 
-        if casename != None:
-            caserun = DataFile(casename)
-            response = caserun.createCaseRun(caserunname, data)
-     
+        if not casename:
+            return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
+
+        caserun = DataFile(casename)
+        response = caserun.createCaseRun(caserunname, data)
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -55,10 +58,11 @@ def updateCaseRun():
         oldcaserunname = request.json['oldcaserunname']
         data = request.json['data']
 
-        if casename != None:
-            caserun = DataFile(casename)
-            response = caserun.updateCaseRun(caserunname, oldcaserunname, data)
-     
+        if not casename:
+            return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
+
+        caserun = DataFile(casename)
+        response = caserun.updateCaseRun(caserunname, oldcaserunname, data)
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -103,10 +107,11 @@ def deleteScenarioCaseRuns():
         scenarioId = request.json['scenarioId']
         casename = request.json['casename']
 
-        if casename != None:
-            caserun = DataFile(casename)
-            response = caserun.deleteScenarioCaseRuns(scenarioId)
-     
+        if not casename:
+            return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
+
+        caserun = DataFile(casename)
+        response = caserun.deleteScenarioCaseRuns(scenarioId)
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -118,10 +123,11 @@ def saveView():
         param = request.json['param']
         data = request.json['data']
 
-        if casename != None:
-            caserun = DataFile(casename)
-            response = caserun.saveView(data, param)
-     
+        if not casename:
+            return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
+
+        caserun = DataFile(casename)
+        response = caserun.saveView(data, param)
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -133,10 +139,11 @@ def updateViews():
         param = request.json['param']
         data = request.json['data']
 
-        if casename != None:
-            caserun = DataFile(casename)
-            response = caserun.updateViews(data, param)
-     
+        if not casename:
+            return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
+
+        caserun = DataFile(casename)
+        response = caserun.updateViews(data, param)
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -312,15 +319,17 @@ def batchRun():
         modelname = request.json['modelname']
         cases = request.json['cases']
 
-        if modelname != None:
-            txtFile = DataFile(modelname)
-            for caserun in cases:
-                logger.info("Generating data file for model %s caserun %s", modelname, caserun)
-                txtFile.generateDatafile(caserun)
+        if not modelname:
+            return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
 
-            response = txtFile.batchRun( 'CBC', cases) 
-        end = time.time()  
-        response['time'] = end-start 
+        txtFile = DataFile(modelname)
+        for caserun in cases:
+            logger.info("Generating data file for model %s caserun %s", modelname, caserun)
+            txtFile.generateDatafile(caserun)
+
+        response = txtFile.batchRun( 'CBC', cases)
+        end = time.time()
+        response['time'] = end-start
         return jsonify(response), 200
     except(IOError):
         return jsonify('Error!'), 404
@@ -330,11 +339,12 @@ def cleanUp():
     try:
         modelname = request.json['modelname']
 
-        if modelname != None:
-            model = DataFile(modelname)
-            logger.info("Cleaning up results for model %s", modelname)
-            response = model.cleanUp()
+        if not modelname:
+            return jsonify({'message': 'No model selected.', 'status_code': 'error'}), 400
 
+        model = DataFile(modelname)
+        logger.info("Cleaning up results for model %s", modelname)
+        response = model.cleanUp()
         return jsonify(response), 200
     except(IOError):
         return jsonify('Error!'), 404
