@@ -24,7 +24,7 @@ def initSyncS3():
         #downoload param file from S3 bucket
         syncS3.downloadSync('Parameters.json', Config.DATA_STORAGE, Config.S3_BUCKET)
         response = {
-            "message": "Cases syncronized with S3 bucket!",
+            "message": "Cases synchronized with S3 bucket!",
             "status_code": "success"
         }
         return jsonify(response), 200

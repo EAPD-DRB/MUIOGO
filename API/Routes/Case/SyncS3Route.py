@@ -37,7 +37,7 @@ def uploadSync():
         s3.uploadSync(localDir, case, Config.S3_BUCKET, '*')
 
         response = {
-            "message": 'Case <b>'+ case + '</b> syncronized!',
+            "message": 'Case <b>'+ case + '</b> synchronized!',
             "status_code": "success"
         }
         return jsonify(response), 200
