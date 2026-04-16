@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, session, send_file
 import os
+import uuid
 from pathlib import Path
 import shutil
 import pandas as pd
@@ -432,10 +433,13 @@ def prepareCSV():
                 Pd.insert(i, p_col, col)
                 i=i+1
 
-        Pd.to_csv(Path(Config.DATA_STORAGE,casename,'export.csv'), index = None)
+        # Generate a session-scoped unique filename to prevent concurrent
+        # sessions from overwriting each other's export. Fixes #444.
+        export_filename = f"export_{uuid.uuid4().hex}.csv"
+        session['export_file'] = export_filename
 
-        # Pd.to_excel(Path(Config.DATA_STORAGE,casename,'export.xlsx'))
-        
+        Pd.to_csv(Path(Config.DATA_STORAGE, casename, export_filename), index=None)
+
         response = {
             "message": 'CSV data downloaded!',
             "status_code": "success"
@@ -451,11 +455,16 @@ def downloadCSV():
         casename = session.get('osycase', None)
         if casename is None:
             return jsonify({'message': 'No active session. Please select a model first.', 'status_code': 'error'}), 400
-        dataFile = Path(Config.DATA_STORAGE,casename,'export.csv')
-        
-        dir = Path(Config.DATA_STORAGE,casename)
-        return send_file(dataFile.resolve(), as_attachment=True,mimetype='application/csv', max_age=0)
-        #return send_from_directory(dir, 'export.csv', as_attachment=True)
+
+        # Read the session-scoped filename written by prepareCSV. Falls back
+        # to the legacy name so existing workflows are not broken. Fixes #444.
+        export_filename = session.get('export_file', 'export.csv')
+        dataFile = Path(Config.DATA_STORAGE, casename, export_filename)
+
+        if not dataFile.exists():
+            return jsonify({'message': 'Export file not found. Please prepare the CSV export first.', 'status_code': 'error'}), 404
+
+        return send_file(dataFile.resolve(), as_attachment=True, mimetype='application/csv', max_age=0)
     except(IOError):
         return jsonify('No existing cases!'), 404
 
