@@ -613,9 +613,9 @@ class Osemosys():
                 RYE[param][sc] = {}
                 for o in array:
                     for year, val in o.items():
-                        if year not in RYE[param][sc]:
-                            RYE[param][sc][year] = {}
                         if (year != 'EmisId'):
+                            if year not in RYE[param][sc]:
+                                RYE[param][sc][year] = {}
                             RYE[param][sc][year][o['EmisId']] = val
         return RYE
 
