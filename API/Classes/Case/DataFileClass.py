@@ -792,17 +792,16 @@ class DataFile(Osemosys):
         try:
             caseRunPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname)
             csvPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname, 'csv')
-            resDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'resData.json')
 
             if not os.path.exists(caseRunPath):
                 os.makedirs(caseRunPath)
                 os.makedirs(csvPath)
-                if not os.path.exists(resDataPath):
-                    File.writeFile( data, resDataPath)
+                if not os.path.exists(self.resDataPath):
+                    self.resData = {"osy-cases": [data]}
+                    File.writeFile(self.resData, self.resDataPath)
                 else:
-                    resData = File.readFile(resDataPath)
-                    resData['osy-cases'].append(data)
-                    File.writeFile( resData, resDataPath)
+                    self.resData['osy-cases'].append(data)
+                    File.writeFile(self.resData, self.resDataPath)
                 response = {
                     "message": "You have created a case run!",
                     "status_code": "success"
@@ -822,8 +821,7 @@ class DataFile(Osemosys):
 
     def deleteScenarioCaseRuns(self, scenarioId):
         try:
-            resData = File.readFile(self.resDataPath)
-            cases = resData['osy-cases']
+            cases = self.resData['osy-cases']
 
             for cs in cases:
                 for sc in cs['Scenarios']:
@@ -831,7 +829,7 @@ class DataFile(Osemosys):
                         cs['Scenarios'].remove(sc)
 
 
-            File.writeFile(resData, self.resDataPath)
+            File.writeFile(self.resData, self.resDataPath)
             response = {
                 "message": "You have deleted scenario from caseruns!",
                 "status_code": "success"
@@ -850,7 +848,6 @@ class DataFile(Osemosys):
             caseRunPath = Path(Config.DATA_STORAGE,self.case,'res', oldcaserunname)
             newcaseRunPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname)
             csvPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname, 'csv')
-            resDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'resData.json')
 
             if not os.path.exists(newcaseRunPath):
                 os.rename(caseRunPath, newcaseRunPath)
@@ -858,14 +855,12 @@ class DataFile(Osemosys):
                 if not os.path.exists(csvPath):
                     os.makedirs(csvPath)
 
-                resData = File.readFile(resDataPath)
-
-                resdata = resData['osy-cases']
+                resdata = self.resData['osy-cases']
                 for i, case in enumerate(resdata):
                     if case['Case'] == oldcaserunname:
-                        resData['osy-cases'][i] = data
+                        self.resData['osy-cases'][i] = data
 
-                File.writeFile( resData, resDataPath)
+                File.writeFile(self.resData, self.resDataPath)
                 response = {
                     "message": "You have updated a case run!",
                     "status_code": "success"
@@ -874,14 +869,12 @@ class DataFile(Osemosys):
                 if not os.path.exists(csvPath):
                     os.makedirs(csvPath)
 
-                resData = File.readFile(resDataPath)
-
-                resdata = resData['osy-cases']
+                resdata = self.resData['osy-cases']
                 for i, case in enumerate(resdata):
                     if case['Case'] == oldcaserunname:
-                        resData['osy-cases'][i] = data
+                        self.resData['osy-cases'][i] = data
 
-                File.writeFile( resData, resDataPath)
+                File.writeFile(self.resData, self.resDataPath)
                 response = {
                     "message": "You have updated a case run!",
                     "status_code": "success"
@@ -924,17 +917,15 @@ class DataFile(Osemosys):
     def deleteCaseRun(self, caserunname, resultsOnly):
         try:
             #caseRunPath = Path(Config.DATA_STORAGE,self.case,'res', caserunname)
-            #resDataPath = Path(Config.DATA_STORAGE,self.case,'view', 'resData.json')
+            #self.resData = Path(Config.DATA_STORAGE,self.case,'view', 'resData.json')
 
 
             if not resultsOnly:
-                resData = File.readFile(self.resDataPath)
-
-                for obj in resData['osy-cases']:
+                for obj in self.resData['osy-cases']:
                     if obj['Case'] == caserunname:
-                        resData['osy-cases'].remove(obj)
+                        self.resData['osy-cases'].remove(obj)
 
-                File.writeFile( resData, self.resDataPath)
+                File.writeFile(self.resData, self.resDataPath)
 
             #delete from view folder
             for group, array in self.VARIABLES.items():
@@ -970,45 +961,38 @@ class DataFile(Osemosys):
             # self.viewFolderPath = Path(Config.DATA_STORAGE,case,'view')
             # folder_path = "C:/putanja/do/foldera"
 
-            for caserunname in os.listdir( self.resultsPath):
-                caserunname_path = os.path.join(self.resultsPath, caserunname)
-                # Skip files such as .DS_Store that can appear on macOS.
-                if not os.path.isdir(caserunname_path):
-                    continue
-                for carerunData in os.listdir( caserunname_path):
-                    file_path = os.path.join(caserunname_path, carerunData)
-                    try:
-                        if os.path.isfile(file_path) or os.path.islink(file_path):
-                            os.remove(file_path)
-                        elif os.path.isdir(file_path):
-                            shutil.rmtree(file_path)
-                    except Exception as e:
-                        print(f"Greška pri brisanju {file_path}: {e}")
+            if os.path.exists(self.resultsPath) and os.path.isdir(self.resultsPath):
+                for caserunname in os.listdir(self.resultsPath):
+                    caserunname_path = os.path.join(self.resultsPath, caserunname)
+                    if not os.path.isdir(caserunname_path):
+                        continue
+                    for carerunData in os.listdir(caserunname_path):
+                        file_path = os.path.join(caserunname_path, carerunData)
+                        try:
+                            if os.path.isfile(file_path) or os.path.islink(file_path):
+                                os.remove(file_path)
+                            elif os.path.isdir(file_path):
+                                shutil.rmtree(file_path)
+                        except Exception as e:
+                            print(f"Greška pri brisanju {file_path}: {e}")
 
-            for filename in os.listdir( self.viewFolderPath):
-                if filename !='resData.json':
-                    file_path = os.path.join(self.viewFolderPath, filename)
-                    try:
-                        if os.path.isfile(file_path) or os.path.islink(file_path):
-                            os.remove(file_path)
-                        elif os.path.isdir(file_path):
-                            shutil.rmtree(file_path)
-                    except Exception as e:
-                        print(f"Greška pri brisanju {file_path}: {e}")
+            if os.path.exists(self.viewFolderPath) and os.path.isdir(self.viewFolderPath):
+                for filename in os.listdir(self.viewFolderPath):
+                    if filename not in {'resData.json', 'viewDefinitions.json'}:
+                        file_path = os.path.join(self.viewFolderPath, filename)
+                        try:
+                            if os.path.isfile(file_path) or os.path.islink(file_path):
+                                os.remove(file_path)
+                            elif os.path.isdir(file_path):
+                                shutil.rmtree(file_path)
+                        except Exception as e:
+                            print(f"Greška pri brisanju {file_path}: {e}")
 
-            #sad moramo napraviti defualt definitions file
-            viewDefPath = Path(self.viewFolderPath, 'viewDefinitions.json')
-            configPath = Path(Config.DATA_STORAGE, 'Variables.json')
-            vars = File.readParamFile(configPath)
-            viewDef = {}
-            for group, lists in vars.items():
-                for list in lists:
-                    viewDef[list['id']] = []
-
-            viewData = {
-                    "osy-views": viewDef
-                }
-            File.writeFile( viewData, viewDefPath)
+            case_names = [c["Case"] for c in self.resData.get("osy-cases", [])]
+            for case in case_names:
+                case_path = Path(self.resultsPath, case)
+                if not case_path.exists():
+                    case_path.mkdir(parents=True, exist_ok=True)
 
 
             response = {
@@ -1073,9 +1057,8 @@ class DataFile(Osemosys):
             #f = open(self.dataFile, mode="r")
             dataFilePath = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
             if os.path.exists(dataFilePath):
-                f = open(dataFilePath, mode="r", encoding='utf-8-sig')
-                data =  f.read()
-                f.close
+                with open(dataFilePath, mode="r", encoding='utf-8-sig') as f:
+                    data = f.read()
             else:
                 data = None
 

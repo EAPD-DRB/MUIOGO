@@ -3,6 +3,8 @@ assets/demo-data/CLEWs.Demo.zip
 
 Procfile
 .env
+.runtime/
+WebAPP/app.log
 dist/
 build/
 venv/

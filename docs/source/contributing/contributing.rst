@@ -2,111 +2,91 @@
 Contributing
 ###########################
 
-We warmly welcome anyone interested in MUIO and the broader OSeMOSYS ecosystem! Whether you have ideas, suggestions, bug reports, or would like to contribute improvements, your input is highly valued.
+MUIOGO is an open-source project, and contributions are welcome.
 
-How You Can Contribute
+The most useful contributions are clear, scoped, and grounded in the current
+direction of the repository. Before proposing implementation work, take time to
+understand what the project is trying to do, what already exists, and how your
+proposal fits the current priorities.
+
+Getting Started
 ---------------------------
 
-🧠 `Code Contributions`_
+Start with the repository documentation:
 
-Help us enhance MUIO by adding new functionalities, fixing bugs, or optimizing model performance.
+* ``README.md``
+* ``CONTRIBUTING.md``
+* ``SUPPORT.md``
+* ``docs/ARCHITECTURE.md``
+* ``docs/DOCS_POLICY.md``
 
-📚 `Documentation`_
-
-Support the community by expanding or refining the documentation—add new sections, correct errors, or improve clarity for new users.
-
-📂 `Examples and Use Cases`_
-
-Share your modelling examples or country applications. These can be valuable learning tools for others in the community.
-
+These documents are the source of truth for the contributor workflow.
 
 Code Contributions
 -------------------
 
-Want to suggest a fix or add a feature? Here's a quick and easy workflow:
+MUIOGO uses an issue-first, discussion-before-PR workflow for most
+implementation work.
 
-1.	Fork the repository: Click the “Fork” button on the  `MUIO GitHub page <https://github.com/OSeMOSYS/MUIO>`_
+Before writing code:
 
-2.	Clone your fork: Copy the link to your fork and run:
+1. Search existing issues, pull requests, and discussions.
+2. Create or reuse an issue before starting implementation work.
+3. Describe the current problem, relevant related work, and why the issue is
+   still needed.
+4. Confirm the scope before opening a large implementation PR.
+5. Create a feature branch from ``main`` for the implementation.
 
-.. code:: bash
+Why this matters:
 
-    git clone https://github.com/<your-username>/MUIO.git
-   
-3.	Make your changes: Create a new branch and make your edits or improvements in the code. 
+* it reduces duplicate or overlapping work
+* it helps maintainers keep review effort focused on current priorities
+* it makes it easier to discuss tradeoffs before code is written
 
-4.	Test your changes: If there are tests, run them locally. If not, just make sure your edits work as expected.
+MUIOGO is downstream from ``OSeMOSYS/MUIO``. Contributors should avoid creating
+unnecessary divergence from upstream when a narrower or more compatible change
+would do the job.
 
-5.	Push and open a pull request: Push your branch to your fork and go to GitHub to open a pull request.
-
-Documentation
+Documentation Contributions
 -------------------
 
-We aim to keep the MUIO documentation clear, helpful, and up to date. If you notice any gaps, outdated content, or unclear explanations, your help in improving it is greatly appreciated.
+Documentation improvements are welcome, including:
 
-How to Contribute to the Docs: 
+* clarifying setup steps
+* fixing outdated or misleading instructions
+* improving architecture or workflow explanations
+* adding missing validation or troubleshooting details
 
-1. Find something to improve  
-   Spotted a typo, unclear sentence, or missing sections.
-
-2. Edit directly on GitHub  
-
-   - On any documentation page, click the book icon (📖) at the bottom-left corner.  
-   - Then click “Edit on GitHub” – this will take you to the exact source file.
-
-3. Make your changes  
-   Use GitHub’s built-in editor to edit the file directly.
-
-4. Propose your edit  
-   Once done, commit the changes and open a pull request. We’ll review and merge it!
-
+Any setup, workflow, or architecture change should update the relevant
+documentation in the same pull request.
 
 Examples and Use Cases
 -------------------
 
-Have you built a useful energy model using MUIO? We'd love to include it as an example to help others learn and build faster. Here's how to contribute an example to the documentation:
+Examples, demo improvements, and real-world use cases can be helpful when they
+make the project easier to understand or test.
 
-✅ What Makes a Good Example?
-^^^^^^^^^^^^^^^^^^^^^^
+If you want to contribute an example:
 
-We welcome examples that:
+1. Explain what the example demonstrates.
+2. Keep it small enough to be practical for review and reuse.
+3. Include a short README or description covering the purpose, assumptions, and
+   any data-source constraints.
+4. Open or link an issue first if the example changes tracked project scope,
+   demo assets, or contributor workflow.
 
-* Use MUIO in real or hypothetical case studies (e.g. countries, regions, sectors).
+Communication
+-------------------
 
-* Demonstrate specific features (e.g. multi-regional modelling, transport sector, emissions).
+Good communication is part of the contribution.
 
-* Include complete data files, clear naming, and a brief description.
+Strong contributions usually include:
 
-* Are small enough to run quickly (or include a simplified version).
+* a concrete problem statement
+* a scoped proposal
+* links to related work already reviewed
+* clear validation steps
+* direct explanations of tradeoffs or upstream-compatibility impact
 
-🚀 How to Contribute an Example
-^^^^^^^^^^^^^^^^^^^^^^
-
-1. Prepare your files
-
-   - Organize your example in a folder under ``examples/`` (e.g. ``examples/CountryName/``).
-   - Include:
-     
-     - Model input file (.zip)
-     - A ``README.md`` describing the model purpose, data source, and assumptions
-     - *(Optional)* Output plots or summary results
-
-2. Fork and clone the MUIO repository.
-
-3. Add your folder under ``/examples``.  
-   If it’s large, consider linking to an external repository or storage (e.g. Zenodo, Figshare).
-
-4. Add a reference in the documentation
-
-   - Edit the examples section in the documentation (``docs/source/examples.rst``).
-   - Add a short entry linking to your example folder or external repo.
-
-5. Create a pull request  
-   Submit your changes with a short description of your example.
-
-📝 Licensing and Attribution
-^^^^^^^^^^^^^^^^^^^^^^
-
-* Please include a note in your README.md indicating data sources and your preferred citation (if any).
-
-* Make sure you have the right to share the data and code you include.
+Questions are welcome. It is especially helpful when questions include enough
+context to make them easy to answer and act on.

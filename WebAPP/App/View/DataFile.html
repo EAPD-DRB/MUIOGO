@@ -175,6 +175,7 @@
                                 <span class="hidden-mobile hidden-tablet"> Cases </span>
                             </a>
                         </li>
+                        
                         <li>
                             <a data-toggle="tab" href="#tabDataFile" class="DataFile" style="display: none;"> <i
                                     class="fa fa-lg fa-file-text"></i>
@@ -207,6 +208,16 @@
                         </li>
 
                         <li class="pull-right">
+    
+                            <button id="osy-logFile"
+                                    class="btn btn-white btn-default btn-bold">
+                                <i class="fa fa-clipboard fa-lg text-info"></i> LOG FILE
+                            </button>
+
+                            <button data-toggle="modal" data-target="#osy-ModelFileModal"
+                                    class="btn btn-white btn-default btn-bold">
+                                <i class="fa fa-cogs fa-lg text-danger"></i> MODEL FILE
+                            </button>
                             <button id="osy-batchRun" class="btn btn-white btn-default btn-bold"
                                 style="display: none;">
                                 <i class="fa fa-play-circle fa-lg osy-second-color"></i> BATCH RUN
@@ -333,6 +344,7 @@
     </section>
 </div>
 
+ <!-- <div id="logBox"></div> -->
 
 <!-- Modal -->
 <div class="modal fade" id="osy-order" tabindex="-1" role="dialog">
@@ -343,13 +355,20 @@
 					&times;
 				</button> -->
 
-                <button type="button" class="btn btn-white btn-default pull-right" data-dismiss="modal">
+
+                <!-- <button type="button" class="btn btn-white btn-default pull-right" data-dismiss="modal">
                     <i class="fa fa-times fa-lg" aria-hidden="true"></i> Cancel
-                </button>
+                </button> -->
 
                 <button type="button" class="btn btn-white btn-default pull-right" id='btnSaveOrder'>
-                    <i class="fa fa-save fa-lg"></i> Save
+                    <i class="fa fa-check fa-lg"></i> Confirm
                 </button>
+
+                <button type="button" id="toggle-all"  class="btn btn-white btn-default pull-right">
+                    <i class="fa fa-square-o fa-lg osy-second-color" aria-hidden="true"></i>
+                    <span>Check all</span>
+                </button>
+
                 <h4 class="modal-title">
                     <i class="fa fa-sort osy-second-color" aria-hidden="true"></i> Scenario order
                 </h4>
@@ -388,6 +407,56 @@
                     <div class="row">
                         <div class="col-md-12 col-lg-12">
                             <div id='valOutput'></div>
+                        </div>
+                    </div>
+                </fieldset>
+                <footer></footer>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="osy-ModelFileModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-wide">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title">
+                    <i class="fa  fa-info-circle fa-lg osy-second-color" aria-hidden="true"></i> MUIO Model File
+                </h4>
+            </div>
+            <div class="modal-body" style="padding-top: 0px;">
+                <fieldset style="padding-top: 15px;">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12">
+                            <div id='osy-ModelFile'></div>
+                        </div>
+                    </div>
+                </fieldset>
+                <footer></footer>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="osy-LogFileModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-wide">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title">
+                    <i class="fa  fa-info-circle fa-lg text-info" aria-hidden="true"></i> MUIO Log File
+                </h4>
+            </div>
+            <div class="modal-body" style="padding-top: 0px;">
+                <fieldset style="padding-top: 15px;">
+                    <div class="row">
+                        <div class="col-md-12 col-lg-12">
+                            <div id='osy-logFiletxt'></div>
                         </div>
                     </div>
                 </fieldset>

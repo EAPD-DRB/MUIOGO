@@ -25,7 +25,7 @@ def deleteResultsPreSync():
     except(IOError):
         return jsonify('No existing cases!'), 404
     except OSError:
-        raise OSError
+        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500
 
 @syncs3_api.route("/uploadSync", methods=['POST'])
 def uploadSync():
@@ -44,7 +44,7 @@ def uploadSync():
     except(IOError):
         return jsonify('No existing cases!'), 404
     except OSError:
-        raise OSError
+        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500
 
 @syncs3_api.route("/deleteSync", methods=['POST'])
 def deleteSync():
@@ -62,7 +62,7 @@ def deleteSync():
     except(IOError):
         return jsonify('No existing cases!'), 404
     except OSError:
-        raise OSError
+        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500
 
 @syncs3_api.route("/updateSync", methods=['POST'])
 def updateSync():
@@ -82,7 +82,7 @@ def updateSync():
     except(IOError):
         return jsonify('No existing cases!'), 404
     except OSError:
-        raise OSError
+        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500
 
 @syncs3_api.route("/updateSyncParamFile", methods=['GET'])
 def updateSyncParamFile():
@@ -102,4 +102,4 @@ def updateSyncParamFile():
     except(IOError):
         return jsonify('No existing cases!'), 404
     except OSError:
-        raise OSError
+        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500

@@ -2,11 +2,19 @@
 
 ## Where to ask for help
 
+Use GitHub Discussions for:
+
+- planning questions,
+- general questions about the project,
+- community discussion, and
+- early conversation before opening implementation PRs.
+
 Use GitHub Issues for:
 
 - bugs,
 - feature/task requests,
-- blockers and technical questions.
+- blockers, and
+- actionable technical questions.
 
 Please use the relevant issue template when available.
 
@@ -22,4 +30,3 @@ Please use the relevant issue template when available.
 
 This project uses event-driven communication. Updates are expected when work starts,
 when blocked, when a PR is opened, and when a milestone is complete.
-

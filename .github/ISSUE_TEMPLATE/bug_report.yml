@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible defect.
+description: Report something that looks broken.
 title: "[Bug] "
 labels: ["bug"]
 body:
@@ -7,48 +7,49 @@ body:
     id: summary
     attributes:
       label: Summary
-      description: What is wrong?
+      description: What looks wrong?
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Expected behavior
+      label: What did you expect? (optional)
+      description: If it helps, say what you thought would happen instead.
     validations:
       required: false
   - type: textarea
     id: steps
     attributes:
-      label: Reproduction steps
-      description: Include exact commands or UI steps.
+      label: How can we reproduce it?
+      description: Commands, clicks, or files that help us see it.
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
-      label: Environment
-      description: OS, Python version, branch or commit if relevant.
+      label: Environment (optional)
+      description: OS, Python version, branch, or commit if that helps.
     validations:
       required: false
   - type: textarea
     id: evidence
     attributes:
-      label: Logs or screenshots
-      description: Paste relevant output or links to screenshots.
+      label: Logs or screenshots (optional)
+      description: Add anything else that helps explain it.
     validations:
       required: false
   - type: textarea
     id: related_work
     attributes:
-      label: Related work checked
-      description: List anything relevant you checked before opening this issue. Use issue/PR numbers like #123, or write `None found after search`.
+      label: Related issue, PR, or discussion (optional)
+      description: If you already found something relevant, link it here.
     validations:
       required: false
   - type: dropdown
     id: proposed_track
     attributes:
       label: Proposed track
-      description: Optional. Maintainers will assign the final track label.
+      description: Optional. Pick one if it helps.
       options:
         - Track: Cross-Platform
         - Track: OG Onboarding

@@ -288,6 +288,61 @@ export class Osemosys {
         });
     }
 
+    // static readModelFile() {
+    //     return fetch(Base.apiUrl() + "readModelFile", {cache: "no-store"}) 
+    //         .then((response) => {
+    //             if (response.ok) {
+    //                 //                     console.log('response1 ', response)
+    //                 // console.log('data ', response.text())
+    //             return response;
+    //             }
+    //             throw new Error('No casename selecetd');
+    //         })
+    //         .then(response => response.text())
+    //         .catch(error => null);
+    // }
+
+
+    static readModelFile() {
+        return fetch(Base.apiUrl() + "readModelFile", {
+            method: "GET",
+            cache: "no-store"
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Could not load log file");
+            }
+            return response.text();   // ✔ return the real text
+        })
+        .then(text => {
+            return text;             // ✔ pass the text forward
+        })
+        .catch(error => {
+            console.error("readModelFile error:", error);
+            return null;             // ✔ only null on real error
+        });
+    }
+
+    static readLogFile() {
+        return fetch(Base.apiUrl() + "readLogFile", {
+            method: "GET",
+            cache: "no-store"
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Could not load model file");
+            }
+            return response.text();   // ✔ return the real text
+        })
+        .then(text => {
+            return text;             // ✔ pass the text forward
+        })
+        .catch(error => {
+            console.error("readLogFile error:", error);
+            return null;             // ✔ only null on real error
+        });
+    }
+
     static readDataFile(casename, caserunname) {
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -360,35 +415,19 @@ export class Osemosys {
     //     .catch(error => error);
     // }
 
-    // static getData(casename, dataJson) {
-    //     // return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"})
-    //     // .then(response => response.json())
-    //     // .catch(error => error);
-
-    //     return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"}) 
-    //         .then((response) => {
-    //             if (response.ok) {
-    //                 //console.log('response1 ', response)
-    //                 //console.log('data ', response.json())
-    //             return response;
-    //             }
-    //             throw new Error('No casename selecetd');
-    //         })
-    //         .then(response => response.json())
-    //         .catch(error => null);
-    // }
-
     static getData(casename, dataJson) {
-        if (!casename || casename === "null") {
-            console.warn("getData called without valid casename");
-            return Promise.resolve(null);
-        }
+        // return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"})
+        // .then(response => response.json())
+        // .catch(error => error);
+
         return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"}) 
             .then((response) => {
                 if (response.ok) {
-                    return response;
+                    //console.log('response1 ', response)
+                    //console.log('data ', response.json())
+                return response;
                 }
-                throw new Error('Invalid casename');
+                throw new Error('No casename selecetd');
             })
             .then(response => response.json())
             .catch(error => null);
@@ -412,44 +451,28 @@ export class Osemosys {
         });
     }
 
-    // static getResultData(casename, dataJson) {
-    //     // return new Promise((resolve, reject) => {
-    //     //     fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
-    //     //     .then(DATA => {
-    //     //         DATA = DATA.json();
-    //     //         resolve(DATA);
-    //     //     })
-    //     //     .catch(error => {
-    //     //         if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-    //     //         reject(error);
-    //     //     });
-    //     // });
-
-    //     return fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
-    //         .then((response) => {
-    //             if (response.ok) {
-    //                 //console.log('response1 ', response)
-    //                 return response;
-    //             }
-    //             throw new Error('No casename selecetd');
-    //         })
-    //         .then(response =>  response.json())
-    //         .catch(error => null);
-    // }
-
     static getResultData(casename, dataJson) {
-        if (!casename || casename === "null") {
-            console.warn("getResultData called without valid casename");
-            return Promise.resolve(null);
-        }
+        // return new Promise((resolve, reject) => {
+        //     fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
+        //     .then(DATA => {
+        //         DATA = DATA.json();
+        //         resolve(DATA);
+        //     })
+        //     .catch(error => {
+        //         if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
+        //         reject(error);
+        //     });
+        // });
+
         return fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
             .then((response) => {
                 if (response.ok) {
+                    //console.log('response1 ', response)
                     return response;
                 }
-                throw new Error('Invalid casename');
+                throw new Error('No casename selecetd');
             })
-            .then(response => response.json())
+            .then(response =>  response.json())
             .catch(error => null);
     }
 

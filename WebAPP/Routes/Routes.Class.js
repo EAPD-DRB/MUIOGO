@@ -110,6 +110,16 @@ export class Routes {
                 });
             });
         });
+        crossroads.addRoute('/ModelFile', function() {
+            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            import('../App/Controller/ModelFile.js')
+            .then(ModelFile => {
+                $( ".osy-content" ).load( 'App/View/ModelFile.html', function() {
+                    localStorage.setItem("osy-pageId", "ModelFile");
+                    ModelFile.default.onLoad();
+                });
+            });
+        });
         crossroads.addRoute('/Versions', function() {
             $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
             $( ".osy-content" ).load( 'App/View/Versions.html');

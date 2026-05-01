@@ -7,6 +7,7 @@ from Classes.Base.FileClass import File
 
 class Osemosys():
     def __init__(self, case):
+        Config.validate_path(Config.DATA_STORAGE, case)
         self.case = case
         self.PARAMETERS = File.readParamFile(Path(Config.DATA_STORAGE, 'Parameters.json'))
         self.VARIABLES = File.readParamFile(Path(Config.DATA_STORAGE, 'Variables.json'))

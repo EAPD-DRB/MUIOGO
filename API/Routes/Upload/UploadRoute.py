@@ -238,7 +238,7 @@ def backupCase():
     except(IOError):
         return jsonify('No existing cases!'), 404
     except OSError:
-        raise OSError
+        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500
 
 @upload_api.route('/uploadCaseUnchunked_old', methods=['POST'])
 def uploadCaseUnchunked_old():
@@ -411,7 +411,7 @@ def uploadCaseUnchunked_old():
     except(IOError):
         raise IOError
     except OSError:
-        raise OSError
+        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500
 
 def handle_full_zip(file, filepath=None):
     msg = []
@@ -664,4 +664,4 @@ def uploadXls():
     except(IOError):
         raise IOError
     except OSError:
-        raise OSError
+        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500

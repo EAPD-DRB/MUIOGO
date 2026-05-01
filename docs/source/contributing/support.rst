@@ -2,17 +2,46 @@
 Support and Troubleshooting
 ###########################
 
-Need help using MUIO or found a bug? There are several ways to reach out and contribute to the improvement of the tool.
+Need help using MUIOGO, planning work, or reporting a problem? Use the
+repository channels based on the kind of help you need.
 
-💬 Community Support
-++++++++++++++++++++
+Community and Planning Questions
++++++++++++++++++++++++++++++++++
 
-To connect with other MUIO and OSeMOSYS users, ask questions, share updates, or collaborate on projects, you can:
-•	Join the OSeMOSYS Community via the Energy Modelling Community on `Linkedin <https://www.linkedin.com/groups/13141974/>`_
-•	Participate in discussions on the OSeMOSYS Discourse Forum [Link to be updated soon]
+Use `GitHub Discussions <https://github.com/EAPD-DRB/MUIOGO/discussions>`_ for:
 
-🐞 Report Bugs or Suggest Features
-++++++++++++++++++++++++++++++++++
+* planning questions
+* general questions about the project
+* community conversation
+* early discussion before opening implementation pull requests
 
-Found a bug? Have an idea for a new feature? Please open an issue on the `GitHub Issue Tracker <https://github.com/OSeMOSYS/MUIO/issues>`_
-Be sure to describe the problem clearly and include steps to reproduce it, if possible.
+Discussions are the right place to ask questions, compare approaches, and sort
+out scope before work turns into a PR.
+
+Bugs, Blockers, and Actionable Work
++++++++++++++++++++++++++++++++++
+
+Use the `GitHub Issue Tracker <https://github.com/EAPD-DRB/MUIOGO/issues>`_ for:
+
+* reproducible bugs
+* scoped feature or task proposals
+* blockers that need a concrete decision
+* actionable follow-up work
+
+Please use the relevant issue template and include enough detail to make the
+problem easy to understand and triage.
+
+What To Include
++++++++++++++++++++++++++++++++++
+
+When reporting a bug or blocker, include:
+
+* a clear problem statement
+* expected behavior
+* reproduction steps
+* environment details such as OS, Python version, and branch or commit when
+  relevant
+* logs or screenshots when helpful
+
+If the issue depends on prior work, list the related issues, pull requests, or
+discussions you already checked.

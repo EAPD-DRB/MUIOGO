@@ -1,9 +1,10 @@
 from pathlib import Path
 import os
+import tempfile
 from dotenv import load_dotenv
 import platform
 
-# Central path validation utility (prevents path traversal)
+# Central path validation utility (prevents path traversal).
 def validate_path(base_dir, user_input):
     base_raw = os.fspath(base_dir)
     user_raw = "" if user_input is None else os.fspath(user_input)
@@ -62,6 +63,10 @@ DATA_STORAGE = WEBAPP_PATH / "DataStorage"
 CLASS_FOLDER = WEBAPP_PATH / "Classes"
 SOLVERs_FOLDER = WEBAPP_PATH / "SOLVERs"
 EXTRACT_FOLDER = BASE_DIR
+PRIMARY_RUNTIME_DIR = BASE_DIR / ".runtime"
+PRIMARY_RUNTIME_LOG_DIR = PRIMARY_RUNTIME_DIR / "logs"
+TEMP_RUNTIME_LOG_DIR = Path(tempfile.gettempdir()) / "muiogo-runtime" / "logs"
+_RUNTIME_LOG_PATH = None
 
 # Ensure DataStorage exists
 DATA_STORAGE.mkdir(parents=True, exist_ok=True)
@@ -69,6 +74,27 @@ DATA_STORAGE.mkdir(parents=True, exist_ok=True)
 # Validate writability instead of forcing permissions
 if not os.access(DATA_STORAGE, os.W_OK):
     raise PermissionError(f"Data storage path is not writable: {DATA_STORAGE}")
+
+
+def get_runtime_log_path():
+    global _RUNTIME_LOG_PATH
+
+    if _RUNTIME_LOG_PATH is not None:
+        return _RUNTIME_LOG_PATH
+
+    for log_dir in (PRIMARY_RUNTIME_LOG_DIR, TEMP_RUNTIME_LOG_DIR):
+        try:
+            log_dir.mkdir(parents=True, exist_ok=True)
+            probe = log_dir / ".write_test"
+            with open(probe, "a", encoding="utf-8"):
+                pass
+            probe.unlink(missing_ok=True)
+            _RUNTIME_LOG_PATH = log_dir / "app.log"
+            return _RUNTIME_LOG_PATH
+        except OSError:
+            continue
+
+    raise PermissionError("No writable runtime log directory is available.")
 #absolute paths
 # OSEMOSYS_ROOT = os.path.abspath(os.getcwd())
 # UPLOAD_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP')

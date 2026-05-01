@@ -2,6 +2,13 @@ import { CURRENCY, UNITDEFINITION } from './Const.Class.js';
 import { Message } from "./Message.Class.js";
 
 export class Html {
+    static renderPreformatted(target, text, emptyMessage = '') {
+        const $target = $(target);
+        const content = text == null || text === '' ? emptyMessage : String(text);
+
+        $target.empty();
+        $target.append($('<pre>', { class: 'log-output' }).text(content));
+    }
 
     static renderModels(cases, selectedCS) {
         $('#cases').empty();
@@ -198,7 +205,7 @@ export class Html {
         //     $("#osy-DataFile").html('Data file is to large for preview.');
         // }
 
-        $("#osy-DataFile").html('<pre class="log-output">'+DataFile+'</pre>');
+        Html.renderPreformatted('#osy-DataFile', DataFile, 'Data file preview unavailable.');
 
         $('#tabs a[href="#tabDataFile"]').tab('show');
 
@@ -207,6 +214,10 @@ export class Html {
                 File
             </a>`);
 
+    }
+
+    static renderModelFile(ModelFile){
+        Html.renderPreformatted('#osy-ModelFile', ModelFile, 'Model file preview unavailable.');
     }
 
     static appendCasePicker(value, selectedCS, pageId) {

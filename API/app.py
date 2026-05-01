@@ -3,6 +3,8 @@ import logging
 import os
 import secrets
 import sys
+import warnings
+from logging.handlers import TimedRotatingFileHandler
 
 # Fail fast: unsupported Python hits cryptic pandas/numpy import errors without this.
 SUPPORTED_PYTHON_MIN = (3, 10)
@@ -34,31 +36,52 @@ from Routes.Case.SyncS3Route import syncs3_api
 from Routes.Case.ViewDataRoute import viewdata_api
 from Routes.DataFile.DataFileRoute import datafile_api
 
-#RADI
-# -------------------------
-# FIX: Make template/static paths independent of cwd
-# -------------------------
+def _configure_logging():
+    if getattr(_configure_logging, "_configured", False):
+        return getattr(_configure_logging, "_log_path", None)
 
-# This file is in: API/app.py
-# So project root is 1 level up
-BASE_DIR = Path(__file__).resolve().parents[1]
-WEBAPP_PATH = BASE_DIR / "WebAPP"
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
 
-template_dir = str(WEBAPP_PATH)
-static_dir = str(WEBAPP_PATH)
+    formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 
-# template_dir = Config.WebAPP_PATH.resolve()
-# static_dir = Config.WebAPP_PATH.resolve()
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    console_handler._muiogo_handler = True
+    logger.addHandler(console_handler)
 
-# template_dir = os.path.join(sys._MEIPASS, 'WebAPP') 
-# static_dir = os.path.join(sys._MEIPASS, 'WebAPP') 
+    log_path = None
+    try:
+        log_path = Config.get_runtime_log_path()
+        file_handler = TimedRotatingFileHandler(
+            log_path, when="midnight", interval=1, backupCount=7, encoding="utf-8"
+        )
+        file_handler.setFormatter(formatter)
+        file_handler._muiogo_handler = True
+        logger.addHandler(file_handler)
+    except OSError as exc:
+        logger.warning("Runtime log file unavailable. Continuing with console logging only: %s", exc)
 
-#gets absolute path
-# template_dir = Path('WebAPP').resolve()
-# static_dir = Path('../WebAPP').resolve()
+    logging.captureWarnings(True)
+    warnings.simplefilter("default")
 
-# template_dir = 'WebAPP'
-# static_dir = '../WebAPP'
+    def log_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        logger.error("UNCAUGHT EXCEPTION", exc_info=(exc_type, exc_value, exc_traceback))
+
+    sys.excepthook = log_exception
+
+    _configure_logging._configured = True
+    _configure_logging._log_path = log_path
+    return log_path
+
+
+RUNTIME_LOG_PATH = _configure_logging()
+
+template_dir = str(Config.WEBAPP_PATH)
+static_dir = str(Config.WEBAPP_PATH)
 
 app = Flask(__name__, static_url_path='', static_folder=static_dir,  template_folder=template_dir)
 
@@ -66,7 +89,7 @@ app.permanent_session_lifetime = timedelta(days=5)
 secret_key = os.environ.get("MUIOGO_SECRET_KEY", "").strip()
 if not secret_key:
     secret_key = secrets.token_hex(32)
-    logging.warning(
+    logging.getLogger(__name__).warning(
         "MUIOGO_SECRET_KEY is not configured. Using a temporary in-memory key. "
         "Run setup to create a persistent secret in .env."
     )
@@ -136,7 +159,6 @@ def setSession():
             session.pop('osycase', None)
             return jsonify({"osycase": None}), 200
 
-        from pathlib import Path
         if not Path(Config.DATA_STORAGE, cs).is_dir():
             return jsonify({'message': 'Case not found.', 'status_code': 'error'}), 404
         session['osycase'] = cs
