@@ -45,6 +45,8 @@ WebAPP/SOLVERs/_COIN-OR
 WebAPP/DataStorage/*
 !WebAPP/DataStorage/Parameters.json
 !WebAPP/DataStorage/Variables.json
+!WebAPP/DataStorage/Indicators.json
+!WebAPP/DataStorage/Duals.json
 
 WebAPP/References/jqwidgets_licenced
 WebAPP/References/jqwidgets_free
