@@ -1225,3 +1225,8 @@ jqx-menu-vertical-material .jqx-menu-item-top-selected-material, .jqx-grid-selec
 .py-9  { padding-top: 9px !important; padding-bottom: 9px !important; }
 .py-10 { padding-top: 10px !important; padding-bottom: 10px !important; }
 
+/* Override Wijmo default italic Y-axis title for Pivot chart */
+#pivotChart .wj-axis-y .wj-title,
+#pivotChart .wj-axis-y .wj-title tspan {
+    font-style: normal !important;
+}
