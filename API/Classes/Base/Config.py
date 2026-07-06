@@ -75,6 +75,74 @@ DATA_STORAGE.mkdir(parents=True, exist_ok=True)
 if not os.access(DATA_STORAGE, os.W_OK):
     raise PermissionError(f"Data storage path is not writable: {DATA_STORAGE}")
 
+# -------------------------
+# OG-Core calibration install + registry layer
+# -------------------------
+# OG country models live in their OWN uv environments, installed by the OG-Core
+# Universal Installer. MUIOGO neither installs nor imports OG-Core; it drives the
+# installer and tracks what is installed. See:
+#   universal installer setup OGC/Universal-Installer-Master-Doc.md
+#   Track1-API-Schema-Discussion/OGCore-API-Schema-FINAL.md
+
+# MUIOGO-side storage (registry + install-job state) lives under DataStorage,
+# never inside a calibration's .venv.
+OGC_DATA_STORAGE = DATA_STORAGE / "OGCore"
+OGC_INSTALLED_REGISTRY = OGC_DATA_STORAGE / "og_calibrations_installed.json"
+OGC_INSTALL_JOBS_DIR = OGC_DATA_STORAGE / "install_jobs"
+OGC_CATALOG_CACHE = OGC_DATA_STORAGE / "catalog_cache.json"
+OGC_INSTALLER_CACHE_DIR = OGC_DATA_STORAGE / "installer"
+
+# Calibration environments install OUTSIDE the repo. Default ~/.muiogo/og-models,
+# overridable so a user can point installs elsewhere. A country lands at
+# OGC_MODELS_DIR/<RepoName>/ with its own .venv.
+OGC_MODELS_DIR = Path(
+    os.environ.get("MUIOGO_OG_MODELS_DIR", "").strip()
+    or (Path.home() / ".muiogo" / "og-models")
+)
+
+# Where the installer's machine-readable catalogue and scripts are fetched from.
+# Env overrides let tests/offline runs point at a local mirror.
+_OGC_INSTALLER_RAW_BASE = (
+    os.environ.get("MUIOGO_OG_INSTALLER_RAW_BASE", "").strip()
+    or "https://raw.githubusercontent.com/PSLmodels/OG-Core/master/scripts"
+)
+OGC_INSTALLER_REPOS_JSON_URL = (
+    os.environ.get("MUIOGO_OG_INSTALLER_REPOS_JSON_URL", "").strip()
+    or f"{_OGC_INSTALLER_RAW_BASE}/repos.json"
+)
+OGC_INSTALLER_SH_URL = (
+    os.environ.get("MUIOGO_OG_INSTALLER_SH_URL", "").strip()
+    or f"{_OGC_INSTALLER_RAW_BASE}/install.sh"
+)
+OGC_INSTALLER_PS1_URL = (
+    os.environ.get("MUIOGO_OG_INSTALLER_PS1_URL", "").strip()
+    or f"{_OGC_INSTALLER_RAW_BASE}/install.ps1"
+)
+
+
+def venv_python_path(venv_dir):
+    """Return the interpreter inside a uv/venv directory for this platform.
+
+    Windows: <venv>/Scripts/python.exe. macOS/Linux: <venv>/bin/python.
+    """
+    venv_dir = Path(venv_dir)
+    if SYSTEM == "Windows":
+        return venv_dir / "Scripts" / "python.exe"
+    return venv_dir / "bin" / "python"
+
+
+def ogc_clean_env():
+    """A copy of os.environ with any active venv/conda markers stripped.
+
+    The universal installer refuses to run when a virtualenv or conda env is
+    active, and MUIOGO itself runs inside its own venv. Spawn installer/uv
+    subprocesses with this env so the guard does not abort every install.
+    """
+    env = os.environ.copy()
+    for marker in ("VIRTUAL_ENV", "CONDA_DEFAULT_ENV", "CONDA_PREFIX", "CONDA_SHLVL"):
+        env.pop(marker, None)
+    return env
+
 
 def get_runtime_log_path():
     global _RUNTIME_LOG_PATH
