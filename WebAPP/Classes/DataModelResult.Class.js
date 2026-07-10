@@ -579,6 +579,7 @@ export class DataModelResult{
 
                             if(obj.Tech in techData){
                                 //let rule = paramById[group][param]['unitRule'];
+                                // Some parameters define unitRule under indicator_type instead of directly
                                 let rule =
                                 paramById[group][param]?.unitRule ??
                                 paramById[group][param]?.indicator_type?.unitRule;
@@ -586,22 +587,23 @@ export class DataModelResult{
                                     $.each(techData[obj.Tech].TG, function (id, tg) {
                                         let tmp = {};
                                         tmp = JSON.parse(JSON.stringify(chunk));
-                                        tmp['Tech'] = obj.Tech;  
+                                        tmp['Tech'] = obj.Tech;
                                         tmp['TechGroup'] = techGroupNames[tg];
                                         tmp['TechDesc'] = techData[obj.Tech]["Desc"];
                                         tmp['TechGroupDesc'] = techGroupData[tg]["Desc"];
                                         dataT = unitData[group][param][obj.Tech];
-                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT});
+                                        // Include emission-specific unit data so technology-emission results resolve the correct unit in the Pivot chart
+                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT, ...dataE});
                                         pivotData.push(tmp);
                                     })
                                 }else{
-                                    chunk['Tech'] = obj.Tech;  
+                                    chunk['Tech'] = obj.Tech;
                                     chunk['TechGroup'] = 'No group';
                                     chunk['TechDesc'] = techData[obj.Tech]["Desc"];
                                     chunk['TechGroupDesc'] = 'No group';
                                     dataT = unitData[group][param][obj.Tech];
-    
-                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT});
+                                    // Include emission-specific unit data so technology-emission results resolve the correct unit in the Pivot chart
+                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT, ...dataE});
                                     pivotData.push(chunk);
                                 }
     
@@ -867,7 +869,9 @@ export class DataModelResult{
     //                                 chunk['TechGroupDesc'] = 'No group';
     //                                 dataT = unitData[group][param][obj.Tech];
     
-    //                                 chunk['Unit'] = jsonLogic.apply(rule, {...dataT});
+    //                                 // spread top-level unitData first so scalar keys (e.g. 'number') are available,
+    //                                 // then dataT (tech-specific), then dataE (emission-specific) to override as needed
+    //                                 chunk['Unit'] = jsonLogic.apply(rule, {...unitData[group][param], ...dataT, ...dataE});
     //                                 pivotData.push(chunk);
     //                             }
     
@@ -1101,7 +1105,7 @@ export class DataModelResult{
                                         tmp['TechDesc'] = techData[obj.Tech]["Desc"];
                                         tmp['TechGroupDesc'] = techGroupData[tg]["Desc"];
                                         dataT = unitData[group][param][obj.Tech];
-                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT});
+                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT, ...dataE});
                                         pivotData.push(tmp);
                                     })
                                 }else{
@@ -1111,7 +1115,7 @@ export class DataModelResult{
                                     chunk['TechGroupDesc'] = 'No group';
                                     dataT = unitData[group][param][obj.Tech];
     
-                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT});
+                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT, ...dataE});
                                     pivotData.push(chunk);
                                 }
     
