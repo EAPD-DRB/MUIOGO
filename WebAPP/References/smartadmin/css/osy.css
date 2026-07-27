@@ -1227,6 +1227,8 @@ jqx-menu-vertical-material .jqx-menu-item-top-selected-material, .jqx-grid-selec
 
 /* Override Wijmo default italic Y-axis title for Pivot chart */
 #pivotChart .wj-axis-y .wj-title,
-#pivotChart .wj-axis-y .wj-title tspan {
+#pivotChart .wj-axis-y .wj-title tspan,
+#pivotChart .wj-axis-x .wj-title,
+#pivotChart .wj-axis-x .wj-title tspan {
     font-style: normal !important;
 }

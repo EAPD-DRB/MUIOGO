@@ -60,13 +60,13 @@ export default class Pivot {
     // Collect unique unit labels from the pivot data, convert HTML superscripts
     // to Unicode (e.g. <sup>3</sup> → ³), and return a comma-separated string.
     static getUnitLabel(pivotData) {
-        const supMap = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+        const supMap = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
         const labels = [...new Set(
             pivotData
                 .map(r => r['Unit'])
                 .filter(Boolean)
-                .map(u => u
-                    .replace(/<sup>(\d+)<\/sup>/g, (_, n) =>
+                .map(u => String(u)
+                    .replace(/<sup>(-?\d+)<\/sup>/g, (_, n) =>
                         n.split('').map(d => supMap[d]).join('')
                     )
                     .replace(/<[^>]+>/g, '')
@@ -76,16 +76,20 @@ export default class Pivot {
         return labels.join(', ');
     }
 
-    // Update the Pivot chart unit display. Show unit(s) on the Y-axis when the
-    // label is short; otherwise show "Multiple units" on the Y-axis and display
-    // the full unit list below the chart.
+    // Update the Pivot chart unit display. For vertical charts, show the unit on the Y-axis; for horizontal Bar charts, show it on the X-axis (the values axis).
     static setUnitDisplay(pivotData, flexChart) {
         const label = Pivot.getUnitLabel(pivotData);
-        if (label.length > 40) {
-            flexChart.axisY.title = 'Multiple units';
+        const isHorizontal = flexChart.chartType === wijmo.chart.ChartType.Bar;
+        const valueAxis = isHorizontal ? flexChart.axisX : flexChart.axisY;
+        const categoryAxis = isHorizontal ? flexChart.axisY : flexChart.axisX;
+
+        const unitLabelMaxChars = 40; // Y-axis pixel width fits ~40 chars before the label crowds the chart
+        categoryAxis.title = '';
+        if (!isHorizontal && label.length > unitLabelMaxChars) {
+            valueAxis.title = 'Multiple units';
             $('#pivotChartUnitLabel').text('Y-axis units: ' + label);
         } else {
-            flexChart.axisY.title = label;
+            valueAxis.title = label;
             $('#pivotChartUnitLabel').text('');
         }
     }
@@ -397,6 +401,7 @@ export default class Pivot {
                     app.pivotChart.rotated = 1;
                 }
                 app.pivotChart.chartType = s.selectedValue;
+                Pivot.setUnitDisplay(model.pivotData, app.pivotChart.flexChart);
             }
         });
 
