@@ -592,8 +592,9 @@ export class DataModelResult{
                                         tmp['TechDesc'] = techData[obj.Tech]["Desc"];
                                         tmp['TechGroupDesc'] = techGroupData[tg]["Desc"];
                                         dataT = unitData[group][param][obj.Tech];
-                                        // Include emission-specific unit data so technology-emission results resolve the correct unit in the Pivot chart
-                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT, ...dataE});
+                                        // Derive emission unit data for the current row only, avoiding stale shared state
+                                        const currentDataE = (obj.Emi && obj.Emi in emiData) ? unitData[group][param][obj.Emi] : {};
+                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT, ...currentDataE});
                                         pivotData.push(tmp);
                                     })
                                 }else{
@@ -602,8 +603,8 @@ export class DataModelResult{
                                     chunk['TechDesc'] = techData[obj.Tech]["Desc"];
                                     chunk['TechGroupDesc'] = 'No group';
                                     dataT = unitData[group][param][obj.Tech];
-                                    // Include emission-specific unit data so technology-emission results resolve the correct unit in the Pivot chart
-                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT, ...dataE});
+                                    const currentDataE = (obj.Emi && obj.Emi in emiData) ? unitData[group][param][obj.Emi] : {};
+                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT, ...currentDataE});
                                     pivotData.push(chunk);
                                 }
     
@@ -1105,17 +1106,18 @@ export class DataModelResult{
                                         tmp['TechDesc'] = techData[obj.Tech]["Desc"];
                                         tmp['TechGroupDesc'] = techGroupData[tg]["Desc"];
                                         dataT = unitData[group][param][obj.Tech];
-                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT, ...dataE});
+                                        const currentDataE = (obj.Emi && obj.Emi in emiData) ? unitData[group][param][obj.Emi] : {};
+                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT, ...currentDataE});
                                         pivotData.push(tmp);
                                     })
                                 }else{
-                                    chunk['Tech'] = obj.Tech;  
+                                    chunk['Tech'] = obj.Tech;
                                     chunk['TechGroup'] = 'No group';
                                     chunk['TechDesc'] = techData[obj.Tech]["Desc"];
                                     chunk['TechGroupDesc'] = 'No group';
                                     dataT = unitData[group][param][obj.Tech];
-    
-                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT, ...dataE});
+                                    const currentDataE = (obj.Emi && obj.Emi in emiData) ? unitData[group][param][obj.Emi] : {};
+                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT, ...currentDataE});
                                     pivotData.push(chunk);
                                 }
     
