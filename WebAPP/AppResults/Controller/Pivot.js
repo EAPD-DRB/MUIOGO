@@ -57,8 +57,7 @@ export default class Pivot {
             });
     }
 
-    // Collect unique unit labels from the pivot data, convert HTML superscripts
-    // to Unicode (e.g. <sup>3</sup> → ³), and return a comma-separated string.
+    // Collect unique unit labels from the pivot data, convert HTML superscripts to Unicode (e.g. <sup>3</sup> → ³), and return a comma-separated string.
     static getUnitLabel(pivotData) {
         const supMap = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
         const labels = [...new Set(
@@ -76,19 +75,44 @@ export default class Pivot {
         return labels.join(', ');
     }
 
-    // Update the Pivot chart unit display. For vertical charts, show the unit on the Y-axis; for horizontal Bar charts, show it on the X-axis (the values axis).
-    static setUnitDisplay(pivotData, flexChart) {
-        const label = Pivot.getUnitLabel(pivotData);
-        const isHorizontal = flexChart.chartType === wijmo.chart.ChartType.Bar;
-        const valueAxis = isHorizontal ? flexChart.axisX : flexChart.axisY;
-        const categoryAxis = isHorizontal ? flexChart.axisY : flexChart.axisX;
+    // Apply active PivotPanel filters to the raw rows that retain Unit values.
+    static getFilteredPivotData(engine) {
+        const activeFilters = engine.fields.filter(field => field.filter.isActive);
+        return engine.collectionView.items.filter(item =>
+            activeFilters.every(field => field.filter.apply(item))
+        );
+    }
 
-        const unitLabelMaxChars = 40; // Y-axis pixel width fits ~40 chars before the label crowds the chart
-        categoryAxis.title = '';
-        if (!isHorizontal && label.length > unitLabelMaxChars) {
-            valueAxis.title = 'Multiple units';
+    // Update the unit display for Pie, horizontal, and vertical Pivot charts.
+    static setUnitDisplay(pivotData, pivotChart) {
+        const flexChart = pivotChart.flexChart;
+        const chartType = pivotChart.chartType;
+        const label = Pivot.getUnitLabel(pivotData);
+        const unitLabelMaxChars = 40;
+
+        if (!label) {
+            flexChart.axisX.title = '';
+            flexChart.axisY.title = '';
+            $('#pivotChartUnitLabel').text('');
+            return;
+        }
+
+        const isPie = chartType === wijmo.olap.PivotChartType.Pie;
+        const isHorizontal = chartType === wijmo.olap.PivotChartType.Bar;
+
+        // Pie charts have no value axis, so always show their units below the chart.
+        if (isPie) {
+            flexChart.axisX.title = '';
+            flexChart.axisY.title = '';
+            $('#pivotChartUnitLabel').text('Units: ' + label);
+        } else if (!isHorizontal && label.length > unitLabelMaxChars) {
+            flexChart.axisX.title = '';
+            flexChart.axisY.title = 'Multiple units';
             $('#pivotChartUnitLabel').text('Y-axis units: ' + label);
         } else {
+            const valueAxis = isHorizontal ? flexChart.axisX : flexChart.axisY;
+            const categoryAxis = isHorizontal ? flexChart.axisY : flexChart.axisX;
+            categoryAxis.title = '';
             valueAxis.title = label;
             $('#pivotChartUnitLabel').text('');
         }
@@ -370,7 +394,15 @@ export default class Pivot {
         // app.pivotChart.flexChart.palette = wijmo.chart.Palettes.midnight
         app.pivotChart.flexChart.palette = model.ColorSchemes.osyScheme;
 
-        Pivot.setUnitDisplay(model.pivotData, app.pivotChart.flexChart);
+        // Recalculate the displayed units from the currently filtered Pivot data.
+        const updateUnitDisplay = () => {
+            const filteredData = Pivot.getFilteredPivotData(app.engine);
+            Pivot.setUnitDisplay(filteredData, app.pivotChart);
+        };
+
+        // Refresh units after the PivotEngine finishes applying panel filters.
+        app.engine.updatedView.addHandler(updateUnitDisplay);
+        updateUnitDisplay();
 
         // app.pivotChart.flexChart.axisX.itemFormatter = function (engine, label) {
         //     label.text = wijmo.toPlainText(label.text);
@@ -401,7 +433,7 @@ export default class Pivot {
                     app.pivotChart.rotated = 1;
                 }
                 app.pivotChart.chartType = s.selectedValue;
-                Pivot.setUnitDisplay(model.pivotData, app.pivotChart.flexChart);
+                updateUnitDisplay();
             }
         });
 
@@ -606,7 +638,6 @@ export default class Pivot {
                 let pivotData = DataModelResult.getPivot(DATA, model.genData, model.VARIABLES, model.group, model.param);
                 model.pivotData = pivotData;
                 app.engine.itemsSource = model.pivotData;
-                Pivot.setUnitDisplay(model.pivotData, app.pivotChart.flexChart);
 
 
                 //console.log('pivot source ok')
