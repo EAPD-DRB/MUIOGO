@@ -6,7 +6,6 @@ from werkzeug.utils import secure_filename
 import os, json, glob
 
 
-from Classes.Case.HelpersClass import Helpers
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 # The zip-processing core and the version-migration helpers moved to CaseImporter so
