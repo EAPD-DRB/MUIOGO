@@ -44,6 +44,7 @@ from Routes.OGLink.OGLinkRoute import oglink_api
 from Classes.OGCore.InstallJob import InstallJob
 from Classes.OGCore.OGCoreCase import OGCoreCase
 from Classes.OGCore.RunJob import RunJob
+from Classes.Case.CaseImporter import ACCEPTED_CASE_VERSIONS, CURRENT_CASE_VERSION
 
 def _configure_logging():
     if getattr(_configure_logging, "_configured", False):
@@ -148,6 +149,18 @@ def getSession():
         return jsonify(response), 200
     except( KeyError ):
         return jsonify('No selected parameters!'), 404
+
+@app.route("/getVersion", methods=['GET'])
+def getVersion():
+    """The case-schema version this MUIOGO writes, and every version its importer
+    accepts. Lets a client (an installer, a script) check compatibility before
+    sending an archive, instead of learning from a failed import."""
+    return jsonify({
+        "muio_version": CURRENT_CASE_VERSION,
+        "accepted_case_versions": list(ACCEPTED_CASE_VERSIONS),
+        "status_code": "success",
+    }), 200
+
 
 @app.route("/setSession", methods=['POST'])
 def setSession():
