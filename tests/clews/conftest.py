@@ -31,6 +31,20 @@ def clews_storage(tmp_path, monkeypatch):
     yield storage
 
 
+@pytest.fixture(autouse=True)
+def clews_state(tmp_path, monkeypatch):
+    """Isolated CLEWs machine-level state (install jobs, download staging).
+
+    The installed-case registry needs no patching here: it lives inside
+    DataStorage itself, which clews_storage already isolates.
+    """
+    state = tmp_path / "clews-state"
+    monkeypatch.setattr(Config, "CLEWS_DATA_STORAGE", state)
+    monkeypatch.setattr(Config, "CLEWS_INSTALL_JOBS_DIR", state / "install_jobs")
+    monkeypatch.setattr(Config, "CLEWS_DOWNLOADS_DIR", state / "downloads")
+    yield state
+
+
 def minimal_gendata(casename, version):
     """The smallest genData.json every migration rung can digest.
 

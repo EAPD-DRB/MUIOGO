@@ -12,6 +12,7 @@ accepted version maps to the migrations that bring it to the current schema.
 An unrecognised version is refused, never guessed at.
 """
 import json
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -20,6 +21,7 @@ from zipfile import ZipFile
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 from Classes.Case.HelpersClass import Helpers
+from Classes.Clews.Provenance import Provenance
 
 # The case-schema version this MUIOGO writes and fully understands. Matches the
 # "MUIO ver.5.6.0" the UI reports (WebAPP/App/View/Versions.html); bump together
@@ -155,7 +157,7 @@ def updateViewDefintions(casename, genData):
 
 class CaseImporter:
     @staticmethod
-    def import_zip(filepath, cleanup=True):
+    def import_zip(filepath, cleanup=True, source=None, sha256_declared=None):
         """Import one case archive into DataStorage. Returns the response messages.
 
         ``filepath`` is an absolute path to a readable case ZIP; the caller owns any
@@ -164,6 +166,12 @@ class CaseImporter:
         can jsonify it unchanged and an installer can read casename/status from it.
         ``cleanup`` removes the archive afterwards (the upload flow's behavior);
         an installer that manages its own temp dir passes False.
+
+        Every imported case gets a provenance sidecar (clews-provenance.json):
+        ``source`` describes where the archive came from (default: a plain upload)
+        and ``sha256_declared`` is the checksum the source published for it, so the
+        sidecar records whether the archive matched. Sidecar writing is best-effort;
+        the import stands even if it cannot be written.
 
         A corrupt/unreadable ZIP raises (zipfile.BadZipFile/OSError) -- the upload
         route turns that into its usual 500, an installer into a failed job.
@@ -287,7 +295,34 @@ class CaseImporter:
                     "status_code": "warning"
                 })
 
+        # Provenance sidecar: only when a case actually landed (those messages carry
+        # a casename). Written while the archive still exists so it can be hashed.
+        imported_case = msg[0].get("casename") if msg else None
+        if imported_case:
+            try:
+                record = Provenance.build(
+                    source=source if source is not None else {"type": "upload"},
+                    archive_path=filepath,
+                    archive_name=os.path.basename(filepath),
+                    sha256_declared=sha256_declared,
+                    case_version=_installed_case_version(imported_case),
+                )
+                Provenance.write(imported_case, record)
+            except OSError as exc:
+                logging.getLogger(__name__).warning(
+                    "Case %s imported, but its provenance sidecar could not be "
+                    "written: %s", imported_case, exc)
+
         if cleanup:
             os.remove(filepath)
 
         return msg
+
+
+def _installed_case_version(casename):
+    """The osy-version of the case as it now sits on disk, or None."""
+    try:
+        genData = File.readFile(Path(Config.DATA_STORAGE, casename, 'genData.json'))
+        return genData.get('osy-version')
+    except (OSError, ValueError, IndexError, AttributeError):
+        return None

@@ -9,6 +9,7 @@ from Classes.Case.CaseClass import Case
 from Classes.Case.UpdateCaseClass import UpdateCase
 from Classes.Case.ImportTemplate import ImportTemplate
 from Classes.Base.SyncS3 import SyncS3
+from Classes.Clews.Provenance import Provenance
 from utils import validate_json_fields
 
 case_api = Blueprint('CaseRoute', __name__)
@@ -98,6 +99,9 @@ def copy():
             genData = File.readFile(casePath)
             genData['osy-casename'] = case_copy
             File.writeFile(genData, casePath)
+            # The copied provenance sidecar would claim the copy is the pristine
+            # installed archive; restamp it as derived from the original.
+            Provenance.mark_copy(case, case_copy)
             response = {
                 "message": 'Model <b>'+ case + '</b> copied!',
                 "status_code": "success"

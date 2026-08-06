@@ -41,10 +41,12 @@ from Routes.DataFile.DataFileRoute import datafile_api
 from Routes.OGCore.OGCoreInstallRoute import ogcore_install_api
 from Routes.OGCore.OGCoreRunRoute import ogcore_run_api
 from Routes.OGLink.OGLinkRoute import oglink_api
+from Routes.Clews.ClewsRoute import clews_api
 from Classes.OGCore.InstallJob import InstallJob
 from Classes.OGCore.OGCoreCase import OGCoreCase
 from Classes.OGCore.RunJob import RunJob
 from Classes.Case.CaseImporter import ACCEPTED_CASE_VERSIONS, CURRENT_CASE_VERSION
+from Classes.Clews.CountryRegistry import CountryRegistry
 
 def _configure_logging():
     if getattr(_configure_logging, "_configured", False):
@@ -116,6 +118,7 @@ app.register_blueprint(syncs3_api)
 app.register_blueprint(ogcore_install_api)
 app.register_blueprint(ogcore_run_api)
 app.register_blueprint(oglink_api)
+app.register_blueprint(clews_api)
 
 CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
 
@@ -293,6 +296,13 @@ if __name__ == '__main__':
 
     # Stop any running install or solve cleanly when the server is stopped, so their
     # detached process trees are not orphaned. Same deployment assumption as above.
+    # Bring the CLEWs case registry in line with DataStorage: cases added by hand
+    # are indexed (as unmanaged unless they carry a provenance sidecar), cases
+    # removed by hand are dropped. Logs one summary line; never blocks startup.
+    CountryRegistry.reconcile_safe()
+
+    # Stop any running install cleanly when the server is stopped, so its detached
+    # process tree is not orphaned. Same deployment assumption as reconcile above.
     _install_shutdown_handlers()
 
     def print_startup_info(host, current_port, server_name):

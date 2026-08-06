@@ -121,6 +121,30 @@ OGLINK_RUNS_DIR = Path(
 # ../ogclews-link sibling.
 OGLINK_HOME_DIR = Path.home() / ".muiogo" / "ogclews-link"
 
+# -------------------------
+# CLEWs country install + registry layer
+# -------------------------
+# A CLEWs country install is DATA, not code: verified case archives extracted into
+# DataStorage through the same importer the browser upload uses. Two kinds of state:
+#
+# - The installed-case index describes ONE DataStorage, so it lives inside it, as
+#   the dot-file .clews_registry.json (resolved at call time in CountryRegistry so
+#   it always tracks the active DATA_STORAGE). A file is safe under the #500 rule:
+#   the case picker and the reconcile scan list DIRECTORIES, and DataStorage's root
+#   already carries app-level files (Parameters.json etc.). Keeping it per-storage
+#   is what lets several MUIOGO checkouts on one machine not fight over one index.
+#
+# - Transient machine-level state (install-job status, download staging) lives at
+#   the user level like the OG state above. Archives download and verify THERE,
+#   never into DataStorage, so a partial download can never appear as a case.
+CLEWS_DATA_STORAGE = Path(
+    os.environ.get("MUIOGO_CLEWS_DATA_DIR", "").strip()
+    or (Path.home() / ".muiogo" / "clews-state")
+)
+CLEWS_INSTALL_JOBS_DIR = CLEWS_DATA_STORAGE / "install_jobs"
+CLEWS_DOWNLOADS_DIR = CLEWS_DATA_STORAGE / "downloads"
+CLEWS_REGISTRY_BASENAME = ".clews_registry.json"
+
 # Where the installer's machine-readable catalogue and scripts are fetched from.
 # Env overrides let tests/offline runs point at a local mirror.
 _OGC_INSTALLER_RAW_BASE = (
