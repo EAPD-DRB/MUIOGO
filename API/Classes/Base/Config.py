@@ -145,6 +145,15 @@ CLEWS_INSTALL_JOBS_DIR = CLEWS_DATA_STORAGE / "install_jobs"
 CLEWS_DOWNLOADS_DIR = CLEWS_DATA_STORAGE / "downloads"
 CLEWS_REGISTRY_BASENAME = ".clews_registry.json"
 
+# The CLEWs country register: the CLEWs mirror of the OG installer's repos.json,
+# listing country repos that ship portable MUIO cases. There is no public hub for
+# CLEWs country models yet, so this defaults to unset -- the catalogue endpoint
+# then reports source "none" and users install by Git URL or local path. Point it
+# at a raw JSON URL ({"schema_version": 1, "repos": [{key, owner, repo, iso3,
+# description}, ...]}) when a register exists.
+CLEWS_CATALOG_URL = os.environ.get("MUIOGO_CLEWS_CATALOG_URL", "").strip()
+CLEWS_CATALOG_CACHE = CLEWS_DATA_STORAGE / "catalog_cache.json"
+
 # Where the installer's machine-readable catalogue and scripts are fetched from.
 # Env overrides let tests/offline runs point at a local mirror.
 _OGC_INSTALLER_RAW_BASE = (

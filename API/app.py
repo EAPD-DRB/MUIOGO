@@ -46,6 +46,7 @@ from Classes.OGCore.InstallJob import InstallJob
 from Classes.OGCore.OGCoreCase import OGCoreCase
 from Classes.OGCore.RunJob import RunJob
 from Classes.Case.CaseImporter import ACCEPTED_CASE_VERSIONS, CURRENT_CASE_VERSION
+from Classes.Clews.ClewsInstallJob import ClewsInstallJob
 from Classes.Clews.CountryRegistry import CountryRegistry
 
 def _configure_logging():
@@ -193,12 +194,15 @@ def _stop_inflight_installs():
     """
     try:
         ids = InstallJob.cancel_all()
-        if not ids:
+        clews_ids = ClewsInstallJob.cancel_all()
+        if not ids and not clews_ids:
             return
         logging.getLogger(__name__).info(
-            "Server stopping: cancelling %d in-flight OG install(s).", len(ids))
+            "Server stopping: cancelling %d in-flight install(s).",
+            len(ids) + len(clews_ids))
         deadline = time.monotonic() + 5.0
-        while InstallJob.active_count() and time.monotonic() < deadline:
+        while ((InstallJob.active_count() or ClewsInstallJob.active_count())
+               and time.monotonic() < deadline):
             time.sleep(0.1)
     except Exception:
         # Shutdown cleanup must never raise out of a signal handler or atexit.
@@ -294,15 +298,16 @@ if __name__ == '__main__':
         logging.getLogger(__name__).warning(
             "Could not reconcile interrupted runs at startup.", exc_info=True)
 
-    # Stop any running install or solve cleanly when the server is stopped, so their
-    # detached process trees are not orphaned. Same deployment assumption as above.
+    # Same for CLEWs country installs left mid-flight by a restart.
+    ClewsInstallJob.reconcile_interrupted_jobs()
+
     # Bring the CLEWs case registry in line with DataStorage: cases added by hand
     # are indexed (as unmanaged unless they carry a provenance sidecar), cases
     # removed by hand are dropped. Logs one summary line; never blocks startup.
     CountryRegistry.reconcile_safe()
 
-    # Stop any running install cleanly when the server is stopped, so its detached
-    # process tree is not orphaned. Same deployment assumption as reconcile above.
+    # Stop any running install or solve cleanly when the server is stopped, so their
+    # detached process trees are not orphaned. Same deployment assumption as above.
     _install_shutdown_handlers()
 
     def print_startup_info(host, current_port, server_name):
