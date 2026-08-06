@@ -34,13 +34,19 @@ def test_hand_added_case_is_indexed_as_unmanaged(clews_storage):
 
 def test_imported_case_is_adopted_from_sidecar(clews_storage, tmp_path):
     zip_path = make_case_zip(tmp_path, "Tracked", version="5.6")
-    CaseImporter.import_zip(str(zip_path), source={"type": "repo_url", "iso3": "PHL"})
+    CaseImporter.import_zip(str(zip_path),
+                            source={"type": "repo_url", "iso3": "PHL",
+                                    "country_name": "Philippines", "vintage": "v16"})
     summary = CountryRegistry.reconcile()
     assert summary["adopted"] == ["Tracked"]
     record = CountryRegistry.get("Tracked")
     assert record["managed"] is True
     assert record["install_state"] == "installed"
     assert record["source"]["iso3"] == "PHL"
+    # Country identity is lifted to the top of the record for list consumers.
+    assert record["iso3"] == "PHL"
+    assert record["country_name"] == "Philippines"
+    assert record["vintage"] == "v16"
 
 
 def test_removed_case_is_dropped_from_index(clews_storage):

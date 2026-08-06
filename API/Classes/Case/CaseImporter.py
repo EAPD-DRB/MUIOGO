@@ -300,14 +300,23 @@ class CaseImporter:
         imported_case = msg[0].get("casename") if msg else None
         if imported_case:
             try:
-                record = Provenance.build(
-                    source=source if source is not None else {"type": "upload"},
-                    archive_path=filepath,
-                    archive_name=os.path.basename(filepath),
-                    sha256_declared=sha256_declared,
-                    case_version=_installed_case_version(imported_case),
-                )
-                Provenance.write(imported_case, record)
+                if source is None and Provenance.read(imported_case) is not None:
+                    # A restored backup travels with the case's original sidecar
+                    # (backupCase zips the whole case dir). A plain upload must not
+                    # overwrite that record with "upload" -- it still says where the
+                    # case originally came from. Just note the restore event.
+                    # An installer's explicit source stays authoritative.
+                    Provenance.mark_restored(imported_case,
+                                             os.path.basename(filepath))
+                else:
+                    record = Provenance.build(
+                        source=source if source is not None else {"type": "upload"},
+                        archive_path=filepath,
+                        archive_name=os.path.basename(filepath),
+                        sha256_declared=sha256_declared,
+                        case_version=_installed_case_version(imported_case),
+                    )
+                    Provenance.write(imported_case, record)
             except OSError as exc:
                 logging.getLogger(__name__).warning(
                     "Case %s imported, but its provenance sidecar could not be "

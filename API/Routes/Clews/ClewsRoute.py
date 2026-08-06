@@ -78,7 +78,7 @@ def _source_from_request(data):
     raise ManifestError("source_type must be one of: catalog, repo_url, local_path.")
 
 
-def _country_key(data, source):
+def _country_key(source):
     """What serializes concurrent installs: one at a time per source."""
     if source.source_type == "local_path":
         return f"local:{source.local_path}"
@@ -153,7 +153,7 @@ def installCountry():
 
     job = ClewsInstallJob.start_install(
         source=source,
-        country_key=_country_key(data, source),
+        country_key=_country_key(source),
         vintage_id=data.get("vintage") or None,
         casenames=casenames or None,
     )

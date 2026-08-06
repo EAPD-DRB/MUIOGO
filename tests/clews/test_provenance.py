@@ -87,6 +87,49 @@ def test_mark_copy_restamps_lineage(clews_storage):
     assert Provenance.read("Orig")["archive"]["verified"] is True
 
 
+def test_backup_restore_keeps_original_provenance(client, clews_storage, tmp_path):
+    """Export -> delete -> restore must keep the case's original provenance.
+
+    backupCase zips the whole case dir including the sidecar; a plain re-upload
+    of that backup must not overwrite it with source 'upload' (regression: it
+    did, losing the country identity)."""
+    zip_path = make_case_zip(tmp_path, "Roundtrip", version="5.6")
+    CaseImporter.import_zip(str(zip_path),
+                            source={"type": "repo_url", "iso3": "PHL",
+                                    "vintage": "v16",
+                                    "repo_url": "https://github.com/EAPD-DRB/CLEWs-PHL"})
+
+    # Export through the real route, then remove the case by hand.
+    resp = client.get("/backupCase?case=Roundtrip")
+    assert resp.status_code == 200
+    backup = tmp_path / "Roundtrip.zip"
+    backup.write_bytes(resp.data)
+    import shutil
+    shutil.rmtree(clews_storage / "Roundtrip")
+
+    CaseImporter.import_zip(str(backup))
+    sidecar = Provenance.read("Roundtrip")
+    assert sidecar["source"]["type"] == "repo_url"
+    assert sidecar["source"]["iso3"] == "PHL"
+    assert sidecar["restored_at"]
+    assert sidecar["restored_from"] == "Roundtrip.zip"
+
+
+def test_explicit_source_still_overwrites_traveled_sidecar(clews_storage, tmp_path):
+    """An installer's explicit source stays authoritative over a traveled sidecar."""
+    import zipfile
+    zip_path = tmp_path / "Fresh.zip"
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        zf.writestr("Fresh/genData.json",
+                    '{"osy-version": "5.6", "osy-tech": [], "osy-indicators": []}')
+        zf.writestr("Fresh/view/viewDefinitions.json", '{"osy-views": {}}')
+        zf.writestr("Fresh/clews-provenance.json",
+                    '{"source": {"type": "repo_url", "iso3": "OLD"}}')
+    CaseImporter.import_zip(str(zip_path), cleanup=False,
+                            source={"type": "repo_url", "iso3": "NEW"})
+    assert Provenance.read("Fresh")["source"]["iso3"] == "NEW"
+
+
 def test_copy_case_route_restamps_sidecar(client, clews_storage, tmp_path):
     zip_path = make_case_zip(tmp_path, "RouteOrig", version="5.6")
     CaseImporter.import_zip(str(zip_path))

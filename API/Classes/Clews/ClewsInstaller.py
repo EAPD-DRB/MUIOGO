@@ -32,11 +32,19 @@ from Classes.Clews.Provenance import sha256_of
 
 
 def _version_tuple(text):
-    """'5.6' -> (5, 6); tolerant of junk (None on failure)."""
+    """'5.6' -> (5, 6); tolerant of junk (None on failure).
+
+    Trailing zeros are dropped so '5.6.0' equals '5.6' -- otherwise a manifest
+    declaring the UI's own '5.6.0' would refuse a MUIO that writes '5.6'
+    ((5, 6) sorts below (5, 6, 0) in a plain tuple comparison).
+    """
     try:
-        return tuple(int(part) for part in str(text).strip().split("."))
+        parts = [int(part) for part in str(text).strip().split(".")]
     except (ValueError, AttributeError):
         return None
+    while len(parts) > 1 and parts[-1] == 0:
+        parts.pop()
+    return tuple(parts)
 
 
 def version_gate(vintage):

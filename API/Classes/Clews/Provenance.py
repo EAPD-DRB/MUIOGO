@@ -106,6 +106,22 @@ class Provenance:
         return record
 
     @classmethod
+    def mark_restored(cls, casename, archive_name=None):
+        """Note on an existing sidecar that the case was just restored from a backup.
+
+        A backup travels with the case's original provenance; restoring it must
+        keep that record (it still says where the case came from), only noting the
+        restore event. Returns the updated record, or None if there is no sidecar.
+        """
+        record = cls.read(casename)
+        if record is None:
+            return None
+        record["restored_at"] = _now_iso()
+        if archive_name:
+            record["restored_from"] = archive_name
+        return cls.write(casename, record)
+
+    @classmethod
     def mark_copy(cls, src_casename, dst_casename):
         """Fix the sidecar inside a just-copied case, if it has one.
 

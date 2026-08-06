@@ -152,6 +152,12 @@ class CountryRegistry:
         for field in _INDEXED_SIDECAR_FIELDS:
             if sidecar.get(field) is not None:
                 record[field] = sidecar[field]
+        # Country identity is recorded inside the sidecar's source block; lift it
+        # to the top of the record so list consumers get cases[].iso3 directly.
+        if isinstance(source, dict):
+            for field in ("iso3", "un_code", "country_name", "vintage", "role"):
+                if record.get(field) is None and source.get(field) is not None:
+                    record[field] = source[field]
         return record
 
     @classmethod

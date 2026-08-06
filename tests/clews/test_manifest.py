@@ -82,10 +82,15 @@ def test_select_vintage_and_cases():
 
 def test_version_gate():
     assert version_gate({"muio_min_version": "5.6"}) is None
+    # '5.6.0' must equal '5.6': trailing zeros cannot flip the gate.
+    assert version_gate({"muio_min_version": "5.6.0"}) is None
+    assert version_gate({"muio_min_version": "5.0"}) is None
     assert version_gate({}) is None
     assert version_gate({"muio_min_version": "not-a-version"}) is None
     refusal = version_gate({"muio_min_version": "99.0"})
     assert refusal and "99.0" in refusal
+    assert version_gate({"muio_min_version": "5.7"})   # newer minor refuses
+    assert version_gate({"muio_min_version": "5.6.1"})  # newer patch refuses
 
 
 def test_source_local_path_requires_dir(tmp_path):
