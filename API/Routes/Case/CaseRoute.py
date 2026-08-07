@@ -419,6 +419,8 @@ def saveCase():
                 }       
 
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('Error saving model IOError!'), 404
 

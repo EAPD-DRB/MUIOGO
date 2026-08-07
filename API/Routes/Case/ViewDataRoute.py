@@ -17,6 +17,8 @@ def viewData():
         else:  
             response = None     
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -33,6 +35,8 @@ def viewTEData():
         else:  
             response = None     
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -66,6 +70,8 @@ def updateViewData():
             }
        
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -95,5 +101,7 @@ def updateTEViewData():
             }
        
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
