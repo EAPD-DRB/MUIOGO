@@ -21,7 +21,7 @@ SOURCE_STORAGE = REPO / "WebAPP" / "DataStorage"
 SOURCE_CASE = (SOURCE_STORAGE / "Philippines_v16").resolve()
 BASE_SCENARIO = "SC_0"
 
-PROMOTED_FILES = ("RYT.json", "RYTCM.json", "RYTM.json")
+PROMOTED_FILES = ("RT.json", "RYT.json", "RYTCM.json", "RYTM.json")
 GLOBAL_FILES = ("Parameters.json", "Variables.json", "Duals.json", "Indicators.json")
 
 # Existing model objects.
@@ -44,9 +44,10 @@ IRRIGATED_COST_PHP_PER_KG = Decimal("12.49")
 RAINFED_COST_PHP_PER_KG = Decimal("13.95")
 PHP_PER_USD_2021 = Decimal("49.25")
 
-# NIA feasibility-screen ceiling for a new irrigation project.
-NEW_IRRIGATION_PHP_PER_HA = Decimal("250000")
+# DA-PRDP indicative unit cost for an irrigation system.
+NEW_IRRIGATION_PHP_PER_HA = Decimal("300000")
 PHP_PER_USD_2020 = Decimal("49.62")
+IRRIGATION_OPERATIONAL_LIFE_YEARS = 30
 
 # Exogenous cluster land availability in RYT.TAU; used only to retain the
 # inherited GAEZ spatial pattern while matching each national regime mean.
@@ -109,6 +110,7 @@ def national_target_oar(production_mt: Decimal, physical_area_mha: Decimal) -> D
 
 
 def apply_overlays(target: Path) -> dict[str, object]:
+    rt = read_json(target / "RT.json")
     ryt = read_json(target / "RYT.json")
     rytcm = read_json(target / "RYTCM.json")
     rytm = read_json(target / "RYTM.json")
@@ -130,7 +132,12 @@ def apply_overlays(target: Path) -> dict[str, object]:
         for year in years:
             rc[(tech_id,)][year] = float(value)
 
-    # New irrigation expansion cost.  Existing capacity is sunk RC.
+    # New irrigation expansion cost and asset life. Existing capacity is sunk RC.
+    operational_life = rt["OL"][BASE_SCENARIO][0]
+    for tech_id in (HIGH_IRRIGATED_OPTION, LOW_IRRIGATED_OPTION):
+        operational_life[tech_id] = IRRIGATION_OPERATIONAL_LIFE_YEARS
+    write_json(target / "RT.json", rt)
+
     cc = keyed_rows(ryt["CC"], BASE_SCENARIO, ("TechId",))
     irrigation_capital_cost = (
         NEW_IRRIGATION_PHP_PER_HA / PHP_PER_USD_2020
@@ -200,6 +207,7 @@ def apply_overlays(target: Path) -> dict[str, object]:
         "rainfed_cost_musd_per_mt": float(cost_per_mt["rainfed"]),
         "irrigated_cost_musd_per_mt": float(cost_per_mt["irrigated"]),
         "new_irrigation_capital_cost_musd_per_1000km2": float(irrigation_capital_cost),
+        "new_irrigation_operational_life_years": IRRIGATION_OPERATIONAL_LIFE_YEARS,
     }
 
 
@@ -220,6 +228,7 @@ def validate_diff(before: dict[str, object], target: Path, summary: dict[str, ob
 
     # Policy scenarios remain null/inherited; only SC_0 is calibrated.
     for filename, parameters in {
+        "RT.json": ("OL",),
         "RYT.json": ("RC", "CC"),
         "RYTCM.json": ("OAR",),
         "RYTM.json": ("VC",),
