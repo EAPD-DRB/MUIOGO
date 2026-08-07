@@ -23,6 +23,8 @@ def generateDataFile():
                 "status_code": "success"
             }      
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -41,6 +43,8 @@ def createCaseRun():
             response = caserun.createCaseRun(caserunname, data)
      
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -60,6 +64,8 @@ def updateCaseRun():
             response = caserun.updateCaseRun(caserunname, oldcaserunname, data)
      
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -92,6 +98,8 @@ def deleteCaseRun():
         caserun = DataFile(casename)
         response = caserun.deleteCaseRun(caserunname, resultsOnly)
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except FileNotFoundError:
         return jsonify('No existing cases!'), 404
     except OSError:
@@ -108,6 +116,8 @@ def deleteScenarioCaseRuns():
             response = caserun.deleteScenarioCaseRuns(scenarioId)
      
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -123,6 +133,8 @@ def saveView():
             response = caserun.saveView(data, param)
      
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -138,6 +150,8 @@ def updateViews():
             response = caserun.updateViews(data, param)
      
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -153,6 +167,8 @@ def readDataFile():
         else:  
             response = None     
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -193,6 +209,8 @@ def validateInputs():
         else:  
             response = None     
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
@@ -299,6 +317,8 @@ def run():
     #     print(ex)
     #     return ex, 404
     
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
     
@@ -322,6 +342,8 @@ def batchRun():
         end = time.time()  
         response['time'] = end-start 
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('Error!'), 404
     
@@ -336,5 +358,7 @@ def cleanUp():
             response = model.cleanUp()
 
         return jsonify(response), 200
+    except PermissionError:
+        return jsonify({'message': 'Invalid path.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('Error!'), 404
