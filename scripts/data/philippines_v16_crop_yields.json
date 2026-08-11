@@ -1,0 +1,114 @@
+{
+  "schema": "philippines-v16-achieved-crop-yields-v1",
+  "base_year": 2020,
+  "model_land_unit_ha": 100000,
+  "sources": {
+    "psa_openstat_snapshot": {
+      "local_file": "scripts/data/philippines_v12_agriculture_sources.json",
+      "retrieved_at_utc": "2026-07-24T21:27:22Z to 2026-07-24T21:27:25Z",
+      "production_tables": {
+        "palay_corn": "https://openstat.psa.gov.ph/PXWeb/api/v1/en/DB/2E/CS/0012E4EVCP0.px",
+        "major_crops": "https://openstat.psa.gov.ph/PXWeb/api/v1/en/DB/2E/CS/0142E4EVCP1.px"
+      },
+      "area_tables": {
+        "palay_corn": "https://openstat.psa.gov.ph/PXWeb/api/v1/en/DB/2E/CS/0022E4EAHC0.px",
+        "major_crops": "https://openstat.psa.gov.ph/PXWeb/api/v1/en/DB/2E/CS/0152E4EAHM0.px"
+      }
+    },
+    "faostat_selection": {
+      "local_file": "Philippines_v16_CLEWs_build/data_sources/evidence/inherited_base/external_sources/land_agriculture_water/faostat/FAOSTAT_PHL_2020_SELECTION.csv",
+      "url": "https://www.fao.org/faostat/en/#data/QCL"
+    },
+    "psa_ssaf_2022": {
+      "title": "Selected Statistics on Agriculture and Fisheries 2022",
+      "url": "https://psa.gov.ph/system/files/main-publication/%2528ons-cleared%2529_SSAF%25202022%2520as%2520of%252030082022_ONS-signed.pdf",
+      "use": "2020 national irrigation service area"
+    },
+    "gaez_manifest": {
+      "local_file": "Philippines_v16_CLEWs_build/data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_input_tables/GAEZ_PHL_RASTER_CACHE_MANIFEST.csv",
+      "use": "documents that inherited OARs are agro-climatic potential yields and that sugarcane is kg sugar/ha while tomato is kg dry weight/ha"
+    }
+  },
+  "observations": {
+    "rice_irrigated": {
+      "commodity": "CRPRCP",
+      "modes": [17, 19],
+      "production_t": 14571765.18,
+      "area_ha": 2006000,
+      "area_basis": "physical irrigation service area",
+      "production_source": "PSA OpenSTAT palay/corn production, Irrigated Palay, Philippines, 2020 Annual",
+      "area_source": "PSA Selected Statistics on Agriculture and Fisheries 2022, 2020 irrigation service area"
+    },
+    "rice_rainfed": {
+      "commodity": "CRPRCP",
+      "modes": [11, 14],
+      "production_t": 4723090.34,
+      "area_ha": 1465441.73,
+      "area_basis": "harvested area used as physical-area proxy because a separate rainfed service-area series is unavailable",
+      "production_source": "PSA OpenSTAT palay/corn production, Rainfed Palay, Philippines, 2020 Annual",
+      "area_source": "PSA OpenSTAT palay/corn area harvested, Rainfed Palay, Philippines, 2020 Annual"
+    },
+    "corn": {
+      "commodity": "CRPMZE",
+      "modes": [4, 7, 10, 15],
+      "production_t": 8118545.9,
+      "area_ha": 2553780.55,
+      "area_basis": "harvested area used as annual crop-area proxy",
+      "production_source": "PSA OpenSTAT palay/corn production, Corn, Philippines, 2020 Annual",
+      "area_source": "PSA OpenSTAT palay/corn area harvested, Corn, Philippines, 2020 Annual"
+    },
+    "coconut": {
+      "commodity": "CRPCON",
+      "modes": [2, 8, 16, 20],
+      "production_t": 14490922.69,
+      "area_ha": 3651288.76,
+      "area_basis": "area planted/harvested; perennial physical-area proxy",
+      "production_basis": "coconut with husk",
+      "production_source": "PSA OpenSTAT major crops production, Coconut (w/ husk), Philippines, 2020 Annual",
+      "area_source": "PSA OpenSTAT major crops area planted/harvested, Coconut, Philippines, 2020 Annual"
+    },
+    "sugarcane": {
+      "commodity": "CRPSGC",
+      "modes": [3, 6, 9, 18],
+      "production_t": 24398941.25,
+      "area_ha": 399086.05,
+      "area_basis": "area planted/harvested",
+      "production_basis": "fresh sugar cane, not sugar equivalent",
+      "production_source": "PSA OpenSTAT major crops production, Sugarcane, Philippines, 2020 Annual",
+      "area_source": "PSA OpenSTAT major crops area planted/harvested, Sugarcane, Philippines, 2020 Annual"
+    },
+    "other_vegetables_fresh_nec": {
+      "commodity": "CRPTOM",
+      "modes": [1, 5, 12, 13],
+      "production_t": 5498265.59,
+      "area_ha": 639800,
+      "area_basis": "FAOSTAT harvested area",
+      "production_basis": "Other vegetables, fresh n.e.c.; not tomato dry matter",
+      "area_flag": "E: estimated value",
+      "production_flag": "I: imputed value",
+      "source": "FAOSTAT_PHL_2020_SELECTION.csv, CPC 01290.90"
+    },
+    "other_crops_aggregate": {
+      "commodity": "CRPOTH",
+      "modes": [21, 22, 23, 24],
+      "production_t": 10099485.12,
+      "area_ha": 1283887,
+      "area_basis": "sum of component harvested areas",
+      "production_basis": "sum of retained model aggregate tonnes",
+      "components": [
+        "Other tropical fruits, n.e.c.",
+        "Plantains and cooking bananas",
+        "Natural rubber in primary forms",
+        "Cassava, fresh",
+        "Mangoes, guavas and mangosteens"
+      ],
+      "source": "FAOSTAT_PHL_2020_SELECTION.csv, model_output_group OTH"
+    }
+  },
+  "calculation": {
+    "achieved_yield_t_per_ha": "production_t / area_ha",
+    "oar_mt_per_1000_km2": "achieved_yield_t_per_ha / 10",
+    "application": "set the calculated OAR uniformly across the existing eight clusters and the listed modes for every model year",
+    "gaez_role_after_change": "benchmark and potential-yield evidence only; absolute GAEZ potential is not used as achieved OAR"
+  }
+}
