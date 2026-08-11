@@ -68,6 +68,8 @@ pytz==2024.1
     # via
     #   muiogo
     #   pandas
+pyyaml==6.0.3
+    # via muiogo
 s3transfer==0.10.1
     # via
     #   boto3

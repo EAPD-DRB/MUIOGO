@@ -23,6 +23,7 @@ dependencies = [
     "pandas==2.2.2",
     "python-dateutil==2.9.0.post0",
     "python-dotenv==1.0.1",
+    "PyYAML==6.0.3",
     "pytz==2024.1",
     "s3transfer==0.10.1",
     "tzdata==2024.1",
