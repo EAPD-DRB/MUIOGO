@@ -1,0 +1,36 @@
+<div class="ogc-page" id="ogcParamsPage">
+
+  <h1 class="ogc-title" id="ogcParamsTitle">Parameters</h1>
+  <div class="ogc-sub" id="ogcParamsSub">Values are read from the calibration installed on this machine, so the form always matches the model version in use.</div>
+
+  <div class="ogc-bar">
+    <span class="ogc-bar-right">
+      <a class="btn ogc-btn" href="#/OGCases"><i class="fa fa-arrow-left"></i> Cases</a>
+      <a class="btn ogc-btn" href="#/OGCore"><i class="fa fa-globe"></i> All countries</a>
+    </span>
+  </div>
+
+  <!-- which case and run is being edited, and what the deltas are measured against -->
+  <div class="ogc-ctxbar" id="ogcParamsCtx" style="display: none;"></div>
+
+  <!-- change summary and the reset / save actions -->
+  <div class="ogc-editbar" id="ogcParamsEditbar" style="display: none;">
+    <span><i class="fa fa-pencil-square-o"></i> <b id="ogcChangeCount">0 changes</b> <span class="ogc-mut" id="ogcChangeVs"></span></span>
+    <label><input type="checkbox" id="ogcOnlyChanged"> Show only changed</label>
+    <span class="ogc-eb-right">
+      <button class="btn ogc-btn" data-act="reset-all"><i class="fa fa-undo"></i> <span id="ogcResetLabel">Reset all</span></button>
+      <button class="btn ogc-btn ogc-btn-main" data-act="save"><i class="fa fa-save"></i> Save</button>
+    </span>
+  </div>
+
+  <div id="ogcParamsBody"></div>
+
+  <div class="ogc-empty" id="ogcParamsEmpty" style="display: none;">
+    <i class="fa fa-sliders"></i>
+    <div>
+      <b id="ogcParamsEmptyTitle">No run selected</b>
+      <div id="ogcParamsEmptyText">Open a run from the Cases page to configure its parameters.</div>
+    </div>
+  </div>
+
+</div>

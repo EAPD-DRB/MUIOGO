@@ -82,13 +82,16 @@ def calibration(tmp_path):
 
 
 @pytest.fixture
-def make_case():
+def make_case(client):
     """Build a case, optionally with runs. Returns a factory."""
     def _make(casename="c1", country_id="ETH", runs=()):
         case = OGCoreCase(casename)
         case.create_case({"ogc-casename": casename, "country_id": country_id})
         for run_name, run_type, baseline in runs:
             case.create_run(run_name, run_type, baseline, {})
+        current = client.get("/ogc/getSession").get_json()
+        if not current.get("ogccountry"):
+            client.post("/ogc/setSession", json={"casename": casename})
         return case
     return _make
 

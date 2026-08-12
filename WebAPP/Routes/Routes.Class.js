@@ -2,6 +2,7 @@ import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { Message } from "../../Classes/Message.Class.js";
 import { NavigationGuard } from "../../Classes/NavigationGuard.Class.js";
 import { MuiogoShell } from "../../Classes/MuiogoShell.Class.js";
+import { OGWorkspace } from "../../Classes/OGWorkspace.Class.js";
 import { Model } from "./Routes.Model.js";
 
 export class Routes {
@@ -25,9 +26,26 @@ export class Routes {
     }
 
     static getRoutes(model){
+        let requestedModel = null;
+
         function enterModel(model){
             MuiogoShell.setModel(model);
             MuiogoShell.applyModel();
+            $('body').removeClass('osy-og-workspace');
+            if (model == 'og') Message.clearMessages();
+        }
+
+        function enterWorkspace(){
+            enterModel('og');
+            $('body').addClass('osy-og-workspace');
+        }
+
+        function requireWorkspace(){
+            if (OGWorkspace.current()){
+                return true;
+            }
+            window.location.replace(window.location.href.split('#')[0] + '#/OGCore');
+            return false;
         }
 
         //settings 
@@ -39,12 +57,30 @@ export class Routes {
         });
 
         MuiogoShell.applyModel();
-        MuiogoShell.initEvents();
+        MuiogoShell.initEvents(function (model) {
+            let currentRoute = routeFromHash(window.location.hash);
+            if (!OGWorkspace.isWorkspaceRoute(currentRoute)){
+                requestedModel = null;
+                MuiogoShell.setModel(model);
+                MuiogoShell.applyModel();
+                let hash = window.location.hash;
+                if (hash == '' || hash == '#' || hash == '#/'){
+                    crossroads.resetState();
+                    crossroads.parse('/');
+                }else{
+                    window.location.hash = '#/';
+                }
+                return;
+            }
+            requestedModel = model;
+            window.location.hash = '#/';
+        });
 
         //Sidebar.Load(PARAMETERS);
         //home depends on the selected model: OG-Core, CLEWS, or the pick screen
         crossroads.addRoute('/', function() {
-            let selected = MuiogoShell.getModel();
+            let selected = requestedModel || MuiogoShell.getModel();
+            requestedModel = null;
             enterModel(selected);
             $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
             if (selected == 'og'){
@@ -135,6 +171,43 @@ export class Routes {
                 });
             });
         });
+        crossroads.addRoute('/OGCases', function() {
+            if (!requireWorkspace()) return;
+            enterWorkspace();
+            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            import('../App/Controller/OGCases.js')
+            .then(OGCases => {
+                $( ".osy-content" ).load( 'App/View/OGCases.html', function() {
+                    localStorage.setItem("osy-pageId", "OGCases");
+                    OGCases.default.onLoad();
+                });
+            });
+        });
+        crossroads.addRoute('/OGParameters', function() {
+            if (!requireWorkspace()) return;
+            enterWorkspace();
+            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            import('../App/Controller/OGParameters.js')
+            .then(OGParameters => {
+                $( ".osy-content" ).load( 'App/View/OGParameters.html', function() {
+                    localStorage.setItem("osy-pageId", "OGParameters");
+                    OGParameters.default.onLoad();
+                });
+            });
+        });
+        crossroads.addRoute('/OGRuns', function() {
+            if (!requireWorkspace()) return;
+            enterWorkspace();
+            let sourcePage = localStorage.getItem('osy-pageId');
+            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            import('../App/Controller/OGRuns.js')
+            .then(OGRuns => {
+                $( ".osy-content" ).load( 'App/View/OGRuns.html', function() {
+                    localStorage.setItem("osy-pageId", "OGRuns");
+                    OGRuns.default.onLoad(sourcePage);
+                });
+            });
+        });
         //dynamic routes
         function addAppRoute(group, id){
             return crossroads.addRoute(`/${group}/${id}`, function() {
@@ -222,6 +295,17 @@ export class Routes {
         hasher.init(); //start listening for history change 
         let acceptedHash = window.location.hash;
         let ignoreNextHashChange = false;
+        let navigationPending = false;
+        function routeFromHash(hash){
+            return hash && hash.length > 0 ? hash.split('#').pop() : '/';
+        }
+        function restoreAcceptedHash(clearModelRequest = true){
+            if (clearModelRequest) requestedModel = null;
+            if (window.location.hash !== acceptedHash) {
+                ignoreNextHashChange = true;
+                window.location.hash = acceptedHash;
+            }
+        }
         //Listen to hash changes
         window.addEventListener("hashchange", function() {
             // Ignore the hash change used to restore the current page
@@ -229,25 +313,37 @@ export class Routes {
                 ignoreNextHashChange = false;
                 return;
             }
-
-            var route = '/';
-            var hash = window.location.hash;
-            if (hash.length > 0) {
-                route = hash.split('#').pop();
+            if (navigationPending) {
+                restoreAcceptedHash(false);
+                return;
             }
 
-            NavigationGuard.requestLeave(
-                () => {
+            var hash = window.location.hash;
+            var route = routeFromHash(hash);
+            let currentRoute = routeFromHash(acceptedHash);
+            let modelRequest = requestedModel;
+
+            navigationPending = true;
+            Promise.resolve(NavigationGuard.requestLeave(
+                async () => {
+                    if (OGWorkspace.isWorkspaceRoute(currentRoute) && !OGWorkspace.isWorkspaceRoute(route)){
+                        let left = await OGWorkspace.leave();
+                        if (!left){
+                            restoreAcceptedHash();
+                            return false;
+                        }
+                    }
+                    if (window.location.hash !== hash) {
+                        ignoreNextHashChange = true;
+                        window.location.hash = hash;
+                    }
+                    if (modelRequest) requestedModel = modelRequest;
                     acceptedHash = hash;
                     crossroads.parse(route);
+                    return true;
                 },
-                () => {
-                    if (window.location.hash !== acceptedHash) {
-                        ignoreNextHashChange = true;
-                        window.location.hash = acceptedHash;
-                    }
-                }
-            );
+                restoreAcceptedHash
+            )).finally(() => { navigationPending = false; });
         });
         // trigger hashchange on first page load
         window.dispatchEvent(new CustomEvent("hashchange"));
@@ -256,6 +352,3 @@ export class Routes {
 
 MuiogoShell.applyModel();
 Routes.Load();
-
-
-

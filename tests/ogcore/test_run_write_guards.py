@@ -16,12 +16,13 @@ def _select(client, casename):
 # ── deleteRun session gate ───────────────────────────────────────────────────
 def test_delete_baseline_refused_without_a_session(client, make_case, calibration):
     make_case("c1", runs=[("base", "baseline", None)])
+    client.post("/ogc/setSession", json={"casename": None})
 
     resp = client.post("/ogc/deleteRun",
                        json={"casename": "c1", "run_name": "base"})
 
     assert resp.status_code == 403
-    assert "session" in resp.get_json()["message"].lower()
+    assert "workspace" in resp.get_json()["message"].lower()
 
 
 def test_delete_baseline_refused_for_a_different_session(client, make_case, calibration):

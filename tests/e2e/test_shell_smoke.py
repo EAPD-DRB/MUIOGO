@@ -85,8 +85,44 @@ def test_switch_to_og(page, base_url):
     # page skeleton only: asserting catalog contents would depend on a live fetch
     expect(page.locator(".ogc-page")).to_be_visible()
     expect(page.locator("#Navi > li.nav-home")).to_be_visible()
+    # country tools appear only after opening a country card, not as global nav
     expect(page.locator("#Navi > li:not(.nav-home):visible")).to_have_count(0)
+
+
+def test_sidebar_active_item_tracks_og_workspace_route(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-model', 'og');
+        localStorage.setItem('osy-ogc-country', JSON.stringify({country_id:'ETH', country_name:'Ethiopia'}));""")
+    page.goto(f"{base_url}/#/OGCases")
+    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(2)
+    expect(page.locator('#Navi > li.nav-og-workspace').filter(
+        has=page.locator('a[href="#/OGCases"]'))).to_have_class('active')
+    expect(page.locator('#Navi > li.nav-home')).not_to_have_class('active')
     expect(page.locator(".project-context")).to_be_hidden()
+
+
+def test_desktop_sidebar_stays_fixed_while_content_scrolls(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""() => {
+        const sidebar = document.querySelector('#left-panel');
+        const nav = sidebar && sidebar.querySelector('nav');
+        document.body.style.minHeight = '200vh';
+        window.scrollTo(0, 0);
+        const topBeforeScroll = sidebar && sidebar.getBoundingClientRect().top;
+        window.scrollTo(0, 200);
+        const topAfterScroll = sidebar && sidebar.getBoundingClientRect().top;
+        return {
+            sidebarPosition: sidebar && getComputedStyle(sidebar).position,
+            sidebarOverflow: sidebar && getComputedStyle(sidebar).overflow,
+            navOverflowY: nav && getComputedStyle(nav).overflowY,
+            topBeforeScroll,
+            topAfterScroll
+        };
+    }""")
+    assert result['sidebarPosition'] == 'fixed'
+    assert result['sidebarOverflow'] == 'hidden'
+    assert result['navOverflowY'] == 'auto'
+    assert result['topAfterScroll'] == result['topBeforeScroll']
 
 
 def test_switch_to_clews(page, base_url):
@@ -94,6 +130,8 @@ def test_switch_to_clews(page, base_url):
     page.locator("#osy-mb-clews").click()
     expect(page.locator("body.osy-mode-clews")).to_have_count(1)
     expect(page.locator(".project-context")).to_be_visible()
+    expect(page.locator("#Navi > li.nav-og-workspace")).to_have_count(2)
+    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(0)
 
 
 def test_routes_assert_their_model(page, base_url):
@@ -277,3 +315,1104 @@ def test_polling_stops_when_leaving_og_page(page, base_url):
     settled = len(calls)
     page.wait_for_timeout(8_000)          # > 2x POLL_MS (3500)
     assert len(calls) == settled, f"polling outlived the page: {calls[settled:]}"
+def test_og_workspace_routes_assert_og_mode(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGCases")
+    expect(page.locator("body.osy-mode-og")).to_have_count(1)
+    expect(page.locator("body.osy-og-workspace")).to_have_count(1)
+    expect(page.locator("#ogcCasesPage")).to_be_visible()
+    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(2)
+    expect(page.locator("#ogcCasesPage [data-act='run']")).to_have_count(0)
+    page.goto(f"{base_url}/#/OGRuns")
+    expect(page.locator("body.osy-mode-og.osy-og-workspace")).to_have_count(1)
+    expect(page.locator("#ogcRunsPage")).to_be_visible()
+    expect(page.locator("#ogcRunsPage .ogc-run-workspace")).to_have_count(0)
+    page.goto(f"{base_url}/#/OGParameters")
+    expect(page.locator("body.osy-mode-og")).to_have_count(1)
+    expect(page.locator("#ogcParamsPage")).to_be_visible()
+
+
+def test_country_workspace_filters_cases(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGCases.Model.js', location.href).href);
+        const model = new Model([
+            { casename: 'ethiopia-case', country_id: 'ETH' },
+            { casename: 'south-africa-case', country_id: 'ZAF' }
+        ], {}, [{ country_id: 'ETH' }, { country_id: 'ZAF' }], 'ETH');
+        return model.cases.map(c => c.casename);
+    }""")
+    assert result == ['ethiopia-case']
+
+
+def test_ogc_adapter_matches_run_backend_contract(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        const calls = [];
+        Ogc._request = async (type, path, data) => {
+            calls.push({type, path, data});
+            if (path === 'ogc/getRuns') {
+                return {
+                    baseline: {RunName: 'base', RunType: 'baseline', status: 'completed'},
+                    reforms: [{RunName: 'reform', RunType: 'reform', baseline_run_name: 'base', status: 'pending'}]
+                };
+            }
+            if (path === 'ogc/getParams') return {debt_ratio_ss: [[0.4]]};
+            return {status_code: 'success'};
+        };
+        await Ogc.saveCase({casename: 'case-one', description: 'd', country_id: 'ETH'});
+        await Ogc.createRun({casename: 'case-one', run_name: 'reform', run_type: 'reform', baseline_run: 'base'});
+        await Ogc.cancelRun('case-one', 'reform');
+        const runs = await Ogc.getRuns('case-one');
+        const params = await Ogc.getParams('case-one', 'reform');
+        await Ogc.getRunQueue('case-one');
+        await Ogc.setSession(null, 'ETH');
+        await Ogc.setSession(null);
+        return {calls, runs, params};
+    }""")
+    assert result['calls'][0]['data'] == {
+        'data': {'ogc-casename': 'case-one', 'ogc-description': 'd', 'country_id': 'ETH'}
+    }
+    assert result['calls'][1]['data']['baseline_run_name'] == 'base'
+    assert result['calls'][2]['data'] == {'casename': 'case-one', 'run_name': 'reform'}
+    assert result['runs']['runs'][0]['run_name'] == 'base'
+    assert result['runs']['runs'][1]['baseline_run'] == 'base'
+    assert result['params']['params']['debt_ratio_ss'] == [[0.4]]
+    assert result['calls'][5] == {
+        'type': 'POST', 'path': 'ogc/getRunQueue', 'data': {'casename': 'case-one'}
+    }
+    assert result['calls'][6]['data'] == {'casename': None, 'country_id': 'ETH'}
+    assert result['calls'][7]['data'] == {'casename': None}
+
+
+def test_workspace_opening_uses_real_backend_stages(page, base_url):
+    page.goto(f"{base_url}/#/OGCore")
+    result = page.evaluate("""async () => {
+        const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        const calls = [];
+        Ogc.getInstalledCalibrations = async () => {
+            calls.push('installed');
+            return {calibrations: [{country_id: 'ETH'}]};
+        };
+        Ogc.setSession = async (casename, countryId) => {
+            calls.push(casename === null ? 'session:' + (countryId || 'clear') : 'case:' + casename);
+            return {ogccase: casename, ogccountry: countryId || null};
+        };
+        Ogc.getCases = async () => {
+            calls.push('cases');
+            return [{casename: 'baseline-one', country_id: 'ETH'}];
+        };
+        Ogc.getRuns = async casename => {
+            calls.push('runs:' + casename);
+            return {runs: [{run_name: 'baseline', run_type: 'baseline'}]};
+        };
+        const ready = await OGWorkspace.prepare({country_id: 'ETH', country_name: 'Ethiopia'});
+        const prepared = OGWorkspace.takePrepared('ETH');
+        return {
+            ready, calls, prepared,
+            workspace: JSON.parse(localStorage.getItem('osy-ogc-country')),
+            overlayVisible: $('#ogWorkspaceLifecycle').is(':visible')
+        };
+    }""")
+    assert result['ready'] is True
+    assert result['calls'] == ['installed', 'session:ETH', 'cases', 'runs:baseline-one']
+    assert result['prepared']['runsByCase']['baseline-one'][0]['run_name'] == 'baseline'
+    assert result['workspace'] == {'country_id': 'ETH', 'country_name': 'Ethiopia'}
+    assert result['overlayVisible'] is False
+
+
+def test_workspace_opening_keeps_cases_when_one_run_read_fails(page, base_url):
+    page.goto(f"{base_url}/#/OGCore")
+    result = page.evaluate("""async () => {
+        const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        Ogc.getInstalledCalibrations = async () => ({calibrations: [{country_id: 'ETH'}]});
+        Ogc.setSession = async () => ({ogccase: null, ogccountry: 'ETH'});
+        Ogc.getCases = async () => [
+            {casename: 'readable', country_id: 'ETH'},
+            {casename: 'unavailable', country_id: 'ETH'}
+        ];
+        Ogc.getRuns = async casename => {
+            if (casename == 'unavailable') throw 'run read failed';
+            return {runs: [{run_name: 'baseline', run_type: 'baseline'}]};
+        };
+        const ready = await OGWorkspace.prepare({country_id: 'ETH', country_name: 'Ethiopia'});
+        return {ready, prepared: OGWorkspace.takePrepared('ETH')};
+    }""")
+    assert result['ready'] is True
+    assert result['prepared']['runsByCase']['readable'][0]['run_name'] == 'baseline'
+    assert result['prepared']['runsByCase']['unavailable'] == []
+    assert result['prepared']['failedRuns'] == ['unavailable']
+
+
+def test_workspace_opening_unwinds_country_session_on_error(page, base_url):
+    page.goto(f"{base_url}/#/OGCore")
+    page.evaluate("""async () => {
+        const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        window.__countrySessionCalls = [];
+        Ogc.getInstalledCalibrations = async () => ({calibrations: [{country_id: 'ETH'}]});
+        Ogc.setSession = async (casename, countryId) => {
+            window.__countrySessionCalls.push({casename, countryId: countryId || null});
+            return {ogccase: casename, ogccountry: countryId || null};
+        };
+        Ogc.getCases = async () => { throw new Error('case load failed'); };
+        window.__countryOpen = OGWorkspace.prepare({country_id: 'ETH', country_name: 'Ethiopia'});
+    }""")
+    expect(page.locator('#ogWorkspaceLifeActions')).to_be_visible()
+    page.locator('[data-og-life-action="back"]').click()
+    result = page.evaluate("""async () => ({
+        ready: await window.__countryOpen,
+        calls: window.__countrySessionCalls,
+        workspace: localStorage.getItem('osy-ogc-country'),
+        overlayVisible: $('#ogWorkspaceLifecycle').is(':visible')
+    })""")
+    assert result == {
+        'ready': False,
+        'calls': [
+            {'casename': None, 'countryId': 'ETH'},
+            {'casename': None, 'countryId': None},
+        ],
+        'workspace': None,
+        'overlayVisible': False,
+    }
+
+
+def test_workspace_opening_is_cancelled_when_ogcore_is_left(page, base_url):
+    page.goto(f"{base_url}/#/OGCore")
+    result = page.evaluate("""async () => {
+        const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        let release;
+        let installed = new Promise(resolve => { release = resolve; });
+        Ogc.getInstalledCalibrations = async () => await installed;
+        let current = true;
+        let opening = OGWorkspace.prepare(
+            {country_id: 'ETH', country_name: 'Ethiopia'},
+            () => current
+        );
+        current = false;
+        OGWorkspace.cancelPreparation();
+        release({calibrations: [{country_id: 'ETH'}]});
+        return {
+            ready: await opening,
+            workspace: localStorage.getItem('osy-ogc-country'),
+            overlayVisible: $('#ogWorkspaceLifecycle').is(':visible')
+        };
+    }""")
+    assert result == {'ready': False, 'workspace': None, 'overlayVisible': False}
+
+
+def test_stay_in_workspace_changes_nothing(page, base_url):
+    page.goto(f"{base_url}/#/OGCore")
+    page.evaluate("""async () => {
+        const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        localStorage.setItem('osy-ogc-country', JSON.stringify({country_id: 'ETH', country_name: 'Ethiopia'}));
+        localStorage.setItem('osy-ogc-selection', JSON.stringify({casename: 'c1', run_name: 'baseline'}));
+        window.__sessionCalls = [];
+        Ogc.setSession = async value => { window.__sessionCalls.push(value); };
+        window.__leavePromise = OGWorkspace.leave();
+    }""")
+    expect(page.locator("#ogWorkspaceConfirm")).to_be_visible()
+    page.locator('[data-og-confirm="stay"]').click()
+    result = page.evaluate("""async () => ({
+        left: await window.__leavePromise,
+        calls: window.__sessionCalls,
+        workspace: localStorage.getItem('osy-ogc-country'),
+        selection: localStorage.getItem('osy-ogc-selection')
+    })""")
+    assert result['left'] is False
+    assert result['calls'] == []
+    assert result['workspace'] is not None
+    assert result['selection'] is not None
+
+
+def test_workspace_exit_stay_restores_unsaved_navigation_guard(page, base_url):
+    page.goto(f"{base_url}/#/OGCore")
+    page.evaluate("""async () => {
+        const { NavigationGuard } = await import(new URL('Classes/NavigationGuard.Class.js', location.href).href);
+        const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
+        const { Message } = await import(new URL('Classes/Message.Class.js', location.href).href);
+        localStorage.setItem('osy-ogc-country', JSON.stringify({country_id: 'ETH', country_name: 'Ethiopia'}));
+        window.__guardConfirmCalls = 0;
+        window.__guardAllowedCalls = 0;
+        Message.confirmUnsavedModelChanges = async () => {
+            window.__guardConfirmCalls++;
+            return "Don't save";
+        };
+        NavigationGuard.activate({hasChanges: () => true, update: () => {}});
+        window.__guardLeavePromise = NavigationGuard.requestLeave(
+            async () => await OGWorkspace.leave()
+        );
+    }""")
+    expect(page.locator("#ogWorkspaceConfirm")).to_be_visible()
+    page.locator('[data-og-confirm="stay"]').click()
+    result = page.evaluate("""async () => {
+        const { NavigationGuard } = await import(new URL('Classes/NavigationGuard.Class.js', location.href).href);
+        const firstResult = await window.__guardLeavePromise;
+        await NavigationGuard.requestLeave(async () => {
+            window.__guardAllowedCalls++;
+            return true;
+        });
+        return {
+            firstResult,
+            confirms: window.__guardConfirmCalls,
+            allowed: window.__guardAllowedCalls
+        };
+    }""")
+    assert result == {'firstResult': False, 'confirms': 2, 'allowed': 1}
+
+
+def test_confirmed_workspace_exit_clears_session_and_local_state(page, base_url):
+    page.goto(f"{base_url}/#/OGCore")
+    page.evaluate("""async () => {
+        const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        localStorage.setItem('osy-ogc-country', JSON.stringify({country_id: 'ETH', country_name: 'Ethiopia'}));
+        localStorage.setItem('osy-ogc-selection', JSON.stringify({casename: 'c1', run_name: 'baseline'}));
+        window.__sessionCalls = [];
+        Ogc.setSession = async value => { window.__sessionCalls.push(value); };
+        window.__leavePromise = OGWorkspace.leave();
+    }""")
+    page.locator('[data-og-confirm="leave"]').click()
+    result = page.evaluate("""async () => ({
+        left: await window.__leavePromise,
+        calls: window.__sessionCalls,
+        workspace: localStorage.getItem('osy-ogc-country'),
+        selection: localStorage.getItem('osy-ogc-selection')
+    })""")
+    assert result == {
+        'left': True, 'calls': [None], 'workspace': None, 'selection': None
+    }
+
+
+def test_clews_switch_waits_for_workspace_exit_confirmation(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGCases")
+    expect(page.locator("body.osy-mode-og.osy-og-workspace")).to_have_count(1)
+
+    page.locator("#osy-mb-clews").click()
+    expect(page.locator("#ogWorkspaceConfirm")).to_be_visible()
+    page.locator('[data-og-confirm="stay"]').click()
+    expect(page).to_have_url(f"{base_url}/#/OGCases")
+    expect(page.locator("body.osy-mode-og.osy-og-workspace")).to_have_count(1)
+    assert page.evaluate("localStorage.getItem('osy-model')") == 'og'
+
+    page.locator("#osy-mb-clews").click()
+    page.evaluate("window.location.hash = '#/OGCore'")
+    expect(page).to_have_url(f"{base_url}/#/OGCases")
+    page.locator('[data-og-confirm="leave"]').click()
+    expect(page).to_have_url(f"{base_url}/#/")
+    expect(page.locator("body.osy-mode-clews")).to_have_count(1)
+    assert page.evaluate("localStorage.getItem('osy-ogc-country')") is None
+
+
+def test_workspace_exit_is_serialized_and_back_cannot_reenter(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGCases")
+    page.evaluate("""async () => {
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        window.__serializedSessionCalls = [];
+        Ogc.setSession = async value => { window.__serializedSessionCalls.push(value); };
+    }""")
+    page.locator("[href='#/OGCore']").click()
+    expect(page.locator("#ogWorkspaceConfirm")).to_be_visible()
+    page.evaluate("window.location.hash = '#/'")
+    page.locator('[data-og-confirm="leave"]').click()
+    expect(page).to_have_url(f"{base_url}/#/OGCore")
+    assert page.evaluate("window.__serializedSessionCalls") == [None]
+
+    page.go_back()
+    expect(page).to_have_url(f"{base_url}/#/OGCore")
+    expect(page.locator("body.osy-og-workspace")).to_have_count(0)
+    page.go_back()
+    expect(page).to_have_url(f"{base_url}/#/")
+    expect(page.locator("body.osy-og-workspace")).to_have_count(0)
+
+
+def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGCases")
+    expect(page.locator("#ogcCasesPage")).to_be_visible()
+    page.evaluate("""async () => {
+        const { default: Cases } = await import(new URL('App/Controller/OGCases.js', location.href).href);
+        const { Model } = await import(new URL('App/Model/OGCases.Model.js', location.href).href);
+        Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
+        Cases.model = new Model(
+            [{casename: 'Baseline 1', country_id: 'ETH'}],
+            {'Baseline 1': [{run_name: 'baseline', run_type: 'baseline'}]},
+            [{country_id: 'ETH'}], 'ETH'
+        );
+        Cases.initEvents();
+        Cases.openNewCase();
+    }""")
+
+    expect(page.locator("#ogcCasesModalHead")).to_have_text("Add a case")
+    expect(page.locator("[data-act='case-type'][data-type='baseline']")).to_have_class("active")
+    expect(page.locator("#ogcCaseName")).to_have_value("Baseline 2")
+    expect(page.locator("#ogcCaseBaseWrap")).to_be_hidden()
+    expect(page.locator("[data-act='new-case-confirm']")).to_have_text("Create and edit")
+
+    page.locator("[data-act='case-type'][data-type='reform']").click()
+    expect(page.locator("#ogcCaseName")).to_have_value("New reform")
+    expect(page.locator("#ogcCaseBaseWrap")).to_be_visible()
+    expect(page.locator("#ogcCaseBaseline option")).to_have_text("Baseline 1")
+    expect(page.locator("#ogcCaseNote")).to_contain_text("inherits this baseline's values")
+
+
+def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGCases")
+    expect(page.locator("#ogcCasesPage")).to_be_visible()
+    page.evaluate("""async () => {
+        const { default: Cases } = await import(new URL('App/Controller/OGCases.js', location.href).href);
+        const { Model } = await import(new URL('App/Model/OGCases.Model.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
+        Cases.model = new Model(
+            [{casename: 'Policy baseline', country_id: 'ETH'}],
+            {'Policy baseline': [{run_name: 'baseline', run_type: 'baseline'}]},
+            [{country_id: 'ETH'}], 'ETH'
+        );
+        window.__newCaseCalls = [];
+        Ogc.saveCase = async () => { throw new Error('A reform must not create a case container'); };
+        Ogc.createRun = async data => {
+            window.__newCaseCalls.push(data);
+            return {status_code: 'success'};
+        };
+        Cases.initEvents();
+        Cases.openNewCase('reform');
+    }""")
+    page.locator("#ogcCaseName").fill("Corporate tax cut")
+    page.locator("#ogcCaseDesc").fill("Reduce the corporate income tax rate")
+    page.locator("[data-act='new-case-confirm']").click()
+    page.wait_for_url("**/#/OGParameters")
+
+    result = page.evaluate("""({
+        calls: window.__newCaseCalls,
+        selection: JSON.parse(localStorage.getItem('osy-ogc-selection'))
+    })""")
+    assert result['calls'] == [{
+        'casename': 'Policy baseline',
+        'run_name': 'Corporate tax cut',
+        'run_type': 'reform',
+        'baseline_run': 'baseline',
+        'description': 'Reduce the corporate income tax rate',
+    }]
+    assert result['selection'] == {
+        'casename': 'Policy baseline',
+        'run_name': 'Corporate tax cut',
+        'run_type': 'reform',
+        'baseline_run': 'baseline',
+        'country_id': 'ETH',
+        'display_name': 'Corporate tax cut',
+        'baseline_display_name': 'Policy baseline',
+    }
+
+
+def test_create_baseline_creates_its_container_and_opens_parameters(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGCases")
+    expect(page.locator("#ogcCasesPage")).to_be_visible()
+    page.evaluate("""async () => {
+        const { default: Cases } = await import(new URL('App/Controller/OGCases.js', location.href).href);
+        const { Model } = await import(new URL('App/Model/OGCases.Model.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
+        Cases.model = new Model([], {}, [{country_id: 'ETH'}], 'ETH');
+        window.__newCaseCalls = [];
+        Ogc.saveCase = async data => {
+            window.__newCaseCalls.push({method: 'saveCase', data});
+            return {status_code: 'created'};
+        };
+        Ogc.createRun = async data => {
+            window.__newCaseCalls.push({method: 'createRun', data});
+            return {status_code: 'success'};
+        };
+        Cases.initEvents();
+        Cases.openNewCase();
+    }""")
+    page.locator("#ogcCaseName").fill("Alternative baseline")
+    page.locator("#ogcCaseDesc").fill("A second policy starting point")
+    page.locator("[data-act='new-case-confirm']").click()
+    page.wait_for_url("**/#/OGParameters")
+
+    result = page.evaluate("""({
+        calls: window.__newCaseCalls,
+        selection: JSON.parse(localStorage.getItem('osy-ogc-selection'))
+    })""")
+    assert result['calls'] == [
+        {
+            'method': 'saveCase',
+            'data': {
+                'casename': 'Alternative baseline',
+                'country_id': 'ETH',
+                'description': 'A second policy starting point',
+            },
+        },
+        {
+            'method': 'createRun',
+            'data': {
+                'casename': 'Alternative baseline',
+                'run_name': 'baseline',
+                'run_type': 'baseline',
+                'description': 'A second policy starting point',
+            },
+        },
+    ]
+    assert result['selection'] == {
+        'casename': 'Alternative baseline',
+        'run_name': 'baseline',
+        'run_type': 'baseline',
+        'baseline_run': None,
+        'country_id': 'ETH',
+        'display_name': 'Alternative baseline',
+    }
+
+
+def test_run_queue_orders_dependencies_and_marks_cache(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const c = {casename: 'ethiopia-case'};
+        const base = {case: c, key: 'ethiopia-case:base', name: 'Base', run: {
+            run_name: 'base', run_type: 'baseline', status: 'pending'
+        }};
+        const reform = {case: c, key: 'ethiopia-case:reform', name: 'Reform', run: {
+            run_name: 'reform', run_type: 'reform', baseline_run: 'base', status: 'pending'
+        }};
+        const dependency = Runs.buildQueue([reform, base], {'ethiopia-case:reform': true}, false);
+        base.run.status = 'completed';
+        reform.run.status = 'completed';
+        const cached = Runs.buildQueue([reform, base], {
+            'ethiopia-case:reform': true, 'ethiopia-case:base': true
+        }, false);
+        base.stale = true;
+        const invalidated = Runs.buildQueue([reform, base], {'ethiopia-case:reform': true}, false);
+        return {
+            dependency: dependency.map(j => [j.entry.run.run_name, j.state, !!j.note]),
+            cached: cached.map(j => [j.entry.run.run_name, j.state]),
+            invalidated: invalidated.map(j => [j.entry.run.run_name, j.state])
+        };
+    }""")
+    assert result['dependency'] == [['base', 'planned', True], ['reform', 'planned', False]]
+    assert result['cached'] == [['base', 'reused'], ['reform', 'reused']]
+    assert result['invalidated'] == [['base', 'planned'], ['reform', 'planned']]
+
+
+def test_calibration_defaults_are_reference_only(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Cases } = await import(new URL('App/Controller/OGCases.js', location.href).href);
+        Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
+        Cases.model = {records: {ETH: {}}, cases: []};
+        const row = Cases.defaultRow();
+        const panel = Cases.panel('cubes', 'Baselines', [], true);
+        return {
+            row,
+            panel,
+            choices: Cases.baselineChoices()
+        };
+    }""")
+    assert 'Calibration defaults' in result['row']
+    assert 'reference only' in result['row']
+    assert 'not runnable' in result['row']
+    assert 'Create baseline' in result['row']
+    assert 'Baselines <span>(0)</span>' in result['panel']
+    assert result['choices'] == []
+    assert 'Default baseline' not in result['row']
+
+
+def test_og_run_clears_clews_messages_and_late_home_is_scoped(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""async () => {
+        const { Message } = await import(new URL('Classes/Message.Class.js', location.href).href);
+        Message.info('Please select existing or create new model to proceed!');
+        localStorage.setItem('osy-ogc-country', JSON.stringify({
+            country_id: 'ETH', country_name: 'Ethiopia'
+        }));
+    }""")
+    page.goto(f"{base_url}/#/OGRuns")
+    expect(page.locator('#ogcRunsPage')).to_be_visible()
+    expect(page.locator('#osy-info')).to_be_empty()
+
+    result = page.evaluate("""async () => {
+        const { default: Home } = await import(new URL('App/Controller/Home.js', location.href).href);
+        const { Base } = await import(new URL('Classes/Base.Class.js', location.href).href);
+        let release;
+        const session = new Promise(resolve => { release = resolve; });
+        Base.getSession = async () => await session;
+        Base.getCaseStudies = async () => [];
+        localStorage.setItem('osy-model', 'clews');
+        localStorage.setItem('osy-pageId', 'Home');
+        window.location.hash = '#/OGRuns';
+        Home.onLoad();
+        localStorage.setItem('osy-model', 'og');
+        localStorage.setItem('osy-pageId', 'OGRuns');
+        release({session: null});
+        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 0));
+        return document.querySelector('#osy-info').textContent.trim();
+    }""")
+    assert result == ''
+
+
+def test_run_selection_defaults_and_explicit_handoff(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const entry = {key: 'case-one:baseline'};
+        Runs.workspace = {country_id: 'ETH'};
+        Runs.entries = [entry];
+        Runs.selected = {};
+        localStorage.setItem('osy-ogc-selection', JSON.stringify({
+            casename: 'case-one', run_name: 'baseline', country_id: 'ETH'
+        }));
+        Runs.applyInitialSelection('OGCases');
+        const direct = Runs.selected[entry.key];
+
+        localStorage.setItem('osy-ogc-run-selection', JSON.stringify({
+            casename: 'case-one', run_name: 'baseline', country_id: 'ETH'
+        }));
+        Runs.applyInitialSelection('OGCases');
+        const fromCaseAction = Runs.selected[entry.key];
+
+        Runs.applyInitialSelection('OGParameters');
+        const fromParameters = Runs.selected[entry.key];
+        return {direct, fromCaseAction, fromParameters};
+    }""")
+    assert result == {
+        'direct': False,
+        'fromCaseAction': True,
+        'fromParameters': True,
+    }
+
+
+def test_navigation_stops_unsent_run_plan(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGRuns")
+    expect(page.locator('#ogcRunsPage')).to_be_visible()
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        localStorage.setItem('osy-ogc-country', JSON.stringify({country_id: 'ETH', country_name: 'Ethiopia'}));
+        localStorage.setItem('osy-pageId', 'OGRuns');
+        localStorage.setItem('osy-model', 'og');
+        const records = [{
+            run_name: 'base', run_type: 'baseline', status: 'pending'
+        }, {
+            run_name: 'reform', run_type: 'reform', baseline_run: 'base', status: 'pending'
+        }];
+        Ogc.getCases = async () => [{casename: 'case-one', country_id: 'ETH'}];
+        Ogc.getRuns = async () => ({runs: records});
+        Ogc.getRunQueue = async () => ({active: null, queued: []});
+        Ogc.getRunStatus = async (casename, runName) => ({
+            run_state: 'pending', run_stage: null, run_log: []
+        });
+        Runs.onLoad('OGCases');
+        await new Promise(resolve => setTimeout(resolve, 20));
+        Runs.selected = {'case-one:base': true, 'case-one:reform': true};
+        let release;
+        const accepted = new Promise(resolve => { release = resolve; });
+        const calls = [];
+        Ogc.run = async (casename, runName) => {
+            calls.push(runName);
+            await accepted;
+            return {status_code: 'success'};
+        };
+        const running = Runs.runSelected();
+        while (!calls.length) await new Promise(resolve => setTimeout(resolve, 0));
+        history.replaceState(null, '', '#/OGCases');
+        release();
+        await running;
+        return {calls, running: Runs.running};
+    }""")
+    assert result == {'calls': ['base'], 'running': False}
+
+
+def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGRuns")
+    expect(page.locator('#ogcRunsPage')).to_be_visible()
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        localStorage.setItem('osy-ogc-country', JSON.stringify({country_id: 'ETH', country_name: 'Ethiopia'}));
+        localStorage.setItem('osy-pageId', 'OGRuns');
+        localStorage.setItem('osy-model', 'og');
+        Ogc.getCases = async () => [{casename: 'case-one', country_id: 'ETH'}];
+        Ogc.getRuns = async () => ({runs: [{
+            run_name: 'baseline', run_type: 'baseline', status: 'pending'
+        }]});
+        const queueCases = [];
+        Ogc.getRunQueue = async casename => {
+            queueCases.push(casename);
+            return {active: null, queued: [{
+            casename: 'case-one', run_name: 'baseline', state: 'queued', queue_position: 2
+            }]};
+        };
+        Ogc.getRunStatus = async () => ({
+            run_state: 'pending', run_stage: 'Queued', queue_position: 2,
+            run_log: ['Worker accepted the run.']
+        });
+        const cancelled = [];
+        Ogc.cancelRun = async (casename, runName) => { cancelled.push([casename, runName]); };
+        Runs.onLoad('OGCases');
+        while (!Runs.entries.length || Runs.entries[0].state != 'queued') {
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+        const before = {
+            state: Runs.entries[0].state,
+            selected: Runs.selected[Runs.entries[0].key],
+            queue: document.querySelector('#ogcCurrentQueue').textContent,
+            perJobCancel: document.querySelectorAll('[data-act="cancel-job"]').length
+        };
+        await Runs.cancelEntry('case-one:baseline');
+        return {before, after: Runs.entries[0].state, cancelled, queueCases};
+    }""")
+    assert result['before']['state'] == 'queued'
+    assert result['before']['selected'] is False
+    assert 'Queue position 2' in result['before']['queue']
+    assert 'Worker accepted the run.' in result['before']['queue']
+    assert result['before']['perJobCancel'] == 0
+    assert result['after'] == 'cancelled'
+    assert result['cancelled'] == [['case-one', 'baseline']]
+    assert result['queueCases'] == ['case-one']
+
+
+def test_backend_reusability_overrides_browser_cache(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const entry = {
+            key: 'case-one:baseline',
+            case: {casename: 'case-one'},
+            run: {run_name: 'baseline', run_type: 'baseline', status: 'completed'},
+            state: 'completed', stale: false, reusable: false
+        };
+        localStorage.removeItem('osy-ogc-run-stale');
+        const plan = Runs.buildQueue([entry], {[entry.key]: true}, false);
+        return {state: plan[0].state};
+    }""")
+    assert result == {'state': 'planned'}
+
+
+def test_new_backend_attempt_clears_previous_activity(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const entry = {
+            run: {status: 'failed', error: 'old failure'}, state: 'failed',
+            stage: 'Old stage', iteration: 12, error: 'old failure',
+            log: ['old output'], completedAt: '2026-08-12T10:00:00Z'
+        };
+        Runs.applyBackendStatus(entry, {
+            status: 'queued', run_stage: null, run_iteration: null,
+            run_log: [], error: null, completed_at: null
+        });
+        return {
+            state: entry.state, stage: entry.stage, iteration: entry.iteration,
+            error: entry.error, log: entry.log, completedAt: entry.completedAt
+        };
+    }""")
+    assert result == {
+        'state': 'queued', 'stage': '', 'iteration': None,
+        'error': '', 'log': [], 'completedAt': ''
+    }
+
+
+def test_single_job_cancel_does_not_stop_remaining_plan(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        const execution = {id: 17, pageToken: 1};
+        const entry = {
+            key: 'case-one:baseline', case: {casename: 'case-one'},
+            run: {run_name: 'baseline'}, state: 'queued'
+        };
+        Runs.entries = [entry];
+        Runs.plan = [{entry, state: 'queued'}];
+        Runs.execution = execution;
+        Runs.stopExecutionID = null;
+        Ogc.cancelRun = async () => ({status_code: 'success'});
+        await Runs.cancelEntry(entry.key);
+        return {state: entry.state, stopExecutionID: Runs.stopExecutionID};
+    }""")
+    assert result == {'state': 'cancelled', 'stopExecutionID': None}
+
+
+def test_cached_status_error_always_reenables_run_controls(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGRuns")
+    expect(page.locator('#ogcRunsPage')).to_be_visible()
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        localStorage.setItem('osy-ogc-country', JSON.stringify({country_id: 'ETH', country_name: 'Ethiopia'}));
+        localStorage.setItem('osy-pageId', 'OGRuns');
+        localStorage.setItem('osy-model', 'og');
+        localStorage.setItem('osy-ogc-run-selection', JSON.stringify({
+            casename: 'case-one', run_name: 'baseline', country_id: 'ETH'
+        }));
+        Ogc.getCases = async () => [{casename: 'case-one', country_id: 'ETH'}];
+        Ogc.getRuns = async () => ({runs: [{
+            run_name: 'baseline', run_type: 'baseline', status: 'completed',
+            completed_at: '2026-08-13T10:00:00Z'
+        }]});
+        Ogc.getRunQueue = async () => ({active: null, queued: []});
+        Runs.onLoad('OGCases');
+        while (!Runs.entries.length) await new Promise(resolve => setTimeout(resolve, 0));
+        Ogc.getRunStatus = async () => { throw new Error('status unavailable'); };
+        await Runs.runSelected();
+        return {
+            running: Runs.running,
+            state: Runs.plan[0].state,
+            buttonDisabled: document.querySelector('#ogcRunSelected').disabled,
+            headings: document.querySelector('#ogcRunsPage').textContent
+        };
+    }""")
+    assert result['running'] is False
+    assert result['state'] == 'failed'
+    assert result['buttonDisabled'] is False
+    assert 'Runs' in result['headings']
+    assert 'Current queue' in result['headings']
+    assert 'Latest outcomes' in result['headings']
+    assert 'Re-run completed selections' in result['headings']
+    assert 'Queue & history' not in result['headings']
+
+
+def test_runs_are_read_from_the_grouped_shape(page, base_url):
+    """getRuns answers {baseline: [...], reform: [...]}, not a flat list. Reading
+    it as a list finds no runs and every case renders as empty."""
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGCases.Model.js', location.href).href);
+        const grouped = {
+            c1: {
+                baseline: [{ run_name: 'base', run_type: 'baseline', status: 'completed' }],
+                reform: [{ run_name: 'rf', run_type: 'reform', baseline_run: 'base', status: 'pending' }]
+            }
+        };
+        const m = new Model([{ casename: 'c1', country_id: 'ETH' }], grouped, [{ country_id: 'ETH' }]);
+        // a flat list must keep working too, so a backend change cannot blank the page
+        const flat = new Model(
+            [{ casename: 'c1', country_id: 'ETH' }],
+            { c1: [{ run_name: 'base', run_type: 'baseline' }] },
+            [{ country_id: 'ETH' }]
+        );
+        // an unknown group key is still a run the user made
+        const extra = new Model(
+            [{ casename: 'c1', country_id: 'ETH' }],
+            { c1: { baseline: [{ run_name: 'b', run_type: 'baseline' }],
+                    something_new: [{ run_name: 'x', run_type: 'other' }] } },
+            [{ country_id: 'ETH' }]
+        );
+        const c = m.cases[0];
+        return {
+            total: c.runs.length,
+            baselines: Model.baselines(c.runs).map(r => r.run_name),
+            reforms: Model.reformsOf(c.runs, 'base').map(r => r.run_name),
+            baseline_done: Model.baselineDone(c.runs, 'base'),
+            flat_total: flat.cases[0].runs.length,
+            extra_total: extra.cases[0].runs.length
+        };
+    }""")
+    assert result['total'] == 2, "the grouped shape must be flattened, not dropped"
+    assert result['baselines'] == ['base']
+    assert result['reforms'] == ['rf']
+    assert result['baseline_done'] is True
+    assert result['flat_total'] == 1, "a flat array must still be accepted"
+    assert result['extra_total'] == 2, "an unfamiliar group key must not lose its runs"
+
+
+def test_suffix_families_are_grouped_and_locked(page, base_url):
+    """OG-Core carries whole families of derived parameters (_preTP, _ge) that a
+    calibration can extend. Naming each one would go stale, so the suffix rules
+    file them as read-only reference data."""
+    page.goto(f"{base_url}/#/OGParameters")
+    result = page.evaluate("""async () => {
+        const m = await import(new URL('App/Model/OGParams.Overlay.js', location.href).href);
+        const mk = n => m.decorate(n, { title: n, shape: 'time', default: [[1]] });
+        return {
+            preTP: mk('omega_preTP'),
+            ge: mk('cit_rate_ge'),
+            // a name the rules do not match still falls through to the default
+            plain: mk('some_future_param'),
+            // an explicit mapping must win over a suffix rule
+            explicit: m.decorate('omega_S_preTP', { title: 'x', shape: 'time', default: [[1]] })
+        };
+    }""")
+    for key in ('preTP', 'ge'):
+        assert result[key]['group'] == 'arrays', f"{key} should be reference data"
+        assert result[key]['readOnly'] is True, f"{key} is derived, not a lever"
+        assert result[key]['readOnlyReason'] == 'calibration'
+    # an unmatched name keeps the old fallback behaviour
+    assert result['plain']['group'] == 'advanced'
+    assert result['plain']['readOnly'] is False
+    # a name that is both explicitly mapped and suffix-matched stays read-only
+    assert result['explicit']['readOnly'] is True
+
+
+def test_parameters_page_without_a_selection_is_empty(page, base_url):
+    """No run selected: the page must say so rather than call the backend."""
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGParameters")
+    expect(page.locator("#ogcParamsPage")).to_be_visible()
+    expect(page.locator("#ogcParamsEmpty")).to_be_visible()
+    expect(page.locator("#ogcParamsEmptyTitle")).to_have_text("No run selected")
+    expect(page.locator("#ogcParamsEditbar")).to_be_hidden()
+
+
+def test_parameter_metadata_stays_compact(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Parameters } = await import(
+            new URL('App/Controller/OGParameters.js', location.href).href
+        );
+        const description = 'Parameter summarizing the quadratic effect of debt.';
+        const bounded = {
+            name: 'bounded', title: 'Bounded parameter', description,
+            help: '', hasRange: true, min: 0, max: 1, readOnly: false
+        };
+        const broad = {
+            name: 'broad', title: 'Broad parameter', description,
+            help: '', hasRange: true, min: -99000000000, max: 99000000000,
+            readOnly: false
+        };
+        return {
+            label: Parameters.labelHtml(bounded),
+            boundedHint: Parameters.hintHtml(bounded),
+            broadHint: Parameters.hintHtml(broad),
+            boundedSlider: Parameters.hasUsefulRange(bounded),
+            broadSlider: Parameters.hasUsefulRange(broad)
+        };
+    }""")
+    assert result['label'].find(result_description := 'Parameter summarizing the quadratic effect of debt.') >= 0
+    assert result_description not in result['boundedHint']
+    assert 'default' not in result['boundedHint']
+    assert 'range [0, 1]' in result['boundedHint']
+    assert result['broadHint'] == ''
+    assert result['boundedSlider'] is True
+    assert result['broadSlider'] is False
+
+
+def test_time_paths_are_editable(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const { default: Parameters } = await import(
+            new URL('App/Controller/OGParameters.js', location.href).href
+        );
+        const model = new Model(
+            {
+                start_year: {title: 'Start year', type: 'year', shape: 'scalar', default: 2025, min: 2013, max: 2101},
+                tau_payroll: {title: 'Payroll tax', description: 'API description', type: 'rate', shape: 'time', default: [0.18], min: 0, max: 0.99}
+            },
+            {},
+            {casename: 'c1', run_name: 'reform', run_type: 'reform', baseline_run: 'base'},
+            {}
+        );
+        const html = Parameters.fieldHtml(model, 'tau_payroll');
+        model.cur.tau_payroll = [0.18, 0.2];
+        return {
+            editable: model.editable('tau_payroll'),
+            html,
+            payload: model.savePayload(),
+            field: model.fields.tau_payroll
+        };
+    }""")
+    assert result['editable'] is True
+    assert 'data-role="path-cell"' in result['html']
+    assert '2025' in result['html']
+    assert 'API description' in result['html']
+    assert 'readOnlyNote' not in result['field']
+    assert result['payload'] == {'tau_payroll': [0.18, 0.2]}
+
+
+def test_overlay_keeps_schema_facts_and_adds_decisions(page, base_url):
+    """The overlay must not overwrite title/range/default, only add what the
+    schema cannot express (read-only status, dimension, group)."""
+    page.goto(f"{base_url}/#/OGParameters")
+    result = page.evaluate("""async () => {
+        const m = await import(new URL('App/Model/OGParams.Overlay.js', location.href).href);
+        // a plain scalar policy lever
+        const cit = m.decorate('cit_rate', {
+            title: 'Corporate income tax rate', description: 'd',
+            section: 'Fiscal', subsection: null, type: 'rate', shape: 'scalar',
+            default: [[0.21]], min: 0, max: 0.99
+        });
+        // a structural dimension the run layer refuses to differ on
+        const S = m.decorate('S', {
+            title: 'Max age', type: 'count', shape: 'scalar',
+            default: [[80]], min: 3, max: 80
+        });
+        // a value the backend dropped for size
+        const e = m.decorate('e', {
+            title: 'Earnings ability', shape: 'time', default: null, large: true
+        });
+        // a per-group row the schema reports only as "time"
+        const beta = m.decorate('beta_annual', {
+            title: 'Time preference', shape: 'time',
+            default: [[0.96, 0.96]], min: 0, max: 0.9999
+        });
+        // a name the overlay does not know at all
+        const unknown = m.decorate('some_new_param', {
+            title: 'New', shape: 'scalar', default: [[1]]
+        });
+        return { cit, S, e, beta, unknown };
+    }""")
+    # schema facts survive
+    assert result['cit']['title'] == 'Corporate income tax rate'
+    assert result['cit']['min'] == 0 and result['cit']['max'] == 0.99
+    # decorate passes the schema default through untouched; unwrapping the
+    # broadcast form is OGParameters.Model.normalise's job, not the overlay's
+    assert result['cit']['def'] == [[0.21]]
+    assert result['cit']['readOnly'] is False
+    assert result['cit']['group'] == 'taxes'
+    # structural dimensions are locked, with the run-guard reason
+    assert result['S']['readOnly'] is True
+    assert result['S']['readOnlyReason'] == 'structural'
+    # a dropped value can never be an editable field
+    assert result['e']['large'] is True
+    assert result['e']['readOnly'] is True
+    # the overlay supplies the dimension the schema collapsed to "time"
+    assert result['beta']['dimension'] == 'by_j'
+    assert result['cit']['dimension'] == 'scalar'
+    # an unknown name still renders, it just lands in the fallback group
+    assert result['unknown']['readOnly'] is False
+    assert result['unknown']['group'] == 'advanced'
+
+
+def test_reform_reads_against_its_baseline_not_the_default(page, base_url):
+    """A reform's delta reference is its baseline's saved value; a baseline's is
+    the calibration default. Getting this backwards changes the question asked."""
+    page.goto(f"{base_url}/#/OGParameters")
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const schema = { cit_rate: {
+            title: 'Corporate income tax rate', type: 'rate', shape: 'scalar',
+            default: [[0.21]], min: 0, max: 0.99
+        } };
+        // baseline moved the calibration default 0.21 -> 0.25
+        // reform moved its baseline 0.25 -> 0.15
+        const reform = new Model(
+            schema,
+            { cit_rate: [[0.15]] },
+            { casename: 'c1', run_name: 'rf', run_type: 'reform', baseline_run: 'base' },
+            { cit_rate: [[0.25]] }
+        );
+        const baseline = new Model(
+            schema,
+            { cit_rate: [[0.25]] },
+            { casename: 'c1', run_name: 'base', run_type: 'baseline' },
+            {}
+        );
+        return {
+            reform_ref_auto: reform.refValue('cit_rate', 'auto'),
+            reform_ref_def: reform.refValue('cit_rate', 'def'),
+            reform_cur: reform.cur.cit_rate,
+            reform_changed_vs_own: reform.isChanged('cit_rate', 'auto'),
+            reform_payload: reform.savePayload(),
+            baseline_ref_auto: baseline.refValue('cit_rate', 'auto'),
+            baseline_payload: baseline.savePayload()
+        };
+    }""")
+    # the reform is measured against the baseline's 0.25, not the default 0.21
+    assert result['reform_ref_auto'] == 0.25
+    assert result['reform_ref_def'] == 0.21
+    assert result['reform_cur'] == 0.15
+    assert result['reform_changed_vs_own'] is True
+    # editable scalars are saved in the schema's native scalar shape
+    assert result['reform_payload'] == {'cit_rate': 0.15}
+    # a baseline is measured against the calibration default
+    assert result['baseline_ref_auto'] == 0.21
+    assert result['baseline_payload'] == {'cit_rate': 0.25}
+
+
+def test_preview_reference_does_not_change_what_is_saved(page, base_url):
+    """Pointing the deltas at another run is a look, not a re-attachment: the
+    saved payload is still computed against the run's true reference."""
+    page.goto(f"{base_url}/#/OGParameters")
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const m = new Model(
+            { cit_rate: { title: 'c', type: 'rate', shape: 'scalar',
+                          default: [[0.21]], min: 0, max: 0.99 } },
+            { cit_rate: [[0.15]] },
+            { casename: 'c1', run_name: 'rf', run_type: 'reform', baseline_run: 'base' },
+            { cit_rate: [[0.15]] }          // baseline already at 0.15
+        );
+        // against its own baseline nothing moved, so nothing is saved
+        const unchanged = m.isChanged('cit_rate', 'auto');
+        const payloadBefore = m.savePayload();
+        // previewing against the calibration default shows a difference
+        const previewChanged = m.isChanged('cit_rate', 'def');
+        const payloadAfter = m.savePayload();
+        return { unchanged, payloadBefore, previewChanged, payloadAfter };
+    }""")
+    assert result['unchanged'] is False
+    assert result['payloadBefore'] == {}
+    # the preview shows a delta ...
+    assert result['previewChanged'] is True
+    # ... but changes nothing about what would be written
+    assert result['payloadAfter'] == {}
+
+
+def test_locked_dimensions_are_never_editable(page, base_url):
+    """RunJob refuses a reform whose S/T/J/M/I differ from its baseline, so the
+    form must not offer them even though the schema gives them a range."""
+    page.goto(f"{base_url}/#/OGParameters")
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const { LOCKED_DIMS } = await import(new URL('App/Model/OGParams.Overlay.js', location.href).href);
+        const schema = {};
+        LOCKED_DIMS.forEach(d => {
+            schema[d] = { title: d, type: 'count', shape: 'scalar',
+                          default: [[10]], min: 1, max: 1000 };
+        });
+        schema.cit_rate = { title: 'c', type: 'rate', shape: 'scalar',
+                            default: [[0.21]], min: 0, max: 0.99 };
+        const m = new Model(schema, {}, { casename: 'c1', run_name: 'base', run_type: 'baseline' }, {});
+        const locked = {};
+        LOCKED_DIMS.forEach(d => { locked[d] = m.editable(d); });
+        return { locked, dims: LOCKED_DIMS, cit_editable: m.editable('cit_rate') };
+    }""")
+    # the five the run layer compares
+    assert sorted(result['dims']) == ['I', 'J', 'M', 'S', 'T']
+    assert all(v is False for v in result['locked'].values()), result['locked']
+    # a normal lever is still editable, so the lock is not blanket
+    assert result['cit_editable'] is True
