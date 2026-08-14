@@ -32,6 +32,7 @@ from datetime import timedelta
 
 #import json
 from Classes.Base import Config
+from middleware.security import apply_security_defaults
 # from API.Classes.Base.SyncS3 import SyncS3
 from Routes.Upload.UploadRoute import upload_api
 from Routes.Case.CaseRoute import case_api
@@ -101,7 +102,11 @@ if not secret_key:
 app.config['SECRET_KEY'] = secret_key
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config["MAX_CONTENT_LENGTH"] = None
+
+# ------------------------------------------------------------------
+# Security hardening: enforce upload limits + response headers
+# ------------------------------------------------------------------
+apply_security_defaults(app)
 
 app.register_blueprint(upload_api)
 app.register_blueprint(case_api)
