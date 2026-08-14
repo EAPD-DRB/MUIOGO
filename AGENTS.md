@@ -116,6 +116,50 @@ Before launching any additional optimization, state:
 Do not run an additional optimization merely to repeat an already established
 result in another directory.
 
+## Parallel simulation rule
+
+When two or more independent CBC optimizations are required, run them
+concurrently when sufficient CPU and memory are available. CBC uses one CPU
+core per solve, so a moderate increase in each run's duration is acceptable
+when parallel execution reduces total wall-clock time.
+
+Before parallel execution, distinguish:
+
+- **Top-level cases**: separate directories under `WebAPP/DataStorage/`.
+  These may run end-to-end concurrently because their `res/` and `view/`
+  directories are isolated.
+- **Case runs**: distinct scenario or configuration runs stored under the same
+  top-level case/version. Their solver artifacts are isolated under
+  `res/<caserun>/`, but their viewer outputs share files under `view/`.
+
+For multiple case runs within one top-level case:
+
+1. Generate each run's inputs separately and verify its run identity.
+2. Run preprocessing, LP generation and CBC optimization concurrently using
+   distinct `res/<caserun>/` directories and independent `DataFile` instances
+   or processes.
+3. Never use the same case-run name for concurrent processes.
+4. Run-specific CSV extraction may proceed concurrently, but do not generate
+   shared viewer JSON concurrently. After the solves finish, update viewer
+   files sequentially, or protect them with a reliable lock and atomic writes.
+5. Verify that every expected case-run key remains present in the shared
+   viewer JSON after post-processing.
+
+Treat run-specific artifacts as the authoritative simulation record:
+
+- `res/<caserun>/results.txt`;
+- `res/<caserun>/csv/*.csv`;
+- solver logs and status; and
+- `data.txt`, `data_processed.txt` and `lp.lp`.
+
+Files under `view/*.json` are shared UI caches. Do not use them as the sole
+evidence for reported simulation results.
+
+Parallel execution does not authorize additional optimizer runs. Continue to
+follow the solve-economy rule and reuse a verified canonical baseline instead
+of recomputing it. If exact solver-runtime benchmarking is the objective,
+control or disclose concurrent resource contention.
+
 ## Required validation chain
 
 1. Identify the latest valid canonical pre-change result. Verify its case,
