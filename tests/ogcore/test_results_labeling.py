@@ -110,7 +110,7 @@ def test_macro_table_single_reform_is_labelled_by_run(
     captured = _stub_worker(monkeypatch, macro_rows())
 
     resp = client.post("/ogc/getMacroTable",
-                       json={"casename": "c1", "base_run": "reform1"})
+                       json={"country_id": "ETH", "casename": "c1", "base_run": "reform1"})
 
     assert resp.status_code == 200
     labels = [r["Variable"] for r in resp.get_json()]
@@ -128,7 +128,7 @@ def test_macro_table_single_baseline_is_labelled_by_run(
     _stub_worker(monkeypatch, macro_rows())
 
     resp = client.post("/ogc/getMacroTable",
-                       json={"casename": "c1", "base_run": "base"})
+                       json={"country_id": "ETH", "casename": "c1", "base_run": "base"})
 
     assert [r["Variable"] for r in resp.get_json()] == [
         "GDP (base)", "Consumption (base)",
@@ -143,7 +143,7 @@ def test_macro_table_comparison_keeps_baseline_and_reform(
 
     resp = client.post(
         "/ogc/getMacroTable",
-        json={"casename": "c1", "base_run": "base", "reform_run": "reform1",
+        json={"country_id": "ETH", "casename": "c1", "base_run": "base", "reform_run": "reform1",
               "output_type": "levels"},
     )
 
@@ -159,7 +159,7 @@ def test_ineq_table_single_reform_is_labelled_by_run(
     _stub_worker(monkeypatch, ineq_rows())
 
     resp = client.post("/ogc/getIneqTable",
-                       json={"casename": "c1", "base_run": "reform1"})
+                       json={"country_id": "ETH", "casename": "c1", "base_run": "reform1"})
 
     assert resp.status_code == 200
     row = resp.get_json()[0]
@@ -172,7 +172,7 @@ def test_time_series_table_single_reform_is_labelled_by_run(
     _stub_worker(monkeypatch, time_series_rows())
 
     resp = client.post("/ogc/getTimeSeriesTable",
-                       json={"casename": "c1", "base_run": "reform1"})
+                       json={"country_id": "ETH", "casename": "c1", "base_run": "reform1"})
 
     assert resp.status_code == 200
     assert resp.get_json()[0] == {"Year": 2025, "GDP: reform1": 1.0}
@@ -186,7 +186,7 @@ def test_table_worker_failure_is_a_502(client, case_with_runs, monkeypatch):
     )
 
     resp = client.post("/ogc/getMacroTable",
-                       json={"casename": "c1", "base_run": "base"})
+                       json={"country_id": "ETH", "casename": "c1", "base_run": "base"})
 
     assert resp.status_code == 502
     assert resp.get_json()["message"] == "boom"
@@ -197,7 +197,7 @@ def test_download_single_reform_csv_is_labelled_by_run(
 ):
     _stub_worker(monkeypatch, macro_rows())
 
-    resp = client.get("/ogc/downloadResults?casename=c1&base_run=reform1")
+    resp = client.get("/ogc/downloadResults?country_id=ETH&casename=c1&base_run=reform1")
 
     assert resp.status_code == 200
     rows = list(csv.DictReader(io.StringIO(resp.get_data(as_text=True))))
@@ -211,7 +211,7 @@ def test_download_comparison_csv_keeps_baseline_and_reform(
     _stub_worker(monkeypatch, rows)
 
     resp = client.get(
-        "/ogc/downloadResults?casename=c1&base_run=base&reform_run=reform1"
+        "/ogc/downloadResults?country_id=ETH&casename=c1&base_run=base&reform_run=reform1"
     )
 
     assert resp.status_code == 200
@@ -228,7 +228,12 @@ def test_wealth_moments_accepts_data_moments(client, case_with_runs, monkeypatch
 
     resp = client.post(
         "/ogc/getWealthMomentsTable",
-        json={"casename": "c1", "base_run": "base", "data_moments": [0.1, 0.2]},
+        json={
+            "country_id": "ETH",
+            "casename": "c1",
+            "base_run": "base",
+            "data_moments": [0.1, 0.2],
+        },
     )
 
     assert resp.status_code == 200
@@ -245,7 +250,7 @@ def test_wealth_moments_asks_for_blank_data_when_none_given(
     captured = _stub_worker(monkeypatch, [{"Moment": "Gini", "Model": 0.57}])
 
     resp = client.post("/ogc/getWealthMomentsTable",
-                       json={"casename": "c1", "base_run": "base"})
+                       json={"country_id": "ETH", "casename": "c1", "base_run": "base"})
 
     assert resp.status_code == 200
     assert "Data" not in resp.get_json()[0]

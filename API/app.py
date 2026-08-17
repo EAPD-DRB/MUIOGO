@@ -41,6 +41,7 @@ from Routes.DataFile.DataFileRoute import datafile_api
 from Routes.OGCore.OGCoreInstallRoute import ogcore_install_api
 from Routes.OGCore.OGCoreRunRoute import ogcore_run_api
 from Classes.OGCore.InstallJob import InstallJob
+from Classes.OGCore.OGCoreCase import OGCoreCase
 from Classes.OGCore.RunJob import RunJob
 
 def _configure_logging():
@@ -258,6 +259,14 @@ if __name__ == '__main__':
     # this is tied to launching via `python app.py`; a WSGI loader that imports app:app
     # would need to call this itself.
     InstallJob.reconcile_interrupted_jobs()
+
+    # Cases used to be stored by name alone. Move any left from that layout under
+    # their country first, so the reconcile below walks a single consistent shape.
+    try:
+        OGCoreCase.migrate_flat_cases()
+    except Exception:
+        logging.getLogger(__name__).warning(
+            "Could not migrate flat OG-Core cases at startup.", exc_info=True)
 
     # Same for a model run the previous process left behind: mark it failed and kill
     # its worker if that process somehow outlived the server.

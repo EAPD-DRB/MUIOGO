@@ -23,26 +23,32 @@ def test_persisted_queue_and_snapshot_are_reconstructable(
     queued_case = make_case("queued", runs=[("base", "baseline", None)])
     make_case("later", runs=[("base", "baseline", None)])
 
-    RunJob.start("active", "base", False)
-    RunJob.start("queued", "base", False)
-    RunJob.start("later", "base", True)
+    RunJob.start("ETH", "active", "base", False)
+    RunJob.start("ETH", "queued", "base", False)
+    RunJob.start("ETH", "later", "base", True)
 
     assert queued_case.get_run_meta("base")["status"] == "queued"
-    runs = client.post("/ogc/getRuns", json={"casename": "queued"}).get_json()
+    runs = client.post(
+        "/ogc/getRuns", json={"country_id": "ETH", "casename": "queued"}
+    ).get_json()
     assert runs["baseline"]["status"] == "queued"
     assert runs["baseline"]["queue_position"] == 1
 
     status = client.post(
-        "/ogc/getRunStatus", json={"casename": "later", "run_name": "base"}
+        "/ogc/getRunStatus",
+        json={"country_id": "ETH", "casename": "later", "run_name": "base"},
     ).get_json()
     assert status["run_state"] == "queued"
     assert status["queue_position"] == 2
     assert status["queue_length"] == 2
 
-    queue = client.post("/ogc/getRunQueue", json={"casename": "later"}).get_json()
+    queue = client.post(
+        "/ogc/getRunQueue", json={"country_id": "ETH", "casename": "later"}
+    ).get_json()
     assert queue["status_code"] == "success"
     assert queue["active"] is None
     assert queue["queued"] == [{
+        "country_id": "ETH",
         "casename": "later",
         "run_name": "base",
         "state": "queued",
@@ -56,7 +62,8 @@ def test_status_read_fails_an_orphaned_queued_run(client, make_case, calibration
     case.update_run_status("base", "queued")
 
     status = client.post(
-        "/ogc/getRunStatus", json={"casename": "c1", "run_name": "base"}
+        "/ogc/getRunStatus",
+        json={"country_id": "ETH", "casename": "c1", "run_name": "base"},
     ).get_json()
 
     assert status["run_state"] == "failed"
@@ -70,9 +77,9 @@ def test_reform_can_queue_behind_its_active_baseline(
     case = make_case("c1", runs=[("base", "baseline", None)])
     case.create_run("reform", "reform", "base", {})
 
-    assert RunJob.start("c1", "base", False)["status_code"] == "success"
+    assert RunJob.start("ETH", "c1", "base", False)["status_code"] == "success"
     assert fake_runner[0].spawned.wait(5)
-    queued = RunJob.start("c1", "reform", False)
+    queued = RunJob.start("ETH", "c1", "reform", False)
 
     assert queued["status_code"] == "success"
     assert case.get_run_meta("reform")["status"] == "queued"
@@ -93,12 +100,12 @@ def test_reform_can_queue_behind_its_already_queued_baseline(
     case = make_case("c1", runs=[("base", "baseline", None)])
     case.create_run("reform", "reform", "base", {})
 
-    RunJob.start("blocker", "base", False)
-    RunJob.start("c1", "base", False)
-    result = RunJob.start("c1", "reform", False)
+    RunJob.start("ETH", "blocker", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
+    result = RunJob.start("ETH", "c1", "reform", False)
 
     assert result["status_code"] == "success"
-    assert [item[1] for item in RunJob._queue] == ["base", "reform"]
+    assert [item[2] for item in RunJob._queue] == ["base", "reform"]
 
 
 def test_transition_reform_rejects_preceding_steady_state_baseline(
@@ -106,10 +113,10 @@ def test_transition_reform_rejects_preceding_steady_state_baseline(
 ):
     case = make_case("c1", runs=[("base", "baseline", None)])
     case.create_run("reform", "reform", "base", {})
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
     assert fake_runner[0].spawned.wait(5)
 
-    result = RunJob.start("c1", "reform", True)
+    result = RunJob.start("ETH", "c1", "reform", True)
 
     assert result["status_code"] == "error"
     assert "transition" in result["message"].lower()
@@ -120,9 +127,9 @@ def test_queued_reform_is_revalidated_immediately_before_launch(
 ):
     case = make_case("c1", runs=[("base", "baseline", None)])
     case.create_run("reform", "reform", "base", {})
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
     assert fake_runner[0].spawned.wait(5)
-    RunJob.start("c1", "reform", False)
+    RunJob.start("ETH", "c1", "reform", False)
 
     # Simulate an out-of-band write after admission. The supported API blocks this,
     # but launch-time validation must still defend restored/legacy/external files.
@@ -144,14 +151,17 @@ def test_baseline_write_and_rerun_are_blocked_by_queued_dependent_reform(
     case.update_run_status("base", "completed", time_path=False)
     case.create_run("reform", "reform", "base", {})
     make_case("blocker", runs=[("base", "baseline", None)])
-    RunJob.start("blocker", "base", False)
-    assert RunJob.start("c1", "reform", False)["status_code"] == "success"
+    RunJob.start("ETH", "blocker", "base", False)
+    assert RunJob.start("ETH", "c1", "reform", False)["status_code"] == "success"
 
     saved = client.post(
         "/ogc/saveParams",
-        json={"casename": "c1", "run_name": "base", "params": {"S": 40}},
+        json={
+            "country_id": "ETH", "casename": "c1",
+            "run_name": "base", "params": {"S": 40},
+        },
     )
-    rerun = RunJob.start("c1", "base", False)
+    rerun = RunJob.start("ETH", "c1", "base", False)
 
     assert saved.status_code == 400
     assert "dependent reform" in saved.get_json()["message"].lower()
@@ -172,7 +182,10 @@ def test_parameter_change_invalidates_run_and_dependent_reforms(
 
     response = client.post(
         "/ogc/saveParams",
-        json={"casename": "c1", "run_name": "base", "params": {"S": 40}},
+        json={
+            "country_id": "ETH", "casename": "c1",
+            "run_name": "base", "params": {"S": 40},
+        },
     )
 
     assert response.status_code == 200
@@ -190,7 +203,7 @@ def test_rerunning_baseline_invalidates_completed_reform(
     case.create_run("reform", "reform", "base", {})
     case.update_run_status("reform", "completed", time_path=False)
 
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
 
     reform = case.get_run_meta("reform")
     assert reform["status"] == "pending"
@@ -207,9 +220,12 @@ def test_calibration_commit_change_makes_completed_result_non_reusable(
     CalibrationRegistry.update_fields("ETH", commit_sha="new-calibration-commit")
 
     status = client.post(
-        "/ogc/getRunStatus", json={"casename": "c1", "run_name": "base"}
+        "/ogc/getRunStatus",
+        json={"country_id": "ETH", "casename": "c1", "run_name": "base"},
     ).get_json()
-    runs = client.post("/ogc/getRuns", json={"casename": "c1"}).get_json()
+    runs = client.post(
+        "/ogc/getRuns", json={"country_id": "ETH", "casename": "c1"}
+    ).get_json()
     assert status["run_state"] == "completed"
     assert status["reusable"] is False
     assert runs["baseline"]["reusable"] is False

@@ -92,20 +92,30 @@ def _active_country_guard():
     requested_country = None
     if isinstance(data, dict):
         casename = data.get("casename")
+        requested_country = data.get("country_id")
         nested = data.get("data")
         if isinstance(nested, dict):
             casename = casename or nested.get("ogc-casename")
-            requested_country = nested.get("country_id")
+            requested_country = requested_country or nested.get("country_id")
     casename = casename or request.args.get("casename") or request.form.get("casename")
+    requested_country = (
+        requested_country
+        or request.args.get("country_id")
+        or request.form.get("country_id")
+    )
     endpoint = (request.endpoint or "").rsplit(".", 1)[-1]
+    if endpoint == "setSession":
+        return None
     if not active_country:
         # Discovery and the explicit activation route work outside a workspace.
         # New case names may also proceed to saveCase, which validates and records
         # their country. Existing case data is fail-closed until setSession activates
         # its country, so losing/clearing the session cannot expose a known case.
-        if endpoint == "setSession" or not casename or not is_safe_name(casename):
+        if not casename or not is_safe_name(casename):
             return None
-        if not OGCoreCase(casename).case_path.is_dir():
+        if not requested_country or not is_safe_name(requested_country):
+            return None
+        if not OGCoreCase(requested_country, casename).case_path.is_dir():
             return None
         return _err("Open that country workspace before accessing this case.", http=403)
     if requested_country and requested_country != active_country:
@@ -115,11 +125,11 @@ def _active_country_guard():
         )
     if not casename or not is_safe_name(casename):
         return None
-    case = OGCoreCase(casename)
+    case = OGCoreCase(active_country, casename)
     if not case.case_path.is_dir():
         return None
     try:
-        case_country = case.gen_data.get("country_id")
+        case_country = case.country_id
     except (OSError, ValueError, KeyError, IndexError):
         return None
     if case_country != active_country:
@@ -138,6 +148,36 @@ def guard_active_country():
 def _utc_now_z():
     """ISO-8601 UTC timestamp with a trailing Z, seconds precision."""
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+# ── active workspace country and optional active case ─────────────────────────
+def _set_active_case(country_id, casename):
+    session["ogccase"] = casename
+    session["ogccountry"] = country_id
+
+
+def _clear_active_case():
+    session["ogccase"] = None
+
+
+def _active_case():
+    """The active workspace country and its optional selected case."""
+    return session.get("ogccountry") or None, session.get("ogccase") or None
+
+
+def _resolve_case(data, *also_required):
+    """(case, error) for the country_id/casename pair in a request body.
+
+    also_required names further fields to check. Fields are reported in the order
+    given, so the caller decides which missing one is named first.
+    """
+    miss = _missing(data, "country_id", "casename", *also_required)
+    if miss:
+        return None, _err(f"Missing required field: {miss}")
+    bad = _unsafe_name(data["country_id"], data["casename"])
+    if bad:
+        return None, bad
+    return OGCoreCase(data["country_id"], data["casename"]), None
 
 
 # The worker reads a run's parameters when it launches, not when the run is queued,
@@ -189,28 +229,30 @@ def setSession():
             )
         session["ogccountry"] = country_id
         return jsonify({"ogccase": None, "ogccountry": country_id}), 200
-    if not is_safe_name(casename):
+    if "country_id" not in data:
+        return _err("Missing required field: country_id")
+    country_id = data["country_id"]
+    if not is_safe_name(casename) or not is_safe_name(country_id):
         return _err("Invalid case name.")
-    if not Path(Config.OGC_CASES_DIR, casename).is_dir():
+    active_country = session.get("ogccountry")
+    if active_country and active_country != country_id:
+        return _err(
+            "Exit the active country workspace before opening another.", http=409
+        )
+    if not OGCoreCase(country_id, casename).case_path.is_dir():
         return _err("Case not found.", http=404)
-    case = OGCoreCase(casename)
-    country_id = case.gen_data.get("country_id")
-    requested_country = data.get("country_id")
-    if requested_country is not None and requested_country != country_id:
-        return _err("Case country does not match the requested workspace.")
-    session["ogccase"] = casename
-    session["ogccountry"] = country_id
+    _set_active_case(country_id, casename)
     return jsonify({"ogccase": casename, "ogccountry": country_id}), 200
 
 
 # ── 3. list cases ────────────────────────────────────────────────────────────
 @ogcore_run_api.route("/getCases", methods=["GET"])
 def getCases():
-    cases = OGCoreCase.list_cases()
     active_country = session.get("ogccountry")
-    if active_country:
-        cases = [case for case in cases if case.get("country_id") == active_country]
-    return jsonify(cases), 200
+    country_id = request.args.get("country_id")
+    if country_id is not None and not is_safe_name(country_id):
+        return _err("Invalid country id.")
+    return jsonify(OGCoreCase.list_cases(country_id=active_country or country_id)), 200
 
 
 # ── 4. create or edit a case ─────────────────────────────────────────────────
@@ -228,29 +270,26 @@ def saveCase():
     name = data.get("ogc-casename")
     if not name:
         return _err("Missing required field: ogc-casename")
+    country_id = data.get("country_id")
+    if not country_id:
+        return _err("Missing required field: country_id")
     if not is_safe_name(name):
         return _err("Invalid case name.")
+    if not is_safe_name(country_id):
+        return _err("Invalid country id.")
     data.setdefault("ogc-description", "")
 
-    case = OGCoreCase(name)
+    case = OGCoreCase(country_id, name)
     if not case.case_path.is_dir():
-        # Create path: country_id is required and its calibration must be installed.
-        country_id = data.get("country_id")
-        if not country_id:
-            return _err("Missing required field: country_id")
+        # Create path: the country's calibration must be installed.
         if CalibrationRegistry.get(country_id) is None:
             return _err("That country calibration is not installed.")
         case.create_case(data)
-        session["ogccase"] = name
-        session["ogccountry"] = country_id
+        _set_active_case(country_id, name)
         return jsonify({"message": f"Case {name} created.", "status_code": "created"}), 200
 
-    # Edit path: country_id is immutable. Carry the stored value forward when the
-    # edit body omits it, so save_case never drops it from genData.
-    stored = case.gen_data
-    if "country_id" in data and data["country_id"] != stored.get("country_id"):
-        return _err("country_id cannot be changed on an existing case.")
-    data["country_id"] = stored.get("country_id")
+    # Edit path: the country needs no check. Another one addresses a different case
+    # entirely, and save_case pins genData to the directory a case was found in.
     case.save_case(data)
     return jsonify({"message": f"Case {name} updated.", "status_code": "edited"}), 200
 
@@ -264,27 +303,24 @@ def deleteCase():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data)
+    if err:
+        return err
     casename = data["casename"]
-    bad = _unsafe_name(casename)
-    if bad:
-        return bad
+    country_id = data["country_id"]
 
-    active = session.get("ogccase")
-    if active is None:
+    active_country, active_case = _active_case()
+    if active_case is None:
         return _err("No active session.", http=403)
-    if active != casename:
+    if (active_country, active_case) != (country_id, casename):
         return _err("Unauthorised: case does not match active session.", http=403)
 
-    case = OGCoreCase(casename)
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
-    if RunJob.case_busy(casename):
+    if RunJob.case_busy(country_id, casename):
         return _err("A run in this case is running or queued; stop it first.")
     result = case.delete_case()
-    session["ogccase"] = None
+    _clear_active_case()
     return jsonify(result), 200
 
 
@@ -297,17 +333,15 @@ def createRun():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name", "run_type")
-    if miss:
-        return _err(f"Missing required field: {miss}")
-    casename = data["casename"]
+    case, err = _resolve_case(data, "run_name", "run_type")
+    if err:
+        return err
     run_name = data["run_name"]
     run_type = data["run_type"]
-    bad = _unsafe_name(casename, run_name)
+    bad = _unsafe_name(run_name)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
     if run_type == "reform" and not data.get("baseline_run_name"):
@@ -332,20 +366,18 @@ def getRuns():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename")
-    if miss:
-        return _err(f"Missing required field: {miss}")
-    bad = _unsafe_name(data["casename"])
-    if bad:
-        return bad
-    case = OGCoreCase(data["casename"])
+    case, err = _resolve_case(data)
+    if err:
+        return err
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
     shaped = case.get_runs_shaped()
     for item in ([shaped.get("baseline")] + shaped.get("reforms", [])):
         if not item:
             continue
-        live = RunJob.get_live(data["casename"], item["RunName"])
+        live = RunJob.get_live(
+            data["country_id"], data["casename"], item["RunName"]
+        )
         item["queue_position"] = live.get("queue_position") if live else None
         if live:
             item["status"] = "queued" if live.get("queued") else "running"
@@ -361,16 +393,16 @@ def deleteRun():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data, "run_name")
+    if err:
+        return err
     casename = data["casename"]
+    country_id = data["country_id"]
     run_name = data["run_name"]
-    bad = _unsafe_name(casename, run_name)
+    bad = _unsafe_name(run_name)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
     in_index = any(r.get("RunName") == run_name for r in case.gen_data.get("ogc-runs", []))
@@ -379,19 +411,20 @@ def deleteRun():
     # Deleting the baseline removes the whole case, so it has to clear the same
     # session gate deleteCase does; without it this is an unguarded case delete.
     if case.get_baseline_name() == run_name:
-        active = session.get("ogccase")
-        if active is None:
+        active_country, active_case = _active_case()
+        if active_case is None:
             return _err("No active session.", http=403)
-        if active != casename:
+        if (active_country, active_case) != (country_id, casename):
             return _err("Unauthorised: case does not match active session.", http=403)
-    if RunJob.case_busy(casename) and (
-        RunJob.is_busy(casename, run_name) or case.get_baseline_name() == run_name
+    if RunJob.case_busy(country_id, casename) and (
+        RunJob.is_busy(country_id, casename, run_name)
+        or case.get_baseline_name() == run_name
     ):
         return _err("That run is running or queued; stop it first.")
 
     result = case.delete_run(run_name)
     if result.get("status_code") == "success_session":
-        session["ogccase"] = None
+        _clear_active_case()
     return jsonify(result), 200
 
 
@@ -401,13 +434,12 @@ def getParams():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name")
-    if miss:
-        return _err(f"Missing required field: {miss}")
-    bad = _unsafe_name(data["casename"], data["run_name"])
+    case, err = _resolve_case(data, "run_name")
+    if err:
+        return err
+    bad = _unsafe_name(data["run_name"])
     if bad:
         return bad
-    case = OGCoreCase(data["casename"])
     run_dir = case.res_path / data["run_name"]
     if not run_dir.is_dir():
         return _err("Run not found.", http=404)
@@ -423,20 +455,21 @@ def saveParams():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name", "params")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data, "run_name", "params")
+    if err:
+        return err
     params = data["params"]
     if not isinstance(params, dict):
         return _err("params must be an object.")
-    bad = _unsafe_name(data["casename"], data["run_name"])
+    bad = _unsafe_name(data["run_name"])
     if bad:
         return bad
-    case = OGCoreCase(data["casename"])
     run_dir = case.res_path / data["run_name"]
     if not run_dir.is_dir():
         return _err("Run not found.", http=404)
-    result = RunJob.save_params(data["casename"], data["run_name"], params)
+    result = RunJob.save_params(
+        data["country_id"], data["casename"], data["run_name"], params
+    )
     if result.get("status_code") == "error":
         return _err(result.get("message") or _BUSY_PARAMS_MESSAGE)
     return jsonify({"message": "Parameters saved.", "status_code": "success"}), 200
@@ -464,19 +497,19 @@ def run():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name", "time_path")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data, "run_name", "time_path")
+    if err:
+        return err
+    country_id = data["country_id"]
     casename = data["casename"]
     run_name = data["run_name"]
     time_path = data["time_path"]
     if not isinstance(time_path, bool):
         return _err("time_path must be a boolean.")
-    bad = _unsafe_name(casename, run_name)
+    bad = _unsafe_name(run_name)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
     in_index = any(
@@ -485,7 +518,7 @@ def run():
     if not in_index:
         return _err("Run not found.", http=404)
 
-    result = RunJob.start(casename, run_name, time_path)
+    result = RunJob.start(country_id, casename, run_name, time_path)
     if result.get("status_code") == "error":
         return jsonify(result), 400
     return jsonify(result), 200
@@ -497,21 +530,21 @@ def getRunStatus():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data, "run_name")
+    if err:
+        return err
+    country_id = data["country_id"]
     casename = data["casename"]
     run_name = data["run_name"]
-    bad = _unsafe_name(casename, run_name)
+    bad = _unsafe_name(run_name)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
     meta = case.get_run_meta(run_name)
     if not meta:
         return _err("Run not found.", http=404)
 
-    live = RunJob.get_live(casename, run_name)
+    live = RunJob.get_live(country_id, casename, run_name)
     run_state = meta.get("status")
     # A persisted active/queued state without in-memory ownership was orphaned by a
     # restart (including WSGI startup paths that skip reconcile). Repair truthfully.
@@ -574,16 +607,12 @@ def getRunQueue():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename")
-    if miss:
-        return _err(f"Missing required field: {miss}")
-    bad = _unsafe_name(data["casename"])
-    if bad:
-        return bad
-    case = OGCoreCase(data["casename"])
+    case, err = _resolve_case(data)
+    if err:
+        return err
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
-    snapshot = RunJob.get_queue_snapshot(data["casename"])
+    snapshot = RunJob.get_queue_snapshot(data["country_id"], data["casename"])
     return jsonify({"status_code": "success", **snapshot}), 200
 
 
@@ -596,16 +625,17 @@ def cancelRun():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data, "run_name")
+    if err:
+        return err
+    country_id = data["country_id"]
     casename = data["casename"]
     run_name = data["run_name"]
-    bad = _unsafe_name(casename, run_name)
+    bad = _unsafe_name(run_name)
     if bad:
         return bad
 
-    result = RunJob.cancel(casename, run_name)
+    result = RunJob.cancel(country_id, casename, run_name)
     if result.get("status_code") == "cancelled":
         return jsonify({"status_code": "cancelled"}), 200
     return jsonify(result), 400
@@ -628,12 +658,13 @@ def getSSVars():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data, "run_name")
+    if err:
+        return err
+    country_id = data["country_id"]
     casename = data["casename"]
     run_name = data["run_name"]
-    bad = _unsafe_name(casename, run_name)
+    bad = _unsafe_name(run_name)
     if bad:
         return bad
     vars_arg = data.get("vars")
@@ -641,7 +672,6 @@ def getSSVars():
     if bad_vars:
         return bad_vars
 
-    case = OGCoreCase(casename)
     meta = case.get_run_meta(run_name)
     if not meta:
         return _err("Run not found.", http=404)
@@ -659,12 +689,13 @@ def getTPIVars():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data, "run_name")
+    if err:
+        return err
+    country_id = data["country_id"]
     casename = data["casename"]
     run_name = data["run_name"]
-    bad = _unsafe_name(casename, run_name)
+    bad = _unsafe_name(run_name)
     if bad:
         return bad
     vars_arg = data.get("vars")
@@ -672,7 +703,6 @@ def getTPIVars():
     if bad_vars:
         return bad_vars
 
-    case = OGCoreCase(casename)
     meta = case.get_run_meta(run_name)
     if not meta:
         return _err("Run not found.", http=404)
@@ -684,7 +714,7 @@ def getTPIVars():
     return jsonify(OGResults.subset(tpi, vars_arg)), 200
 
 
-def _results_gate(case, casename, run_name):
+def _results_gate(case, run_name):
     """None if the run has usable results, else the response to return now.
 
     A run in progress or queued returns the running envelope; a failed run or one
@@ -698,16 +728,16 @@ def _results_gate(case, casename, run_name):
     # "In progress" means the run is actually active or queued right now. A run
     # that is merely pending (created but never started) has no results to wait
     # for, so it gets the run-it-first envelope, not a spinner.
-    if RunJob.is_busy(casename, run_name):
+    if RunJob.is_busy(case.country_id, case.casename, run_name):
         return jsonify({
             "status_code": "running",
-            "casename": casename,
+            "casename": case.casename,
             "message": "Solve in progress",
         }), 200
     if status != "completed":
         return jsonify({
             "status_code": "error",
-            "casename": casename,
+            "casename": case.casename,
             "message": "No results - run it first",
         }), 404
     return None
@@ -719,28 +749,27 @@ def getResults():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "base_run")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data, "base_run")
+    if err:
+        return err
     casename = data["casename"]
     base_run = data["base_run"]
     reform_run = data.get("reform_run")
-    names = [casename, base_run]
+    names = [base_run]
     if reform_run is not None:
         names.append(reform_run)
     bad = _unsafe_name(*names)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
 
-    gate = _results_gate(case, casename, base_run)
+    gate = _results_gate(case, base_run)
     if gate:
         return gate
     if reform_run is not None:
-        gate = _results_gate(case, casename, reform_run)
+        gate = _results_gate(case, reform_run)
         if gate:
             return gate
 
@@ -772,16 +801,15 @@ def _table_endpoint(table_key):
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "base_run")
-    if miss:
-        return _err(f"Missing required field: {miss}")
-    casename = data["casename"]
+    case, err = _resolve_case(data, "base_run")
+    if err:
+        return err
     base_run = data["base_run"]
     reform_run = data.get("reform_run")
     if reform_required and not reform_run:
         return _err("This table requires a reform run.")
 
-    names = [casename, base_run]
+    names = [base_run]
     if reform_run is not None:
         names.append(reform_run)
     bad = _unsafe_name(*names)
@@ -801,15 +829,14 @@ def _table_endpoint(table_key):
     if table_key == "macro" and reform_run is None and "output_type" not in options:
         options["output_type"] = "levels"
 
-    case = OGCoreCase(casename)
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
 
-    gate = _results_gate(case, casename, base_run)
+    gate = _results_gate(case, base_run)
     if gate:
         return gate
     if reform_run is not None:
-        gate = _results_gate(case, casename, reform_run)
+        gate = _results_gate(case, reform_run)
         if gate:
             return gate
 
@@ -878,16 +905,16 @@ def validateParams():
     data = request.get_json(silent=True)
     if data is None:
         return _err("Request body must be valid JSON.")
-    miss = _missing(data, "casename", "run_name")
-    if miss:
-        return _err(f"Missing required field: {miss}")
+    case, err = _resolve_case(data, "run_name")
+    if err:
+        return err
+    country_id = data["country_id"]
     casename = data["casename"]
     run_name = data["run_name"]
-    bad = _unsafe_name(casename, run_name)
+    bad = _unsafe_name(run_name)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
     run_dir = case.res_path / run_name
     if not run_dir.is_dir():
         return _err("Run not found.", http=404)
@@ -911,19 +938,22 @@ def uploadTaxParams():
     if blocked:
         return blocked
 
+    country_id = request.form.get("country_id")
     casename = request.form.get("casename")
     run_name = request.form.get("run_name")
-    if not casename or not run_name:
-        return _err("Missing required field: casename and run_name are required.")
-    bad = _unsafe_name(casename, run_name)
+    if not country_id or not casename or not run_name:
+        return _err(
+            "Missing required field: country_id, casename and run_name are required."
+        )
+    bad = _unsafe_name(country_id, casename, run_name)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
+    case = OGCoreCase(country_id, casename)
     run_dir = case.res_path / run_name
     if not run_dir.is_dir():
         return _err("Run not found.", http=404)
-    if RunJob.is_busy(casename, run_name):
+    if RunJob.is_busy(country_id, casename, run_name):
         return _err(_BUSY_PARAMS_MESSAGE)
 
     upload = request.files.get("file")
@@ -972,7 +1002,7 @@ def uploadTaxParams():
             )
 
         result = RunJob.commit_parameter_change(
-            casename, run_name, publish_tax_params
+            country_id, casename, run_name, publish_tax_params
         )
         if result.get("status_code") == "error":
             return _err(result.get("message") or _BUSY_PARAMS_MESSAGE)
@@ -992,15 +1022,18 @@ def uploadTaxParams():
 # ── read the stored tax-params info sidecar ──────────────────────────────────
 @ogcore_run_api.route("/getTaxParamsInfo", methods=["GET"])
 def getTaxParamsInfo():
+    country_id = request.args.get("country_id")
     casename = request.args.get("casename")
     run_name = request.args.get("run_name")
-    if not casename or not run_name:
-        return _err("Missing required field: casename and run_name are required.")
-    bad = _unsafe_name(casename, run_name)
+    if not country_id or not casename or not run_name:
+        return _err(
+            "Missing required field: country_id, casename and run_name are required."
+        )
+    bad = _unsafe_name(country_id, casename, run_name)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
+    case = OGCoreCase(country_id, casename)
     info_path = case.res_path / run_name / "ogcTaxParams.info.json"
     if not info_path.exists():
         return jsonify({"loaded": False}), 200
@@ -1018,28 +1051,31 @@ def getTaxParamsInfo():
 # ── download the macro comparison table as a CSV file ────────────────────────
 @ogcore_run_api.route("/downloadResults", methods=["GET"])
 def downloadResults():
+    country_id = request.args.get("country_id")
     casename = request.args.get("casename")
     base_run = request.args.get("base_run")
     reform_run = request.args.get("reform_run")
-    if not casename or not base_run:
-        return _err("Missing required field: casename and base_run are required.")
+    if not country_id or not casename or not base_run:
+        return _err(
+            "Missing required field: country_id, casename and base_run are required."
+        )
 
-    names = [casename, base_run]
+    names = [country_id, casename, base_run]
     if reform_run is not None:
         names.append(reform_run)
     bad = _unsafe_name(*names)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
+    case = OGCoreCase(country_id, casename)
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
 
-    gate = _results_gate(case, casename, base_run)
+    gate = _results_gate(case, base_run)
     if gate:
         return gate
     if reform_run is not None:
-        gate = _results_gate(case, casename, reform_run)
+        gate = _results_gate(case, reform_run)
         if gate:
             return gate
 
@@ -1110,13 +1146,19 @@ def downloadResults():
 # ── parameter form metadata for the active/selected case ─────────────────────
 @ogcore_run_api.route("/getParameterSchema", methods=["GET"])
 def getParameterSchema():
-    casename = request.args.get("casename") or session.get("ogccase")
+    # Both halves fall back to the session together: a country from the query with a
+    # name from the session would address a case the caller never asked for.
+    session_country, session_case = _active_case()
+    casename = request.args.get("casename")
+    country_id = request.args.get("country_id")
     if not casename:
+        country_id, casename = session_country, session_case
+    if not casename or not country_id:
         return _err("No case selected.")
-    bad = _unsafe_name(casename)
+    bad = _unsafe_name(country_id, casename)
     if bad:
         return bad
-    case = OGCoreCase(casename)
+    case = OGCoreCase(country_id, casename)
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
 
@@ -1132,14 +1174,15 @@ def getParameterSchema():
 # ── download the whole case directory as a zip backup ────────────────────────
 @ogcore_run_api.route("/backupCase", methods=["GET"])
 def backupCase():
+    country_id = request.args.get("country_id")
     casename = request.args.get("casename")
-    if not casename:
-        return _err("Missing required field: casename")
-    bad = _unsafe_name(casename)
+    if not country_id or not casename:
+        return _err("Missing required field: country_id and casename are required.")
+    bad = _unsafe_name(country_id, casename)
     if bad:
         return bad
 
-    case = OGCoreCase(casename)
+    case = OGCoreCase(country_id, casename)
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
 
@@ -1234,7 +1277,17 @@ def restoreCase():
             target = gen_data.get("ogc-casename")
             if not is_safe_name(target):
                 return _err("Invalid case name.")
-            target_dir = Path(Config.OGC_CASES_DIR, target)
+            # A case is restored into the country it was backed up from. Backups
+            # taken before cases were nested carry no country, so the caller has to
+            # say which one it belongs to.
+            country_id = gen_data.get("country_id") or request.form.get("country_id")
+            if not country_id:
+                return _err(
+                    "This backup does not record a country; choose one and try again."
+                )
+            if not is_safe_name(country_id):
+                return _err("Invalid country id.")
+            target_dir = OGCoreCase(country_id, target).case_path
             if target_dir.exists():
                 return jsonify(
                     {"message": "Case already exists.", "status_code": "exist"}
@@ -1261,7 +1314,10 @@ def restoreCase():
             # filesystem, so publishing stays a rename rather than a copy, while a
             # restore in flight never shows up in the case list (list_cases treats
             # any directory holding a genData.json as a case).
-            Config.OGC_CASES_DIR.mkdir(parents=True, exist_ok=True)
+            #
+            # The country directory has to exist before the rename, since the case
+            # is published into it and os.replace will not create a parent.
+            target_dir.parent.mkdir(parents=True, exist_ok=True)
             staging_root = Config.OGC_CASES_DIR.parent / "restore_tmp"
             staging_root.mkdir(parents=True, exist_ok=True)
             staging = Path(tempfile.mkdtemp(dir=staging_root))
@@ -1276,6 +1332,11 @@ def restoreCase():
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 with zf.open(info) as src, open(dest, "wb") as out:
                     shutil.copyfileobj(src, out)
+
+            # The directory is authoritative. Legacy backups may not record a
+            # country, and imported metadata must never point at another one.
+            gen_data["country_id"] = country_id
+            File.writeFile(gen_data, staging / "genData.json")
 
             try:
                 os.replace(staging, target_dir)

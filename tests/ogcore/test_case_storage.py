@@ -74,7 +74,7 @@ def test_reform_runs_after_a_restore_with_a_stale_path(
     meta["baseline_output_path"] = "/gone/res/base"
     meta_path.write_text(json.dumps(meta))
 
-    result = RunJob.start("c1", "reform1", False)
+    result = RunJob.start("ETH", "c1", "reform1", False)
 
     assert result["status_code"] == "success", result
     # Launching also repairs the stored path for the worker, which reads this file.
@@ -91,7 +91,7 @@ def test_reform_must_match_consumption_goods(make_case, calibration, stub_launch
     case.update_run_status("base", "completed", time_path=True)
     case.create_run("reform1", "reform", "base", {"I": 2})
 
-    result = RunJob.start("c1", "reform1", False)
+    result = RunJob.start("ETH", "c1", "reform1", False)
 
     assert result["status_code"] == "error"
     assert "same model dimensions" in result["message"].lower()

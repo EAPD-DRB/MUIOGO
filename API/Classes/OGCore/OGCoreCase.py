@@ -9,6 +9,7 @@ import hashlib
 import logging
 import os
 import shutil
+import tempfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -71,10 +72,18 @@ def _stable_hash(value) -> str:
 
 
 class OGCoreCase:
-    def __init__(self, casename: str):
+    """One case on disk, at cases/<country_id>/<casename>.
+
+    Two countries can each hold a case of the same name, so the name alone does not
+    identify one. The directory a case sits in is the authority on its country.
+    """
+
+    def __init__(self, country_id: str, casename: str):
+        self.country_id = country_id
         self.casename = casename
         # Cases go in their own subfolder, not next to the registry/install entries.
-        self.case_path = Path(Config.OGC_CASES_DIR, casename)
+        self.country_path = Path(Config.OGC_CASES_DIR, country_id)
+        self.case_path = self.country_path / casename
         self.gen_data_path = self.case_path / "genData.json"
         self.res_path = self.case_path / "res"
         self._gen_data: dict | None = None
@@ -97,11 +106,16 @@ class OGCoreCase:
         # overwriting an existing case.
         if not is_safe_name(self.casename):
             return {"message": "Invalid case name.", "status_code": "error"}
-        Config.OGC_CASES_DIR.mkdir(parents=True, exist_ok=True)
+        if not is_safe_name(self.country_id):
+            return {"message": "Invalid country id.", "status_code": "error"}
+        self.country_path.mkdir(parents=True, exist_ok=True)
         self.case_path.mkdir(parents=True, exist_ok=False)
         self.res_path.mkdir(parents=True, exist_ok=True)
         gen_data["ogc-runs"] = []
         gen_data["ogc-version"] = "1.0"
+        # The directory decides the country, so genData records that rather than
+        # whatever the caller passed.
+        gen_data["country_id"] = self.country_id
         self._write_gen_data(gen_data)
         logger.info("Created OG-Core case '%s'", self.casename)
         return {"message": f"Case {self.casename} created.", "status_code": "created"}
@@ -111,6 +125,9 @@ class OGCoreCase:
         existing = self.gen_data
         gen_data["ogc-runs"] = existing.get("ogc-runs", [])
         gen_data["ogc-version"] = existing.get("ogc-version", "1.0")
+        # An edit cannot move a case to another country: the directory it was found
+        # in is the country, whatever the body says.
+        gen_data["country_id"] = self.country_id
         self._write_gen_data(gen_data)
         logger.info("Updated OG-Core case '%s'", self.casename)
         return {"message": f"Case {self.casename} updated.", "status_code": "edited"}
@@ -121,33 +138,127 @@ class OGCoreCase:
         return {"message": f"Case {self.casename} deleted.", "status_code": "success_session"}
 
     @classmethod
-    def list_cases(cls) -> list[dict]:
+    def list_cases(cls, country_id: str | None = None) -> list[dict]:
+        """Every case, or only the given country's.
+
+        The country comes from the directory a case was found in, not from its
+        genData, so a case can never report a country it is not stored under.
+        """
         # One bad case dir shouldn't break the whole listing, so log and skip it.
         cases: list[dict] = []
         cases_dir = Config.OGC_CASES_DIR
         if not cases_dir.is_dir():
             return cases
-        for entry in sorted(cases_dir.iterdir()):
-            if not entry.is_dir():
-                continue
-            gen_path = entry / "genData.json"
+        if country_id is None:
+            country_dirs = [d for d in sorted(cases_dir.iterdir()) if d.is_dir()]
+        else:
+            wanted = cases_dir / country_id
+            country_dirs = [wanted] if wanted.is_dir() else []
+        for country_dir in country_dirs:
             try:
-                gd = File.readFile(gen_path)
-                mtime = gen_path.stat().st_mtime
-            except (OSError, ValueError, KeyError) as exc:
-                logger.warning("Skipping unreadable OG-Core case dir '%s': %s", entry.name, exc)
+                entries = sorted(country_dir.iterdir())
+            except OSError as exc:
+                logger.warning("Skipping unreadable country dir '%s': %s",
+                               country_dir.name, exc)
                 continue
-            modified_at = datetime.fromtimestamp(mtime, timezone.utc).strftime(
-                "%Y-%m-%dT%H:%M:%SZ"
-            )
-            cases.append({
-                "casename": gd.get("ogc-casename", entry.name),
-                "country_id": gd.get("country_id"),
-                "description": gd.get("ogc-description", ""),
-                "modified_at": modified_at,
-                "has_results": cls._case_has_results(entry),
-            })
+            for entry in entries:
+                if not entry.is_dir():
+                    continue
+                gen_path = entry / "genData.json"
+                try:
+                    gd = File.readFile(gen_path)
+                    mtime = gen_path.stat().st_mtime
+                except (OSError, ValueError, KeyError) as exc:
+                    logger.warning("Skipping unreadable OG-Core case dir '%s': %s",
+                                   entry.name, exc)
+                    continue
+                modified_at = datetime.fromtimestamp(mtime, timezone.utc).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ"
+                )
+                cases.append({
+                    # Both taken from the path: a genData that disagrees would name
+                    # a case nobody can address.
+                    "casename": entry.name,
+                    "country_id": country_dir.name,
+                    "description": gd.get("ogc-description", ""),
+                    "modified_at": modified_at,
+                    "has_results": cls._case_has_results(entry),
+                })
         return cases
+
+    @classmethod
+    def migrate_flat_cases(cls) -> int:
+        """Move cases stored before nesting into their country's directory.
+
+        A case directory holds a genData.json and a country directory never does, so
+        one directly under the cases directory is a leftover from the flat layout.
+        Its country comes from its own genData; a case that records none is left
+        alone, since guessing would hide it from the country that owns it.
+
+        Moves go through a staging directory outside the cases tree, because a flat
+        case whose name matches a country directory would otherwise rename into
+        itself. Returns the number moved.
+        """
+        cases_dir = Config.OGC_CASES_DIR
+        if not cases_dir.is_dir():
+            return 0
+        try:
+            flat = [
+                d for d in sorted(cases_dir.iterdir())
+                if d.is_dir() and (d / "genData.json").is_file()
+            ]
+        except OSError:
+            return 0
+        if not flat:
+            return 0
+
+        staging_root = cases_dir.parent / "migrate_tmp"
+        moved = 0
+        for case_dir in flat:
+            staged = None
+            try:
+                country_id = File.readFile(case_dir / "genData.json").get("country_id")
+            except (OSError, ValueError, KeyError, IndexError) as exc:
+                logger.warning("Leaving case '%s' unmoved, genData unreadable: %s",
+                               case_dir.name, exc)
+                continue
+            if not country_id or not is_safe_name(country_id):
+                logger.warning("Leaving case '%s' unmoved, it records no country.",
+                               case_dir.name)
+                continue
+            target = cases_dir / country_id / case_dir.name
+            if target.exists():
+                logger.warning("Leaving case '%s' unmoved, %s already exists.",
+                               case_dir.name, target)
+                continue
+            try:
+                staging_root.mkdir(parents=True, exist_ok=True)
+                staged = Path(tempfile.mkdtemp(dir=staging_root)) / case_dir.name
+                os.replace(case_dir, staged)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                os.replace(staged, target)
+                staged.parent.rmdir()
+                moved += 1
+                logger.info("Moved case '%s' under country '%s'.",
+                            case_dir.name, country_id)
+            except OSError as exc:
+                if staged is not None and staged.exists() and not case_dir.exists():
+                    try:
+                        os.replace(staged, case_dir)
+                        staged.parent.rmdir()
+                    except OSError:
+                        logger.error(
+                            "Case '%s' is recoverable at '%s' after migration failed.",
+                            case_dir.name,
+                            staged,
+                        )
+                logger.warning("Could not move case '%s': %s", case_dir.name, exc)
+        try:
+            if staging_root.is_dir():
+                staging_root.rmdir()
+        except OSError:
+            pass  # something else is in there; leaving it is harmless
+        return moved
 
     @staticmethod
     def _case_has_results(case_dir: Path) -> bool:
@@ -453,7 +564,7 @@ class OGCoreCase:
         _write_run_meta(meta, path)
 
     def _calibration_identity(self) -> dict:
-        country_id = self.gen_data.get("country_id")
+        country_id = self.country_id
         record = CalibrationRegistry.get(country_id) or {}
         return {
             "country_id": country_id,

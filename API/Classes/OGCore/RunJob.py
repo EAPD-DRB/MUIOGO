@@ -53,13 +53,15 @@ def _read_json(path: Path):
 
 class RunJob:
     _lock = threading.RLock()
-    _active: dict | None = None       # {casename, run_name, runner, thread, cancelled}
-    _queue: collections.deque = collections.deque()  # (casename, run_name, time_path)
+    # Two countries can hold a case of the same name, so a run is only identified by
+    # country, case and run name together. Every comparison below uses all three.
+    _active: dict | None = None  # {country_id, casename, run_name, runner, thread, cancelled}
+    _queue: collections.deque = collections.deque()  # (country_id, casename, run_name, time_path)
 
     # ── run-dir helper ─────────────────────────────────────────────────────
     @staticmethod
-    def _run_dir(casename: str, run_name: str) -> Path:
-        return OGCoreCase(casename).res_path / run_name
+    def _run_dir(country_id: str, casename: str, run_name: str) -> Path:
+        return OGCoreCase(country_id, casename).res_path / run_name
 
     # ── country / interpreter resolution ───────────────────────────────────
     @staticmethod
@@ -69,8 +71,7 @@ class RunJob:
         error is None on success; otherwise country/python_path are None and error
         is the user-facing message the caller surfaces.
         """
-        gd = case.gen_data
-        country_id = gd.get("country_id")
+        country_id = case.country_id
         rec = CalibrationRegistry.get(country_id)
         if rec is None:
             return None, None, "That country calibration is not installed."
@@ -97,17 +98,20 @@ class RunJob:
 
     # ── busy check ─────────────────────────────────────────────────────────
     @classmethod
-    def is_busy(cls, casename: str, run_name: str) -> bool:
+    def is_busy(cls, country_id: str, casename: str, run_name: str) -> bool:
         with cls._lock:
             act = cls._active
-            if act and act["casename"] == casename and act["run_name"] == run_name:
+            if (act and act["country_id"] == country_id
+                    and act["casename"] == casename
+                    and act["run_name"] == run_name):
                 return True
             return any(
-                q[0] == casename and q[1] == run_name for q in cls._queue
+                q[0] == country_id and q[1] == casename and q[2] == run_name
+                for q in cls._queue
             )
 
     @classmethod
-    def case_busy(cls, casename: str) -> bool:
+    def case_busy(cls, country_id: str, casename: str) -> bool:
         """True if any run of this case is active or queued.
 
         Deleting a case while its worker holds files open would corrupt the tree,
@@ -115,20 +119,29 @@ class RunJob:
         """
         with cls._lock:
             act = cls._active
-            if act and act["casename"] == casename:
+            if act and act["country_id"] == country_id and act["casename"] == casename:
                 return True
-            return any(q[0] == casename for q in cls._queue)
+            return any(
+                q[0] == country_id and q[1] == casename for q in cls._queue
+            )
 
     @classmethod
     def _dependent_reform_busy_locked(
-        cls, casename: str, baseline_run_name: str
+        cls, country_id: str, casename: str, baseline_run_name: str
     ) -> bool:
         """Whether live FIFO work depends on this baseline's frozen inputs."""
         candidates = []
-        if cls._active and cls._active["casename"] == casename:
+        if (
+            cls._active
+            and cls._active["country_id"] == country_id
+            and cls._active["casename"] == casename
+        ):
             candidates.append(cls._active["run_name"])
-        candidates.extend(q[1] for q in cls._queue if q[0] == casename)
-        case = OGCoreCase(casename)
+        candidates.extend(
+            q[2] for q in cls._queue
+            if q[0] == country_id and q[1] == casename
+        )
+        case = OGCoreCase(country_id, casename)
         for run_name in candidates:
             meta = case.get_run_meta(run_name)
             if (
@@ -139,20 +152,24 @@ class RunJob:
         return False
 
     @classmethod
-    def save_params(cls, casename: str, run_name: str, params: dict) -> dict:
+    def save_params(
+        cls, country_id: str, casename: str, run_name: str, params: dict
+    ) -> dict:
         """Atomically guard and persist parameters against FIFO admission."""
         with cls._lock:
-            case = OGCoreCase(casename)
+            case = OGCoreCase(country_id, casename)
             error = cls._parameter_write_error_locked(case, run_name)
             if error:
                 return {"status_code": "error", "message": error}
             return case.save_params(run_name, params)
 
     @classmethod
-    def commit_parameter_change(cls, casename: str, run_name: str, writer) -> dict:
+    def commit_parameter_change(
+        cls, country_id: str, casename: str, run_name: str, writer
+    ) -> dict:
         """Publish a prepared parameter file under the same lock as admission."""
         with cls._lock:
-            case = OGCoreCase(casename)
+            case = OGCoreCase(country_id, casename)
             error = cls._parameter_write_error_locked(case, run_name)
             if error:
                 return {"status_code": "error", "message": error}
@@ -166,12 +183,14 @@ class RunJob:
     def _parameter_write_error_locked(
         cls, case: OGCoreCase, run_name: str
     ) -> str | None:
-        if cls.is_busy(case.casename, run_name):
+        if cls.is_busy(case.country_id, case.casename, run_name):
             return "Parameters cannot be changed while this run is running or queued."
         meta = case.get_run_meta(run_name)
         if (
             meta.get("run_type") == "baseline"
-            and cls._dependent_reform_busy_locked(case.casename, run_name)
+            and cls._dependent_reform_busy_locked(
+                case.country_id, case.casename, run_name
+            )
         ):
             return (
                 "Baseline parameters cannot be changed while a dependent reform "
@@ -184,9 +203,9 @@ class RunJob:
         """True if the active or any queued run uses this country's calibration.
 
         Lets the install layer refuse an update over a calibration a run is using,
-        which would rewrite the venv under a live worker. Case names are snapshotted
-        under the lock and their genData read outside it, so file reads never hold up
-        the run lifecycle.
+        which would rewrite the venv under a live worker. The country is part of the
+        key, so this answers from memory alone; an unreadable case on disk cannot
+        hide a live run from it.
 
         Lock order: this takes RunJob._lock, and start() already nests
         RunJob._lock -> InstallJob._lock. The install layer must therefore call this
@@ -195,30 +214,22 @@ class RunJob:
         if not country_id:
             return False
         with cls._lock:
-            names = set()
-            if cls._active:
-                names.add(cls._active["casename"])
-            names.update(q[0] for q in cls._queue)
-        for casename in names:
-            try:
-                gd = OGCoreCase(casename).gen_data
-                if isinstance(gd, dict) and gd.get("country_id") == country_id:
-                    return True
-            except (OSError, ValueError, KeyError, IndexError):
-                continue
-        return False
+            if cls._active and cls._active["country_id"] == country_id:
+                return True
+            return any(q[0] == country_id for q in cls._queue)
 
     # ── start ──────────────────────────────────────────────────────────────
     @classmethod
-    def start(cls, casename: str, run_name: str, time_path: bool) -> dict:
+    def start(cls, country_id: str, casename: str, run_name: str,
+              time_path: bool) -> dict:
         """Validate, then either launch immediately or queue the run."""
         with cls._lock:
-            case = OGCoreCase(casename)
+            case = OGCoreCase(country_id, casename)
             meta = case.get_run_meta(run_name)
             if not meta:
                 return {"status_code": "error", "message": "Run not found."}
 
-            if cls.is_busy(casename, run_name):
+            if cls.is_busy(country_id, casename, run_name):
                 return {
                     "status_code": "error",
                     "message": "This run is already running or queued.",
@@ -226,7 +237,9 @@ class RunJob:
 
             if (
                 meta.get("run_type") == "baseline"
-                and cls._dependent_reform_busy_locked(casename, run_name)
+                and cls._dependent_reform_busy_locked(
+                    country_id, casename, run_name
+                )
             ):
                 return {
                     "status_code": "error",
@@ -251,11 +264,11 @@ class RunJob:
             # Atomic claim, or queue behind the active run.
             if cls._active is None:
                 case.stamp_execution(run_name, time_path, country, "running")
-                cls._launch(casename, run_name, time_path, python_path)
+                cls._launch(country_id, casename, run_name, time_path, python_path)
                 return {"status_code": "success", "message": "Run started."}
 
             case.stamp_execution(run_name, time_path, country, "queued")
-            cls._queue.append((casename, run_name, time_path))
+            cls._queue.append((country_id, casename, run_name, time_path))
             return {
                 "status_code": "success",
                 "message": "Run queued.",
@@ -264,17 +277,24 @@ class RunJob:
 
     @classmethod
     def _preceding_baseline_time_path_locked(
-        cls, casename: str, baseline_run_name: str
+        cls, country_id: str, casename: str, baseline_run_name: str
     ) -> bool | None:
         act = cls._active
         if (
             act
+            and act["country_id"] == country_id
             and act["casename"] == casename
             and act["run_name"] == baseline_run_name
         ):
-            return OGCoreCase(casename).get_run_meta(baseline_run_name).get("time_path")
-        for queued_case, queued_run, queued_time_path in cls._queue:
-            if queued_case == casename and queued_run == baseline_run_name:
+            return OGCoreCase(country_id, casename).get_run_meta(
+                baseline_run_name
+            ).get("time_path")
+        for queued_country, queued_case, queued_run, queued_time_path in cls._queue:
+            if (
+                queued_country == country_id
+                and queued_case == casename
+                and queued_run == baseline_run_name
+            ):
                 return queued_time_path
         return None
 
@@ -297,7 +317,7 @@ class RunJob:
         preceding_time_path = None
         if allow_preceding_baseline and baseline_name:
             preceding_time_path = cls._preceding_baseline_time_path_locked(
-                case.casename, baseline_name
+                case.country_id, case.casename, baseline_name
             )
 
         baseline_ready = bool(
@@ -337,7 +357,6 @@ class RunJob:
             if in_reform and reform_params[dim] != baseline_params[dim]:
                 return cls._dim_mismatch()
         return None
-
     @staticmethod
     def _dim_mismatch() -> dict:
         return {
@@ -350,7 +369,8 @@ class RunJob:
 
     # ── launch (caller holds the lock) ─────────────────────────────────────
     @classmethod
-    def _launch(cls, casename: str, run_name: str, time_path: bool, python_path) -> None:
+    def _launch(cls, country_id: str, casename: str, run_name: str, time_path: bool,
+                python_path) -> None:
         """Create the runner, record it active, and start the solve thread.
 
         The runner is created here (not inside the thread) so cancel() and
@@ -359,10 +379,11 @@ class RunJob:
         runner = OGRunner()
         thread = threading.Thread(
             target=cls._run_one,
-            args=(casename, run_name, time_path, python_path, runner),
+            args=(country_id, casename, run_name, time_path, python_path, runner),
             daemon=True,
         )
         cls._active = {
+            "country_id": country_id,
             "casename": casename,
             "run_name": run_name,
             "runner": runner,
@@ -373,9 +394,10 @@ class RunJob:
 
     # ── worker supervision thread ──────────────────────────────────────────
     @classmethod
-    def _run_one(cls, casename, run_name, time_path, python_path, runner) -> None:
-        case = OGCoreCase(casename)
-        run_dir = cls._run_dir(casename, run_name)
+    def _run_one(cls, country_id, casename, run_name, time_path, python_path,
+                 runner) -> None:
+        case = OGCoreCase(country_id, casename)
+        run_dir = cls._run_dir(country_id, casename, run_name)
         try:
             try:
                 runner.spawn(python_path, run_dir)
@@ -442,8 +464,8 @@ class RunJob:
         such run failed, so one broken entry cannot wedge the whole queue.
         """
         while cls._queue:
-            casename, run_name, time_path = cls._queue.popleft()
-            case = OGCoreCase(casename)
+            country_id, casename, run_name, time_path = cls._queue.popleft()
+            case = OGCoreCase(country_id, casename)
             try:
                 meta = case.get_run_meta(run_name)
                 if meta.get("run_type") == "reform":
@@ -464,7 +486,7 @@ class RunJob:
             except (OSError, ValueError, KeyError, IndexError):
                 cls._fail_quietly(case, run_name, "The run could not be started.")
                 continue
-            cls._launch(casename, run_name, time_path, python_path)
+            cls._launch(country_id, casename, run_name, time_path, python_path)
             return
 
     @staticmethod
@@ -477,10 +499,12 @@ class RunJob:
 
     # ── cancel ─────────────────────────────────────────────────────────────
     @classmethod
-    def cancel(cls, casename: str, run_name: str) -> dict:
+    def cancel(cls, country_id: str, casename: str, run_name: str) -> dict:
         with cls._lock:
             act = cls._active
-            if act and act["casename"] == casename and act["run_name"] == run_name:
+            if (act and act["country_id"] == country_id
+                    and act["casename"] == casename
+                    and act["run_name"] == run_name):
                 act["cancelled"] = True
                 runner = act["runner"]
                 cancelled_active = True
@@ -500,12 +524,13 @@ class RunJob:
 
         with cls._lock:
             for item in list(cls._queue):
-                if item[0] == casename and item[1] == run_name:
+                if (item[0] == country_id and item[1] == casename
+                        and item[2] == run_name):
                     cls._queue.remove(item)
                     # Dropping it from the queue is not enough; persist terminal
                     # cancellation so reloads never reconstruct it as queued.
                     try:
-                        OGCoreCase(casename).update_run_status(
+                        OGCoreCase(country_id, casename).update_run_status(
                             run_name, "failed", error="Cancelled by user."
                         )
                     except (OSError, ValueError, KeyError, IndexError):
@@ -531,11 +556,21 @@ class RunJob:
         because startup housekeeping must never stop the app from serving.
         """
         try:
-            case_dirs = [d for d in Config.OGC_CASES_DIR.iterdir() if d.is_dir()]
+            country_dirs = [d for d in Config.OGC_CASES_DIR.iterdir() if d.is_dir()]
         except OSError:
             return
-        for case_dir in case_dirs:
-            case = OGCoreCase(case_dir.name)
+        # Cases sit one level below their country, so the walk is country then case.
+        case_dirs = []
+        for country_dir in country_dirs:
+            try:
+                case_dirs.extend(
+                    (country_dir.name, d.name)
+                    for d in country_dir.iterdir() if d.is_dir()
+                )
+            except OSError:
+                continue
+        for country_id, casename in case_dirs:
+            case = OGCoreCase(country_id, casename)
             try:
                 run_dirs = [d for d in case.res_path.iterdir() if d.is_dir()]
             except OSError:
@@ -589,10 +624,12 @@ class RunJob:
 
     # ── live view ──────────────────────────────────────────────────────────
     @classmethod
-    def get_live(cls, casename: str, run_name: str) -> dict | None:
+    def get_live(cls, country_id: str, casename: str, run_name: str) -> dict | None:
         with cls._lock:
             act = cls._active
-            if act and act["casename"] == casename and act["run_name"] == run_name:
+            if (act and act["country_id"] == country_id
+                    and act["casename"] == casename
+                    and act["run_name"] == run_name):
                 runner = act["runner"]
                 queued = False
             else:
@@ -600,7 +637,11 @@ class RunJob:
                     (
                         index
                         for index, q in enumerate(cls._queue, start=1)
-                        if q[0] == casename and q[1] == run_name
+                        if (
+                            q[0] == country_id
+                            and q[1] == casename
+                            and q[2] == run_name
+                        )
                     ),
                     None,
                 )
@@ -614,7 +655,7 @@ class RunJob:
 
         stage_label = None
         if runner is not None:
-            status = cls._read_status(cls._run_dir(casename, run_name))
+            status = cls._read_status(cls._run_dir(country_id, casename, run_name))
             if status is not None:
                 stage_label = status.get("label")
 
@@ -628,26 +669,32 @@ class RunJob:
         }
 
     @classmethod
-    def get_queue_snapshot(cls, casename: str) -> dict:
+    def get_queue_snapshot(cls, country_id: str, casename: str) -> dict:
         """Read-only FIFO view sufficient to reconstruct the Run page."""
         with cls._lock:
             active = None
-            if cls._active and cls._active["casename"] == casename:
+            if (
+                cls._active
+                and cls._active["country_id"] == country_id
+                and cls._active["casename"] == casename
+            ):
                 active = {
+                    "country_id": country_id,
                     "casename": casename,
                     "run_name": cls._active["run_name"],
                     "state": "running",
                 }
             queued = [
                 {
+                    "country_id": queued_country,
                     "casename": queued_case,
                     "run_name": queued_run,
                     "state": "queued",
                     "queue_position": index,
                     "time_path": time_path,
                 }
-                for index, (queued_case, queued_run, time_path)
+                for index, (queued_country, queued_case, queued_run, time_path)
                 in enumerate(cls._queue, start=1)
-                if queued_case == casename
+                if queued_country == country_id and queued_case == casename
             ]
         return {"active": active, "queued": queued}

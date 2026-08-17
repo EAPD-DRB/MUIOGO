@@ -29,17 +29,26 @@ def test_active_country_blocks_foreign_run_reads_and_writes(
     )
     assert activated.status_code == 200
 
-    read = client.post("/ogc/getRuns", json={"casename": "zaf_case"})
+    read = client.post(
+        "/ogc/getRuns", json={"country_id": "ZAF", "casename": "zaf_case"}
+    )
     params = client.post(
-        "/ogc/getParams", json={"casename": "zaf_case", "run_name": "base"}
+        "/ogc/getParams",
+        json={"country_id": "ZAF", "casename": "zaf_case", "run_name": "base"},
     )
     write = client.post(
         "/ogc/saveParams",
-        json={"casename": "zaf_case", "run_name": "base", "params": {"S": 40}},
+        json={
+            "country_id": "ZAF", "casename": "zaf_case",
+            "run_name": "base", "params": {"S": 40},
+        },
     )
     execute = client.post(
         "/ogc/run",
-        json={"casename": "zaf_case", "run_name": "base", "time_path": False},
+        json={
+            "country_id": "ZAF", "casename": "zaf_case",
+            "run_name": "base", "time_path": False,
+        },
     )
 
     assert {read.status_code, params.status_code, write.status_code, execute.status_code} == {403}
@@ -54,14 +63,18 @@ def test_clearing_country_allows_an_explicit_workspace_switch(
     make_case("zaf_case", country_id="ZAF", runs=[("base", "baseline", None)])
     client.post("/ogc/setSession", json={"casename": None, "country_id": "ETH"})
 
-    blocked = client.post("/ogc/setSession", json={"casename": "zaf_case"})
-    assert blocked.status_code == 403
+    blocked = client.post(
+        "/ogc/setSession", json={"country_id": "ZAF", "casename": "zaf_case"}
+    )
+    assert blocked.status_code == 409
 
     client.post("/ogc/setSession", json={"casename": None})
     switched = client.post(
         "/ogc/setSession", json={"casename": None, "country_id": "ZAF"}
     )
-    read = client.post("/ogc/getRuns", json={"casename": "zaf_case"})
+    read = client.post(
+        "/ogc/getRuns", json={"country_id": "ZAF", "casename": "zaf_case"}
+    )
 
     assert switched.status_code == 200
     assert switched.get_json()["ogccountry"] == "ZAF"
@@ -71,14 +84,16 @@ def test_clearing_country_allows_an_explicit_workspace_switch(
 def test_selecting_a_case_records_its_country(client, make_case, calibration):
     make_case("eth_case", country_id="ETH", runs=[("base", "baseline", None)])
 
-    selected = client.post("/ogc/setSession", json={"casename": "eth_case"})
+    selected = client.post(
+        "/ogc/setSession", json={"country_id": "ETH", "casename": "eth_case"}
+    )
     current = client.get("/ogc/getSession").get_json()
 
     assert selected.status_code == 200
     assert current == {"ogccase": "eth_case", "ogccountry": "ETH"}
 
 
-def test_identical_case_names_cannot_coexist_across_countries(
+def test_identical_case_names_can_coexist_across_country_workspaces(
     client, calibration, tmp_path
 ):
     _install_zaf(tmp_path)
@@ -87,13 +102,20 @@ def test_identical_case_names_cannot_coexist_across_countries(
     })
     assert first.status_code == 200
     client.post("/ogc/setSession", json={"casename": None})
+    client.post(
+        "/ogc/setSession", json={"casename": None, "country_id": "ZAF"}
+    )
 
     second = client.post("/ogc/saveCase", json={
         "data": {"ogc-casename": "same", "country_id": "ZAF"}
     })
 
-    assert second.status_code == 403
-    assert "Open that country workspace" in second.get_json()["message"]
+    assert second.status_code == 200
+    client.post("/ogc/setSession", json={"casename": None})
+    cases = client.get("/ogc/getCases").get_json()
+    assert {(case["country_id"], case["casename"]) for case in cases} == {
+        ("ETH", "same"), ("ZAF", "same")
+    }
 
 
 def test_deleting_active_case_preserves_country_scope(
@@ -102,11 +124,17 @@ def test_deleting_active_case_preserves_country_scope(
     _install_zaf(tmp_path)
     make_case("eth_case", country_id="ETH", runs=[("base", "baseline", None)])
     make_case("zaf_case", country_id="ZAF", runs=[("base", "baseline", None)])
-    client.post("/ogc/setSession", json={"casename": "eth_case"})
+    client.post(
+        "/ogc/setSession", json={"country_id": "ETH", "casename": "eth_case"}
+    )
 
-    deleted = client.post("/ogc/deleteCase", json={"casename": "eth_case"})
+    deleted = client.post(
+        "/ogc/deleteCase", json={"country_id": "ETH", "casename": "eth_case"}
+    )
     current = client.get("/ogc/getSession").get_json()
-    foreign = client.post("/ogc/getRuns", json={"casename": "zaf_case"})
+    foreign = client.post(
+        "/ogc/getRuns", json={"country_id": "ZAF", "casename": "zaf_case"}
+    )
     visible = client.get("/ogc/getCases").get_json()
 
     assert deleted.status_code == 200

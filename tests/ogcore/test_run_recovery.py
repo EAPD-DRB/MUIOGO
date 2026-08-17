@@ -26,7 +26,7 @@ def test_stop_active_kills_the_worker_and_finalises(
     make_case, calibration, fake_runner
 ):
     case = make_case("c1", runs=[("base", "baseline", None)])
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
     assert fake_runner[0].spawned.wait(5)
 
     assert RunJob.stop_active() is True
@@ -42,7 +42,7 @@ def test_worker_pid_is_recorded_while_running_and_cleared_after(
     make_case, calibration, fake_runner
 ):
     case = make_case("c1", runs=[("base", "baseline", None)])
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
     assert fake_runner[0].spawned.wait(5)
     # The pid is written just after the spawn returns, so wait for it to land.
     deadline = time.time() + 5
@@ -236,7 +236,7 @@ def test_run_exceeding_the_wall_clock_is_stopped(monkeypatch):
 
 def test_a_stalled_run_says_so(make_case, calibration, fake_runner):
     case = make_case("c1", runs=[("base", "baseline", None)])
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
     assert fake_runner[0].spawned.wait(5)
     fake_runner[0].stalled = True
 
@@ -301,7 +301,7 @@ def test_shutdown_stops_the_active_run(make_case, calibration, fake_runner):
     import app as app_module
 
     make_case("c1", runs=[("base", "baseline", None)])
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
     assert fake_runner[0].spawned.wait(5)
 
     app_module._stop_inflight_work()

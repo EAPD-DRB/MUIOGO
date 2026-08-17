@@ -85,7 +85,7 @@ def test_country_not_running_when_idle(make_case, calibration):
 
 def test_country_running_for_the_active_run(make_case, calibration, stub_launch):
     make_case("c1", runs=[("base", "baseline", None)])
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
     assert RunJob.is_country_running("ETH") is True
     assert RunJob.is_country_running("ZAF") is False
 
@@ -101,18 +101,25 @@ def test_country_running_for_a_queued_run(make_case, calibration, tmp_path,
     })
     make_case("c1", country_id="ETH", runs=[("base", "baseline", None)])
     make_case("c2", country_id="ZAF", runs=[("base", "baseline", None)])
-    RunJob.start("c1", "base", False)   # active   -> ETH
-    RunJob.start("c2", "base", False)   # queued   -> ZAF
+    RunJob.start("ETH", "c1", "base", False)   # active   -> ETH
+    RunJob.start("ZAF", "c2", "base", False)   # queued   -> ZAF
 
     assert RunJob.is_country_running("ZAF") is True, "the queue must be searched too"
     assert RunJob.is_country_running("ETH") is True
 
 
-def test_country_running_ignores_an_unreadable_case(calibration):
+def test_country_running_holds_even_when_the_case_is_unreadable(calibration):
+    """The country comes from the run's own key, not from the case on disk.
+
+    An unreadable case must not hide its own live run from this check, or an install
+    would rewrite the venv under a running worker.
+    """
     with RunJob._lock:
-        RunJob._active = {"casename": "ghost", "run_name": "r", "runner": None,
-                         "thread": None, "cancelled": False}
-    assert RunJob.is_country_running("ETH") is False
+        RunJob._active = {"country_id": "ETH", "casename": "ghost", "run_name": "r",
+                          "runner": None, "thread": None, "cancelled": False}
+
+    assert RunJob.is_country_running("ETH") is True
+    assert RunJob.is_country_running("ZAF") is False
 
 
 # ── an update will not start while a run is using the calibration ────────────
@@ -124,7 +131,7 @@ def test_update_refused_while_a_run_is_using_it(
         "ETH", local_path=str(tmp_path / "OG-ETH"),
         repo_url="https://github.com/EAPD-DRB/OG-ETH", source_type="catalog",
     )
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
 
     resp = client.post("/ogc/refreshCalibration",
                        json={"country_id": "ETH", "check_only": False})
@@ -166,7 +173,7 @@ def test_install_over_an_existing_calibration_refused_while_running(
         }),
     )
     make_case("c1", runs=[("base", "baseline", None)])
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
 
     resp = client.post("/ogc/installCalibration",
                        json={"source_type": "catalog", "country_id": "ETH",
@@ -180,7 +187,7 @@ def test_repo_url_install_refused_while_running(
     client, make_case, calibration, stub_launch
 ):
     make_case("c1", runs=[("base", "baseline", None)])
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
 
     resp = client.post("/ogc/installCalibration",
                        json={"source_type": "repo_url", "country_id": "ETH",
@@ -198,7 +205,7 @@ def test_local_register_refused_while_running(
     folder = tmp_path / "OG-ETH"
     folder.mkdir()
     make_case("c1", runs=[("base", "baseline", None)])
-    RunJob.start("c1", "base", False)
+    RunJob.start("ETH", "c1", "base", False)
 
     resp = client.post("/ogc/registerLocalCalibration",
                        json={"country_id": "ETH", "country_name": "Ethiopia",

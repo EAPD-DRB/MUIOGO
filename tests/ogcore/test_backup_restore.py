@@ -13,11 +13,14 @@ import zipfile
 import pytest
 
 from Classes.Base import Config
+from Classes.OGCore.OGCoreCase import OGCoreCase
 from Routes.OGCore import OGCoreRunRoute
 
 
-def _backup(client, casename):
-    resp = client.get(f"/ogc/backupCase?casename={casename}")
+def _backup(client, casename, country_id="ETH"):
+    resp = client.get(
+        f"/ogc/backupCase?country_id={country_id}&casename={casename}"
+    )
     assert resp.status_code == 200, resp.get_data(as_text=True)
     return resp.get_data()
 
@@ -41,9 +44,9 @@ def backed_up(client, make_case, calibration):
     (case.res_path / "base" / "results_ss.json").write_text(json.dumps({"Y": 1.5}))
     case.save_params("base", {"frisch": 0.5})
     blob = _backup(client, "c1")
-    client.post("/ogc/setSession", json={"casename": "c1"})
-    client.post("/ogc/deleteCase", json={"casename": "c1"})
-    assert not (Config.OGC_CASES_DIR / "c1").exists()
+    client.post("/ogc/setSession", json={"country_id": "ETH", "casename": "c1"})
+    client.post("/ogc/deleteCase", json={"country_id": "ETH", "casename": "c1"})
+    assert not (Config.OGC_CASES_DIR / "ETH" / "c1").exists()
     return blob
 
 
@@ -65,16 +68,16 @@ def test_a_case_restores_with_its_runs_and_results(client, backed_up):
     assert resp.status_code == 200
     assert resp.get_json()["status_code"] == "success"
     assert "c1" in _case_names(client)
-    run_dir = Config.OGC_CASES_DIR / "c1" / "res" / "base"
+    run_dir = Config.OGC_CASES_DIR / "ETH" / "c1" / "res" / "base"
     assert json.loads((run_dir / "results_ss.json").read_text()) == {"Y": 1.5}
     assert client.post(
-        "/ogc/getRuns", json={"casename": "c1"}
+        "/ogc/getRuns", json={"country_id": "ETH", "casename": "c1"}
     ).get_json()["baseline"]["RunName"] == "base"
 
 
 def test_restoring_over_an_existing_case_changes_nothing(client, backed_up):
     assert _restore(client, backed_up).status_code == 200
-    marker = Config.OGC_CASES_DIR / "c1" / "res" / "base" / "results_ss.json"
+    marker = Config.OGC_CASES_DIR / "ETH" / "c1" / "res" / "base" / "results_ss.json"
     marker.write_text(json.dumps({"Y": 99.0}))
 
     resp = _restore(client, backed_up)
@@ -138,7 +141,7 @@ def test_a_restore_that_fails_partway_leaves_nothing_behind(
 
     assert resp.status_code >= 400, "a failed restore must not report success"
     assert state["written"] == 1, "one file of the backup landed before it broke"
-    assert not (Config.OGC_CASES_DIR / "c1").exists(), "no half-case was published"
+    assert not (Config.OGC_CASES_DIR / "ETH" / "c1").exists(), "no half-case was published"
     assert "c1" not in _case_names(client), "and none appears in the listing"
 
 
@@ -154,30 +157,30 @@ def test_the_case_can_be_restored_again_after_a_failed_attempt(
     assert resp.get_json()["status_code"] == "success", (
         "the earlier failure must not leave the name occupied"
     )
-    run_dir = Config.OGC_CASES_DIR / "c1" / "res" / "base"
+    run_dir = Config.OGC_CASES_DIR / "ETH" / "c1" / "res" / "base"
     assert json.loads((run_dir / "results_ss.json").read_text()) == {"Y": 1.5}
 
 
 def test_a_restore_in_flight_is_not_visible_as_a_case(client, backed_up, monkeypatch):
-    """Staging happens outside the cases directory, which is what keeps it hidden.
+    """Staging happens outside the cases tree, which is what keeps it hidden.
 
-    list_cases counts any directory under the cases directory that holds a readable
-    genData.json, so unpacking there would expose a partly written case to anyone
-    listing while the restore ran. The check is on the filesystem rather than through
-    getCases because a nested request is not possible inside the one being served.
+    The restore creates the country directory before publishing into it, so the
+    check is that no case appears; an empty country directory lists nothing.
+    list_cases is called directly rather than through getCases, because a nested
+    request is not possible inside the one being served.
     """
     seen = []
 
     def look_around_mid_extract(real_copy, src, dst, *args, **kwargs):
-        seen.append({p.name for p in Config.OGC_CASES_DIR.iterdir() if p.is_dir()})
+        seen.append([c["casename"] for c in OGCoreCase.list_cases()])
         return real_copy(src, dst, *args, **kwargs)
 
     _patch_extraction_copy(monkeypatch, look_around_mid_extract)
 
     assert _restore(client, backed_up).get_json()["status_code"] == "success"
     assert len(seen) > 1, "the backup has several files, so it was watched as it went"
-    assert all(during == set() for during in seen), (
-        "nothing may appear under cases while unpacking"
+    assert all(during == [] for during in seen), (
+        "no case may appear while unpacking"
     )
     assert "c1" in _case_names(client), "and it is there once the restore finished"
 
