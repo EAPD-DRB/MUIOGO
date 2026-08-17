@@ -91,32 +91,35 @@ export default class Pivot {
         const flexChart = pivotChart.flexChart;
         const chartType = pivotChart.chartType;
         const label = Pivot.getUnitLabel(units);
+        const isPie = chartType === wijmo.olap.PivotChartType.Pie;
+        const activeChart = isPie ? pivotChart.flexPie : flexChart;
+
+        flexChart.footer = '';
+        if (pivotChart.flexPie) pivotChart.flexPie.footer = '';
+        $('#pivotChartUnitLabel').text('');
 
         if (!label) {
             flexChart.axisX.title = '';
             flexChart.axisY.title = '';
-            $('#pivotChartUnitLabel').text('');
             return;
         }
 
-        const isPie = chartType === wijmo.olap.PivotChartType.Pie;
         const isHorizontal = chartType === wijmo.olap.PivotChartType.Bar;
 
-        // Pie charts have no value axis, so always show their units below the chart.
+        // Pie charts have no value axis, so show their units in the chart footer.
         if (isPie) {
             flexChart.axisX.title = '';
             flexChart.axisY.title = '';
-            $('#pivotChartUnitLabel').text('Units: ' + label);
+            activeChart.footer = 'Units: ' + label;
         } else if (!isHorizontal && label.length > Pivot.unitLabelMaxChars) {
             flexChart.axisX.title = '';
             flexChart.axisY.title = 'Multiple units';
-            $('#pivotChartUnitLabel').text('Y-axis units: ' + label);
+            activeChart.footer = 'Y-axis units: ' + label;
         } else {
             const valueAxis = isHorizontal ? flexChart.axisX : flexChart.axisY;
             const categoryAxis = isHorizontal ? flexChart.axisY : flexChart.axisX;
             categoryAxis.title = '';
             valueAxis.title = label;
-            $('#pivotChartUnitLabel').text('');
         }
     }
 
