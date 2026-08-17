@@ -1,7 +1,9 @@
 import { Message } from "../../Classes/Message.Class.js";
 import { Ogc } from "../../Classes/Ogc.Class.js";
 import { Model } from "../Model/OGCases.Model.js";
-import { clearRunStale, isRunStale, loadSelection, loadWorkspace } from "./OGCases.js";
+import {
+    clearRunStale, isRunStale, loadSelection, loadWorkspace, runKey
+} from "./OGCases.js";
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
     ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -50,10 +52,12 @@ export default class OGRuns {
 
     static async load(pageToken, sourcePage, preserveSelection){
         try {
-            let cases = await Ogc.getCases();
+            let cases = await Ogc.getCases(OGRuns.workspace.country_id);
             let list = $.isArray(cases) ? cases : (cases.cases || []);
             list = $.grep(list, c => c.country_id == OGRuns.workspace.country_id);
-            let items = await Promise.all($.map(list, c => Ogc.getRuns(c.casename)
+            let items = await Promise.all($.map(list, c => Ogc.getRuns(
+                OGRuns.workspace.country_id, c.casename
+            )
                 .then(r => ({case: c, runs: r.runs || r || []}))
                 .catch(error => ({case: c, runs: [], error: error}))));
             if (!OGRuns.isCurrent(pageToken)) return;
@@ -85,7 +89,9 @@ export default class OGRuns {
         $.each(items || [], function (id, item) {
             let runs = new Model([], {}, [], null).flattenRuns(item.runs);
             $.each(runs, function (rid, run) {
-                let key = item.case.casename + ':' + run.run_name;
+                let key = runKey(
+                    item.case.country_id, item.case.casename, run.run_name
+                );
                 let hasReusable = run.reusable !== undefined;
                 let backendStale = hasReusable
                     ? (run.status == 'completed' && !run.reusable)
@@ -124,9 +130,10 @@ export default class OGRuns {
     }
 
     static queueRecordKey(record){
+        let countryId = record.country_id || OGRuns.workspace.country_id;
         let casename = record.casename || record.case_name || (record.case && record.case.casename);
         let runName = record.run_name || record.RunName || record.name;
-        return casename && runName ? casename + ':' + runName : null;
+        return casename && runName ? runKey(countryId, casename, runName) : null;
     }
 
     static normaliseState(source, stale){
@@ -191,7 +198,11 @@ export default class OGRuns {
                 if (caseNames.indexOf(entry.case.casename) < 0) caseNames.push(entry.case.casename);
             });
             let snapshots = await Promise.all($.map(caseNames, async function (casename) {
-                try { return OGRuns.queueRecords(await Ogc.getRunQueue(casename)); }
+                try {
+                    return OGRuns.queueRecords(await Ogc.getRunQueue(
+                        OGRuns.workspace.country_id, casename
+                    ));
+                }
                 catch (error) { return []; }
             }));
             $.each(snapshots, function (id, records) { queue = queue.concat(records); });
@@ -209,7 +220,9 @@ export default class OGRuns {
             entry.state == 'pending' || ACTIVE_STATES.indexOf(entry.state) >= 0);
         await Promise.all($.map(candidates, async function (entry) {
             try {
-                let status = await Ogc.getRunStatus(entry.case.casename, entry.run.run_name);
+                let status = await Ogc.getRunStatus(
+                    entry.case.country_id, entry.case.casename, entry.run.run_name
+                );
                 if (OGRuns.isCurrent(pageToken)) OGRuns.applyBackendStatus(entry, status);
             } catch (error) {
                 //The run list still provides a usable state if a single status read fails.
@@ -226,7 +239,7 @@ export default class OGRuns {
         localStorage.removeItem(RUN_SELECTION_KEY);
         if (!selection && sourcePage == 'OGParameters') selection = loadSelection();
         if (!selection || (selection.country_id && selection.country_id != OGRuns.workspace.country_id)) return;
-        let key = selection.casename + ':' + selection.run_name;
+        let key = runKey(selection.country_id, selection.casename, selection.run_name);
         if (OGRuns.selected[key] !== undefined) OGRuns.selected[key] = true;
     }
 
@@ -392,7 +405,11 @@ export default class OGRuns {
             if (!entry || added[entry.key]) return;
             let invalidatedByBaseline = false;
             if (entry.run.run_type == 'reform'){
-                let base = byKey[entry.case.casename + ':' + entry.run.baseline_run];
+                let base = byKey[runKey(
+                    entry.case.country_id,
+                    entry.case.casename,
+                    entry.run.baseline_run
+                )];
                 invalidatedByBaseline = !!(base && !canReuse(base));
                 if (base && (!canReuse(base) || selected[base.key])){
                     add(base, !selected[base.key]);
@@ -470,7 +487,12 @@ export default class OGRuns {
                 OGRuns.render();
                 if (!OGRuns.executionIsActive(execution)) { detached = true; break; }
                 try {
-                    await Ogc.run(entry.case.casename, entry.run.run_name, false);
+                    await Ogc.run(
+                        entry.case.country_id,
+                        entry.case.casename,
+                        entry.run.run_name,
+                        false
+                    );
                     job.accepted = true;
                     job.state = 'queued';
                     job.stage = '';
@@ -526,7 +548,9 @@ export default class OGRuns {
 
     static async readStatus(job){
         let entry = job.entry;
-        let status = await Ogc.getRunStatus(entry.case.casename, entry.run.run_name);
+        let status = await Ogc.getRunStatus(
+            entry.case.country_id, entry.case.casename, entry.run.run_name
+        );
         OGRuns.applyBackendStatus(entry, status);
         job.state = entry.state;
         if (job.accepted && job.state == 'pending') job.state = entry.state = 'queued';
@@ -568,7 +592,9 @@ export default class OGRuns {
         if (!entry) return;
         let job = OGRuns.findJob(key);
         try {
-            await Ogc.cancelRun(entry.case.casename, entry.run.run_name);
+            await Ogc.cancelRun(
+                entry.case.country_id, entry.case.casename, entry.run.run_name
+            );
             entry.state = 'cancelled';
             entry.error = 'Cancelled by user.';
             if (job){ job.state = 'cancelled'; job.error = entry.error; }
@@ -597,7 +623,11 @@ export default class OGRuns {
                 if (!OGRuns.isCurrent(pageToken) || monitorID != OGRuns.monitorID) return;
                 await Promise.all($.map(active, async function (entry) {
                     try {
-                        let status = await Ogc.getRunStatus(entry.case.casename, entry.run.run_name);
+                        let status = await Ogc.getRunStatus(
+                            entry.case.country_id,
+                            entry.case.casename,
+                            entry.run.run_name
+                        );
                         if (OGRuns.isCurrent(pageToken)) OGRuns.applyBackendStatus(entry, status);
                     } catch (error) { /* keep the last backend-backed state */ }
                 }));
@@ -632,7 +662,11 @@ export default class OGRuns {
                     let existing = box.html();
                     box.html(existing + '<div class="ogc-mut ogc-log-loading">Loading log…</div>');
                     try {
-                        let status = await Ogc.getRunStatus($(this).attr('data-case'), $(this).attr('data-run'));
+                        let status = await Ogc.getRunStatus(
+                            OGRuns.workspace.country_id,
+                            $(this).attr('data-case'),
+                            $(this).attr('data-run')
+                        );
                         let lines = $.isArray(status.run_log) ? status.run_log : [];
                         let error = status.error ? `<div class="ogc-run-error">${esc(status.error)}</div>` : '';
                         box.html(error + (lines.length

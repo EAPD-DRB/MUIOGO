@@ -29,6 +29,54 @@ _DEFAULTS_CACHE: dict[str, tuple[float, dict]] = {}
 _LARGE_VALUE_THRESHOLD = 100
 
 
+def _entry_value(entry):
+    """Return the parameter value from either metadata or a bare overlay entry."""
+    if not isinstance(entry, dict):
+        return entry
+    value_list = entry.get("value")
+    if isinstance(value_list, list) and value_list:
+        first = value_list[0]
+        if isinstance(first, dict) and "value" in first:
+            return first["value"]
+    return None
+
+
+def _dimensions(value) -> list[int]:
+    """Dimensions of the first rectangular path through a nested list."""
+    out = []
+    current = value
+    while isinstance(current, list):
+        out.append(len(current))
+        current = current[0] if current else None
+    return out
+
+
+def _preview(value, depth=0):
+    """Small nested sample used by the parameter page before lazy loading."""
+    if not isinstance(value, list):
+        return value
+    limit = 4 if depth == 0 else 3
+    return [_preview(item, depth + 1) for item in value[:limit]]
+
+
+def _is_column_matrix(value) -> bool:
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(isinstance(row, list) and len(row) == 1 for row in value)
+    )
+
+
+def _compact_column_matrix(value):
+    """Drop an unchanged trailing schedule while preserving its matrix shape."""
+    if not _is_column_matrix(value):
+        return value
+    compact = list(value)
+    while len(compact) > 1 and compact[-1] == compact[-2]:
+        compact.pop()
+    return compact
+
+
 def _defaults_filename(package_name: str) -> str:
     """Name of the defaults JSON that ships inside ``package_name``.
 
@@ -140,7 +188,9 @@ def project_entry(name: str, entry) -> dict:
     #   float bounded to [0, 1]        -> "rate"
     #   everything else                -> "level"
     datatype = entry.get("type")
-    if datatype == "int" and rng and 1900 <= rng[0] and rng[1] <= 2101:
+    if datatype == "str":
+        param_type = "string"
+    elif datatype == "int" and rng and 1900 <= rng[0] and rng[1] <= 2101:
         param_type = "year"
     elif datatype == "int":
         param_type = "count"
@@ -150,12 +200,9 @@ def project_entry(name: str, entry) -> dict:
         param_type = "level"
 
     # Default value at entry["value"][0]["value"], defensively extracted.
-    v = None
-    value_list = entry.get("value")
-    if isinstance(value_list, list) and value_list:
-        first = value_list[0]
-        if isinstance(first, dict) and "value" in first:
-            v = first["value"]
+    v = _entry_value(entry)
+    dimensions = _dimensions(v) if isinstance(v, list) else None
+    display_value = _compact_column_matrix(v)
 
     # Display-only shape heuristic:
     #   scalar (size 1, no dims)       -> "scalar"
@@ -177,13 +224,22 @@ def project_entry(name: str, entry) -> dict:
         "section": entry.get("section_1") or "",
         "subsection": entry.get("section_2") or None,
         "type": param_type,
+        "datatype": datatype,
         "shape": shape,
     }
-    if _leaf_count(v) > _LARGE_VALUE_THRESHOLD:
+    if isinstance(validators, dict):
+        choice = validators.get("choice")
+        choices = choice.get("choices") if isinstance(choice, dict) else None
+        if isinstance(choices, list) and choices:
+            projected["choices"] = choices
+    if _leaf_count(display_value) > _LARGE_VALUE_THRESHOLD and not _is_column_matrix(display_value):
         projected["default"] = None
         projected["large"] = True
+        projected["preview"] = _preview(display_value)
     else:
-        projected["default"] = v
+        projected["default"] = display_value
+    if dimensions:
+        projected["dimensions"] = dimensions
     projected["min"] = rng[0] if rng else None
     projected["max"] = rng[1] if rng else None
     return projected
@@ -210,12 +266,20 @@ def _is_metadata_entry(entry) -> bool:
 def _with_default(entry: dict, value) -> dict:
     """Copy of a projected entry carrying ``value`` as its default."""
     out = dict(entry)
-    if _leaf_count(value) > _LARGE_VALUE_THRESHOLD:
+    dimensions = _dimensions(value) if isinstance(value, list) else None
+    display_value = _compact_column_matrix(value)
+    if _leaf_count(display_value) > _LARGE_VALUE_THRESHOLD and not _is_column_matrix(display_value):
         out["default"] = None
         out["large"] = True
+        out["preview"] = _preview(display_value)
     else:
-        out["default"] = value
+        out["default"] = display_value
         out.pop("large", None)
+        out.pop("preview", None)
+    if dimensions:
+        out["dimensions"] = dimensions
+    else:
+        out.pop("dimensions", None)
     return out
 
 
@@ -278,3 +342,36 @@ def build_schema(case) -> tuple[dict | None, str | None]:
                 _overlay_values(overlay_defaults, schema)
 
     return schema, None
+
+
+def get_parameter_default(case, name: str) -> tuple[object | None, str | None]:
+    """Load one full calibration default without expanding the whole schema."""
+    try:
+        country_id = case.gen_data.get("country_id")
+    except (OSError, ValueError, KeyError):
+        country_id = None
+
+    rec = CalibrationRegistry.get(country_id)
+    if rec is None:
+        return None, "That country calibration is not installed."
+
+    base_file = find_defaults_file(rec, "ogcore")
+    base_defaults = load_defaults(base_file) if base_file is not None else None
+    if base_defaults is None:
+        return None, "The calibration's parameter definitions were not found."
+
+    found = name in base_defaults
+    value = _entry_value(base_defaults.get(name)) if found else None
+
+    package_name = rec.get("package_name")
+    if package_name and package_name != "ogcore":
+        overlay_file = find_defaults_file(rec, package_name)
+        overlay_defaults = load_defaults(overlay_file) if overlay_file is not None else None
+        if overlay_defaults and name in overlay_defaults:
+            found = True
+            entry = overlay_defaults[name]
+            value = _entry_value(entry) if _is_metadata_entry(entry) else entry
+
+    if not found:
+        return None, "Parameter not found."
+    return value, None

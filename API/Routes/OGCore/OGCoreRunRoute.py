@@ -1171,6 +1171,26 @@ def getParameterSchema():
     return jsonify(schema), 200
 
 
+@ogcore_run_api.route("/getParameterDefault", methods=["GET"])
+def getParameterDefault():
+    country_id = request.args.get("country_id") or session.get("ogccountry")
+    casename = request.args.get("casename") or session.get("ogccase")
+    parameter = request.args.get("parameter")
+    if not country_id or not casename or not parameter:
+        return _err("Missing case or parameter name.")
+    bad = _unsafe_name(country_id, casename)
+    if bad:
+        return bad
+    case = OGCoreCase(country_id, casename)
+    if not case.case_path.is_dir():
+        return _err("Case not found.", http=404)
+
+    value, error = OGSchema.get_parameter_default(case, parameter)
+    if error is not None:
+        return _err(error, http=404 if error == "Parameter not found." else 400)
+    return jsonify({"parameter": parameter, "value": value}), 200
+
+
 # ── download the whole case directory as a zip backup ────────────────────────
 @ogcore_run_api.route("/backupCase", methods=["GET"])
 def backupCase():

@@ -82,6 +82,17 @@ export const GROUP_OF = {
     tax_func_type: 'taxes',
     labor_income_tax_noncompliance_rate: 'taxes',
     capital_income_tax_noncompliance_rate: 'taxes',
+    adjustment_factor_for_cit_receipts: 'taxes',
+    delta_tau_annual: 'taxes',
+    etr_params: 'taxes',
+    mtrx_params: 'taxes',
+    mtry_params: 'taxes',
+    income_tax_filer: 'taxes',
+    wealth_tax_filer: 'taxes',
+    zero_taxes: 'taxes',
+    constant_rates: 'taxes',
+    analytical_mtrs: 'taxes',
+    age_specific: 'taxes',
 
     alpha_G: 'spending',
     alpha_T: 'spending',
@@ -103,6 +114,25 @@ export const GROUP_OF = {
     rho_G: 'spending',
     budget_balance: 'spending',
     baseline_spending: 'spending',
+    alpha_bs_G: 'spending',
+    alpha_bs_I: 'spending',
+    alpha_bs_T: 'spending',
+    alpha_FA: 'spending',
+    replacement_rate_adjust: 'spending',
+    baseline_theta: 'spending',
+    AIME_bkt_1: 'spending',
+    AIME_bkt_2: 'spending',
+    PIA_rate_bkt_1: 'spending',
+    PIA_rate_bkt_2: 'spending',
+    PIA_rate_bkt_3: 'spending',
+    PIA_minpayment: 'spending',
+    PIA_maxpayment: 'spending',
+    alpha_db: 'spending',
+    yr_contrib: 'spending',
+    indR: 'spending',
+    k_ret: 'spending',
+    vpoint: 'spending',
+    avg_earn_num_years: 'spending',
 
     g_y_annual: 'production',
     g_y: 'production',
@@ -112,7 +142,6 @@ export const GROUP_OF = {
     epsilon: 'production',
     delta_annual: 'production',
     delta_g_annual: 'production',
-    delta_tau_annual: 'production',
     io_matrix: 'production',
     alpha_c: 'production',
 
@@ -127,11 +156,10 @@ export const GROUP_OF = {
     zeta: 'households',
     eta: 'households',
     eta_RM: 'households',
-    use_zeta: 'households',
-    alpha_RM_1: 'households',
-    alpha_RM_T: 'households',
-    g_RM: 'households',
-    avg_earn_num_years: 'households',
+    use_zeta: 'open',
+    alpha_RM_1: 'open',
+    alpha_RM_T: 'open',
+    g_RM: 'open',
     constant_demographics: 'households',
 
     start_year: 'demographics',
@@ -149,6 +177,10 @@ export const GROUP_OF = {
     zeta_K: 'open',
     initial_foreign_debt_ratio: 'open',
     foreign_debt_ratio: 'open',
+    r_gov_shift: 'open',
+    r_gov_scale: 'open',
+    r_gov_DY: 'open',
+    r_gov_DY2: 'open',
 
     S: 'advanced',
     J: 'advanced',
@@ -172,7 +204,7 @@ export const GROUP_OF = {
     use_sparse_FOC_jac: 'advanced'
 };
 
-export const READ_ONLY = {
+export const PARAMETER_POLICY = {
     chi_n: { reason: 'calibration' },
     e: { reason: 'calibration' },
     zeta: { reason: 'calibration' },
@@ -191,9 +223,6 @@ export const READ_ONLY = {
     etr_params: { reason: 'estimated' },
     mtrx_params: { reason: 'estimated' },
     mtry_params: { reason: 'estimated' },
-    tax_func_type: { reason: 'estimated' },
-    income_tax_filer: { reason: 'estimated' },
-    wealth_tax_filer: { reason: 'estimated' },
     S: { reason: 'structural' },
     J: { reason: 'structural' },
     T: { reason: 'structural' },
@@ -220,11 +249,13 @@ export const DIMENSION = {
     beta_annual: 'by_j',
     lambdas: 'by_j',
     chi_b: 'by_j',
+    capital_income_tax_noncompliance_rate: 'by_j',
+    income_tax_filer: 'by_j',
+    labor_income_tax_noncompliance_rate: 'by_j',
+    wealth_tax_filer: 'by_j',
     chi_n: 'by_age',
-    rho: 'by_age',
     omega_SS: 'by_age',
     omega_S_preTP: 'by_age',
-    imm_rates: 'by_age',
     e: 'matrix',
     zeta: 'matrix',
     eta: 'matrix',
@@ -253,16 +284,59 @@ export const CHOICES = {
 };
 
 export const LOCKED_DIMS = ['S', 'T', 'J', 'M', 'I'];
+export const BINARY_ROWS = ['income_tax_filer', 'wealth_tax_filer'];
+
+export const TABLE_AXES = {
+    e: { row: 'Age', column: 'Lifetime-income group' },
+    eta: { row: 'Age', column: 'Lifetime-income group' },
+    eta_RM: { row: 'Age', column: 'Lifetime-income group' },
+    zeta: { row: 'Age', column: 'Lifetime-income group' },
+    imm_rates: { row: 'Model period', column: 'Age' },
+    omega: { row: 'Model period', column: 'Age' },
+    rho: { row: 'Model period', column: 'Age' },
+    io_matrix: { row: 'Consumption good', column: 'Production good' }
+};
+
+function valueDimensions(value){
+    let out = [];
+    while (Array.isArray(value)){
+        out.push(value.length);
+        value = value.length ? value[0] : null;
+    }
+    return out;
+}
+
+function allSingleton(dimensions){
+    return dimensions.length > 1 && dimensions.every(size => size == 1);
+}
 
 export function decorate(name, entry) {
     entry = entry || {};
-    let ro = READ_ONLY[name] || null;
+    let policy = PARAMETER_POLICY[name] || null;
+    let ro = policy && (policy.reason == 'structural' || policy.reason == 'solver')
+        ? policy
+        : null;
+    let expertReason = policy && !ro ? policy.reason : null;
+    if (!ro && entry.section == 'Model Solution Parameters'){
+        ro = { reason: 'solver' };
+    }
     let rule = ro ? null : suffixRule(name);
     if (rule){
-        ro = { reason: rule.reason };
+        expertReason = rule.reason;
     }
     let dimension = DIMENSION[name] || null;
-    if (!dimension) {
+    let dimensions = entry.dimensions || valueDimensions(entry.default);
+    let storageShape = null;
+    if (allSingleton(dimensions)){
+        storageShape = 'singleton_tensor';
+        dimension = dimensions.length == 2 && /set value for base year/i.test(entry.description || '')
+            ? 'by_year'
+            : 'scalar';
+    }else if (entry.shape == 'time_x_industry'
+        && dimensions.length == 2 && dimensions[1] == 1){
+        storageShape = 'column_matrix';
+        dimension = 'by_year';
+    }else if (!dimension) {
         if (entry.shape == 'scalar'){
             dimension = 'scalar';
         }else if (entry.shape == 'time_x_industry'){
@@ -272,6 +346,15 @@ export function decorate(name, entry) {
         }
     }
     let large = entry.large === true || entry.default === null;
+    let tableEditable = dimension == 'by_age' || dimension == 'matrix';
+    let access = 'edit';
+    if (ro){
+        access = 'view';
+    }else if (expertReason && tableEditable){
+        access = 'expert-edit';
+    }else if (large && storageShape != 'column_matrix' && !tableEditable){
+        access = 'view';
+    }
     return {
         name: name,
         title: entry.title || name,
@@ -279,16 +362,25 @@ export function decorate(name, entry) {
         section: entry.section || '',
         subsection: entry.subsection || null,
         type: entry.type || 'level',
+        datatype: entry.datatype || null,
         shape: entry.shape || 'scalar',
         dimension: dimension,
         min: (entry.min === 0 || entry.min) ? entry.min : null,
         max: (entry.max === 0 || entry.max) ? entry.max : null,
         def: entry.default,
         large: large,
-        readOnly: !!ro || large,
-        readOnlyReason: ro ? ro.reason : (large ? 'calibration' : null),
+        preview: entry.preview || null,
+        dimensions: dimensions.length ? dimensions : null,
+        storageShape: storageShape,
+        tableEditable: tableEditable,
+        access: access,
+        readOnly: access == 'view',
+        readOnlyReason: access == 'view' ? (ro ? ro.reason : 'calibration') : null,
+        expertEditReason: access == 'expert-edit' ? expertReason : null,
+        binaryRow: BINARY_ROWS.indexOf(name) >= 0,
+        axes: TABLE_AXES[name] || null,
         constraint: CONSTRAINT[name] || null,
-        choices: CHOICES[name] || null,
+        choices: entry.choices || CHOICES[name] || null,
         group: GROUP_OF[name] || (rule ? rule.group : null) || DEFAULT_GROUP
     };
 }

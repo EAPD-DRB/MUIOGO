@@ -5,6 +5,8 @@ export class Model {
     constructor (schema, params, selection, refParams) {
         this.selection = selection || {};
         this.isReform = this.selection.run_type == 'reform';
+        this.params = params || {};
+        this.refParams = refParams || {};
 
         this.fields = {};
         this.byGroup = {};
@@ -32,8 +34,8 @@ export class Model {
         let cur = this.cur;
         $.each(fields, function (name, f) {
             let refVal = self.isReform ? self.pick(refParams, name, f.def) : f.def;
-            base[name] = refVal;
-            cur[name] = self.pick(params, name, refVal);
+            base[name] = Model.clone(refVal);
+            cur[name] = Model.clone(self.pick(params, name, refVal));
         });
 
         this.pageID = 'OGParameters';
@@ -49,6 +51,24 @@ export class Model {
     unwrap(v, f){
         if (!f){
             return v;
+        }
+        if (f.storageShape == 'singleton_tensor'){
+            if (f.dimension == 'by_year'){
+                if (!$.isArray(v)) return [v];
+                return $.map(v, item => $.isArray(item) ? item[0] : item);
+            }
+            while ($.isArray(v) && v.length == 1){
+                v = v[0];
+            }
+            return v;
+        }
+        if (f.storageShape == 'column_matrix'){
+            if (!$.isArray(v)) return [v];
+            let values = $.map(v, item => $.isArray(item) ? item[0] : item);
+            while (values.length > 1 && Model.equal(values[values.length - 1], values[values.length - 2])){
+                values.pop();
+            }
+            return values;
         }
         if (f.dimension == 'scalar'){
             while ($.isArray(v) && v.length == 1){
@@ -70,6 +90,19 @@ export class Model {
         if (!f){
             return value;
         }
+        if (f.storageShape == 'singleton_tensor'){
+            if (f.dimension == 'by_year'){
+                return (value || []).map(item => [item]);
+            }
+            let wrapped = value;
+            for (let depth = 0; depth < (f.dimensions || []).length; depth++){
+                wrapped = [wrapped];
+            }
+            return wrapped;
+        }
+        if (f.storageShape == 'column_matrix'){
+            return (value || []).map(item => [item]);
+        }
         if (f.dimension == 'scalar'){
             return value;
         }
@@ -80,6 +113,9 @@ export class Model {
     }
 
     normalise(f, v){
+        if (f.storageShape == 'singleton_tensor' || f.storageShape == 'column_matrix'){
+            return this.unwrap(v, f);
+        }
         if (f.dimension == 'scalar'){
             while ($.isArray(v) && v.length == 1){
                 v = v[0];
@@ -103,7 +139,28 @@ export class Model {
         if ($.inArray(name, LOCKED_DIMS) >= 0){
             return false;
         }
-        return f.dimension == 'scalar' || f.dimension == 'by_j' || f.dimension == 'by_year';
+        return f.dimension == 'scalar' || f.dimension == 'by_j' || f.dimension == 'by_year'
+            || f.dimension == 'by_age' || f.dimension == 'matrix';
+    }
+
+    hydrateDefault(name, value){
+        let f = this.fields[name];
+        if (!f){
+            return;
+        }
+        f.def = this.normalise(f, value);
+        let reference = this.isReform
+            ? this.pick(this.refParams, name, f.def)
+            : f.def;
+        this.base[name] = Model.clone(reference);
+        this.cur[name] = Model.clone(this.pick(this.params, name, reference));
+    }
+
+    static clone(value){
+        if (!$.isArray(value)){
+            return value;
+        }
+        return value.map(item => Model.clone(item));
     }
 
     refValue(name, refName){

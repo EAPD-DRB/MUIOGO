@@ -1,9 +1,7 @@
 <div class="ogc-page" id="ogcParamsPage">
 
-  <h1 class="ogc-title" id="ogcParamsTitle">Parameters</h1>
-  <div class="ogc-sub" id="ogcParamsSub">Values are read from the calibration installed on this machine, so the form always matches the model version in use.</div>
-
-  <div class="ogc-bar">
+  <div class="ogc-pagehead">
+    <h1 class="ogc-title" id="ogcParamsTitle">Parameters</h1>
     <span class="ogc-bar-right">
       <a class="btn ogc-btn" href="#/OGCases"><i class="fa fa-arrow-left"></i> Cases</a>
       <a class="btn ogc-btn" href="#/OGCore"><i class="fa fa-globe"></i> All countries</a>
@@ -30,6 +28,24 @@
     <div>
       <b id="ogcParamsEmptyTitle">No run selected</b>
       <div id="ogcParamsEmptyText">Open a run from the Cases page to configure its parameters.</div>
+    </div>
+  </div>
+
+  <div class="ogc-table-modal" id="ogcTableModal" role="dialog" aria-modal="true" aria-labelledby="ogcTableTitle" style="display:none">
+    <div class="ogc-table-dialog">
+      <header class="ogc-table-head">
+        <h2 id="ogcTableTitle"></h2>
+        <div id="ogcTableMeta"></div>
+      </header>
+      <div class="ogc-table-note">Double-click to edit a cell. Use Ctrl/Cmd+C and Ctrl/Cmd+V to copy and paste.</div>
+      <div class="ogc-table-grid" id="ogcTableGrid"></div>
+      <footer class="ogc-table-foot">
+        <span id="ogcTableStatus">No modified values</span>
+        <span class="ogc-table-actions">
+          <button type="button" class="btn ogc-btn" data-table-act="cancel">Cancel</button>
+          <button type="button" class="btn ogc-btn ogc-btn-main" data-table-act="apply">Apply changes</button>
+        </span>
+      </footer>
     </div>
   </div>
 

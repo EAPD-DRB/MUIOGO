@@ -67,8 +67,9 @@ export class Ogc {
         return Ogc._request('POST', 'ogc/unregisterCalibration', { country_id: countryId });
     }
 
-    static getCases() {
-        return Ogc._request('GET', 'ogc/getCases');
+    static getCases(countryId) {
+        let query = countryId ? '?country_id=' + encodeURIComponent(countryId) : '';
+        return Ogc._request('GET', 'ogc/getCases' + query);
     }
 
     static getSession() {
@@ -91,17 +92,22 @@ export class Ogc {
         });
     }
 
-    static deleteCase(casename) {
-        return Ogc._request('POST', 'ogc/deleteCase', { casename: casename });
+    static deleteCase(countryId, casename) {
+        return Ogc._request('POST', 'ogc/deleteCase', {
+            country_id: countryId, casename: casename
+        });
     }
 
-    static getRuns(casename) {
-        return Ogc._request('POST', 'ogc/getRuns', { casename: casename })
+    static getRuns(countryId, casename) {
+        return Ogc._request('POST', 'ogc/getRuns', {
+            country_id: countryId, casename: casename
+        })
             .then(Ogc.normaliseRuns);
     }
 
     static createRun(data) {
         let payload = {
+            country_id: data.country_id,
             casename: data.casename,
             run_name: data.run_name,
             run_type: data.run_type
@@ -115,35 +121,49 @@ export class Ogc {
         return Ogc._request('POST', 'ogc/createRun', payload);
     }
 
-    static deleteRun(casename, runName) {
-        return Ogc._request('POST', 'ogc/deleteRun', { casename: casename, run_name: runName });
-    }
-
-    static getParams(casename, runName) {
-        return Ogc._request('POST', 'ogc/getParams', { casename: casename, run_name: runName })
-            .then(params => ({ params: params.params || params }));
-    }
-
-    static saveParams(casename, runName, params) {
-        return Ogc._request('POST', 'ogc/saveParams', {
-            casename: casename, run_name: runName, params: params
+    static deleteRun(countryId, casename, runName) {
+        return Ogc._request('POST', 'ogc/deleteRun', {
+            country_id: countryId, casename: casename, run_name: runName
         });
     }
 
-    static getParameterSchema(casename) {
-        return Ogc._request('GET', 'ogc/getParameterSchema?casename=' + encodeURIComponent(casename));
+    static getParams(countryId, casename, runName) {
+        return Ogc._request('POST', 'ogc/getParams', {
+            country_id: countryId, casename: casename, run_name: runName
+        })
+            .then(params => ({ params: params.params || params }));
     }
 
-    static run(casename, runName, timePath) {
+    static saveParams(countryId, casename, runName, params) {
+        return Ogc._request('POST', 'ogc/saveParams', {
+            country_id: countryId, casename: casename,
+            run_name: runName, params: params
+        });
+    }
+
+    static getParameterSchema(countryId, casename) {
+        return Ogc._request('GET', 'ogc/getParameterSchema?country_id=' + encodeURIComponent(countryId)
+            + '&casename=' + encodeURIComponent(casename));
+    }
+
+    static getParameterDefault(countryId, casename, parameter) {
+        return Ogc._request('GET', 'ogc/getParameterDefault?country_id=' + encodeURIComponent(countryId)
+            + '&casename=' + encodeURIComponent(casename)
+            + '&parameter=' + encodeURIComponent(parameter));
+    }
+
+    static run(countryId, casename, runName, timePath) {
         return Ogc._request('POST', 'ogc/run', {
+            country_id: countryId,
             casename: casename,
             run_name: runName,
             time_path: !!timePath
         });
     }
 
-    static getRunStatus(casename, runName) {
+    static getRunStatus(countryId, casename, runName) {
         return Ogc._request('POST', 'ogc/getRunStatus', {
+            country_id: countryId,
             casename: casename,
             run_name: runName
         });
@@ -151,12 +171,15 @@ export class Ogc {
 
     //Newer backends expose the complete live queue. Callers must still fall
     //back to per-run status because older installations do not have this route.
-    static getRunQueue(casename) {
-        return Ogc._request('POST', 'ogc/getRunQueue', { casename: casename });
+    static getRunQueue(countryId, casename) {
+        return Ogc._request('POST', 'ogc/getRunQueue', {
+            country_id: countryId, casename: casename
+        });
     }
 
-    static cancelRun(casename, runName) {
+    static cancelRun(countryId, casename, runName) {
         return Ogc._request('POST', 'ogc/cancelRun', {
+            country_id: countryId,
             casename: casename,
             run_name: runName
         });

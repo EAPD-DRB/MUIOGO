@@ -23,6 +23,10 @@ export function loadWorkspace(){
     return OGWorkspace.current();
 }
 
+export function runKey(countryId, casename, runName){
+    return countryId + ':' + casename + ':' + runName;
+}
+
 export function saveSelection(sel){
     if (sel){
         localStorage.setItem(SEL_KEY, JSON.stringify(sel));
@@ -91,7 +95,10 @@ export default class OGCases {
 
     // Load the backend case containers and present their configurations as cases.
     static refresh(initEvents, pageID){
-        Promise.all([Ogc.getCases(), Ogc.getInstalledCalibrations()])
+        Promise.all([
+            Ogc.getCases(OGCases.workspace.country_id),
+            Ogc.getInstalledCalibrations()
+        ])
         .then(data => {
             if (!OGCases.isCurrent(pageID)){
                 return;
@@ -103,7 +110,7 @@ export default class OGCases {
             });
             //runs come per case, so fetch them together and key by case name
             return Promise.all($.map(list, function (c) {
-                return Ogc.getRuns(c.casename)
+                return Ogc.getRuns(OGCases.workspace.country_id, c.casename)
                     .then(r => ({ casename: c.casename, runs: r.runs || r || [] }))
                     .catch(error => ({ casename: c.casename, runs: [], error: error }));
             }))
@@ -236,12 +243,15 @@ export default class OGCases {
 
     static entryRows(entry, nested){
         let c = entry.case, run = entry.run;
-        let key = c.casename + ':' + run.run_name;
+        let key = runKey(c.country_id, c.casename, run.run_name);
         let from = run.run_type == 'reform' ? OGCases.baselineDisplayName(c, run.baseline_run) : 'Calibration defaults';
         let type = run.run_type == 'reform' ? 'reform' : 'baseline';
         let name = OGCases.displayName(c, run);
         let addReform = type == 'baseline'
             ? `<button class="btn ogc-btn ogc-btn-sm" data-act="new-run" data-case="${esc(c.casename)}"><i class="fa fa-plus"></i> Add reform</button>`
+            : '';
+        let menuAddReform = type == 'baseline'
+            ? `<button type="button" role="menuitem" data-act="new-run" data-case="${esc(c.casename)}"><i class="fa fa-plus"></i> Add reform</button>`
             : '';
         return `<tr class="ogc-case-row${nested ? ' ogc-nested' : ''}" data-act="expand" data-key="${esc(key)}">
             <td><i class="fa fa-caret-right ogc-caret"></i> <b>${esc(name)}</b></td>
@@ -249,7 +259,10 @@ export default class OGCases {
             <td class="ogc-mut">${esc(from)}</td>
             <td class="ogc-actcell"><button class="btn ogc-btn ogc-btn-sm" data-act="run" data-case="${esc(c.casename)}" data-run="${esc(run.run_name)}"><i class="fa fa-play"></i> Run</button>
             <button class="btn ogc-btn ogc-btn-sm" data-act="params" data-case="${esc(c.casename)}" data-run="${esc(run.run_name)}"><i class="fa fa-pencil"></i> Edit</button>
-            <button class="btn ogc-btn ogc-btn-ico" data-act="del-run" data-case="${esc(c.casename)}" data-run="${esc(run.run_name)}" title="Delete"><i class="fa fa-ellipsis-v"></i></button></td></tr>
+            <span class="ogc-action-menu"><button class="btn ogc-btn ogc-btn-ico" data-act="run-menu" data-case="${esc(c.casename)}" data-run="${esc(run.run_name)}" aria-label="Actions for ${esc(name)}" aria-haspopup="menu" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></button>
+            <span class="ogc-case-menu" role="menu" aria-hidden="true">${menuAddReform}
+                <button type="button" role="menuitem" class="ogc-menu-danger" data-act="del-run" data-case="${esc(c.casename)}" data-run="${esc(run.run_name)}"><i class="fa fa-trash"></i> Delete</button>
+            </span></span></td></tr>
             <tr class="ogc-detail-row" data-detail="${esc(key)}" style="display:none"><td colspan="4"><div class="ogc-case-detail">
                 <div><label>Type</label>${type == 'reform' ? 'Reform' : 'User baseline'}</div><div><label>Created from</label>${esc(from)}</div>
                 <div><label>Backend case</label>${esc(c.casename)}</div><div><label>Description</label>${esc(type == 'reform' ? (run.description || 'No description') : (c.description || 'No description'))}</div>
@@ -398,7 +411,8 @@ export default class OGCases {
             request = Ogc.saveCase({ casename: name, country_id: countryId, description: description })
                 .then(response => OGCases.requireCreated(response, 'The baseline could not be created.'))
                 .then(() => Ogc.createRun({
-                    casename: name, run_name: 'baseline', run_type: 'baseline', description: description
+                    country_id: countryId, casename: name, run_name: 'baseline',
+                    run_type: 'baseline', description: description
                 }));
             selection = {
                 casename: name, run_name: 'baseline', run_type: 'baseline',
@@ -420,6 +434,7 @@ export default class OGCases {
                 return;
             }
             request = Ogc.createRun({
+                country_id: countryId,
                 casename: choice.casename,
                 run_name: name,
                 run_type: 'reform',
@@ -476,12 +491,13 @@ export default class OGCases {
     static deleteCaseConfirm(casename){
         let pageID = PAGE_ID;
         OGCases.closeModal();
-        Ogc.setSession(casename)
-        .then(() => Ogc.deleteCase(casename))
+        let countryId = OGCases.workspace.country_id;
+        Ogc.setSession(casename, countryId)
+        .then(() => Ogc.deleteCase(countryId, casename))
         .then(response => {
             //a deleted case must not stay selected for the parameters page
             let sel = loadSelection();
-            if (sel && sel.casename == casename){
+            if (sel && sel.country_id == countryId && sel.casename == casename){
                 saveSelection(null);
             }
             Message.smallBoxInfo('OG-Core', 'Case deleted.', 3000);
@@ -495,11 +511,13 @@ export default class OGCases {
     static deleteRunConfirm(casename, runName){
         let pageID = PAGE_ID;
         OGCases.closeModal();
-        Ogc.setSession(casename)
-        .then(() => Ogc.deleteRun(casename, runName))
+        let countryId = OGCases.workspace.country_id;
+        Ogc.setSession(casename, countryId)
+        .then(() => Ogc.deleteRun(countryId, casename, runName))
         .then(response => {
             let sel = loadSelection();
-            if (sel && sel.casename == casename && sel.run_name == runName){
+            if (sel && sel.country_id == countryId
+                && sel.casename == casename && sel.run_name == runName){
                 saveSelection(null);
             }
             Message.smallBoxInfo('OG-Core', 'Case deleted.', 3000);
@@ -563,6 +581,27 @@ export default class OGCases {
         return found;
     }
 
+    static closeActionMenus(returnFocus){
+        let open = $('.ogc-action-menu.ogc-menu-open');
+        let trigger = open.find('[data-act="run-menu"]').first();
+        open.removeClass('ogc-menu-open');
+        open.find('[data-act="run-menu"]').attr('aria-expanded', 'false');
+        open.find('.ogc-case-menu').attr('aria-hidden', 'true');
+        if (returnFocus && trigger.length) trigger.focus();
+    }
+
+    static toggleActionMenu(button){
+        let trigger = $(button);
+        let menu = trigger.closest('.ogc-action-menu');
+        let opening = !menu.hasClass('ogc-menu-open');
+        OGCases.closeActionMenus(false);
+        if (!opening) return;
+        menu.addClass('ogc-menu-open');
+        trigger.attr('aria-expanded', 'true');
+        menu.find('.ogc-case-menu').attr('aria-hidden', 'false')
+            .find('[role="menuitem"]').first().focus();
+    }
+
     //events
 
     static initEvents(){
@@ -572,6 +611,11 @@ export default class OGCases {
             let act = $(this).attr('data-act');
             let casename = $(this).attr('data-case');
             let runName = $(this).attr('data-run');
+            if (act == 'run-menu'){
+                OGCases.toggleActionMenu(this);
+                return;
+            }
+            OGCases.closeActionMenus(false);
             if (act == 'new-case') OGCases.openNewCase();
             if (act == 'new-run') OGCases.openNewRun(casename);
             if (act == 'run') OGCases.openRun(casename, runName);
@@ -611,6 +655,15 @@ export default class OGCases {
         //the dimmed backdrop closes the dialog
         $('#ogcCasesModal').off('click.ogcasesback').on('click.ogcasesback', function (e) {
             if (e.target === this) OGCases.closeModal();
+        });
+
+        $(document).off('click.ogcasesmenu').on('click.ogcasesmenu', function (e) {
+            if (!$(e.target).closest('.ogc-action-menu').length){
+                OGCases.closeActionMenus(false);
+            }
+        });
+        $(document).off('keydown.ogcasesmenu').on('keydown.ogcasesmenu', function (e) {
+            if (e.key == 'Escape') OGCases.closeActionMenus(true);
         });
     }
 }

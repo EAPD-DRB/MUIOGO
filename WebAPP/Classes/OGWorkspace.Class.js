@@ -3,6 +3,7 @@ import { Ogc } from "./Ogc.Class.js";
 const WORKSPACE_KEY = 'osy-ogc-country';
 const SELECTION_KEY = 'osy-ogc-selection';
 const WORKSPACE_ROUTES = ['/OGCases', '/OGParameters', '/OGRuns'];
+const LIFECYCLE_DELAY_MS = 200;
 
 let prepared = null;
 let confirmResolve = null;
@@ -10,6 +11,8 @@ let actionResolve = null;
 let returnFocus = null;
 let prepareVersion = 0;
 let preparing = false;
+let lifecycleTimer = null;
+let lifecycleView = null;
 
 const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g,
     ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -120,19 +123,49 @@ export class OGWorkspace {
         return new Promise(resolve => { confirmResolve = resolve; });
     }
 
-    static showLifecycle(title, steps){
+    static revealLifecycle(view){
+        if (!view || lifecycleView !== view){
+            return;
+        }
         OGWorkspace.ensureUi();
-        $('#ogWorkspaceLifeTitle').text(title);
+        $('#ogWorkspaceLifeTitle').text(view.title);
         $('#ogWorkspaceLifeError, #ogWorkspaceLifeActions').empty().hide();
         $('#ogWorkspaceLifecycle').removeClass('og-life-failed').css('display', 'flex');
-        $('#ogWorkspaceLifeSteps').html($.map(steps, function (label, index) {
+        $('#ogWorkspaceLifeSteps').html($.map(view.steps, function (label, index) {
             return `<div class="og-workspace-step og-step-pending" data-step="${index}">
                 <i class="fa fa-circle-o"></i><span>${esc(label)}</span>
             </div>`;
         }).join(''));
+        view.visible = true;
+        $.each(view.states, function (index, state) {
+            OGWorkspace.paintStep(index, state);
+        });
     }
 
-    static setStep(index, state){
+    static showLifecycle(title, steps, delay = 0){
+        if (lifecycleTimer !== null){
+            clearTimeout(lifecycleTimer);
+            lifecycleTimer = null;
+        }
+        $('#ogWorkspaceLifecycle').hide().removeClass('og-life-failed');
+        let view = {
+            title: title,
+            steps: steps,
+            states: $.map(steps, () => 'pending'),
+            visible: false
+        };
+        lifecycleView = view;
+        if (delay > 0){
+            lifecycleTimer = setTimeout(function () {
+                lifecycleTimer = null;
+                OGWorkspace.revealLifecycle(view);
+            }, delay);
+            return;
+        }
+        OGWorkspace.revealLifecycle(view);
+    }
+
+    static paintStep(index, state){
         let row = $(`#ogWorkspaceLifeSteps [data-step="${index}"]`);
         let icon = state == 'done' ? 'fa-check' : state == 'failed' ? 'fa-times' :
             state == 'current' ? 'fa-circle-o-notch fa-spin' : 'fa-circle-o';
@@ -140,7 +173,33 @@ export class OGWorkspace {
         row.find('.fa').attr('class', 'fa ' + icon);
     }
 
+    static setStep(index, state){
+        if (lifecycleView && lifecycleView.states[index] !== undefined){
+            lifecycleView.states[index] = state;
+        }
+        if (lifecycleView && lifecycleView.visible){
+            OGWorkspace.paintStep(index, state);
+        }
+    }
+
+    static currentStep(){
+        if (!lifecycleView){
+            return undefined;
+        }
+        let index = lifecycleView.states.indexOf('current');
+        return index >= 0 ? index : undefined;
+    }
+
     static failure(message, actions){
+        if (lifecycleTimer !== null){
+            clearTimeout(lifecycleTimer);
+            lifecycleTimer = null;
+        }
+        if (lifecycleView && !lifecycleView.visible){
+            OGWorkspace.revealLifecycle(lifecycleView);
+        }else{
+            OGWorkspace.ensureUi();
+        }
         $('#ogWorkspaceLifecycle').addClass('og-life-failed');
         $('#ogWorkspaceLifeError').text(message).show();
         let html = $.map(actions, function (action) {
@@ -152,6 +211,11 @@ export class OGWorkspace {
     }
 
     static hideLifecycle(){
+        if (lifecycleTimer !== null){
+            clearTimeout(lifecycleTimer);
+            lifecycleTimer = null;
+        }
+        lifecycleView = null;
         $('#ogWorkspaceLifecycle').hide().removeClass('og-life-failed');
         actionResolve = null;
     }
@@ -167,7 +231,7 @@ export class OGWorkspace {
                 'Activating the country workspace...',
                 'Loading cases...',
                 'Loading runs...'
-            ]);
+            ], LIFECYCLE_DELAY_MS);
             let sessionActivated = false;
             try {
                 OGWorkspace.setStep(0, 'current');
@@ -190,7 +254,7 @@ export class OGWorkspace {
                 OGWorkspace.setStep(1, 'done');
                 OGWorkspace.setStep(2, 'current');
 
-                let casesResponse = await Ogc.getCases();
+                let casesResponse = await Ogc.getCases(country.country_id);
                 if (!active()){
                     await Ogc.setSession(null).catch(() => {});
                     return false;
@@ -201,7 +265,7 @@ export class OGWorkspace {
                 OGWorkspace.setStep(3, 'current');
 
                 let runResults = await Promise.all($.map(cases, function (item) {
-                    return Ogc.getRuns(item.casename)
+                    return Ogc.getRuns(country.country_id, item.casename)
                         .then(response => ({ casename: item.casename, runs: response.runs || [] }))
                         .catch(error => ({ casename: item.casename, runs: [], error: error }));
                 }));
@@ -236,7 +300,7 @@ export class OGWorkspace {
                     }
                 }
                 if (!active()) return false;
-                let current = $('#ogWorkspaceLifeSteps .og-step-current').attr('data-step');
+                let current = OGWorkspace.currentStep();
                 if (current !== undefined) OGWorkspace.setStep(current, 'failed');
                 let choice = await OGWorkspace.failure(String(error), [
                     { id: 'back', label: 'Return to OG-Core' },
@@ -262,7 +326,7 @@ export class OGWorkspace {
         while (true){
             OGWorkspace.showLifecycle('Exiting workspace', [
                 'Closing the country workspace...'
-            ]);
+            ], LIFECYCLE_DELAY_MS);
             OGWorkspace.setStep(0, 'current');
             try {
                 await Ogc.setSession(null);

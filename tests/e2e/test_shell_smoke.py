@@ -8,9 +8,11 @@ pytest job skips this module.
 """
 
 import os
+import re
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -38,16 +40,19 @@ def base_url():
     """Real server on a free port, torn down after the session."""
     port = _free_port()
     env = dict(os.environ, PORT=str(port))
+    log = tempfile.TemporaryFile(mode="w+t", encoding="utf-8")
     proc = subprocess.Popen(
         [sys.executable, str(REPO_ROOT / "API" / "app.py")],
         cwd=REPO_ROOT, env=env,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        stdout=log, stderr=subprocess.STDOUT, text=True,
     )
     url = f"http://127.0.0.1:{port}"
     deadline = time.time() + STARTUP_TIMEOUT
     while True:
         if proc.poll() is not None:
-            out = proc.stdout.read() if proc.stdout else ""
+            log.seek(0)
+            out = log.read()
+            log.close()
             pytest.fail(f"app exited during startup (code {proc.returncode}):\n{out[-2000:]}")
         try:
             with urllib.request.urlopen(url, timeout=2) as resp:
@@ -65,6 +70,7 @@ def base_url():
         proc.wait(timeout=10)
     except subprocess.TimeoutExpired:
         proc.kill()
+    log.close()
 
 
 # Each test gets a fresh browser context (empty localStorage), so every test
@@ -96,8 +102,8 @@ def test_sidebar_active_item_tracks_og_workspace_route(page, base_url):
     page.goto(f"{base_url}/#/OGCases")
     expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(2)
     expect(page.locator('#Navi > li.nav-og-workspace').filter(
-        has=page.locator('a[href="#/OGCases"]'))).to_have_class('active')
-    expect(page.locator('#Navi > li.nav-home')).not_to_have_class('active')
+        has=page.locator('a[href="#/OGCases"]'))).to_have_class(re.compile(r'(^|\s)active(\s|$)'))
+    expect(page.locator('#Navi > li.nav-home')).not_to_have_class(re.compile(r'(^|\s)active(\s|$)'))
     expect(page.locator(".project-context")).to_be_hidden()
 
 
@@ -348,6 +354,28 @@ def test_country_workspace_filters_cases(page, base_url):
     assert result == ['ethiopia-case']
 
 
+def test_browser_run_state_is_scoped_by_country(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const cases = await import(new URL('App/Controller/OGCases.js', location.href).href);
+        localStorage.removeItem('osy-ogc-stale-runs');
+        const eth = cases.runKey('ETH', 'Baseline', 'baseline');
+        const usa = cases.runKey('USA', 'Baseline', 'baseline');
+        cases.markRunsStale([eth]);
+        return {
+            eth, usa,
+            ethStale: cases.isRunStale(eth),
+            usaStale: cases.isRunStale(usa)
+        };
+    }""")
+    assert result == {
+        'eth': 'ETH:Baseline:baseline',
+        'usa': 'USA:Baseline:baseline',
+        'ethStale': True,
+        'usaStale': False,
+    }
+
+
 def test_ogc_adapter_matches_run_backend_contract(page, base_url):
     page.goto(base_url)
     result = page.evaluate("""async () => {
@@ -365,11 +393,11 @@ def test_ogc_adapter_matches_run_backend_contract(page, base_url):
             return {status_code: 'success'};
         };
         await Ogc.saveCase({casename: 'case-one', description: 'd', country_id: 'ETH'});
-        await Ogc.createRun({casename: 'case-one', run_name: 'reform', run_type: 'reform', baseline_run: 'base'});
-        await Ogc.cancelRun('case-one', 'reform');
-        const runs = await Ogc.getRuns('case-one');
-        const params = await Ogc.getParams('case-one', 'reform');
-        await Ogc.getRunQueue('case-one');
+        await Ogc.createRun({country_id: 'ETH', casename: 'case-one', run_name: 'reform', run_type: 'reform', baseline_run: 'base'});
+        await Ogc.cancelRun('ETH', 'case-one', 'reform');
+        const runs = await Ogc.getRuns('ETH', 'case-one');
+        const params = await Ogc.getParams('ETH', 'case-one', 'reform');
+        await Ogc.getRunQueue('ETH', 'case-one');
         await Ogc.setSession(null, 'ETH');
         await Ogc.setSession(null);
         return {calls, runs, params};
@@ -378,12 +406,15 @@ def test_ogc_adapter_matches_run_backend_contract(page, base_url):
         'data': {'ogc-casename': 'case-one', 'ogc-description': 'd', 'country_id': 'ETH'}
     }
     assert result['calls'][1]['data']['baseline_run_name'] == 'base'
-    assert result['calls'][2]['data'] == {'casename': 'case-one', 'run_name': 'reform'}
+    assert result['calls'][2]['data'] == {
+        'country_id': 'ETH', 'casename': 'case-one', 'run_name': 'reform'
+    }
     assert result['runs']['runs'][0]['run_name'] == 'base'
     assert result['runs']['runs'][1]['baseline_run'] == 'base'
     assert result['params']['params']['debt_ratio_ss'] == [[0.4]]
     assert result['calls'][5] == {
-        'type': 'POST', 'path': 'ogc/getRunQueue', 'data': {'casename': 'case-one'}
+        'type': 'POST', 'path': 'ogc/getRunQueue',
+        'data': {'country_id': 'ETH', 'casename': 'case-one'}
     }
     assert result['calls'][6]['data'] == {'casename': None, 'country_id': 'ETH'}
     assert result['calls'][7]['data'] == {'casename': None}
@@ -407,7 +438,7 @@ def test_workspace_opening_uses_real_backend_stages(page, base_url):
             calls.push('cases');
             return [{casename: 'baseline-one', country_id: 'ETH'}];
         };
-        Ogc.getRuns = async casename => {
+        Ogc.getRuns = async (countryId, casename) => {
             calls.push('runs:' + casename);
             return {runs: [{run_name: 'baseline', run_type: 'baseline'}]};
         };
@@ -437,7 +468,7 @@ def test_workspace_opening_keeps_cases_when_one_run_read_fails(page, base_url):
             {casename: 'readable', country_id: 'ETH'},
             {casename: 'unavailable', country_id: 'ETH'}
         ];
-        Ogc.getRuns = async casename => {
+        Ogc.getRuns = async (countryId, casename) => {
             if (casename == 'unavailable') throw 'run read failed';
             return {runs: [{run_name: 'baseline', run_type: 'baseline'}]};
         };
@@ -675,6 +706,54 @@ def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
     expect(page.locator("#ogcCaseNote")).to_contain_text("inherits this baseline's values")
 
 
+def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGCases")
+    expect(page.locator("#ogcCasesPage")).to_be_visible()
+    page.evaluate("""async () => {
+        const { default: Cases } = await import(new URL('App/Controller/OGCases.js', location.href).href);
+        const { Model } = await import(new URL('App/Model/OGCases.Model.js', location.href).href);
+        Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
+        Cases.model = new Model(
+            [{casename: 'Policy baseline', country_id: 'ETH'}],
+            {'Policy baseline': [
+                {run_name: 'baseline', run_type: 'baseline'},
+                {run_name: 'Tax reform', run_type: 'reform', baseline_run: 'baseline'}
+            ]},
+            [{country_id: 'ETH'}], 'ETH'
+        );
+        Cases.renderCases(Cases.entries(Cases.model));
+        Cases.initEvents();
+    }""")
+
+    baseline_menu = page.locator(
+        "[data-act='run-menu'][data-case='Policy baseline'][data-run='baseline']"
+    )
+    baseline_menu.click()
+    baseline_actions = baseline_menu.locator("xpath=..//span[@role='menu']")
+    expect(baseline_actions).to_be_visible()
+    expect(baseline_actions.get_by_text("Add reform", exact=True)).to_be_visible()
+    expect(baseline_actions.get_by_text("Delete", exact=True)).to_be_visible()
+
+    baseline_actions.get_by_text("Add reform", exact=True).click()
+    expect(page.locator("#ogcCasesModalHead")).to_have_text("Add a case")
+    expect(page.locator("[data-act='case-type'][data-type='reform']")).to_have_class("active")
+    expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Policy baseline")
+
+    page.locator("[data-act='close']").click()
+    reform_menu = page.locator(
+        "[data-act='run-menu'][data-case='Policy baseline'][data-run='Tax reform']"
+    )
+    reform_menu.click()
+    reform_actions = reform_menu.locator("xpath=..//span[@role='menu']")
+    expect(reform_actions).to_be_visible()
+    expect(reform_actions.get_by_text("Delete", exact=True)).to_be_visible()
+    expect(reform_actions.get_by_text("Add reform", exact=True)).to_have_count(0)
+
+
 def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url):
     page.goto(base_url)
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
@@ -711,6 +790,7 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
         selection: JSON.parse(localStorage.getItem('osy-ogc-selection'))
     })""")
     assert result['calls'] == [{
+        'country_id': 'ETH',
         'casename': 'Policy baseline',
         'run_name': 'Corporate tax cut',
         'run_type': 'reform',
@@ -774,6 +854,7 @@ def test_create_baseline_creates_its_container_and_opens_parameters(page, base_u
         {
             'method': 'createRun',
             'data': {
+                'country_id': 'ETH',
                 'casename': 'Alternative baseline',
                 'run_name': 'baseline',
                 'run_type': 'baseline',
@@ -795,21 +876,25 @@ def test_run_queue_orders_dependencies_and_marks_cache(page, base_url):
     page.goto(base_url)
     result = page.evaluate("""async () => {
         const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
-        const c = {casename: 'ethiopia-case'};
-        const base = {case: c, key: 'ethiopia-case:base', name: 'Base', run: {
+        const c = {country_id: 'ETH', casename: 'ethiopia-case'};
+        const base = {case: c, key: 'ETH:ethiopia-case:base', name: 'Base', run: {
             run_name: 'base', run_type: 'baseline', status: 'pending'
         }};
-        const reform = {case: c, key: 'ethiopia-case:reform', name: 'Reform', run: {
+        const reform = {case: c, key: 'ETH:ethiopia-case:reform', name: 'Reform', run: {
             run_name: 'reform', run_type: 'reform', baseline_run: 'base', status: 'pending'
         }};
-        const dependency = Runs.buildQueue([reform, base], {'ethiopia-case:reform': true}, false);
+        const dependency = Runs.buildQueue(
+            [reform, base], {'ETH:ethiopia-case:reform': true}, false
+        );
         base.run.status = 'completed';
         reform.run.status = 'completed';
         const cached = Runs.buildQueue([reform, base], {
-            'ethiopia-case:reform': true, 'ethiopia-case:base': true
+            'ETH:ethiopia-case:reform': true, 'ETH:ethiopia-case:base': true
         }, false);
         base.stale = true;
-        const invalidated = Runs.buildQueue([reform, base], {'ethiopia-case:reform': true}, false);
+        const invalidated = Runs.buildQueue(
+            [reform, base], {'ETH:ethiopia-case:reform': true}, false
+        );
         return {
             dependency: dependency.map(j => [j.entry.run.run_name, j.state, !!j.note]),
             cached: cached.map(j => [j.entry.run.run_name, j.state]),
@@ -882,7 +967,7 @@ def test_run_selection_defaults_and_explicit_handoff(page, base_url):
     page.goto(base_url)
     result = page.evaluate("""async () => {
         const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
-        const entry = {key: 'case-one:baseline'};
+        const entry = {key: 'ETH:case-one:baseline'};
         Runs.workspace = {country_id: 'ETH'};
         Runs.entries = [entry];
         Runs.selected = {};
@@ -930,16 +1015,18 @@ def test_navigation_stops_unsent_run_plan(page, base_url):
         Ogc.getCases = async () => [{casename: 'case-one', country_id: 'ETH'}];
         Ogc.getRuns = async () => ({runs: records});
         Ogc.getRunQueue = async () => ({active: null, queued: []});
-        Ogc.getRunStatus = async (casename, runName) => ({
+        Ogc.getRunStatus = async (countryId, casename, runName) => ({
             run_state: 'pending', run_stage: null, run_log: []
         });
         Runs.onLoad('OGCases');
         await new Promise(resolve => setTimeout(resolve, 20));
-        Runs.selected = {'case-one:base': true, 'case-one:reform': true};
+        Runs.selected = {
+            'ETH:case-one:base': true, 'ETH:case-one:reform': true
+        };
         let release;
         const accepted = new Promise(resolve => { release = resolve; });
         const calls = [];
-        Ogc.run = async (casename, runName) => {
+        Ogc.run = async (countryId, casename, runName) => {
             calls.push(runName);
             await accepted;
             return {status_code: 'success'};
@@ -972,7 +1059,7 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
             run_name: 'baseline', run_type: 'baseline', status: 'pending'
         }]});
         const queueCases = [];
-        Ogc.getRunQueue = async casename => {
+        Ogc.getRunQueue = async (countryId, casename) => {
             queueCases.push(casename);
             return {active: null, queued: [{
             casename: 'case-one', run_name: 'baseline', state: 'queued', queue_position: 2
@@ -983,7 +1070,9 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
             run_log: ['Worker accepted the run.']
         });
         const cancelled = [];
-        Ogc.cancelRun = async (casename, runName) => { cancelled.push([casename, runName]); };
+        Ogc.cancelRun = async (countryId, casename, runName) => {
+            cancelled.push([countryId, casename, runName]);
+        };
         Runs.onLoad('OGCases');
         while (!Runs.entries.length || Runs.entries[0].state != 'queued') {
             await new Promise(resolve => setTimeout(resolve, 0));
@@ -994,7 +1083,7 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
             queue: document.querySelector('#ogcCurrentQueue').textContent,
             perJobCancel: document.querySelectorAll('[data-act="cancel-job"]').length
         };
-        await Runs.cancelEntry('case-one:baseline');
+        await Runs.cancelEntry('ETH:case-one:baseline');
         return {before, after: Runs.entries[0].state, cancelled, queueCases};
     }""")
     assert result['before']['state'] == 'queued'
@@ -1003,7 +1092,7 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
     assert 'Worker accepted the run.' in result['before']['queue']
     assert result['before']['perJobCancel'] == 0
     assert result['after'] == 'cancelled'
-    assert result['cancelled'] == [['case-one', 'baseline']]
+    assert result['cancelled'] == [['ETH', 'case-one', 'baseline']]
     assert result['queueCases'] == ['case-one']
 
 
@@ -1012,8 +1101,8 @@ def test_backend_reusability_overrides_browser_cache(page, base_url):
     result = page.evaluate("""async () => {
         const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
         const entry = {
-            key: 'case-one:baseline',
-            case: {casename: 'case-one'},
+            key: 'ETH:case-one:baseline',
+            case: {country_id: 'ETH', casename: 'case-one'},
             run: {run_name: 'baseline', run_type: 'baseline', status: 'completed'},
             state: 'completed', stale: false, reusable: false
         };
@@ -1055,7 +1144,8 @@ def test_single_job_cancel_does_not_stop_remaining_plan(page, base_url):
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
         const execution = {id: 17, pageToken: 1};
         const entry = {
-            key: 'case-one:baseline', case: {casename: 'case-one'},
+            key: 'ETH:case-one:baseline',
+            case: {country_id: 'ETH', casename: 'case-one'},
             run: {run_name: 'baseline'}, state: 'queued'
         };
         Runs.entries = [entry];
@@ -1156,10 +1246,10 @@ def test_runs_are_read_from_the_grouped_shape(page, base_url):
     assert result['extra_total'] == 2, "an unfamiliar group key must not lose its runs"
 
 
-def test_suffix_families_are_grouped_and_locked(page, base_url):
+def test_suffix_families_are_grouped_without_being_locked(page, base_url):
     """OG-Core carries whole families of derived parameters (_preTP, _ge) that a
     calibration can extend. Naming each one would go stale, so the suffix rules
-    file them as read-only reference data."""
+    file them as reference data without deciding whether experts may edit them."""
     page.goto(f"{base_url}/#/OGParameters")
     result = page.evaluate("""async () => {
         const m = await import(new URL('App/Model/OGParams.Overlay.js', location.href).href);
@@ -1169,19 +1259,26 @@ def test_suffix_families_are_grouped_and_locked(page, base_url):
             ge: mk('cit_rate_ge'),
             // a name the rules do not match still falls through to the default
             plain: mk('some_future_param'),
-            // an explicit mapping must win over a suffix rule
-            explicit: m.decorate('omega_S_preTP', { title: 'x', shape: 'time', default: [[1]] })
+            // an explicit table mapping must win over the old read-only suffix rule
+            explicit: m.decorate('omega_S_preTP', { title: 'x', shape: 'time', default: [1, 2] }),
+            futureSolver: m.decorate('future_solver_setting', {
+                title: 'Future solver setting', section: 'Model Solution Parameters',
+                shape: 'scalar', default: 1
+            })
         };
     }""")
     for key in ('preTP', 'ge'):
         assert result[key]['group'] == 'arrays', f"{key} should be reference data"
-        assert result[key]['readOnly'] is True, f"{key} is derived, not a lever"
-        assert result[key]['readOnlyReason'] == 'calibration'
+        assert result[key]['readOnly'] is False
     # an unmatched name keeps the old fallback behaviour
     assert result['plain']['group'] == 'advanced'
     assert result['plain']['readOnly'] is False
-    # a name that is both explicitly mapped and suffix-matched stays read-only
-    assert result['explicit']['readOnly'] is True
+    # explicitly mapped array parameters use the reviewed table editor
+    assert result['explicit']['tableEditable'] is True
+    assert result['explicit']['readOnly'] is False
+    assert result['explicit']['expertEditReason'] == 'calibration'
+    assert result['futureSolver']['readOnly'] is True
+    assert result['futureSolver']['readOnlyReason'] == 'solver'
 
 
 def test_parameters_page_without_a_selection_is_empty(page, base_url):
@@ -1218,16 +1315,24 @@ def test_parameter_metadata_stays_compact(page, base_url):
             boundedHint: Parameters.hintHtml(bounded),
             broadHint: Parameters.hintHtml(broad),
             boundedSlider: Parameters.hasUsefulRange(bounded),
-            broadSlider: Parameters.hasUsefulRange(broad)
+            broadSlider: Parameters.hasUsefulRange(broad),
+            preciseSlider: Parameters.hasUsefulRange(
+                {hasRange: true, min: -0.01, max: 0.08, type: 'rate'},
+                0.05952286163357212
+            ),
+            preciseDisplay: Parameters.inputNumber(0.05952286163357212)
         };
     }""")
     assert result['label'].find(result_description := 'Parameter summarizing the quadratic effect of debt.') >= 0
     assert result_description not in result['boundedHint']
     assert 'default' not in result['boundedHint']
-    assert 'range [0, 1]' in result['boundedHint']
-    assert result['broadHint'] == ''
+    assert 'Allowed' in result['boundedHint']
+    assert '[0, 1]' in result['boundedHint']
+    assert '[-9.9 × 10¹⁰, 9.9 × 10¹⁰]' in result['broadHint']
     assert result['boundedSlider'] is True
     assert result['broadSlider'] is False
+    assert result['preciseSlider'] is False
+    assert result['preciseDisplay'] == 0.059522862
 
 
 def test_time_paths_are_editable(page, base_url):
@@ -1258,9 +1363,171 @@ def test_time_paths_are_editable(page, base_url):
     assert result['editable'] is True
     assert 'data-role="path-cell"' in result['html']
     assert '2025' in result['html']
+    assert 'Add 2026' in result['html']
     assert 'API description' in result['html']
     assert 'readOnlyNote' not in result['field']
     assert result['payload'] == {'tau_payroll': [0.18, 0.2]}
+
+
+def test_singleton_matrices_use_human_controls_and_keep_backend_shape(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const { default: Parameters } = await import(
+            new URL('App/Controller/OGParameters.js', location.href).href
+        );
+        const schema = {
+            start_year: {title: 'Start year', type: 'year', shape: 'scalar', default: 2025, min: 2013, max: 2101},
+            cit_rate: {
+                title: 'Corporate income tax rate',
+                description: "Set value for base year, click '+' to add value for next year.",
+                type: 'rate', shape: 'time_x_industry', dimensions: [1, 1],
+                default: [[0.3]], min: 0, max: 0.99
+            },
+            inv_tax_credit: {
+                title: 'Investment tax credit rate', description: 'Credit on investment.',
+                type: 'level', shape: 'time_x_industry', dimensions: [1, 1],
+                default: [[0.1]], min: -1, max: 1
+            },
+            io_matrix: {
+                title: 'Input-output matrix', description: 'Maps one good to one industry.',
+                type: 'rate', shape: 'time_x_industry', dimensions: [1, 1],
+                default: [[1]], min: 0, max: 1
+            },
+            flag: {
+                title: 'Diagnostic flag', type: 'level', datatype: 'bool', shape: 'scalar',
+                default: false, choices: [true, false], min: null, max: null
+            }
+        };
+        const model = new Model(schema, {}, {
+            casename: 'c1', run_name: 'base', run_type: 'baseline'
+        }, {});
+        model.cur.cit_rate = [0.31, 0.32];
+        model.cur.inv_tax_credit = 0.2;
+        return {
+            citDimension: model.fields.cit_rate.dimension,
+            citHtml: Parameters.fieldHtml(model, 'cit_rate'),
+            creditDimension: model.fields.inv_tax_credit.dimension,
+            creditHtml: Parameters.fieldHtml(model, 'inv_tax_credit'),
+            ioEditable: model.editable('io_matrix'),
+            ioHtml: Parameters.fieldHtml(model, 'io_matrix'),
+            flagHtml: Parameters.fieldHtml(model, 'flag'),
+            payload: model.savePayload()
+        };
+    }""")
+    assert result['citDimension'] == 'by_year'
+    assert 'data-role="path-cell"' in result['citHtml']
+    assert 'edit-table' not in result['citHtml']
+    assert result['creditDimension'] == 'scalar'
+    assert 'data-role="range"' in result['creditHtml']
+    assert 'edit-table' not in result['creditHtml']
+    assert result['ioEditable'] is True
+    assert 'data-role="range"' in result['ioHtml']
+    assert 'edit-table' not in result['ioHtml']
+    assert '>Yes<' in result['flagHtml'] and '>No<' in result['flagHtml']
+    assert '>true<' not in result['flagHtml'] and '>false<' not in result['flagHtml']
+    assert result['payload']['cit_rate'] == [[0.31], [0.32]]
+    assert result['payload']['inv_tax_credit'] == [[0.2]]
+
+
+def test_one_by_j_rows_do_not_open_a_table_editor(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const { default: Parameters } = await import(
+            new URL('App/Controller/OGParameters.js', location.href).href
+        );
+        const model = new Model({
+            labor_income_tax_noncompliance_rate: {
+                title: 'Labor income tax noncompliance rate', type: 'rate',
+                shape: 'time_x_industry', dimensions: [1, 7],
+                default: [[0, 0, 0, 0, 0, 0, 0]], min: 0, max: 1
+            }
+        }, {}, {casename: 'c1', run_name: 'base', run_type: 'baseline'}, {});
+        return {
+            dimension: model.fields.labor_income_tax_noncompliance_rate.dimension,
+            html: Parameters.fieldHtml(model, 'labor_income_tax_noncompliance_rate')
+        };
+    }""")
+    assert result['dimension'] == 'by_j'
+    assert result['html'].count('data-role="cell"') == 7
+    assert 'edit-table' not in result['html']
+
+
+def test_column_matrices_are_year_schedules_and_singleton_tensors_are_scalars(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const { default: Parameters } = await import(
+            new URL('App/Controller/OGParameters.js', location.href).href
+        );
+        const model = new Model({
+            start_year: {title: 'Start year', type: 'year', shape: 'scalar', default: 2025, min: 2013, max: 2101},
+            delta_tau_annual: {
+                title: 'Tax depreciation', type: 'rate', shape: 'time_x_industry',
+                dimensions: [400, 1], default: [[0.027]], min: 0, max: 1
+            },
+            etr_params: {
+                title: 'Effective tax parameters', type: 'level', shape: 'time',
+                dimensions: [1, 1, 1], default: [[[0.2]]], min: -1, max: 1
+            },
+            tax_func_type: {
+                title: 'Tax function', type: 'string', datatype: 'str', shape: 'scalar',
+                default: 'linear', choices: ['linear', 'DEP'], min: null, max: null
+            }
+        }, {}, {casename: 'c1', run_name: 'base', run_type: 'baseline'}, {});
+        model.cur.delta_tau_annual.push(0.03);
+        model.cur.etr_params = 0.25;
+        return {
+            scheduleDimension: model.fields.delta_tau_annual.dimension,
+            scheduleHtml: Parameters.fieldHtml(model, 'delta_tau_annual'),
+            tensorDimension: model.fields.etr_params.dimension,
+            tensorHtml: Parameters.fieldHtml(model, 'etr_params'),
+            payload: model.savePayload()
+        };
+    }""")
+    assert result['scheduleDimension'] == 'by_year'
+    assert 'data-role="path-cell"' in result['scheduleHtml']
+    assert 'edit-table' not in result['scheduleHtml']
+    assert result['tensorDimension'] == 'scalar'
+    assert 'data-role="num"' in result['tensorHtml']
+    assert 'edit-table' not in result['tensorHtml']
+    assert result['payload']['delta_tau_annual'] == [[0.027], [0.03]]
+    assert result['payload']['etr_params'] == [[[0.25]]]
+
+
+def test_time_path_add_year_inherits_value_and_reports_invalid_year(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const { default: Parameters } = await import(
+            new URL('App/Controller/OGParameters.js', location.href).href
+        );
+        document.body.insertAdjacentHTML('beforeend', '<div id="ogcParamsBody"></div>');
+        const model = new Model(
+            {
+                start_year: {title: 'Start year', type: 'year', shape: 'scalar', default: 2025, min: 2013, max: 2101},
+                tau_payroll: {title: 'Payroll tax', type: 'rate', shape: 'time', default: [0.18, 0.2], min: 0, max: 0.99}
+            },
+            {}, {casename: 'c1', run_name: 'base', run_type: 'baseline'}, {}
+        );
+        Parameters.model = model;
+        document.querySelector('#ogcParamsBody').innerHTML = Parameters.fieldHtml(model, 'tau_payroll');
+        Parameters.initEvents();
+    }""")
+    add = page.get_by_role('button', name='Add 2027')
+    add.click()
+    values = page.locator('[data-role="path-cell"]')
+    expect(values).to_have_count(3)
+    expect(values.nth(2)).to_have_value('0.2')
+    assert values.nth(2).evaluate('(element) => document.activeElement === element')
+    expect(page.get_by_role('button', name='Add 2028')).to_be_visible()
+    page.get_by_role('button', name='Remove 2026').click()
+    expect(values).to_have_count(2)
+    expect(page.get_by_role('button', name='Add 2027')).to_be_visible()
+    values.nth(0).fill('1.2')
+    values.nth(0).dispatch_event('input')
+    expect(page.locator('.ogc-validation')).to_have_text('2025 must be within [0, 0.99].')
 
 
 def test_overlay_keeps_schema_facts_and_adds_decisions(page, base_url):
@@ -1293,7 +1560,13 @@ def test_overlay_keeps_schema_facts_and_adds_decisions(page, base_url):
         const unknown = m.decorate('some_new_param', {
             title: 'New', shape: 'scalar', default: [[1]]
         });
-        return { cit, S, e, beta, unknown };
+        const deltaTax = m.decorate('delta_tau_annual', {
+            title: 'Tax depreciation', shape: 'time_x_industry', default: [[0.03]]
+        });
+        const remittance = m.decorate('alpha_RM_T', {
+            title: 'Remittances', shape: 'scalar', default: 0.1
+        });
+        return { cit, S, e, beta, unknown, deltaTax, remittance };
     }""")
     # schema facts survive
     assert result['cit']['title'] == 'Corporate income tax rate'
@@ -1306,15 +1579,18 @@ def test_overlay_keeps_schema_facts_and_adds_decisions(page, base_url):
     # structural dimensions are locked, with the run-guard reason
     assert result['S']['readOnly'] is True
     assert result['S']['readOnlyReason'] == 'structural'
-    # a dropped value can never be an editable field
+    # large calibration arrays are previewed and loaded only when their table opens
     assert result['e']['large'] is True
-    assert result['e']['readOnly'] is True
+    assert result['e']['readOnly'] is False
+    assert result['e']['tableEditable'] is True
     # the overlay supplies the dimension the schema collapsed to "time"
     assert result['beta']['dimension'] == 'by_j'
     assert result['cit']['dimension'] == 'scalar'
     # an unknown name still renders, it just lands in the fallback group
     assert result['unknown']['readOnly'] is False
     assert result['unknown']['group'] == 'advanced'
+    assert result['deltaTax']['group'] == 'taxes'
+    assert result['remittance']['group'] == 'open'
 
 
 def test_reform_reads_against_its_baseline_not_the_default(page, base_url):
@@ -1356,11 +1632,11 @@ def test_reform_reads_against_its_baseline_not_the_default(page, base_url):
     assert result['reform_ref_def'] == 0.21
     assert result['reform_cur'] == 0.15
     assert result['reform_changed_vs_own'] is True
-    # editable scalars are saved in the schema's native scalar shape
-    assert result['reform_payload'] == {'cit_rate': 0.15}
+    # Human-facing scalar controls preserve the backend's nested storage shape.
+    assert result['reform_payload'] == {'cit_rate': [[0.15]]}
     # a baseline is measured against the calibration default
     assert result['baseline_ref_auto'] == 0.21
-    assert result['baseline_payload'] == {'cit_rate': 0.25}
+    assert result['baseline_payload'] == {'cit_rate': [[0.25]]}
 
 
 def test_preview_reference_does_not_change_what_is_saved(page, base_url):
@@ -1416,3 +1692,177 @@ def test_locked_dimensions_are_never_editable(page, base_url):
     assert all(v is False for v in result['locked'].values()), result['locked']
     # a normal lever is still editable, so the lock is not blanket
     assert result['cit_editable'] is True
+
+
+def test_tax_function_choice_controls_tax_parameter_tables(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const schema = {
+            tax_func_type: {
+                title: 'Tax function', type: 'string', datatype: 'str', shape: 'scalar',
+                default: 'linear', choices: ['linear', 'DEP'], min: null, max: null
+            },
+            etr_params: {
+                title: 'Effective tax parameters', type: 'level', datatype: 'float',
+                shape: 'time_x_industry', default: [[0.2]], min: -1, max: 1
+            }
+        };
+        const model = new Model(schema, {}, {
+            casename: 'c1', run_name: 'base', run_type: 'baseline'
+        }, {});
+        const linear = {
+            choice: model.editable('tax_func_type'), table: model.editable('etr_params')
+        };
+        model.cur.tax_func_type = 'DEP';
+        return {linear, nonlinearTable: model.editable('etr_params')};
+    }""")
+    assert result['linear'] == {'choice': True, 'table': True}
+    assert result['nonlinearTable'] is True
+
+
+def test_array_parameters_use_a_compact_preview_and_round_trip_table_data(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const { default: Parameters } = await import(
+            new URL('App/Controller/OGParameters.js', location.href).href
+        );
+        const { OGTableEditor } = await import(
+            new URL('App/Controller/OGTableEditor.js', location.href).href
+        );
+        const value = [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]];
+        const model = new Model(
+            { io_matrix: {title: 'Input-output matrix', shape: 'time_x_industry',
+                default: value, min: 0, max: 1} },
+            {}, {casename: 'c1', run_name: 'base', run_type: 'baseline'}, {}
+        );
+        const rows = OGTableEditor.rows(value, value);
+        rows[1].value_2 = 0.9;
+        const fallbackModel = new Model(
+            { io_matrix: {title: 'Input-output matrix', shape: 'time_x_industry',
+                default: value, min: 0, max: 1} },
+            {}, {casename: 'c1', run_name: 'base', run_type: 'baseline'}, {}
+        );
+        fallbackModel.cur.io_matrix[0][0] = 0.8;
+        return {
+            editable: model.editable('io_matrix'),
+            preview: Parameters.fieldHtml(model, 'io_matrix'),
+            roundTrip: OGTableEditor.value(rows, [2, 3]),
+            shape: OGTableEditor.shapeLabel(value),
+            baseIsIndependent: fallbackModel.base.io_matrix[0][0] === 0.1,
+            fallbackChanged: fallbackModel.changedNames().includes('io_matrix'),
+            blankInvalid: Parameters.outOfRange(model.fields.io_matrix, [[0.1, null]]),
+            removedValueCount: Parameters.countDifferences([0.1], [0.1, 0.2])
+        };
+    }""")
+    assert result['editable'] is True
+    assert 'data-act="edit-table"' in result['preview']
+    assert '<table>' in result['preview']
+    assert result['roundTrip'] == [[0.1, 0.2, 0.3], [0.4, 0.5, 0.9]]
+    assert result['shape'] == '2 × 3'
+    assert result['baseIsIndependent'] is True
+    assert result['fallbackChanged'] is True
+    assert result['blankInvalid'] is True
+    assert result['removedValueCount'] == 1
+
+
+def test_unchanged_lazy_defaults_and_string_choices_do_not_block_save(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { Model } = await import(new URL('App/Model/OGParameters.Model.js', location.href).href);
+        const { default: Parameters } = await import(
+            new URL('App/Controller/OGParameters.js', location.href).href
+        );
+        const model = new Model({
+            TPI_outer_method: {
+                title: 'TPI method', type: 'string', datatype: 'str', shape: 'scalar',
+                default: 'picard', choices: ['picard', 'anderson'], min: null, max: null
+            },
+            e: {
+                title: 'Effective labor', type: 'level', datatype: 'float',
+                shape: 'time_x_industry', default: null, large: true,
+                preview: [[0.4, 0.5]], dimensions: [80, 7], min: 0, max: 9e99
+            }
+        }, {}, {casename: 'c1', run_name: 'base', run_type: 'baseline'}, {});
+        const initial = Parameters.invalidChangedNames(model);
+        const methodHtml = Parameters.fieldHtml(model, 'TPI_outer_method');
+        model.cur.TPI_outer_method = 'invalid';
+        const invalidChoice = Parameters.invalidChangedNames(model);
+        model.cur.TPI_outer_method = 'anderson';
+        const validChoice = Parameters.invalidChangedNames(model);
+        return {initial, methodHtml, invalidChoice, validChoice};
+    }""")
+    assert result['initial'] == []
+    assert '<option value="picard" selected>' in result['methodHtml']
+    assert result['invalidChoice'] == ['TPI_outer_method']
+    assert result['validChoice'] == []
+
+
+def test_table_editor_copies_a_selected_numeric_cell(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""async () => {
+        document.body.insertAdjacentHTML('beforeend', `
+          <div id="ogcTableModal" style="display:none">
+            <h2 id="ogcTableTitle"></h2><div id="ogcTableMeta"></div>
+            <div id="ogcTableGrid" style="height:300px"></div>
+            <span id="ogcTableStatus"></span>
+            <button data-table-act="cancel">Cancel</button>
+            <button data-table-act="apply">Apply changes</button>
+          </div>`);
+        const { OGTableEditor } = await import(
+            new URL('App/Controller/OGTableEditor.js', location.href).href
+        );
+        OGTableEditor.initEvents();
+        OGTableEditor.open({
+            name: 'sample', title: 'Sample', value: [0.027, 0.4],
+            reference: [0.027, 0.4], min: 0, max: 1,
+            onApply: value => { window.__tableApplied = value; }
+        });
+    }""")
+    cells = page.locator(
+        '#ogcTableGrid .tabulator-cell[tabulator-field="value_0"]'
+    )
+    cells.nth(0).click()
+    page.keyboard.press('Meta+C')
+    cells.nth(1).click()
+    page.keyboard.press('Meta+V')
+    expect(cells.nth(1)).to_have_text('0.027')
+    page.get_by_role('button', name='Apply changes').click()
+    result = page.evaluate("""() => ({
+        value: window.__tableApplied[1],
+        type: typeof window.__tableApplied[1]
+    })""")
+    assert result == {'value': 0.027, 'type': 'number'}
+
+
+def test_table_editor_keeps_open_when_a_value_is_blank(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""async () => {
+        document.body.insertAdjacentHTML('beforeend', `
+          <div id="ogcTableModal" style="display:none">
+            <h2 id="ogcTableTitle"></h2><div id="ogcTableMeta"></div>
+            <div id="ogcTableGrid" style="height:300px"></div>
+            <span id="ogcTableStatus"></span>
+            <button data-table-act="cancel">Cancel</button>
+            <button data-table-act="apply">Apply changes</button>
+          </div>`);
+        const { OGTableEditor } = await import(
+            new URL('App/Controller/OGTableEditor.js', location.href).href
+        );
+        window.__blankTableEditor = OGTableEditor;
+        OGTableEditor.initEvents();
+        OGTableEditor.open({
+            name: 'sample', title: 'Sample', value: [0.1, 0.2],
+            reference: [0.1, 0.2], min: 0, max: 1,
+            onApply: value => { window.__blankTableApplied = value; }
+        });
+    }""")
+    expect(page.locator('#ogcTableGrid .tabulator-row')).to_have_count(2)
+    page.evaluate("""async () => {
+        await window.__blankTableEditor.table.getRow(1).update({value_0: null});
+    }""")
+    page.get_by_role('button', name='Apply changes').click()
+    expect(page.locator('#ogcTableModal')).to_be_visible()
+    expect(page.locator('#ogcTableStatus')).to_contain_text('1 invalid value')
+    assert page.evaluate('() => window.__blankTableApplied') is None

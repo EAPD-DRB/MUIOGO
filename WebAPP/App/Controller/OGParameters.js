@@ -2,8 +2,9 @@ import { Message } from "../../Classes/Message.Class.js";
 import { NavigationGuard } from "../../Classes/NavigationGuard.Class.js";
 import { Ogc } from "../../Classes/Ogc.Class.js";
 import { Model } from "../Model/OGParameters.Model.js";
-import { loadSelection, markRunsStale } from "./OGCases.js";
+import { loadSelection, markRunsStale, runKey } from "./OGCases.js";
 import { GROUPS, TIER } from "../Model/OGParams.Overlay.js";
+import { OGTableEditor } from "./OGTableEditor.js";
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
     ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -20,6 +21,7 @@ let dirty = false;
 export default class OGParameters {
 
     static onLoad(){
+        OGTableEditor.close();
         PAGE_ID++;
         OGParameters.pageID = PAGE_ID;
         previewRef = 'auto';
@@ -33,21 +35,21 @@ export default class OGParameters {
 
     static load(pageID){
         let selection = loadSelection();
-        if (!selection || !selection.casename || !selection.run_name){
+        if (!selection || !selection.country_id || !selection.casename || !selection.run_name){
             OGParameters.showEmpty('No run selected',
                 'Open a run from the Cases page to configure its parameters.');
             return;
         }
         let refPromise = (selection.run_type == 'reform' && selection.baseline_run)
-            ? Ogc.getParams(selection.casename, selection.baseline_run)
+            ? Ogc.getParams(selection.country_id, selection.casename, selection.baseline_run)
                 .then(r => r.params || {})
                 .catch(e => null)
             : Promise.resolve({});
 
         Promise.all([
-            Ogc.getParameterSchema(selection.casename),
-            Ogc.getParams(selection.casename, selection.run_name),
-            Ogc.getRuns(selection.casename),
+            Ogc.getParameterSchema(selection.country_id, selection.casename),
+            Ogc.getParams(selection.country_id, selection.casename, selection.run_name),
+            Ogc.getRuns(selection.country_id, selection.casename),
             refPromise
         ])
         .then(data => {
@@ -103,11 +105,10 @@ export default class OGParameters {
         let of = model.isReform && sel.baseline_run
             ? ` <span class="ogc-mut">of</span> <b>${esc(baselineName)}</b>`
             : '';
-        $('#ogcParamsTitle').text('Parameters: ' + displayName);
+        $('#ogcParamsTitle').text('Parameters');
         $('#ogcParamsCtx').html(`
             ${kindTag}
             <span><b>${esc(displayName)}</b>${of}</span>
-            <span class="ogc-mut">in ${esc(sel.casename)}</span>
             <span class="ogc-tag ogc-tag-mut">${esc(sel.country_id || '')}</span>
             <span class="ogc-ctx-right">
                 <span class="ogc-mut">Compare against</span>
@@ -182,50 +183,87 @@ export default class OGParameters {
             ? ` <span class="ogc-help" title="${esc(f.description)}"><i class="fa fa-question-circle"></i></span>`
             : '';
         let code = f.title == f.name ? '' : ` <span class="ogc-mut ogc-mono">(${esc(f.name)})</span>`;
+        let reason = {
+            calibration: 'Calibration-derived value',
+            estimated: 'Estimated model input',
+            structural: 'Structural model setting',
+            solver: 'Solver setting',
+            tax_function: 'Editable only when the tax function is linear'
+        }[f.readOnlyReason] || 'This value cannot be edited here';
         let ro = f.readOnly
-            ? ` <span class="ogc-ro"><i class="fa fa-lock"></i> read-only</span>`
+            ? ` <span class="ogc-ro" title="${esc(reason)}"><i class="fa fa-lock"></i> read-only</span>`
             : '';
         return `<label>${esc(f.title)}${code}${help}${ro}</label>`;
     }
 
     static hintHtml(f){
-        let bits = [];
-        if (OGParameters.hasUsefulRange(f)){
-            bits.push('range [' + esc(f.min) + ', ' + esc(f.max) + ']');
-        }
-        return bits.length ? `<div class="ogc-hint">${bits.join(' &middot; ')}</div>` : '';
+        if (!f.hasRange || !Number.isFinite(f.min) || !Number.isFinite(f.max)) return '';
+        return `<div class="ogc-hint"><span>Allowed</span><strong>${esc(OGParameters.rangeText(f))}</strong></div>`;
     }
 
-    static hasUsefulRange(f){
-        return f.hasRange && Number.isFinite(f.min) && Number.isFinite(f.max)
-            && f.max - f.min <= 1000000;
+    static rangeText(f){
+        return '[' + OGParameters.rangeNumber(f.min) + ', ' + OGParameters.rangeNumber(f.max) + ']';
+    }
+
+    static rangeNumber(value){
+        let absolute = Math.abs(value);
+        if (absolute && (absolute < 0.001 || absolute >= 1000000)){
+            let parts = value.toExponential(3)
+                .replace(/\.0+e/, 'e')
+                .replace(/(\.\d*?)0+e/, '$1e')
+                .split('e');
+            let exponent = String(parseInt(parts[1], 10));
+            let superscript = {'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴',
+                '5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+            return parts[0] + ' × 10' + exponent.split('').map(ch => superscript[ch]).join('');
+        }
+        return OGParameters.fmt(value);
+    }
+
+    static hasUsefulRange(f, value){
+        if (!(f.hasRange && Number.isFinite(f.min) && Number.isFinite(f.max)
+            && f.max - f.min <= 10)) return false;
+        if (typeof value != 'number' || !Number.isFinite(value)) return true;
+        let step = OGParameters.stepFor(f);
+        if (typeof step != 'number') return true;
+        let position = (value - f.min) / step;
+        return Math.abs(position - Math.round(position)) < 1e-7;
     }
 
     static fieldHtml(model, name){
         let f = model.fields[name];
+        let editable = model.editable(name);
+        let labelField = (!editable && !f.readOnly)
+            ? $.extend({}, f, {readOnly: true, readOnlyReason: 'tax_function'})
+            : f;
         let wide = f.dimension != 'scalar';
         let inner;
-        if (!model.editable(name)){
+        if (!editable){
             inner = OGParameters.readOnlyHtml(model, f);
+        }else if (f.tableEditable){
+            inner = OGParameters.tablePreviewHtml(model, f);
         }else if (f.dimension == 'by_j'){
             inner = OGParameters.rowHtml(model, f);
         }else if (f.dimension == 'by_year'){
             inner = OGParameters.pathHtml(model, f);
-        }else if (f.choices){
-            inner = OGParameters.selectHtml(model, f);
         }else if (OGParameters.isBool(f, model.cur[name])){
             inner = OGParameters.boolHtml(model, f);
-        }else if (OGParameters.hasUsefulRange(f)){
+        }else if (f.choices){
+            inner = OGParameters.selectHtml(model, f);
+        }else if (f.datatype == 'str' || f.type == 'string'){
+            inner = OGParameters.textHtml(model, f);
+        }else if (OGParameters.hasUsefulRange(f, model.cur[name])){
             inner = OGParameters.sliderHtml(model, f);
         }else{
             inner = OGParameters.numberHtml(model, f);
         }
         return `
             <div class="ogc-field${wide ? ' ogc-wide' : ''}" data-param="${esc(name)}">
-                ${OGParameters.labelHtml(f)}
+                ${OGParameters.labelHtml(labelField)}
                 ${inner}
                 <div class="ogc-delta"></div>
                 ${OGParameters.hintHtml(f)}
+                <div class="ogc-validation" aria-live="polite"></div>
             </div>`;
     }
 
@@ -250,13 +288,119 @@ export default class OGParameters {
         return `<span class="ogc-rovalue">${esc(shown)}</span>`;
     }
 
+    static dimensions(value){
+        let out = [];
+        let current = value;
+        while ($.isArray(current)){
+            out.push(current.length);
+            current = current.length ? current[0] : null;
+        }
+        return out;
+    }
+
+    static tableShapeLabel(shape){
+        if (!shape || !shape.length) return 'Table';
+        if (shape.length == 1) return shape[0] + (shape[0] == 1 ? ' value' : ' values');
+        return shape.join(' × ');
+    }
+
+    static tablePreviewHtml(model, f){
+        let full = model.cur[f.name];
+        let value = $.isArray(full) ? full : f.preview;
+        let shape = $.isArray(full) ? OGParameters.dimensions(full) : (f.dimensions || OGParameters.dimensions(value));
+        let rows = [];
+        if ($.isArray(value)){
+            if (shape.length <= 1){
+                rows = value.slice(0, 4).map(item => [item]);
+            }else{
+                rows = value.slice(0, 4).map(item => OGParameters.flatten(item).slice(0, 4));
+            }
+        }
+        let width = rows.length ? rows[0].length : 0;
+        let totalColumns = shape.length <= 1 ? 1 : shape.slice(1).reduce((total, size) => total * size, 1);
+        let rowTitle = f.axes ? f.axes.row : (shape.length <= 1 ? 'Position' : 'Row');
+        let columnTitle = f.axes ? f.axes.column : null;
+        let html = '<table><thead><tr><th>' + esc(rowTitle) + '</th>';
+        for (let column = 0; column < width; column++){
+            html += '<th>' + esc(shape.length <= 1 ? 'Value' : ((columnTitle ? columnTitle + ' ' : '') + (column + 1))) + '</th>';
+        }
+        if (totalColumns > width) html += '<th aria-label="More columns">…</th>';
+        html += '</tr></thead><tbody>';
+        $.each(rows, function (rowIndex, row) {
+            html += '<tr><th>' + (rowIndex + 1) + '</th>';
+            $.each(row, function (id, item) { html += '<td>' + esc(OGParameters.fmt(item)) + '</td>'; });
+            if (totalColumns > width) html += '<td>…</td>';
+            html += '</tr>';
+        });
+        if (shape.length && shape[0] > rows.length){
+            html += '<tr class="ogc-preview-more"><th>…</th><td colspan="' + Math.max(1, width + (totalColumns > width ? 1 : 0)) + '">…</td></tr>';
+        }
+        html += '</tbody></table>';
+        let editTitle = f.expertEditReason
+            ? 'Expert edit of a ' + f.expertEditReason + ' value'
+            : 'Edit the complete table';
+        return `<div class="ogc-table-preview">
+            <div class="ogc-table-preview-top"><span>${esc(OGParameters.tableShapeLabel(shape))}</span>
+                <button type="button" class="btn ogc-btn ogc-btn-sm" data-act="edit-table" title="${esc(editTitle)}">Edit table</button></div>
+            <div class="ogc-table-preview-scroll">${html}</div>
+        </div>`;
+    }
+
+    static openTable(name){
+        let model = OGParameters.model;
+        let f = model.fields[name];
+        let open = function () {
+            try {
+                OGTableEditor.open({
+                    name: name,
+                    title: f.title,
+                    value: Model.clone(model.cur[name]),
+                    reference: Model.clone(model.refValue(name, previewRef)),
+                    min: f.min,
+                    max: f.max,
+                    rowLabel: f.axes && f.axes.row,
+                    columnLabel: f.axes && f.axes.column,
+                    onApply: function (value) {
+                        model.cur[name] = Model.clone(value);
+                        dirty = true;
+                        OGParameters.fieldEl(name).replaceWith(OGParameters.fieldHtml(model, name));
+                        OGParameters.refreshField(name);
+                        OGParameters.refreshTotals();
+                    }
+                });
+            }catch (error){
+                Message.danger(error);
+            }
+        };
+        if ($.isArray(model.cur[name])){
+            open();
+            return;
+        }
+        let button = OGParameters.fieldEl(name).find('[data-act="edit-table"]');
+        button.prop('disabled', true).text('Loading…');
+        Ogc.getParameterDefault(
+            model.selection.country_id, model.selection.casename, name
+        )
+            .then(function (response) {
+                model.hydrateDefault(name, response.value);
+                OGParameters.fieldEl(name).replaceWith(OGParameters.fieldHtml(model, name));
+                OGParameters.refreshField(name);
+                open();
+            })
+            .catch(function (error) {
+                button.prop('disabled', false).text('Edit table');
+                Message.danger(error);
+            });
+    }
+
     static sliderHtml(model, f){
         let v = model.cur[f.name];
         let step = OGParameters.stepFor(f);
+        let shown = OGParameters.inputNumber(v);
         return `
             <div class="ogc-rangewrap">
-                <input type="range" min="${esc(f.min)}" max="${esc(f.max)}" step="${esc(step)}" value="${esc(v)}" data-role="range">
-                <input type="number" class="ogc-valnum" min="${esc(f.min)}" max="${esc(f.max)}" step="${esc(step)}" value="${esc(v)}" data-role="num">
+                <input type="range" min="${esc(f.min)}" max="${esc(f.max)}" step="${esc(step)}" value="${esc(shown)}" data-role="range">
+                <input type="number" class="ogc-valnum" min="${esc(f.min)}" max="${esc(f.max)}" step="${esc(step)}" value="${esc(shown)}" data-role="num">
             </div>`;
     }
 
@@ -265,7 +409,12 @@ export default class OGParameters {
         let attrs = '';
         if (f.min !== null){ attrs += ` min="${esc(f.min)}"`; }
         if (f.max !== null){ attrs += ` max="${esc(f.max)}"`; }
-        return `<input type="number" step="${esc(OGParameters.stepFor(f))}"${attrs} value="${esc(v === null || v === undefined ? '' : v)}" data-role="num">`;
+        return `<input type="number" step="${esc(OGParameters.stepFor(f))}"${attrs} value="${esc(v === null || v === undefined ? '' : OGParameters.inputNumber(v))}" data-role="num">`;
+    }
+
+    static textHtml(model, f){
+        let v = model.cur[f.name];
+        return `<input type="text" value="${esc(v === null || v === undefined ? '' : v)}" data-role="text">`;
     }
 
     static selectHtml(model, f){
@@ -293,11 +442,13 @@ export default class OGParameters {
             let attrs = '';
             if (f.min !== null){ attrs += ` min="${esc(f.min)}"`; }
             if (f.max !== null){ attrs += ` max="${esc(f.max)}"`; }
-            cells += `
-                <span class="ogc-jcell">
-                    <input type="number" step="${esc(OGParameters.stepFor(f))}"${attrs} value="${esc(v)}" data-role="cell" data-index="${i}">
-                    <span class="ogc-jlab">${esc(lab)}</span>
-                </span>`;
+            let control = f.binaryRow
+                ? `<select data-role="cell" data-index="${i}">
+                    <option value="1"${v ? ' selected' : ''}>Yes</option>
+                    <option value="0"${v ? '' : ' selected'}>No</option>
+                  </select>`
+                : `<input type="number" step="${esc(OGParameters.stepFor(f))}"${attrs} value="${esc(OGParameters.inputNumber(v))}" data-role="cell" data-index="${i}">`;
+            cells += `<span class="ogc-jcell">${control}<span class="ogc-jlab">${esc(lab)}</span></span>`;
         });
         let sum = f.constraint == 'sum_to_one' ? `<div class="ogc-jsum"></div>` : '';
         return `<div class="ogc-jrow">${cells}</div>${sum}`;
@@ -305,20 +456,32 @@ export default class OGParameters {
 
     static pathHtml(model, f){
         let vals = $.isArray(model.cur[f.name]) ? model.cur[f.name] : [];
-        let start = parseInt(model.cur.start_year, 10);
         let attrs = '';
         if (f.min !== null){ attrs += ` min="${esc(f.min)}"`; }
         if (f.max !== null){ attrs += ` max="${esc(f.max)}"`; }
         let rows = '';
         $.each(vals, function (i, v) {
-            let year = isNaN(start) ? i + 1 : start + i;
+            let year = OGParameters.pathYear(model, i);
             rows += `<span class="ogc-pathcell">
                 <span class="ogc-pathyear">${esc(year)}</span>
-                <input type="number" step="${esc(OGParameters.stepFor(f))}"${attrs} value="${esc(v)}" data-role="path-cell" data-index="${i}">
-                ${i ? '<button type="button" class="ogc-pathremove" data-act="remove-year" title="Remove year"><i class="fa fa-times"></i></button>' : ''}
+                <input type="number" step="${esc(OGParameters.stepFor(f))}"${attrs} value="${esc(v === null || v === undefined ? '' : OGParameters.inputNumber(v))}" data-role="path-cell" data-index="${i}">
+                ${i ? `<button type="button" class="ogc-pathremove" data-act="remove-year" title="Remove ${esc(year)}" aria-label="Remove ${esc(year)}"><i class="fa fa-times"></i></button>` : ''}
             </span>`;
         });
-        return `<div class="ogc-path">${rows}<button type="button" class="ogc-pathadd" data-act="add-year"><i class="fa fa-plus"></i> Add year</button></div>`;
+        let nextYear = OGParameters.pathYear(model, vals.length);
+        let previousYear = vals.length ? OGParameters.pathYear(model, vals.length - 1) : null;
+        let addTitle = previousYear === null
+            ? 'Add ' + nextYear
+            : 'Add ' + nextYear + ' with ' + previousYear + "'s value";
+        return `<div class="ogc-path">
+            <div class="ogc-path-scroll" aria-label="Yearly values">${rows}</div>
+            <button type="button" class="ogc-pathadd" data-act="add-year" title="${esc(addTitle)}" aria-label="${esc(addTitle)}"><i class="fa fa-plus"></i> Add ${esc(nextYear)}</button>
+        </div>`;
+    }
+
+    static pathYear(model, index){
+        let start = parseInt(model.cur.start_year, 10);
+        return isNaN(start) ? index + 1 : start + index;
     }
 
     static stepFor(f){
@@ -329,6 +492,7 @@ export default class OGParameters {
             let span = f.max - f.min;
             if (span <= 2){ return 0.001; }
             if (span <= 20){ return 0.01; }
+            if (span <= 100){ return 0.1; }
             if (span <= 1000){ return 1; }
             return 100;
         }
@@ -353,6 +517,11 @@ export default class OGParameters {
         if (a < 1){ return v.toFixed(4).replace(/0+$/, '').replace(/\.$/, ''); }
         if (a < 100){ return v.toFixed(3).replace(/0+$/, '').replace(/\.$/, ''); }
         return v.toFixed(1);
+    }
+
+    static inputNumber(v){
+        if (typeof v != 'number' || !Number.isFinite(v)) return v;
+        return Number(v.toPrecision(8));
     }
 
     static flatten(v){
@@ -391,6 +560,10 @@ export default class OGParameters {
         if (bool.length){
             return bool.val() == 'true';
         }
+        let text = el.find('[data-role="text"]');
+        if (text.length){
+            return text.val();
+        }
         let num = el.find('[data-role="num"]');
         if (num.length){
             let raw = $.trim(num.val());
@@ -407,12 +580,16 @@ export default class OGParameters {
         let model = OGParameters.model;
         let f = model.fields[name];
         let el = OGParameters.fieldEl(name);
+        if (f.tableEditable){
+            el.replaceWith(OGParameters.fieldHtml(model, name));
+            return;
+        }
         if (f.dimension == 'by_j' || f.dimension == 'by_year'){
             let role = f.dimension == 'by_j' ? 'cell' : 'path-cell';
             el.find('[data-role="' + role + '"]').each(function () {
                 let i = parseInt($(this).attr('data-index'), 10);
                 let v = ($.isArray(value) && value.length > i) ? value[i] : '';
-                $(this).val(v === null || v === undefined ? '' : v);
+                $(this).val(v === null || v === undefined ? '' : OGParameters.inputNumber(v));
             });
             return;
         }
@@ -426,8 +603,14 @@ export default class OGParameters {
             bool.val(value ? 'true' : 'false');
             return;
         }
-        el.find('[data-role="range"]').val(value);
-        el.find('[data-role="num"]').val(value === null || value === undefined ? '' : value);
+        let text = el.find('[data-role="text"]');
+        if (text.length){
+            text.val(value === null || value === undefined ? '' : value);
+            return;
+        }
+        let shown = value === null || value === undefined ? '' : OGParameters.inputNumber(value);
+        el.find('[data-role="range"]').val(shown);
+        el.find('[data-role="num"]').val(shown);
     }
 
     static onEdit(name){
@@ -447,36 +630,115 @@ export default class OGParameters {
         let cur = model.cur[name];
         let ref = model.refValue(name, previewRef);
         let changed = !Model.equal(cur, ref);
+        let edited = !Model.equal(cur, model.base[name]);
+        let bad = edited && OGParameters.outOfRange(f, cur);
         el.toggleClass('ogc-changed', changed);
+        el.toggleClass('ogc-bad', bad);
 
         if (f.dimension == 'by_j' || f.dimension == 'by_year'){
-            OGParameters.refreshRow(name, f, cur, ref);
+            OGParameters.refreshRow(name, f, cur, ref, edited);
         }else{
-            let bad = OGParameters.outOfRange(f, cur);
-            el.toggleClass('ogc-bad', bad);
             OGParameters.paintTrack(el, f, cur, ref, changed);
         }
         OGParameters.renderDelta(el, name, f, cur, ref, changed);
+        OGParameters.renderValidation(el, model, f, cur, edited);
     }
 
     static outOfRange(f, v){
-        if (typeof v != 'number'){
-            return false;
+        if ($.isArray(v)){
+            let bad = false;
+            $.each(v, function (id, item) { if (OGParameters.outOfRange(f, item)) bad = true; });
+            return bad;
         }
+        if (f.choices){
+            return $.inArray(v, f.choices) < 0;
+        }
+        if (OGParameters.isBool(f, v)){
+            return typeof v != 'boolean';
+        }
+        if (f.datatype == 'str' || f.type == 'string'){
+            return typeof v != 'string' || $.trim(v) === '';
+        }
+        if (typeof v != 'number' || !Number.isFinite(v)) return true;
         if (f.min !== null && v < f.min){
             return true;
         }
         return f.max !== null && v > f.max;
     }
 
-    static refreshRow(name, f, cur, ref){
+    static invalidChangedNames(model){
+        return $.grep(model.changedNames(), function (name) {
+            return OGParameters.outOfRange(model.fields[name], model.cur[name]);
+        });
+    }
+
+    static invalidPaths(f, value){
+        let paths = [];
+        let visit = function (item, path) {
+            if ($.isArray(item)){
+                $.each(item, function (index, child) { visit(child, path.concat(index)); });
+                return;
+            }
+            if (OGParameters.outOfRange(f, item)) paths.push(path);
+        };
+        visit(value, []);
+        return paths;
+    }
+
+    static invalidPathLabel(model, f, path){
+        if (!path.length) return 'This value';
+        if (f.dimension == 'by_year') return String(OGParameters.pathYear(model, path[0]));
+        if (f.dimension == 'by_j') return 'j' + (path[0] + 1);
+        if (f.dimension == 'by_age') return 'Position ' + (path[0] + 1);
+        if (f.dimension == 'matrix'){
+            return 'Row ' + (path[0] + 1) + ', column ' + path.slice(1).map(i => i + 1).join(', ');
+        }
+        return 'Value ' + path.map(i => i + 1).join(', ');
+    }
+
+    static renderValidation(el, model, f, value, show){
+        let target = el.find('.ogc-validation');
+        if (!show){
+            target.empty().removeClass('ogc-show');
+            return;
+        }
+        let paths = OGParameters.invalidPaths(f, value);
+        if (!paths.length){
+            target.empty().removeClass('ogc-show');
+            return;
+        }
+        let missing = [];
+        let ranged = [];
+        $.each(paths, function (id, path) {
+            let item = value;
+            $.each(path, function (pathId, index) { item = $.isArray(item) ? item[index] : undefined; });
+            (typeof item == 'number' && Number.isFinite(item) ? ranged : missing).push(path);
+        });
+        let messages = [];
+        let describe = function (items) {
+            let labels = items.slice(0, 3).map(path => OGParameters.invalidPathLabel(model, f, path));
+            if (items.length > labels.length) labels.push('and ' + (items.length - labels.length) + ' more');
+            return labels.join(', ');
+        };
+        if (missing.length && f.choices){
+            messages.push(describe(missing) + ' must be one of the available options.');
+        }else if (missing.length && (f.datatype == 'str' || f.type == 'string')){
+            messages.push(describe(missing) + ' cannot be blank.');
+        }else if (missing.length){
+            messages.push(describe(missing) + ' must contain a number.');
+        }
+        if (ranged.length) messages.push(describe(ranged) + ' must be within ' + OGParameters.rangeText(f) + '.');
+        target.text(messages.join(' ')).addClass('ogc-show');
+    }
+
+    static refreshRow(name, f, cur, ref, edited){
         let el = OGParameters.fieldEl(name);
         let role = f.dimension == 'by_j' ? 'cell' : 'path-cell';
         el.find('[data-role="' + role + '"]').each(function () {
             let i = parseInt($(this).attr('data-index'), 10);
             let v = ($.isArray(cur) && cur.length > i) ? cur[i] : null;
             let r = ($.isArray(ref) && ref.length > i) ? ref[i] : null;
-            $(this).toggleClass('ogc-cellbad', OGParameters.outOfRange(f, v));
+            $(this).toggleClass('ogc-cellbad', edited && OGParameters.outOfRange(f, v));
             $(this).toggleClass('ogc-cellchanged', !Model.equal(v, r));
         });
         if (f.dimension != 'by_j' || f.constraint != 'sum_to_one'){
@@ -517,13 +779,9 @@ export default class OGParameters {
         }
         let refLabel = OGParameters.refLabel();
         let html = '';
-        if (f.dimension == 'by_j' || f.dimension == 'by_year'){
-            let n = 0;
-            $.each(cur || [], function (i, v) {
-                let r = ($.isArray(ref) && ref.length > i) ? ref[i] : null;
-                if (!Model.equal(v, r)){ n++; }
-            });
-            html = `<span class="ogc-to">${n} of ${(cur || []).length} changed</span>`
+        if ($.isArray(cur)){
+            let n = OGParameters.countDifferences(cur, ref);
+            html = `<span class="ogc-to">${n} modified ${n == 1 ? 'value' : 'values'}</span>`
                 + `<span class="ogc-from">vs ${esc(refLabel)}</span>`;
         }else if (typeof cur == 'number' && typeof ref == 'number'){
             let diff = cur - ref;
@@ -543,6 +801,20 @@ export default class OGParameters {
         }
         html += `<button class="ogc-freset" data-act="reset-field" title="Reset to ${esc(refLabel)}"><i class="fa fa-undo"></i></button>`;
         delta.html(html).addClass('ogc-show');
+    }
+
+    static countDifferences(cur, ref){
+        if (!$.isArray(cur) || !$.isArray(ref)){
+            if ($.isArray(cur)) return OGParameters.flatten(cur).length;
+            if ($.isArray(ref)) return OGParameters.flatten(ref).length;
+            return Model.equal(cur, ref) ? 0 : 1;
+        }
+        let count = 0;
+        let length = Math.max(cur.length, ref.length);
+        for (let index = 0; index < length; index++){
+            count += OGParameters.countDifferences(cur[index], ref[index]);
+        }
+        return count;
     }
 
     static refLabel(){
@@ -584,7 +856,7 @@ export default class OGParameters {
         if (value != 'auto' && value != 'def' && !OGParameters.model.otherRefs[value]){
             let pageID = PAGE_ID;
             let casename = OGParameters.model.selection.casename;
-            Ogc.getParams(casename, value)
+            Ogc.getParams(OGParameters.model.selection.country_id, casename, value)
             .then(r => {
                 if (!OGParameters.isCurrent(pageID)){
                     return;
@@ -608,7 +880,7 @@ export default class OGParameters {
     static resetField(name){
         let model = OGParameters.model;
         let target = model.base[name];
-        model.cur[name] = $.isArray(target) ? target.slice() : target;
+        model.cur[name] = Model.clone(target);
         OGParameters.writeWidget(name, model.cur[name]);
         dirty = true;
         OGParameters.refreshField(name);
@@ -619,7 +891,7 @@ export default class OGParameters {
         let model = OGParameters.model;
         $.each(model.changedNames(), function (id, name) {
             let target = model.base[name];
-            model.cur[name] = $.isArray(target) ? target.slice() : target;
+            model.cur[name] = Model.clone(target);
             OGParameters.writeWidget(name, model.cur[name]);
         });
         dirty = true;
@@ -628,28 +900,16 @@ export default class OGParameters {
 
     static save(){
         let model = OGParameters.model;
-        let bad = [];
-        $.each(model.fields, function (name, f) {
-            if (!model.editable(name)){
-                return;
-            }
-            if (f.dimension == 'by_j' || f.dimension == 'by_year'){
-                $.each(model.cur[name] || [], function (id, v) {
-                    if (OGParameters.outOfRange(f, v) && $.inArray(name, bad) < 0){
-                        bad.push(name);
-                    }
-                });
-            }else if (OGParameters.outOfRange(f, model.cur[name])){
-                bad.push(name);
-            }
-        });
+        let changedNames = model.changedNames();
+        let bad = OGParameters.invalidChangedNames(model);
         if (bad.length){
-            Message.warning('Some values are outside the range the model accepts: ' + bad.join(', ') + '.');
+            Message.warning('Some values are blank, non-numeric, or outside the range the model accepts: ' + bad.join(', ') + '.');
             return;
         }
         let sumBad = [];
-        $.each(model.fields, function (name, f) {
-            if (f.constraint != 'sum_to_one' || !model.editable(name)){
+        $.each(changedNames, function (id, name) {
+            let f = model.fields[name];
+            if (f.constraint != 'sum_to_one'){
                 return;
             }
             let sum = 0;
@@ -665,16 +925,29 @@ export default class OGParameters {
 
         let pageID = PAGE_ID;
         let payload = model.savePayload();
-        let count = model.changedNames().length;
-        Ogc.saveParams(model.selection.casename, model.selection.run_name, payload)
+        let count = changedNames.length;
+        Ogc.saveParams(
+            model.selection.country_id,
+            model.selection.casename,
+            model.selection.run_name,
+            payload
+        )
         .then(response => {
             dirty = false;
             if (count){
-                let stale = [model.selection.casename + ':' + model.selection.run_name];
+                let stale = [runKey(
+                    model.selection.country_id,
+                    model.selection.casename,
+                    model.selection.run_name
+                )];
                 if (!model.isReform){
                     $.each(OGParameters.runs || [], function (id, r) {
                         if (r.run_type == 'reform' && r.baseline_run == model.selection.run_name){
-                            stale.push(model.selection.casename + ':' + r.run_name);
+                            stale.push(runKey(
+                                model.selection.country_id,
+                                model.selection.casename,
+                                r.run_name
+                            ));
                         }
                     });
                 }
@@ -730,18 +1003,32 @@ export default class OGParameters {
                 OGParameters.resetField(name);
                 return;
             }
+            if (act == 'edit-table'){
+                OGParameters.openTable(name);
+                return;
+            }
+            if (act != 'add-year' && act != 'remove-year') return;
             let vals = OGParameters.readWidget(name);
+            let focusIndex = null;
             if (act == 'add-year'){
                 vals.push(vals.length ? vals[vals.length - 1] : null);
+                focusIndex = vals.length - 1;
             }
             if (act == 'remove-year'){
-                vals.splice(parseInt($(this).closest('.ogc-pathcell').find('input').attr('data-index'), 10), 1);
+                let index = parseInt($(this).closest('.ogc-pathcell').find('input').attr('data-index'), 10);
+                if (index <= 0) return;
+                vals.splice(index, 1);
+                focusIndex = index - 1;
             }
             OGParameters.model.cur[name] = vals;
             field.replaceWith(OGParameters.fieldHtml(OGParameters.model, name));
             dirty = true;
             OGParameters.refreshField(name);
             OGParameters.refreshTotals();
+            if (focusIndex !== null){
+                let input = OGParameters.fieldEl(name).find('[data-role="path-cell"][data-index="' + focusIndex + '"]');
+                input.trigger('focus').select();
+            }
         });
 
         $('#ogcParamsEditbar').off('click.ogcparams').on('click.ogcparams', '[data-act]', function (e) {
@@ -759,5 +1046,6 @@ export default class OGParameters {
         $('#ogcParamsCtx').off('change.ogcparams').on('change.ogcparams', '#ogcCmpRef', function () {
             OGParameters.setPreviewRef($(this).val());
         });
+        OGTableEditor.initEvents();
     }
 }

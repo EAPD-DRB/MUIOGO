@@ -27,6 +27,22 @@ export class Routes {
 
     static getRoutes(model){
         let requestedModel = null;
+        let viewVersion = 0;
+
+        function beginView(){
+            viewVersion++;
+            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            return viewVersion;
+        }
+
+        function loadView(version, path, pageId, onLoad){
+            $.get(path).then(function (html) {
+                if (version != viewVersion) return;
+                $('.osy-content').html(html);
+                localStorage.setItem('osy-pageId', pageId);
+                if (onLoad) onLoad();
+            });
+        }
 
         function enterModel(model){
             MuiogoShell.setModel(model);
@@ -82,27 +98,19 @@ export class Routes {
             let selected = requestedModel || MuiogoShell.getModel();
             requestedModel = null;
             enterModel(selected);
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             if (selected == 'og'){
                 import('../App/Controller/OGCore.js')
                 .then(OGCore => {
-                    $( ".osy-content" ).load( 'App/View/OGCore.html', function() {
-                        localStorage.setItem("osy-pageId", "OGCore");
-                        OGCore.default.onLoad();
-                    });
+                    loadView(version, 'App/View/OGCore.html', 'OGCore', () => OGCore.default.onLoad());
                 });
             }else if (selected == 'clews'){
                 import('../App/Controller/Home.js')
                 .then(Home => {
-                    $( ".osy-content" ).load( 'App/View/Home.html', function() {
-                        localStorage.setItem("osy-pageId", "Home");
-                        Home.default.onLoad();
-                    });
+                    loadView(version, 'App/View/Home.html', 'Home', () => Home.default.onLoad());
                 });
             }else{
-                $( ".osy-content" ).load( 'App/View/ModelPick.html', function() {
-                    localStorage.setItem("osy-pageId", "ModelPick");
-                });
+                loadView(version, 'App/View/ModelPick.html', 'ModelPick');
             }
         });
 
@@ -118,107 +126,80 @@ export class Routes {
 
         crossroads.addRoute('/Config', function() {
             enterModel('clews');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/Config.js')
             .then(Config => {
-                $( ".osy-content" ).load( 'App/View/Config.html', function() {
-                    localStorage.setItem("osy-pageId", "Config");
-                    Config.default.onLoad();
-                });
+                loadView(version, 'App/View/Config.html', 'Config', () => Config.default.onLoad());
             });
         });  
         crossroads.addRoute('/AddCase', function() {
             enterModel('clews');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/AddCase.js')
             .then(AddCase => {
-                $( ".osy-content" ).load( 'App/View/AddCase.html', function() {
-                    localStorage.setItem("osy-pageId", "AddCase");
-                    AddCase.default.onLoad();
-                });
+                loadView(version, 'App/View/AddCase.html', 'AddCase', () => AddCase.default.onLoad());
             });
         }); 
         crossroads.addRoute('/ViewData', function() {
             enterModel('clews');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/ViewData.js')
             .then(ViewData => {
-                $( ".osy-content" ).load( 'App/View/ViewData.html', function() {
-                    localStorage.setItem("osy-pageId", "ViewData");
-                    ViewData.default.onLoad();
-                });
+                loadView(version, 'App/View/ViewData.html', 'ViewData', () => ViewData.default.onLoad());
             });
         });
         crossroads.addRoute('/LegacyImport', function() {
             enterModel('clews');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/LegacyImport.js')
             .then(ViewData => {
-                $( ".osy-content" ).load( 'App/View/LegacyImport.html', function() {
-                    localStorage.setItem("osy-pageId", "LegacyImport");
-                    ViewData.default.onLoad();
-                });
+                loadView(version, 'App/View/LegacyImport.html', 'LegacyImport', () => ViewData.default.onLoad());
             });
         });
         crossroads.addRoute('/OGCore', function() {
             enterModel('og');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/OGCore.js')
             .then(OGCore => {
-                $( ".osy-content" ).load( 'App/View/OGCore.html', function() {
-                    localStorage.setItem("osy-pageId", "OGCore");
-                    OGCore.default.onLoad();
-                });
+                loadView(version, 'App/View/OGCore.html', 'OGCore', () => OGCore.default.onLoad());
             });
         });
         crossroads.addRoute('/OGCases', function() {
             if (!requireWorkspace()) return;
             enterWorkspace();
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/OGCases.js')
             .then(OGCases => {
-                $( ".osy-content" ).load( 'App/View/OGCases.html', function() {
-                    localStorage.setItem("osy-pageId", "OGCases");
-                    OGCases.default.onLoad();
-                });
+                loadView(version, 'App/View/OGCases.html', 'OGCases', () => OGCases.default.onLoad());
             });
         });
         crossroads.addRoute('/OGParameters', function() {
             if (!requireWorkspace()) return;
             enterWorkspace();
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/OGParameters.js')
             .then(OGParameters => {
-                $( ".osy-content" ).load( 'App/View/OGParameters.html', function() {
-                    localStorage.setItem("osy-pageId", "OGParameters");
-                    OGParameters.default.onLoad();
-                });
+                loadView(version, 'App/View/OGParameters.html', 'OGParameters', () => OGParameters.default.onLoad());
             });
         });
         crossroads.addRoute('/OGRuns', function() {
             if (!requireWorkspace()) return;
             enterWorkspace();
             let sourcePage = localStorage.getItem('osy-pageId');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/OGRuns.js')
             .then(OGRuns => {
-                $( ".osy-content" ).load( 'App/View/OGRuns.html', function() {
-                    localStorage.setItem("osy-pageId", "OGRuns");
-                    OGRuns.default.onLoad(sourcePage);
-                });
+                loadView(version, 'App/View/OGRuns.html', 'OGRuns', () => OGRuns.default.onLoad(sourcePage));
             });
         });
         //dynamic routes
         function addAppRoute(group, id){
             return crossroads.addRoute(`/${group}/${id}`, function() {
                 enterModel('clews');
-                $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+                let version = beginView();
                 import(`../App/Controller/${group}.js`)
                 .then(f => {
-                    $( ".osy-content" ).load( `App/View/${group}.html`, function() {
-                        localStorage.setItem("osy-pageId", `${group}`);
-                        f.default.onLoad(group, id);
-                    });
+                    loadView(version, `App/View/${group}.html`, group, () => f.default.onLoad(group, id));
                 });
             });
         }
@@ -229,62 +210,46 @@ export class Routes {
         });
         crossroads.addRoute('/DataFile', function() {
             enterModel('clews');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/DataFile.js')
             .then(DataFile => {
-                $( ".osy-content" ).load( 'App/View/DataFile.html', function() {
-                    localStorage.setItem("osy-pageId", "DataFile");
-                    DataFile.default.onLoad();
-                });
+                loadView(version, 'App/View/DataFile.html', 'DataFile', () => DataFile.default.onLoad());
             });
         });
         crossroads.addRoute('/ModelFile', function() {
             enterModel('clews');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/ModelFile.js')
             .then(ModelFile => {
-                $( ".osy-content" ).load( 'App/View/ModelFile.html', function() {
-                    localStorage.setItem("osy-pageId", "ModelFile");
-                    ModelFile.default.onLoad();
-                });
+                loadView(version, 'App/View/ModelFile.html', 'ModelFile', () => ModelFile.default.onLoad());
             });
         });
         crossroads.addRoute('/Versions', function() {
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
-            $( ".osy-content" ).load( 'App/View/Versions.html');
-            localStorage.setItem("osy-pageId", "Versions");
+            let version = beginView();
+            loadView(version, 'App/View/Versions.html', 'Versions');
         });
         crossroads.addRoute('/Pivot', function() {
             enterModel('clews');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../AppResults/Controller/Pivot.js')
             .then(Pivot => {
-                $( ".osy-content" ).load( 'AppResults/View/Pivot.html', function() {
-                    localStorage.setItem("osy-pageId", "Pivot");
-                    Pivot.default.onLoad();
-                });
+                loadView(version, 'AppResults/View/Pivot.html', 'Pivot', () => Pivot.default.onLoad());
             });
         });
         crossroads.addRoute('/RESViewer', function() {
             enterModel('clews');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/RESViewer.js')
             .then(RESViewer => {
-                $( ".osy-content" ).load( 'App/View/RESViewer.html', function() {
-                    localStorage.setItem("osy-pageId", "RESViewer");
-                    RESViewer.default.onLoad();
-                });
+                loadView(version, 'App/View/RESViewer.html', 'RESViewer', () => RESViewer.default.onLoad());
             });
         });
         crossroads.addRoute('/RESViewerMermaid', function() {
             enterModel('clews');
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/RESViewerMermaid.js')
             .then(RESViewer => {
-                $( ".osy-content" ).load( 'App/View/RESViewerMermaid.html', function() {
-                    localStorage.setItem("osy-pageId", "RESViewerMermaid");
-                    RESViewer.default.onLoad();
-                });
+                loadView(version, 'App/View/RESViewerMermaid.html', 'RESViewerMermaid', () => RESViewer.default.onLoad());
             });
         });
 
@@ -307,7 +272,7 @@ export class Routes {
             }
         }
         //Listen to hash changes
-        window.addEventListener("hashchange", function() {
+        window.addEventListener("hashchange", function(event) {
             // Ignore the hash change used to restore the current page
             if (ignoreNextHashChange) {
                 ignoreNextHashChange = false;
@@ -318,7 +283,12 @@ export class Routes {
                 return;
             }
 
-            var hash = window.location.hash;
+            // Read the URL that raised this event. A second navigation can update
+            // window.location before the first hashchange callback runs; using the
+            // live value would then replace the original, already-confirmed intent.
+            var hash = event && event.newURL !== undefined
+                ? new URL(event.newURL).hash
+                : window.location.hash;
             var route = routeFromHash(hash);
             let currentRoute = routeFromHash(acceptedHash);
             let modelRequest = requestedModel;
