@@ -9,6 +9,8 @@ import { DataModelResult } from "../../Classes/DataModelResult.Class.js";
 import { DefaultObj } from "../../Classes/DefaultObj.Class.js";
 
 export default class Pivot {
+    static unitLabelMaxChars = 40;
+
     static onLoad() {
         Base.getSession()
             .then(response => {
@@ -57,38 +59,38 @@ export default class Pivot {
             });
     }
 
-    // Collect unique unit labels from the pivot data, convert HTML superscripts to Unicode (e.g. <sup>3</sup> → ³), and return a comma-separated string.
-    static getUnitLabel(pivotData) {
+    // Convert unique unit labels to plain text with Unicode superscripts and return a comma-separated string.
+    static getUnitLabel(units) {
         const supMap = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
-        const labels = [...new Set(
-            pivotData
-                .map(r => r['Unit'])
-                .filter(Boolean)
-                .map(u => String(u)
-                    .replace(/<sup>(-?\d+)<\/sup>/g, (_, n) =>
-                        n.split('').map(d => supMap[d]).join('')
-                    )
-                    .replace(/<[^>]+>/g, '')
+        const labels = [...units]
+            .filter(Boolean)
+            .map(u => String(u)
+                .replace(/<sup>(-?\d+)<\/sup>/g, (_, n) =>
+                    n.split('').map(d => supMap[d]).join('')
                 )
-        )];
+                .replace(/<[^>]+>/g, '')
+            );
         if (!labels.length) return '';
         return labels.join(', ');
     }
 
-    // Apply active PivotPanel filters to the raw rows that retain Unit values.
-    static getFilteredPivotData(engine) {
+    // Collect distinct raw units from rows that pass the active PivotPanel filters.
+    static getFilteredUnits(engine) {
         const activeFilters = engine.fields.filter(field => field.filter.isActive);
-        return engine.collectionView.items.filter(item =>
-            activeFilters.every(field => field.filter.apply(item))
-        );
+        const units = new Set();
+        for (const item of engine.collectionView.items) {
+            const unit = item['Unit'];
+            if (!unit || units.has(unit)) continue;
+            if (activeFilters.every(field => field.filter.apply(item))) units.add(unit);
+        }
+        return units;
     }
 
     // Update the unit display for Pie, horizontal, and vertical Pivot charts.
-    static setUnitDisplay(pivotData, pivotChart) {
+    static setUnitDisplay(units, pivotChart) {
         const flexChart = pivotChart.flexChart;
         const chartType = pivotChart.chartType;
-        const label = Pivot.getUnitLabel(pivotData);
-        const unitLabelMaxChars = 40;
+        const label = Pivot.getUnitLabel(units);
 
         if (!label) {
             flexChart.axisX.title = '';
@@ -105,7 +107,7 @@ export default class Pivot {
             flexChart.axisX.title = '';
             flexChart.axisY.title = '';
             $('#pivotChartUnitLabel').text('Units: ' + label);
-        } else if (!isHorizontal && label.length > unitLabelMaxChars) {
+        } else if (!isHorizontal && label.length > Pivot.unitLabelMaxChars) {
             flexChart.axisX.title = '';
             flexChart.axisY.title = 'Multiple units';
             $('#pivotChartUnitLabel').text('Y-axis units: ' + label);
@@ -396,13 +398,12 @@ export default class Pivot {
 
         // Recalculate the displayed units from the currently filtered Pivot data.
         const updateUnitDisplay = () => {
-            const filteredData = Pivot.getFilteredPivotData(app.engine);
-            Pivot.setUnitDisplay(filteredData, app.pivotChart);
+            const filteredUnits = Pivot.getFilteredUnits(app.engine);
+            Pivot.setUnitDisplay(filteredUnits, app.pivotChart);
         };
 
         // Refresh units after the PivotEngine finishes applying panel filters.
         app.engine.updatedView.addHandler(updateUnitDisplay);
-        updateUnitDisplay();
 
         // app.pivotChart.flexChart.axisX.itemFormatter = function (engine, label) {
         //     label.text = wijmo.toPlainText(label.text);

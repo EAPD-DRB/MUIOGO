@@ -267,6 +267,7 @@ export class DataModelResult{
                     $.each(genData['osy-tech'], function (id, tObj) {
                         unitData[group][obj.id][tObj.Tech] = {};
                         unitData[group][obj.id][tObj.Tech]['years'] = 'years';
+                        unitData[group][obj.id][tObj.Tech]['number'] = 'number';
                         unitData[group][obj.id][tObj.Tech]['percent'] = '%';
                         unitData[group][obj.id][tObj.Tech]['divide'] = '/';
                         unitData[group][obj.id][tObj.Tech]['multiply'] = '*';
@@ -870,9 +871,7 @@ export class DataModelResult{
     //                                 chunk['TechGroupDesc'] = 'No group';
     //                                 dataT = unitData[group][param][obj.Tech];
     
-    //                                 // spread top-level unitData first so scalar keys (e.g. 'number') are available,
-    //                                 // then dataT (tech-specific), then dataE (emission-specific) to override as needed
-    //                                 chunk['Unit'] = jsonLogic.apply(rule, {...unitData[group][param], ...dataT, ...dataE});
+    //                                 chunk['Unit'] = jsonLogic.apply(rule, {...dataT});
     //                                 pivotData.push(chunk);
     //                             }
     
@@ -1106,8 +1105,7 @@ export class DataModelResult{
                                         tmp['TechDesc'] = techData[obj.Tech]["Desc"];
                                         tmp['TechGroupDesc'] = techGroupData[tg]["Desc"];
                                         dataT = unitData[group][param][obj.Tech];
-                                        const currentDataE = (obj.Emi && obj.Emi in emiData) ? unitData[group][param][obj.Emi] : {};
-                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT, ...currentDataE});
+                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT});
                                         pivotData.push(tmp);
                                     })
                                 }else{
@@ -1116,8 +1114,8 @@ export class DataModelResult{
                                     chunk['TechDesc'] = techData[obj.Tech]["Desc"];
                                     chunk['TechGroupDesc'] = 'No group';
                                     dataT = unitData[group][param][obj.Tech];
-                                    const currentDataE = (obj.Emi && obj.Emi in emiData) ? unitData[group][param][obj.Emi] : {};
-                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT, ...currentDataE});
+
+                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT});
                                     pivotData.push(chunk);
                                 }
     
