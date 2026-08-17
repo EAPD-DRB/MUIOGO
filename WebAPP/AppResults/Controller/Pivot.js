@@ -96,7 +96,6 @@ export default class Pivot {
 
         flexChart.footer = '';
         if (pivotChart.flexPie) pivotChart.flexPie.footer = '';
-        $('#pivotChartUnitLabel').text('');
 
         if (!label) {
             flexChart.axisX.title = '';
