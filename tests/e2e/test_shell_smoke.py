@@ -1824,9 +1824,9 @@ def test_table_editor_copies_a_selected_numeric_cell(page, base_url):
         '#ogcTableGrid .tabulator-cell[tabulator-field="value_0"]'
     )
     cells.nth(0).click()
-    page.keyboard.press('Meta+C')
+    page.keyboard.press('ControlOrMeta+C')
     cells.nth(1).click()
-    page.keyboard.press('Meta+V')
+    page.keyboard.press('ControlOrMeta+V')
     expect(cells.nth(1)).to_have_text('0.027')
     page.get_by_role('button', name='Apply changes').click()
     result = page.evaluate("""() => ({
