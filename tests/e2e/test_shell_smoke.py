@@ -150,6 +150,137 @@ def test_routes_assert_their_model(page, base_url):
     expect(page.locator(".ogc-page")).to_be_visible()
 
 
+def test_results_tables_use_user_facing_headers_and_numeric_alignment(page, base_url):
+    page.goto(base_url, wait_until="domcontentloaded")
+    result = page.evaluate("""async () => {
+        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
+        const { default: Results } = await import(
+            new URL('App/Controller/OGResults.js', location.href).href
+        );
+        document.querySelector('.osy-content').innerHTML = markup;
+
+        Results.activeTableKey = 'wealth';
+        Results.selection = {casename: 'Case 1', base: 'Baseline 1', reform: 'Reform 1'};
+        Results.renderTableRows([{Moment: 'Gini coefficient', Model: 0.5711}]);
+        const wealthHeaders = [...document.querySelectorAll('#ogcResultTable th')]
+            .map(cell => cell.textContent.trim());
+        const wealthNumeric = [...document.querySelectorAll('#ogcResultTable td')]
+            .map(cell => cell.classList.contains('ogc-num'));
+
+        Results.activeTableKey = 'gini';
+        Results.renderTableRows([{
+            'Gini Type': 'Consumption',
+            'Inequality Measure': 'Coefficient',
+            Baseline: 0.2981,
+            Reform: 0.2978,
+        }]);
+        const giniNumeric = [...document.querySelectorAll('#ogcResultTable td')]
+            .map(cell => cell.classList.contains('ogc-num'));
+
+        Results.activeTableKey = 'ineq';
+        Results.renderTableRows([{
+            'Steady-State Variable': 'Household Consumption ($' + String.fromCharCode(92) + 'tilde{c}_{j,s,t}$)',
+            'Inequality Measure': 'Gini Coefficient',
+            Baseline: [0.2981],
+            Reform: [0.2978],
+            '% Change': [-0.1177],
+        }]);
+        const cleanedValues = [...document.querySelectorAll('#ogcResultTable td')]
+            .map(cell => cell.textContent.trim());
+        const cleanedNumeric = [...document.querySelectorAll('#ogcResultTable td')]
+            .map(cell => cell.classList.contains('ogc-num'));
+
+        Results.tables = Results.tables || {};
+        Results.tables.ineq = [{
+            'Inequality Measure': 'Top 10% Share',
+            Baseline: 0.2411,
+            Reform: 0.2435,
+        }];
+        Results.renderInequality();
+        const shareMetric = {
+            label: document.querySelector('.ogc-inequality-metric > span').textContent,
+            change: document.querySelector('.ogc-inequality-metric > strong').textContent,
+            levels: document.querySelector('.ogc-inequality-metric > small').textContent,
+        };
+
+        return {
+            wealthHeaders,
+            wealthNumeric,
+            giniNumeric,
+            cleanedValues,
+            cleanedNumeric,
+            shareMetric,
+            tableLabel: document.querySelector('#ogcResultTable table').getAttribute('aria-label'),
+        };
+    }""")
+
+    assert result == {
+        "wealthHeaders": ["Moment", "Baseline"],
+        "wealthNumeric": [False, True],
+        "giniNumeric": [False, False, True, True],
+        "cleanedValues": [
+            "Household Consumption",
+            "Gini Coefficient",
+            "0.2981",
+            "0.2978",
+            "-0.1177",
+        ],
+        "cleanedNumeric": [False, False, True, True, True],
+        "shareMetric": {
+            "label": "Top 10% share",
+            "change": "+0.24 percentage points",
+            "levels": "24.11% → 24.35%",
+        },
+        "tableLabel": "Inequality measures",
+    }
+
+
+def test_results_default_view_is_country_scoped_and_dimensions_are_explicit(page, base_url):
+    page.goto(base_url, wait_until="domcontentloaded")
+    result = page.evaluate("""async () => {
+        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
+        const { default: Results } = await import(
+            new URL('App/Controller/OGResults.js', location.href).href
+        );
+        document.querySelector('.osy-content').innerHTML = markup;
+
+        Results.workspace = {country_id: 'ETH'};
+        document.querySelector('#ogcExploreVariable').innerHTML = '<option value="c">Consumption</option>';
+        document.querySelector('#ogcExploreMeasure').innerHTML = '<option value="pct">Percent change</option>';
+        document.querySelector('#ogcExploreView').innerHTML = '<option value="heatmap">Heatmap</option>';
+        document.querySelector('#ogcExploreGroup').innerHTML = '<option value="2">50–70%</option>';
+        Results.saveView();
+        const ethiopia = JSON.parse(localStorage.getItem('osy-ogc-result-view:ETH'));
+        const savedNote = document.querySelector('#ogcSavedNote').textContent;
+
+        Results.workspace = {country_id: 'PHL'};
+        const philippines = Results.readSaved();
+
+        Results.workspace = {country_id: 'ETH'};
+        Results.groups = ['Bottom 25%', '25–50%', '50–70%', '70–80%', '80–90%', '90–99%', 'Top 1%'];
+        Results.ages = Array.from({length: 80}, (_, index) => index + 21);
+        Results.base = {c: Array.from({length: 80}, () => Array(7).fill(1))};
+        Results.refreshExploreViews('heatmap');
+        const dimensions = [...document.querySelector('#ogcExploreShape').children]
+            .map(node => node.textContent.trim());
+
+        return {ethiopia, philippines, savedNote, dimensions};
+    }""")
+
+    assert result == {
+        "ethiopia": {
+            "country_id": "ETH",
+            "variable": "c",
+            "measure": "pct",
+            "view": "heatmap",
+            "group": "2",
+        },
+        "philippines": None,
+        "savedNote": "Default view saved",
+        "dimensions": ["Dimensions", "Age × income group", "80 ages × 7 income groups"],
+    }
+
+
 def test_local_folder_update_action_is_manual(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
     html = page.evaluate("""async () => {
@@ -394,6 +525,8 @@ def test_ogc_adapter_matches_run_backend_contract(page, base_url):
         const runs = await Ogc.getRuns('ETH', 'case-one');
         const params = await Ogc.getParams('ETH', 'case-one', 'reform');
         await Ogc.getRunQueue('ETH', 'case-one');
+        await Ogc.getSSVars('ETH', 'case-one', 'reform', ['Y']);
+        await Ogc.getIneqTable('ETH', 'case-one', 'base', 'reform');
         await Ogc.setSession(null, 'ETH');
         await Ogc.setSession(null);
         return {calls, runs, params};
@@ -412,8 +545,16 @@ def test_ogc_adapter_matches_run_backend_contract(page, base_url):
         'type': 'POST', 'path': 'ogc/getRunQueue',
         'data': {'country_id': 'ETH', 'casename': 'case-one'}
     }
-    assert result['calls'][6]['data'] == {'casename': None, 'country_id': 'ETH'}
-    assert result['calls'][7]['data'] == {'casename': None}
+    assert result['calls'][6] == {
+        'type': 'POST', 'path': 'ogc/getSSVars',
+        'data': {'country_id': 'ETH', 'casename': 'case-one', 'run_name': 'reform', 'vars': ['Y']}
+    }
+    assert result['calls'][7] == {
+        'type': 'POST', 'path': 'ogc/getIneqTable',
+        'data': {'country_id': 'ETH', 'casename': 'case-one', 'base_run': 'base', 'reform_run': 'reform'}
+    }
+    assert result['calls'][8]['data'] == {'casename': None, 'country_id': 'ETH'}
+    assert result['calls'][9]['data'] == {'casename': None}
 
 
 def test_workspace_opening_uses_real_backend_stages(page, base_url):

@@ -153,7 +153,7 @@ function measureValue(name, base, reform, measure){
 }
 
 function measureLabel(name, measure){
-    if (measure == 'levels') return info(name).rate ? 'Rate (%)' : 'Model units';
+    if (measure == 'levels') return info(name).rate ? 'Rates (%)' : 'Levels';
     if (measure == 'pp') return 'Percentage-point difference';
     if (measure == 'diff') return 'Difference';
     return 'Percent change';
@@ -177,6 +177,38 @@ function fmt(value){
     if (abs && (abs >= 100000 || abs < 0.0001)) return value.toExponential(3);
     if (abs >= 1000) return value.toLocaleString(undefined, {maximumFractionDigits: 1});
     return value.toLocaleString(undefined, {maximumFractionDigits: abs >= 10 ? 2 : 4});
+}
+
+function plainMath(value){
+    return String(value || '')
+        .replace(/\\(?:tilde|hat|bar|vec)\s*\{([^{}]+)\}/g, '$1')
+        .replace(/\\(?:mathrm|text)\s*\{([^{}]+)\}/g, '$1')
+        .replace(/_\{([^{}]+)\}/g, ' ($1)')
+        .replace(/\^\{([^{}]+)\}/g, '^$1')
+        .replace(/_([A-Za-z0-9]+)/g, ' ($1)')
+        .replace(/\\([A-Za-z]+)/g, '$1')
+        .replace(/[{}]/g, '')
+        .replace(/\s*,\s*/g, ', ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function resultTableText(value){
+    let source = String(value == null ? '' : value);
+    let cleaned = source
+        .replace(/\s*\(\s*\$[^$]+\$\s*\)/g, '')
+        .replace(/\s*,?\s*\$[^$]+\$\s*$/g, '')
+        .replace(/\$([^$]+)\$/g, (_, expression) => plainMath(expression))
+        .replace(/\s+,/g, ',')
+        .replace(/\s+/g, ' ')
+        .trim();
+    return cleaned || plainMath(source.replace(/\$/g, ''));
+}
+
+function resultTableCell(value){
+    while ($.isArray(value) && value.length == 1) value = value[0];
+    if ($.isArray(value)) return $.map(value, resultTableCell).join(', ');
+    return typeof value == 'string' ? resultTableText(value) : value;
 }
 
 function formatParameter(value){
@@ -301,7 +333,7 @@ export default class OGResults {
         OGResults.initEvents();
         Promise.all([OGResults.loadECharts(), Ogc.getCases(OGResults.workspace.country_id)])
             .then(values => OGResults.prepareCases(values[1]))
-            .catch(error => OGResults.showEmpty('Results could not be opened', String(error)));
+            .catch(error => OGResults.showEmpty('Unable to load results', String(error)));
     }
 
     static isCurrent(){
@@ -320,7 +352,7 @@ export default class OGResults {
             script.addEventListener('load', () => resolve(window.echarts), {once: true});
             script.addEventListener('error', () => {
                 script.remove();
-                reject('The chart runtime could not be loaded.');
+                reject('Charts could not be loaded.');
             }, {once: true});
             document.head.appendChild(script);
         });
@@ -330,7 +362,11 @@ export default class OGResults {
         let cases = $.isArray(response) ? response : (response.cases || []);
         cases = $.grep(cases, item => item.country_id == OGResults.workspace.country_id);
         if (!cases.length){
-            OGResults.showEmpty('No cases in this workspace', 'Create and run an OG-Core case before opening Results.');
+            OGResults.showEmpty(
+                'No cases in this workspace',
+                'Create a case, then complete a baseline and reform run.',
+                { href: '#/OGCases', label: 'Go to Cases' }
+            );
             return;
         }
         return Promise.all($.map(cases, item => Ogc.getRuns(OGResults.workspace.country_id, item.casename)
@@ -344,7 +380,11 @@ export default class OGResults {
                     return $.grep(bases, base => OGResults.compatibleReforms(item, base.run_name).length).length;
                 });
                 if (!viable.length){
-                    OGResults.showEmpty('No completed baseline–reform pair', 'Complete a baseline and reform in this workspace to compare results.');
+                    OGResults.showEmpty(
+                        'No completed comparison',
+                        'Complete a baseline and reform run.',
+                        { href: '#/OGRuns', label: 'Go to Run' }
+                    );
                     return;
                 }
                 $('#ogcResultCase').html($.map(viable, item => `<option value="${esc(item.case.casename)}">${esc(item.case.casename)}</option>`).join(''));
@@ -393,7 +433,11 @@ export default class OGResults {
         let baseRun = $('#ogcResultBase').val();
         let reformRun = $('#ogcResultReform').val();
         if (!casename || !baseRun || !reformRun){
-            OGResults.showEmpty('Select a completed comparison', 'A baseline and reform are both required.');
+            OGResults.showEmpty(
+                'No completed comparison',
+                'Complete a baseline and reform run.',
+                { href: '#/OGRuns', label: 'Go to Run' }
+            );
             return;
         }
         $('#ogcResultEmpty, #ogcResultBody').hide();
@@ -403,7 +447,7 @@ export default class OGResults {
         OGResults.tableRequestID++;
         $('#ogcTableExport').prop('disabled', true);
         $('#ogcResultTable').empty();
-        $('#ogcTableStatus').text('Loading comparison…').show();
+        $('#ogcTableStatus').text('Loading table…').show();
         let requestedAt = ++OGResults.requestID;
         Promise.all([
             Ogc.getSSVars(OGResults.workspace.country_id, casename, baseRun),
@@ -429,7 +473,7 @@ export default class OGResults {
             }
         }).catch(error => {
             if (!OGResults.isCurrent() || requestedAt != OGResults.requestID) return;
-            OGResults.showEmpty('The selected results could not be read', String(error));
+            OGResults.showEmpty('Unable to load selected results', String(error));
         });
     }
 
@@ -483,7 +527,9 @@ export default class OGResults {
         let item = OGResults.currentItem();
         let reform = $.grep(item.runs, run => run.run_name == OGResults.selection.reform)[0] || {};
         let complete = reform.completed_at ? new Date(reform.completed_at).toLocaleDateString() : '';
-        $('#ogcResultMeta').html(`${complete ? '<i class="fa fa-calendar-o"></i><span>' + esc(complete) + '</span>' : ''}`);
+        $('#ogcResultMeta').html(complete
+            ? `<span class="ogc-result-meta-label">Reform run</span><time datetime="${esc(reform.completed_at)}">${esc(complete)}</time>`
+            : '');
     }
 
     static renderPolicy(){
@@ -501,7 +547,7 @@ export default class OGResults {
             }
         });
         if (!changes.length){
-            $('#ogcPolicyChange').html('<span class="ogc-mut">No parameter changes recorded.</span>');
+            $('#ogcPolicyChange').html('<span class="ogc-mut">No parameter changes.</span>');
             return;
         }
         let itemHtml = item => {
@@ -513,7 +559,7 @@ export default class OGResults {
         let primary = $.map(changes.slice(0, 4), itemHtml).join('');
         let remaining = changes.slice(4);
         let extra = remaining.length
-            ? `<button class="ogc-policy-toggle" type="button" data-count="${remaining.length}">${remaining.length} more</button><div class="ogc-policy-extra" hidden>${$.map(remaining, itemHtml).join('')}</div>`
+            ? `<button class="ogc-policy-toggle" type="button" data-count="${remaining.length}">Show ${remaining.length} more</button><div class="ogc-policy-extra" hidden>${$.map(remaining, itemHtml).join('')}</div>`
             : '';
         $('#ogcPolicyChange').html(primary + extra);
     }
@@ -530,7 +576,7 @@ export default class OGResults {
             let baseline = spec[2] == 'pp' ? level(spec[0], b) : b;
             let reform = spec[2] == 'pp' ? level(spec[0], r) : r;
             let unit = spec[2] == 'pp' ? '%' : '';
-            return `<article class="ogc-result-kpi"><span>${esc(spec[1])}</span><strong>${esc(signed(change, spec[2] == 'pp' ? ' pp' : '%'))}</strong><small><span>Baseline ${esc(fmt(baseline))}${unit}</span><span>Reform ${esc(fmt(reform))}${unit}</span></small></article>`;
+            return `<article class="ogc-result-kpi"><span>${esc(spec[1])}</span><strong>${esc(signed(change, spec[2] == 'pp' ? ' percentage points' : '%'))}</strong><small><span>Baseline ${esc(fmt(baseline))}${unit}</span><span>Reform ${esc(fmt(reform))}${unit}</span></small></article>`;
         }).join(''));
     }
 
@@ -547,7 +593,9 @@ export default class OGResults {
             let baseline = Number(row.Baseline), reform = Number(row.Reform);
             let delta = diff(baseline, reform);
             let change = spec[2] == 'pp' && delta !== null ? delta * 100 : delta;
-            return `<div class="ogc-inequality-metric"><span>${esc(spec[1])}</span><strong>${esc(signed(change, spec[2] == 'pp' ? ' pp' : ''))}</strong><small>${esc(fmt(baseline))} → ${esc(fmt(reform))}</small></div>`;
+            let baselineLabel = spec[2] == 'pp' ? `${fmt(baseline * 100)}%` : fmt(baseline);
+            let reformLabel = spec[2] == 'pp' ? `${fmt(reform * 100)}%` : fmt(reform);
+            return `<div class="ogc-inequality-metric"><span>${esc(spec[1])}</span><strong>${esc(signed(change, spec[2] == 'pp' ? ' percentage points' : ''))}</strong><small>${esc(baselineLabel)} → ${esc(reformLabel)}</small></div>`;
         });
         $('#ogcInequalityMetrics').html(metrics.join(''));
         $('#ogcInequalitySummary').toggle(metrics.length > 0);
@@ -621,7 +669,9 @@ export default class OGResults {
         let option = OGResults.heatOption(name, measure);
         let scale = option.ogcScale;
         delete option.ogcScale;
-        $('#ogcDistributionScale').text(scale ? `Scale ±${fmt(scale.bound)}${measureSuffix(name, measure)}${scale.clipped ? ` · ${scale.cappedPercent}% capped` : ''}` : '');
+        $('#ogcDistributionScale').text(scale
+            ? `Color scale ±${fmt(scale.bound)}${measureSuffix(name, measure)}${scale.clipped ? ` · ${scale.cappedPercent}% outside scale` : ''}`
+            : '');
         OGResults.setChart('ogcDistributionChart', option);
         let chart = OGResults.charts.ogcDistributionChart;
         chart.off('click');
@@ -708,11 +758,11 @@ export default class OGResults {
         let meta = info(name);
         let options;
         if (meta.rate){
-            options = [['pp', 'Percentage-point difference'], ['levels', 'Baseline and reform rates']];
+            options = [['pp', 'Percentage-point difference'], ['levels', 'Rates (%)']];
         }else if (meta.differenceOnly || meta.category == 'Model diagnostics'){
-            options = [['diff', 'Difference'], ['levels', 'Baseline and reform values']];
+            options = [['diff', 'Difference'], ['levels', 'Levels']];
         }else{
-            options = [['pct', 'Percent change'], ['diff', 'Difference'], ['levels', 'Baseline and reform values']];
+            options = [['pct', 'Percent change'], ['diff', 'Difference'], ['levels', 'Levels']];
         }
         $('#ogcExploreMeasure').html($.map(options, option => `<option value="${option[0]}">${esc(option[1])}</option>`).join(''));
         if ($.grep(options, option => option[0] == preferred).length) $('#ogcExploreMeasure').val(preferred);
@@ -736,9 +786,9 @@ export default class OGResults {
         $('.ogc-explore-group').toggle(spec.kind == 'age_group' && $('#ogcExploreView').val() == 'profile');
         let shapeLabel = spec.kind == 'age_group' ? 'Age × income group' : humanize(spec.kind);
         let dimensionLabel = spec.kind == 'age_group' && spec.dims.length == 2
-            ? `${spec.dims[0]} ages × ${spec.dims[1]} groups`
+            ? `${spec.dims[0]} ages × ${spec.dims[1]} income groups`
             : (spec.dims.length ? spec.dims.join(' × ') : 'Single value');
-        $('#ogcExploreShape').html(`<span>${esc(shapeLabel)}</span><code>${esc(dimensionLabel)}</code>`);
+        $('#ogcExploreShape').html(`<span>Dimensions</span><strong>${esc(shapeLabel)}</strong><small>${esc(dimensionLabel)}</small>`);
     }
 
     static renderExplore(){
@@ -751,6 +801,7 @@ export default class OGResults {
         $('#ogcExploreCategory').text(meta.category);
         $('#ogcExploreTitle').text(meta.label);
         $('#ogcExploreUnit').text(measureLabel(name, measure));
+        $('#ogcExploreChart').attr('aria-label', `${meta.label}, ${measureLabel(name, measure).toLowerCase()}, ${view}`);
         $('.ogc-explore-group').toggle(spec.kind == 'age_group' && view == 'profile');
         $('#ogcExploreChart').removeClass('ogc-explore-scalar ogc-explore-category ogc-explore-dense')
             .addClass(spec.kind == 'scalar' ? 'ogc-explore-scalar' : (spec.kind == 'group' || spec.kind == 'vector' ? 'ogc-explore-category' : 'ogc-explore-dense'));
@@ -768,7 +819,7 @@ export default class OGResults {
             option = OGResults.heatOption(name, measure);
             let scale = option.ogcScale;
             if (scale){
-                $('#ogcExploreUnit').text(`${measureLabel(name, measure)} · Scale ±${fmt(scale.bound)}${measureSuffix(name, measure)}${scale.clipped ? ` · ${scale.cappedPercent}% capped` : ''}`);
+                $('#ogcExploreUnit').text(`${measureLabel(name, measure)} · Color scale ±${fmt(scale.bound)}${measureSuffix(name, measure)}${scale.clipped ? ` · ${scale.cappedPercent}% outside scale` : ''}`);
             }
             delete option.ogcScale;
         }
@@ -849,12 +900,38 @@ export default class OGResults {
         $('#ogcExploreTable').html(OGResults.tableHtml(headers, rows)).show();
     }
 
-    static tableHtml(headers, rows){
-        return `<table class="ogc-table ogc-analysis-table"><thead><tr>${$.map(headers, h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${$.map(rows, row => `<tr>${$.map(row, (cell, i) => `<td${i ? ' class="ogc-num"' : ''}>${esc(typeof cell == 'number' ? fmt(cell) : cell)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    static tableHtml(headers, rows, label){
+        rows = $.map(rows, row => [$.map(row, resultTableCell)]);
+        let numeric = $.map(headers, (_, index) => {
+            let values = $.map(rows, row => row[index] === null || row[index] === undefined || row[index] === '' ? null : row[index]);
+            return values.length > 0 && $.grep(values, value => typeof value != 'number').length == 0;
+        });
+        return `<table class="ogc-table ogc-analysis-table" aria-label="${esc(label || 'Results table')}"><thead><tr>${$.map(headers, (header, index) => `<th scope="col"${numeric[index] ? ' class="ogc-num"' : ''}>${esc(header)}</th>`).join('')}</tr></thead><tbody>${$.map(rows, row => `<tr>${$.map(row, (cell, index) => `<td${numeric[index] ? ' class="ogc-num"' : ''}>${esc(typeof cell == 'number' ? fmt(cell) : cell)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+
+    static tableLabel(key){
+        return {
+            macro: 'Macroeconomic results',
+            ineq: 'Inequality measures',
+            gini: 'Gini detail',
+            wealth: 'Wealth moments'
+        }[key] || 'Results table';
+    }
+
+    static displayTableHeader(header){
+        if (OGResults.activeTableKey == 'wealth' && header == 'Model') return 'Baseline';
+        return {
+            'Steady-State Variable': 'Outcome',
+            'Inequality Measure': 'Measure',
+            'Gini Type': 'Gini type',
+            '% Change': 'Change (%)',
+            '% Change (or pp diff)': 'Change (% or percentage points)'
+        }[header] || header;
     }
 
     static loadTable(key){
-        $('.ogc-table-pills button').removeClass('active').filter(`[data-table="${key}"]`).addClass('active');
+        $('.ogc-table-pills button').removeClass('active').attr('aria-selected', 'false')
+            .filter(`[data-table="${key}"]`).addClass('active').attr('aria-selected', 'true');
         OGResults.activeTableKey = key;
         OGResults.activeTable = null;
         let requestedAt = ++OGResults.tableRequestID;
@@ -863,7 +940,7 @@ export default class OGResults {
             OGResults.renderTableRows(OGResults.tables[key]);
             return;
         }
-        $('#ogcTableStatus').html('<i class="fa fa-circle-o-notch fa-spin"></i> Calculating with OG-Core…').show();
+        $('#ogcTableStatus').html('<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> Loading table…').show();
         $('#ogcResultTable').empty();
         let s = OGResults.selection;
         let selectionKey = JSON.stringify(s);
@@ -876,13 +953,15 @@ export default class OGResults {
             OGResults.tables[key] = rows;
             OGResults.renderTableRows(rows);
         }).catch(error => {
-            if (requestedAt == OGResults.tableRequestID && selectionKey == JSON.stringify(OGResults.selection)) $('#ogcTableStatus').text(String(error)).show();
+            if (requestedAt == OGResults.tableRequestID && selectionKey == JSON.stringify(OGResults.selection)){
+                $('#ogcTableStatus').text(`Unable to load table. ${String(error)}`).show();
+            }
         });
     }
 
     static renderTableRows(rows){
         if (!$.isArray(rows) || !rows.length){
-            $('#ogcTableStatus').text('No rows were returned.').show();
+            $('#ogcTableStatus').text('No data available.').show();
             return;
         }
         let headers = Object.keys(rows[0]);
@@ -894,10 +973,12 @@ export default class OGResults {
             let ai = preferred.indexOf(a), bi = preferred.indexOf(b);
             return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
         });
-        let body = rows.map(row => headers.map(header => row[header]));
-        OGResults.activeTable = { headers: headers, rows: body };
+        let body = rows.map(row => headers.map(header => resultTableCell(row[header])));
+        let displayHeaders = headers.map(header => OGResults.displayTableHeader(header));
+        let tableLabel = OGResults.tableLabel(OGResults.activeTableKey);
+        OGResults.activeTable = { headers: displayHeaders, rows: body };
         $('#ogcTableStatus').hide();
-        $('#ogcResultTable').html(OGResults.tableHtml(headers, body));
+        $('#ogcResultTable').html(OGResults.tableHtml(displayHeaders, body, tableLabel));
         $('#ogcTableExport').prop('disabled', false);
     }
 
@@ -940,7 +1021,13 @@ export default class OGResults {
     }
 
     static readSaved(){
-        try { return JSON.parse(localStorage.getItem(VIEW_KEY)) || null; } catch (error) { return null; }
+        try {
+            let countryID = OGResults.workspace.country_id;
+            let saved = JSON.parse(localStorage.getItem(`${VIEW_KEY}:${countryID}`)) || null;
+            if (saved) return saved;
+            let legacy = JSON.parse(localStorage.getItem(VIEW_KEY)) || null;
+            return legacy && legacy.country_id == countryID ? legacy : null;
+        } catch (error) { return null; }
     }
 
     static saveView(){
@@ -949,8 +1036,8 @@ export default class OGResults {
             variable: $('#ogcExploreVariable').val(), measure: $('#ogcExploreMeasure').val(),
             view: $('#ogcExploreView').val(), group: $('#ogcExploreGroup').val()
         };
-        localStorage.setItem(VIEW_KEY, JSON.stringify(saved));
-        $('#ogcSavedNote').text('View saved');
+        localStorage.setItem(`${VIEW_KEY}:${OGResults.workspace.country_id}`, JSON.stringify(saved));
+        $('#ogcSavedNote').text('Default view saved');
     }
 
     static exportChart(id){
@@ -976,10 +1063,16 @@ export default class OGResults {
         setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     }
 
-    static showEmpty(title, text){
+    static showEmpty(title, text, action){
         $('#ogcResultLoading, #ogcResultBody').hide();
         $('#ogcResultEmptyTitle').text(title);
         $('#ogcResultEmptyText').text(text);
+        let link = $('#ogcResultEmptyAction');
+        if (action){
+            link.attr('href', action.href).text(action.label).show();
+        }else{
+            link.hide();
+        }
         $('#ogcResultEmpty').show();
     }
 
@@ -1000,12 +1093,13 @@ export default class OGResults {
             let extra = $('.ogc-policy-extra');
             let opening = extra.prop('hidden');
             extra.prop('hidden', !opening);
-            $(this).text(opening ? 'Less' : `${$(this).data('count')} more`);
+            $(this).text(opening ? 'Show less' : `Show ${$(this).data('count')} more`);
         });
         $(document).on('click.ogresults', '#ogcSaveView', () => OGResults.saveView());
         $(document).on('click.ogresults', '#ogcResetView', () => {
+            localStorage.removeItem(`${VIEW_KEY}:${OGResults.workspace.country_id}`);
             localStorage.removeItem(VIEW_KEY); $('#ogcExploreVariable').val('Y'); $('#ogcExploreMeasure').val('pct');
-            OGResults.refreshExploreMeasures('pct'); OGResults.refreshExploreViews('comparison'); OGResults.renderExplore(); $('#ogcSavedNote').text('View reset');
+            OGResults.refreshExploreMeasures('pct'); OGResults.refreshExploreViews('comparison'); OGResults.renderExplore(); $('#ogcSavedNote').text('Defaults restored');
         });
         $(document).on('click.ogresults', '.ogc-chart-export[data-export-chart]', function(){ OGResults.exportChart($(this).data('export-chart')); });
         $(document).on('click.ogresults', '#ogcTableExport', () => OGResults.exportTable());
