@@ -330,7 +330,7 @@ def test_og_workspace_routes_assert_og_mode(page, base_url):
     expect(page.locator("body.osy-mode-og")).to_have_count(1)
     expect(page.locator("body.osy-og-workspace")).to_have_count(1)
     expect(page.locator("#ogcCasesPage")).to_be_visible()
-    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(2)
+    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(3)
     expect(page.locator("#ogcCasesPage [data-act='run']")).to_have_count(0)
     page.goto(f"{base_url}/#/OGRuns")
     expect(page.locator("body.osy-mode-og.osy-og-workspace")).to_have_count(1)

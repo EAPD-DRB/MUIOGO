@@ -177,6 +177,38 @@ export class Ogc {
         });
     }
 
+    static getSSVars(countryId, casename, runName, vars) {
+        let payload = { country_id: countryId, casename: casename, run_name: runName };
+        if ($.isArray(vars)) payload.vars = vars;
+        return Ogc._request('POST', 'ogc/getSSVars', payload);
+    }
+
+    static getResultTable(path, countryId, casename, baseRun, reformRun, options) {
+        let payload = $.extend({}, options || {}, {
+            country_id: countryId,
+            casename: casename,
+            base_run: baseRun
+        });
+        if (reformRun) payload.reform_run = reformRun;
+        return Ogc._request('POST', 'ogc/' + path, payload);
+    }
+
+    static getMacroTableSS(countryId, casename, baseRun, reformRun) {
+        return Ogc.getResultTable('getMacroTableSS', countryId, casename, baseRun, reformRun);
+    }
+
+    static getIneqTable(countryId, casename, baseRun, reformRun) {
+        return Ogc.getResultTable('getIneqTable', countryId, casename, baseRun, reformRun);
+    }
+
+    static getGiniTable(countryId, casename, baseRun, reformRun) {
+        return Ogc.getResultTable('getGiniTable', countryId, casename, baseRun, reformRun);
+    }
+
+    static getWealthMomentsTable(countryId, casename, baseRun) {
+        return Ogc.getResultTable('getWealthMomentsTable', countryId, casename, baseRun, null);
+    }
+
     static cancelRun(countryId, casename, runName) {
         return Ogc._request('POST', 'ogc/cancelRun', {
             country_id: countryId,

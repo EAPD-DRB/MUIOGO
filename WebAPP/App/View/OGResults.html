@@ -1,0 +1,164 @@
+<div class="ogc-page ogc-results" id="ogcResultsPage">
+  <div class="ogc-result-head">
+    <div>
+      <div class="ogc-eyebrow">OG-Core</div>
+      <h1 class="ogc-title">Results</h1>
+    </div>
+  </div>
+
+  <section class="ogc-result-context" aria-label="Result selection">
+    <div class="ogc-result-select">
+      <label for="ogcResultCase">Case</label>
+      <select id="ogcResultCase"></select>
+    </div>
+    <div class="ogc-result-select">
+      <label for="ogcResultBase">Baseline</label>
+      <select id="ogcResultBase"></select>
+    </div>
+    <div class="ogc-result-compare" aria-hidden="true"><span class="fa fa-long-arrow-right"></span></div>
+    <div class="ogc-result-select">
+      <label for="ogcResultReform">Reform</label>
+      <select id="ogcResultReform"></select>
+    </div>
+    <div class="ogc-result-meta" id="ogcResultMeta"></div>
+  </section>
+
+  <nav class="ogc-result-tabs" aria-label="Results sections">
+    <button class="active" data-result-tab="overview" aria-selected="true"><i class="fa fa-th-large"></i> Overview</button>
+    <button data-result-tab="explore" aria-selected="false"><i class="fa fa-sliders"></i> Explore</button>
+    <button data-result-tab="tables" aria-selected="false"><i class="fa fa-table"></i> Tables</button>
+  </nav>
+
+  <div class="ogc-result-loading" id="ogcResultLoading">
+    <span class="ogc-result-spinner"></span>
+    <div><b>Loading results</b><span>Steady-state outputs</span></div>
+  </div>
+
+  <div class="ogc-result-empty" id="ogcResultEmpty" style="display:none">
+    <i class="fa fa-line-chart"></i>
+    <h3 id="ogcResultEmptyTitle">No completed comparison</h3>
+    <p id="ogcResultEmptyText">Run a baseline and at least one reform to compare results.</p>
+    <a class="btn ogc-btn ogc-btn-main" href="#/OGRuns">Go to Run</a>
+  </div>
+
+  <main id="ogcResultBody" style="display:none">
+    <section class="ogc-result-pane active" data-result-pane="overview">
+      <div class="ogc-result-scope" id="ogcResultScope">
+        <div><span>Analysis</span><b>Steady state</b></div>
+        <div><span>Horizon</span><b>Long-run equilibrium</b></div>
+        <div><span>Transition path</span><b>Not included</b></div>
+      </div>
+
+      <section class="ogc-policy-story" aria-label="Policy change">
+        <div class="ogc-card-kicker">Parameter changes</div>
+        <div id="ogcPolicyChange" class="ogc-policy-change"></div>
+      </section>
+
+      <div class="ogc-result-kpis" id="ogcResultKpis"></div>
+
+      <section class="ogc-inequality-summary" id="ogcInequalitySummary" style="display:none">
+        <div class="ogc-card-kicker">Inequality</div>
+        <div class="ogc-inequality-metrics" id="ogcInequalityMetrics"></div>
+      </section>
+
+      <div class="ogc-result-grid">
+        <article class="ogc-result-card">
+          <header>
+            <div><div class="ogc-card-kicker">Macroeconomy</div><h2>Aggregate effects</h2></div>
+            <div class="ogc-card-tools">
+              <span class="ogc-card-unit">Percent change</span>
+              <button class="ogc-chart-export" data-export-chart="ogcMacroChart" title="Download aggregate effects as SVG"><i class="fa fa-download"></i> SVG</button>
+            </div>
+          </header>
+          <div class="ogc-chart" id="ogcMacroChart" role="img" aria-label="Long-run macroeconomic percent changes"></div>
+        </article>
+
+        <article class="ogc-result-card">
+          <header>
+            <div><div class="ogc-card-kicker">Public finance</div><h2>Fiscal effects</h2></div>
+            <div class="ogc-card-tools">
+              <span class="ogc-card-unit">Percent change</span>
+              <button class="ogc-chart-export" data-export-chart="ogcFiscalChart" title="Download fiscal effects as SVG"><i class="fa fa-download"></i> SVG</button>
+            </div>
+          </header>
+          <div class="ogc-chart" id="ogcFiscalChart" role="img" aria-label="Fiscal outcome percent changes"></div>
+        </article>
+
+        <article class="ogc-result-card ogc-result-wide">
+          <header>
+            <div><div class="ogc-card-kicker">Distribution</div><h2 id="ogcDistributionTitle">Consumption by age and lifetime income</h2></div>
+            <div class="ogc-card-controls">
+              <label><span>Outcome</span><select id="ogcDistributionVariable"></select></label>
+              <label><span>Measure</span><select id="ogcDistributionMeasure"><option value="pct">Percent change</option><option value="diff">Difference</option></select></label>
+              <span class="ogc-card-unit" id="ogcDistributionScale"></span>
+              <button class="ogc-chart-export" data-export-chart="ogcDistributionChart" title="Download distribution heatmap as SVG"><i class="fa fa-download"></i> SVG</button>
+            </div>
+          </header>
+          <div class="ogc-chart ogc-chart-heat" id="ogcDistributionChart" role="img" aria-label="Consumption change heatmap by age and lifetime income group"></div>
+        </article>
+
+        <article class="ogc-result-card ogc-result-wide">
+          <header>
+            <div><div class="ogc-card-kicker">Lifecycle</div><h2>Baseline and reform profiles</h2></div>
+            <div class="ogc-card-controls">
+              <label><span>Outcome</span><select id="ogcProfileVariable"></select></label>
+              <label><span>Income group</span><select id="ogcProfileGroup"></select></label>
+              <label><span>Measure</span><select id="ogcProfileMeasure"><option value="levels">Levels</option><option value="pct">Percent change</option><option value="diff">Difference</option></select></label>
+              <button class="ogc-chart-export" data-export-chart="ogcProfileChart" title="Download lifecycle profile as SVG"><i class="fa fa-download"></i> SVG</button>
+            </div>
+          </header>
+          <div class="ogc-chart" id="ogcProfileChart" role="img" aria-label="Baseline and reform lifecycle profile"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="ogc-result-pane" data-result-pane="explore">
+      <div class="ogc-explore-layout">
+        <section class="ogc-explore-controls" aria-label="Explore controls">
+          <div class="ogc-card-kicker">Chart settings</div>
+          <h2>Output explorer</h2>
+          <label class="ogc-explore-field"><span>Outcome</span><select id="ogcExploreVariable"></select></label>
+          <div class="ogc-explore-shape" id="ogcExploreShape"></div>
+          <label class="ogc-explore-field"><span>Measure</span><select id="ogcExploreMeasure"></select></label>
+          <label class="ogc-explore-field"><span>Display</span><select id="ogcExploreView"></select></label>
+          <label class="ogc-explore-field ogc-explore-group"><span>Lifetime-income group</span><select id="ogcExploreGroup"></select></label>
+          <div class="ogc-explore-buttons">
+            <button class="btn ogc-btn ogc-btn-main" id="ogcSaveView"><i class="fa fa-bookmark-o"></i> Save view</button>
+            <button class="btn ogc-btn" id="ogcResetView">Reset view</button>
+          </div>
+          <div class="ogc-saved-note" id="ogcSavedNote" aria-live="polite"></div>
+        </section>
+        <article class="ogc-result-card ogc-explore-output">
+          <header>
+            <div><div class="ogc-card-kicker" id="ogcExploreCategory">Output</div><h2 id="ogcExploreTitle"></h2></div>
+            <div class="ogc-card-tools">
+              <span class="ogc-card-unit" id="ogcExploreUnit"></span>
+              <button class="ogc-chart-export" data-export-chart="ogcExploreChart" title="Download configured chart as SVG"><i class="fa fa-download"></i> SVG</button>
+            </div>
+          </header>
+          <div class="ogc-chart ogc-explore-chart" id="ogcExploreChart" role="img" aria-label="Configured OG-Core result view"></div>
+          <div class="ogc-result-table-wrap" id="ogcExploreTable" style="display:none"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="ogc-result-pane" data-result-pane="tables">
+      <div class="ogc-table-intro">
+        <div><div class="ogc-card-kicker">OG-Core tables</div><h2>Analysis tables</h2></div>
+        <div class="ogc-table-actions">
+          <div class="ogc-table-pills" role="tablist">
+            <button class="active" data-table="macro">Macro</button>
+            <button data-table="ineq">Inequality</button>
+            <button data-table="gini">Gini detail</button>
+            <button data-table="wealth">Baseline wealth</button>
+          </div>
+          <button class="ogc-chart-export" id="ogcTableExport" title="Download the current table as CSV" disabled><i class="fa fa-download"></i> CSV</button>
+        </div>
+      </div>
+      <article class="ogc-result-card">
+        <div class="ogc-table-status" id="ogcTableStatus">Select a table.</div>
+        <div class="ogc-result-table-wrap" id="ogcResultTable"></div>
+      </article>
+    </section>
+  </main>
+</div>

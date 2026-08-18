@@ -192,6 +192,17 @@ export class Routes {
                 loadView(version, 'App/View/OGRuns.html', 'OGRuns', () => OGRuns.default.onLoad(sourcePage));
             });
         });
+        crossroads.addRoute('/OGResults', function() {
+            enterWorkspace();
+            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            import('../App/Controller/OGResults.js')
+            .then(OGResults => {
+                $( ".osy-content" ).load( 'App/View/OGResults.html', function() {
+                    localStorage.setItem("osy-pageId", "OGResults");
+                    OGResults.default.onLoad();
+                });
+            });
+        });
         //dynamic routes
         function addAppRoute(group, id){
             return crossroads.addRoute(`/${group}/${id}`, function() {
