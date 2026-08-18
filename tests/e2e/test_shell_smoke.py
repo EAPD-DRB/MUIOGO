@@ -136,7 +136,7 @@ def test_switch_to_clews(page, base_url):
     page.locator("#osy-mb-clews").click()
     expect(page.locator("body.osy-mode-clews")).to_have_count(1)
     expect(page.locator(".project-context")).to_be_visible()
-    expect(page.locator("#Navi > li.nav-og-workspace")).to_have_count(2)
+    expect(page.locator("#Navi > li.nav-og-workspace")).to_have_count(3)
     expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(0)
 
 
