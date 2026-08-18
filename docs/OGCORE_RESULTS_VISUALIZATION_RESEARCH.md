@@ -205,7 +205,7 @@ Why it fits this repository:
 - Enough visual control to look native to MUIOGO rather than like an embedded BI product.
 - ARIA support exists, but must be deliberately enabled and verified.
 
-The proof of concept uses a version-pinned CDN loader only to make the branch reviewable without committing a generated third-party bundle. Production should vendor the exact runtime locally, include its license/NOTICE material, and remove the network dependency.
+Version 6.1.0 is vendored under `WebAPP/References/echarts` with its license and notice files. Results load the local bundle without a network dependency.
 
 ### Perspective 5.2 — phase-2 advanced Explore candidate
 

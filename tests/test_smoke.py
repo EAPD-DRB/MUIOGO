@@ -49,3 +49,26 @@ class AppSmokeTests(unittest.TestCase):
         with api_app.app.test_client() as client:
             resp = client.get("/")
         self.assertEqual(resp.status_code, 200)
+
+    def test_results_chart_runtime_is_vendored(self):
+        root = Path(__file__).resolve().parents[1]
+        controller = (root / "WebAPP" / "App" / "Controller" / "OGResults.js").read_text(
+            encoding="utf-8"
+        )
+        references = root / "WebAPP" / "References" / "echarts"
+
+        self.assertIn("References/echarts/echarts-6.1.0.min.js", controller)
+        self.assertNotIn("cdn.jsdelivr.net/npm/echarts", controller)
+        for name in (
+            "echarts-6.1.0.min.js",
+            "LICENSE",
+            "NOTICE",
+            "LICENSE-d3",
+            "LICENSE-zrender",
+        ):
+            self.assertTrue((references / name).is_file(), name)
+
+        with api_app.app.test_client() as client:
+            response = client.get("/References/echarts/echarts-6.1.0.min.js")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Licensed to the Apache Software Foundation", response.data[:500])

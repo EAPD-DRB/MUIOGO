@@ -1,7 +1,7 @@
 import { Ogc } from "../../Classes/Ogc.Class.js";
 import { loadWorkspace } from "./OGCases.js";
 
-const ECHARTS_URL = 'https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js';
+const ECHARTS_URL = 'References/echarts/echarts-6.1.0.min.js';
 const VIEW_KEY = 'osy-ogc-result-view';
 const ORANGE = '#f58220';
 const SLATE = '#3a3f51';
