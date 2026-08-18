@@ -3,7 +3,7 @@ import { escapeHtml as esc } from "./Html.Class.js";
 
 const WORKSPACE_KEY = 'osy-ogc-country';
 const SELECTION_KEY = 'osy-ogc-selection';
-const WORKSPACE_ROUTES = ['/OGCases', '/OGParameters', '/OGRuns'];
+const WORKSPACE_ROUTES = ['/OGCases', '/OGParameters', '/OGRuns', '/OGResults'];
 const LIFECYCLE_DELAY_MS = 200;
 
 let prepared = null;

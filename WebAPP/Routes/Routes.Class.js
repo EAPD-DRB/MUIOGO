@@ -193,14 +193,12 @@ export class Routes {
             });
         });
         crossroads.addRoute('/OGResults', function() {
+            if (!requireWorkspace()) return;
             enterWorkspace();
-            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            let version = beginView();
             import('../App/Controller/OGResults.js')
             .then(OGResults => {
-                $( ".osy-content" ).load( 'App/View/OGResults.html', function() {
-                    localStorage.setItem("osy-pageId", "OGResults");
-                    OGResults.default.onLoad();
-                });
+                loadView(version, 'App/View/OGResults.html', 'OGResults', () => OGResults.default.onLoad());
             });
         });
         //dynamic routes

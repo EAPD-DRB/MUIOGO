@@ -100,7 +100,7 @@ def test_sidebar_active_item_tracks_og_workspace_route(page, base_url):
     page.evaluate("""localStorage.setItem('osy-model', 'og');
         localStorage.setItem('osy-ogc-country', JSON.stringify({country_id:'ETH', country_name:'Ethiopia'}));""")
     page.goto(f"{base_url}/#/OGCases")
-    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(2)
+    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(3)
     expect(page.locator('#Navi > li.nav-og-workspace').filter(
         has=page.locator('a[href="#/OGCases"]'))).to_have_class(re.compile(r'(^|\s)active(\s|$)'))
     expect(page.locator('#Navi > li.nav-home')).not_to_have_class(re.compile(r'(^|\s)active(\s|$)'))
