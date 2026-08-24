@@ -281,6 +281,253 @@ def test_results_default_view_is_country_scoped_and_dimensions_are_explicit(page
     }
 
 
+def test_results_parameter_changes_show_names_for_all_value_types(page, base_url):
+    page.goto(base_url, wait_until="domcontentloaded")
+    result = page.evaluate("""async () => {
+        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
+        const { default: Results } = await import(
+            new URL('App/Controller/OGResults.js', location.href).href
+        );
+        document.querySelector('.osy-content').innerHTML = markup;
+
+        Results.schema = {
+            number_change: {title: 'Number parameter', default: 1},
+            boolean_change: {title: 'Boolean parameter', default: false},
+            string_change: {title: 'String parameter', default: 'old'},
+            null_change: {title: 'Null parameter', default: null},
+            flat_array_change: {title: 'Flat array parameter', default: [1, 2]},
+            nested_array_change: {title: 'Nested array parameter', default: [[1, 2]]},
+            baseline_only: {title: 'Baseline-only parameter', default: 0},
+            reform_only: {title: 'Reform-only parameter', default: 0},
+            fallback_title: {title: '', default: 0},
+            unchanged_scalar: {title: 'Unchanged scalar', default: 1},
+            unchanged_wrapper: {title: 'Unchanged wrapper', default: 1},
+            unchanged_object: {title: 'Unchanged object', default: {}},
+        };
+        Results.baseParams = {
+            number_change: 1,
+            boolean_change: false,
+            string_change: 'old',
+            null_change: null,
+            flat_array_change: [1, 2],
+            nested_array_change: [[1, 2]],
+            baseline_only: 5,
+            fallback_title: 0,
+            unchanged_scalar: 1,
+            unchanged_wrapper: [[1]],
+            unchanged_object: {first: 1, second: 2},
+        };
+        Results.reformParams = {
+            number_change: 2,
+            boolean_change: true,
+            string_change: 'new',
+            null_change: 'set',
+            flat_array_change: [1, 3],
+            nested_array_change: [[1, 4]],
+            reform_only: 6,
+            fallback_title: 1,
+            unchanged_scalar: 1,
+            unchanged_wrapper: 1,
+            unchanged_object: {second: 2, first: 1},
+        };
+        Results.renderPolicy();
+
+        const items = [...document.querySelectorAll('.ogc-policy-item')].map(item => ({
+            label: item.querySelector('b').textContent,
+            name: item.querySelector('code').textContent,
+        }));
+        return {
+            count: document.querySelector('.ogc-policy-count').textContent,
+            items,
+            hasValues: document.querySelectorAll('.ogc-policy-values').length,
+            hasUnsafeMarkup: document.querySelectorAll('#ogcPolicyChange img, #ogcPolicyChange script').length,
+            text: document.querySelector('#ogcPolicyChange').textContent,
+            hiddenExtra: document.querySelector('.ogc-policy-extra').hidden,
+            more: document.querySelector('.ogc-policy-toggle').textContent,
+        };
+    }""")
+
+    assert result == {
+        "count": "9 parameters changed",
+        "items": [
+            {"label": "Baseline-only parameter", "name": "baseline_only"},
+            {"label": "Boolean parameter", "name": "boolean_change"},
+            {"label": "Fallback Title", "name": "fallback_title"},
+            {"label": "Flat array parameter", "name": "flat_array_change"},
+            {"label": "Nested array parameter", "name": "nested_array_change"},
+            {"label": "Null parameter", "name": "null_change"},
+            {"label": "Number parameter", "name": "number_change"},
+            {"label": "Reform-only parameter", "name": "reform_only"},
+            {"label": "String parameter", "name": "string_change"},
+        ],
+        "hasValues": 0,
+        "hasUnsafeMarkup": 0,
+        "text": (
+            "9 parameters changedBaseline-only parameterbaseline_onlyBoolean parameter"
+            "boolean_changeFallback Titlefallback_titleFlat array parameterflat_array_change"
+            "Show 5 moreNested array parameternested_array_changeNull parameternull_change"
+            "Number parameternumber_changeReform-only parameterreform_onlyString parameter"
+            "string_change"
+        ),
+        "hiddenExtra": True,
+        "more": "Show 5 more",
+    }
+
+
+def test_results_matrix_headers_and_missing_data_guard(page, base_url):
+    page.goto(base_url, wait_until="domcontentloaded")
+    result = page.evaluate("""async () => {
+        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
+        const { default: Results } = await import(
+            new URL('App/Controller/OGResults.js', location.href).href
+        );
+        document.querySelector('.osy-content').innerHTML = markup;
+
+        Results.selection = {casename: 'Baseline 1', base: 'baseline', reform: 'Reform 1'};
+        Results.groups = ['Bottom 50%', 'Top 50%'];
+        Results.ages = [31, 32];
+        Results.base = {c: [[1, 2], [3, 4]]};
+        Results.reform = {c: [[2, 3], [4, 5]]};
+        Results.renderExploreTable('c', 'levels');
+        const headers = [...document.querySelectorAll('#ogcExploreTable th')]
+            .map(cell => cell.textContent.trim());
+
+        Results.reform = {c: [[2, 3]]};
+        Results.renderExploreTable('c', 'pct');
+        return {
+            headers,
+            missing: document.querySelector('#ogcExploreTable').textContent.trim(),
+        };
+    }""")
+
+    assert result == {
+        "headers": [
+            "Age",
+            "Baseline: Bottom 50%",
+            "Reform: Bottom 50%",
+            "Baseline: Top 50%",
+            "Reform: Top 50%",
+        ],
+        "missing": "Comparable baseline and reform matrix data are unavailable.",
+    }
+
+
+def test_results_dimensions_prefer_run_metadata_and_explain_fallback(page, base_url):
+    page.goto(base_url, wait_until="domcontentloaded")
+    result = page.evaluate("""async () => {
+        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
+        const { default: Results } = await import(
+            new URL('App/Controller/OGResults.js', location.href).href
+        );
+        document.querySelector('.osy-content').innerHTML = markup;
+
+        Results.base = {c: [[1, 2, 3], [4, 5, 6]]};
+        Results.baseParams = {lambdas: [[0.2, 0.3, 0.5]], starting_age: [30]};
+        Results.schema = {
+            lambdas: {default: [0.5, 0.5]},
+            starting_age: {default: 20},
+        };
+        Results.schemaUnavailable = false;
+        Results.setDimensions();
+        const fromRun = {
+            groups: Results.groups,
+            ages: Results.ages,
+            hidden: document.querySelector('#ogcDimensionNote').hidden,
+        };
+
+        Results.base = {c: [[1, 2, 3, 4], [5, 6, 7, 8]]};
+        Results.baseParams = {};
+        Results.schema = {};
+        Results.schemaUnavailable = true;
+        Results.setDimensions();
+        return {
+            fromRun,
+            fallback: {
+                groups: Results.groups,
+                ages: Results.ages,
+                hidden: document.querySelector('#ogcDimensionNote').hidden,
+                note: document.querySelector('#ogcDimensionNote').textContent,
+            },
+        };
+    }""")
+
+    assert result == {
+        "fromRun": {
+            "groups": ["Bottom 20%", "20–50%", "Top 50%"],
+            "ages": [31, 32],
+            "hidden": True,
+        },
+        "fallback": {
+            "groups": ["Group 1", "Group 2", "Group 3", "Group 4"],
+            "ages": [1, 2],
+            "hidden": False,
+            "note": (
+                "Parameter metadata could not be loaded. "
+                "Income-group metadata is unavailable, so generic group labels are shown. "
+                "Starting-age metadata is unavailable, so model age indices are shown."
+            ),
+        },
+    }
+
+
+def test_results_comparison_tables_are_cached_independently(page, base_url):
+    page.goto(base_url, wait_until="domcontentloaded")
+    result = page.evaluate("""async () => {
+        const { default: Results } = await import(
+            new URL('App/Controller/OGResults.js', location.href).href
+        );
+        Results.tableCache = Object.create(null);
+        const first = {casename: 'Baseline 1', base: 'baseline', reform: 'Reform 1'};
+        const second = {casename: 'Baseline 1', base: 'baseline', reform: 'Reform 2'};
+
+        Results.useTableCache(first);
+        Results.tables.ineq = [{Baseline: 0.3, Reform: 0.29}];
+        Results.useTableCache(second);
+        const secondStartsEmpty = !Object.prototype.hasOwnProperty.call(Results.tables, 'ineq');
+        Results.tables.gini = [{Baseline: 0.4, Reform: 0.39}];
+        Results.useTableCache(first);
+
+        return {
+            secondStartsEmpty,
+            firstIneq: Results.tables.ineq,
+            firstHasGini: Object.prototype.hasOwnProperty.call(Results.tables, 'gini'),
+            cacheCount: Object.keys(Results.tableCache).length,
+        };
+    }""")
+
+    assert result == {
+        "secondStartsEmpty": True,
+        "firstIneq": [{"Baseline": 0.3, "Reform": 0.29}],
+        "firstHasGini": False,
+        "cacheCount": 2,
+    }
+
+
+def test_results_route_normalization_and_cleanup(page, base_url):
+    page.goto(base_url, wait_until="domcontentloaded")
+    result = page.evaluate("""async () => {
+        const { default: Results } = await import(
+            new URL('App/Controller/OGResults.js', location.href).href
+        );
+        history.replaceState({}, '', '#/OGResults/?tab=overview');
+        localStorage.setItem('osy-pageId', 'OGResults');
+        Results.pageID = 0;
+        Results.initEvents();
+        const normalized = Results.isCurrent();
+        const before = Object.keys(jQuery._data(document, 'events') || {})
+            .some(type => (jQuery._data(document, 'events')[type] || [])
+                .some(handler => handler.namespace === 'ogresults'));
+        location.hash = '#/OGCases';
+        jQuery(window).triggerHandler('hashchange');
+        const after = Object.keys(jQuery._data(document, 'events') || {})
+            .some(type => (jQuery._data(document, 'events')[type] || [])
+                .some(handler => handler.namespace === 'ogresults'));
+        return {normalized, before, after};
+    }""")
+
+    assert result == {"normalized": True, "before": True, "after": False}
+
+
 def test_local_folder_update_action_is_manual(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
     html = page.evaluate("""async () => {

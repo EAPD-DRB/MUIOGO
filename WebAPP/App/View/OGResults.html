@@ -5,12 +5,8 @@
 
   <section class="ogc-result-context" aria-label="Result selection">
     <div class="ogc-result-select">
-      <label for="ogcResultCase">Case</label>
+      <label for="ogcResultCase">Baseline</label>
       <select id="ogcResultCase"></select>
-    </div>
-    <div class="ogc-result-select">
-      <label for="ogcResultBase">Baseline</label>
-      <select id="ogcResultBase"></select>
     </div>
     <div class="ogc-result-compare" aria-hidden="true"><span class="fa fa-long-arrow-right"></span></div>
     <div class="ogc-result-select">
@@ -41,6 +37,7 @@
     <section class="ogc-result-pane active" id="ogcOverviewPanel" role="tabpanel" aria-labelledby="ogcOverviewTab" data-result-pane="overview">
       <div class="ogc-result-scope" id="ogcResultScope" aria-label="Analysis scope">
         <span>Steady-state comparison</span>
+        <span class="ogc-dimension-note" id="ogcDimensionNote" hidden></span>
       </div>
 
       <section class="ogc-policy-story" aria-label="Policy change">

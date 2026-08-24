@@ -104,6 +104,43 @@ function dimensions(value){
     return dims;
 }
 
+function routePath(){
+    let path = String(window.location.hash || '').replace(/^#/, '').split('?')[0] || '/';
+    return path.length > 1 ? path.replace(/\/+$/, '') : path;
+}
+
+function rawMatrix(value){
+    let candidate = value;
+    if (rank(candidate) == 3 && candidate.length == 1) candidate = candidate[0];
+    return $.isArray(candidate) && candidate.length && $.isArray(candidate[0]) ? candidate : null;
+}
+
+function parameterArray(value){
+    let candidate = value;
+    while ($.isArray(candidate) && candidate.length == 1 && $.isArray(candidate[0])) candidate = candidate[0];
+    return $.isArray(candidate) ? candidate : null;
+}
+
+function validWeights(value, count){
+    let weights = parameterArray(value);
+    if (!weights || !weights.length || (count && weights.length != count)) return null;
+    let total = 0;
+    for (let index = 0; index < weights.length; index++){
+        let weight = Number(weights[index]);
+        if (!isFinite(weight) || weight < 0) return null;
+        total += weight;
+    }
+    return Math.abs(total - 1) < 0.001 ? weights : null;
+}
+
+function compatibleMatrices(base, reform){
+    if (!base || !reform || base.length != reform.length) return false;
+    for (let row = 0; row < base.length; row++){
+        if (!$.isArray(base[row]) || !$.isArray(reform[row]) || base[row].length != reform[row].length) return false;
+    }
+    return true;
+}
+
 function ageGroupMatrix(value){
     let candidate = value;
     if (rank(candidate) == 3 && candidate.length == 1) candidate = candidate[0];
@@ -211,38 +248,32 @@ function resultTableCell(value){
     return typeof value == 'string' ? resultTableText(value) : value;
 }
 
-function formatParameter(value){
-    if ($.isArray(value)){
-        let dims = dimensions(value);
-        if (dims.length == 1 && value.length <= 3 && $.grep(value, item => typeof item != 'number').length == 0){
-            return value.map(fmt).join(', ');
+function parameterEqual(left, right){
+    while ($.isArray(left) && left.length == 1) left = left[0];
+    while ($.isArray(right) && right.length == 1) right = right[0];
+    if (left === right) return true;
+    if (typeof left == 'number' && typeof right == 'number' && isNaN(left) && isNaN(right)) return true;
+    if ($.isArray(left) || $.isArray(right)){
+        if (!$.isArray(left) || !$.isArray(right) || left.length != right.length) return false;
+        for (let index = 0; index < left.length; index++){
+            if (!parameterEqual(left[index], right[index])) return false;
         }
-        return `${dims.join(' × ')} values`;
+        return true;
     }
-    if (typeof value == 'number') return fmt(value);
-    if (typeof value == 'boolean') return value ? 'True' : 'False';
-    return value == null ? '—' : String(value);
-}
-
-function parameterChangeSummary(base, reform){
-    let left = [], right = [];
-    let flatten = (value, target) => {
-        if ($.isArray(value)) return $.each(value, (_, item) => flatten(item, target));
-        target.push(value);
-    };
-    flatten(base, left);
-    flatten(reform, right);
-    let changed = 0, maxDifference = null;
-    for (let index = 0; index < Math.max(left.length, right.length); index++){
-        if (JSON.stringify(left[index]) == JSON.stringify(right[index])) continue;
-        changed++;
-        if (typeof left[index] == 'number' && typeof right[index] == 'number'){
-            let value = Math.abs(right[index] - left[index]);
-            maxDifference = maxDifference === null ? value : Math.max(maxDifference, value);
+    let leftObject = left && typeof left == 'object';
+    let rightObject = right && typeof right == 'object';
+    if (leftObject || rightObject){
+        if (!leftObject || !rightObject) return false;
+        let leftKeys = Object.keys(left).sort();
+        let rightKeys = Object.keys(right).sort();
+        if (!parameterEqual(leftKeys, rightKeys)) return false;
+        for (let index = 0; index < leftKeys.length; index++){
+            let key = leftKeys[index];
+            if (!parameterEqual(left[key], right[key])) return false;
         }
+        return true;
     }
-    let dims = dimensions($.isArray(reform) ? reform : base);
-    return `${dims.join(' × ')} · ${changed} changed${maxDifference === null ? '' : ` · max |Δ| ${fmt(maxDifference)}`}`;
+    return false;
 }
 
 function robustHeatScale(values){
@@ -319,9 +350,11 @@ export default class OGResults {
         OGResults.pageID = PAGE_ID;
         OGResults.disposeCharts();
         $(window).off('.ogresults');
+        $(document).off('.ogresults');
         OGResults.workspace = loadWorkspace();
         OGResults.items = [];
-        OGResults.tables = {};
+        OGResults.tableCache = Object.create(null);
+        OGResults.tables = Object.create(null);
         OGResults.activeTable = null;
         OGResults.charts = {};
         OGResults.requestID = 0;
@@ -337,7 +370,7 @@ export default class OGResults {
     }
 
     static isCurrent(){
-        return OGResults.pageID == PAGE_ID && localStorage.getItem('osy-pageId') == 'OGResults' && window.location.hash == '#/OGResults';
+        return OGResults.pageID == PAGE_ID && localStorage.getItem('osy-pageId') == 'OGResults' && routePath() == '/OGResults';
     }
 
     static loadECharts(){
@@ -388,7 +421,7 @@ export default class OGResults {
                     return;
                 }
                 $('#ogcResultCase').html($.map(viable, item => `<option value="${esc(item.case.casename)}">${esc(item.case.casename)}</option>`).join(''));
-                OGResults.renderRunOptions(null);
+                OGResults.renderReformOptions(null);
             });
     }
 
@@ -397,16 +430,11 @@ export default class OGResults {
         return $.grep(OGResults.items, item => item.case.casename == name)[0] || null;
     }
 
-    static renderRunOptions(saved){
-        let item = OGResults.currentItem();
-        if (!item) return;
+    static currentBaseline(item){
+        if (!item) return null;
         let complete = $.grep(item.runs, run => run.status == 'completed');
         let bases = $.grep(complete, run => run.run_type == 'baseline' && OGResults.compatibleReforms(item, run.run_name).length);
-        $('#ogcResultBase').html($.map(bases, run => `<option value="${esc(run.run_name)}">${esc(run.run_name)}</option>`).join(''));
-        if (saved && saved.country_id == OGResults.workspace.country_id && saved.casename == item.case.casename){
-            if ($.grep(bases, r => r.run_name == saved.base).length) $('#ogcResultBase').val(saved.base);
-        }
-        OGResults.renderReformOptions(saved);
+        return bases[0] || null;
     }
 
     static compatibleReforms(item, baseName){
@@ -418,7 +446,8 @@ export default class OGResults {
 
     static renderReformOptions(saved){
         let item = OGResults.currentItem();
-        let baseName = $('#ogcResultBase').val();
+        let baseline = OGResults.currentBaseline(item);
+        let baseName = baseline && baseline.run_name;
         let reforms = item ? OGResults.compatibleReforms(item, baseName) : [];
         $('#ogcResultReform').html($.map(reforms, run => `<option value="${esc(run.run_name)}">${esc(run.run_name)}</option>`).join(''));
         if (saved && saved.country_id == OGResults.workspace.country_id && saved.casename == (item && item.case.casename) && saved.base == baseName && $.grep(reforms, run => run.run_name == saved.reform).length){
@@ -430,7 +459,8 @@ export default class OGResults {
     static loadComparison(){
         let item = OGResults.currentItem();
         let casename = item && item.case.casename;
-        let baseRun = $('#ogcResultBase').val();
+        let baseline = OGResults.currentBaseline(item);
+        let baseRun = baseline && baseline.run_name;
         let reformRun = $('#ogcResultReform').val();
         if (!casename || !baseRun || !reformRun){
             OGResults.showEmpty(
@@ -442,7 +472,7 @@ export default class OGResults {
         }
         $('#ogcResultEmpty, #ogcResultBody').hide();
         $('#ogcResultLoading').show();
-        OGResults.tables = {};
+        OGResults.tables = Object.create(null);
         OGResults.activeTable = null;
         OGResults.tableRequestID++;
         $('#ogcTableExport').prop('disabled', true);
@@ -454,15 +484,19 @@ export default class OGResults {
             Ogc.getSSVars(OGResults.workspace.country_id, casename, reformRun),
             Ogc.getParams(OGResults.workspace.country_id, casename, baseRun).catch(() => ({params:{}})),
             Ogc.getParams(OGResults.workspace.country_id, casename, reformRun).catch(() => ({params:{}})),
-            Ogc.getParameterSchema(OGResults.workspace.country_id, casename).catch(() => ({}))
+            Ogc.getParameterSchema(OGResults.workspace.country_id, casename)
+                .then(schema => ({ schema: schema || {}, unavailable: false }))
+                .catch(() => ({ schema: {}, unavailable: true }))
         ]).then(values => {
             if (!OGResults.isCurrent() || requestedAt != OGResults.requestID) return;
             OGResults.base = values[0];
             OGResults.reform = values[1];
             OGResults.baseParams = values[2].params || {};
             OGResults.reformParams = values[3].params || {};
-            OGResults.schema = values[4] || {};
+            OGResults.schema = values[4].schema;
+            OGResults.schemaUnavailable = values[4].unavailable;
             OGResults.selection = { casename: casename, base: baseRun, reform: reformRun };
+            OGResults.useTableCache(OGResults.selection);
             OGResults.setDimensions();
             OGResults.renderAll();
             $('#ogcResultLoading').hide();
@@ -478,6 +512,10 @@ export default class OGResults {
     }
 
     static loadInequalitySummary(comparisonRequestID){
+        if (Object.prototype.hasOwnProperty.call(OGResults.tables, 'ineq')){
+            OGResults.renderInequality();
+            return;
+        }
         let selectionKey = JSON.stringify(OGResults.selection);
         let s = OGResults.selection;
         Ogc.getIneqTable(OGResults.workspace.country_id, s.casename, s.base, s.reform).then(rows => {
@@ -488,22 +526,50 @@ export default class OGResults {
     }
 
     static setDimensions(){
-        let lambdas = OGResults.schema.lambdas && OGResults.schema.lambdas.default;
-        while ($.isArray(lambdas) && lambdas.length == 1 && $.isArray(lambdas[0])) lambdas = lambdas[0];
-        if (!$.isArray(lambdas) || !lambdas.length) lambdas = [0.25, 0.25, 0.20, 0.10, 0.10, 0.09, 0.01];
-        let cumulative = 0;
-        OGResults.groups = $.map(lambdas, (weight, index) => {
-            let start = Math.round(cumulative * 100);
-            cumulative += Number(weight);
-            let end = Math.round(cumulative * 100);
-            if (index === 0) return `Bottom ${end}%`;
-            if (index == lambdas.length - 1) return `Top ${100 - start}%`;
-            return `${start}–${end}%`;
+        let baseParams = OGResults.baseParams || {};
+        let schema = OGResults.schema || {};
+        let sourceMatrix = null;
+        $.each(DISTRIBUTION_VARS, (_, name) => {
+            if (!sourceMatrix) sourceMatrix = rawMatrix(OGResults.base[name]);
         });
-        let startAge = firstNumber(OGResults.schema.starting_age && OGResults.schema.starting_age.default);
-        if (startAge === null) startAge = 20;
-        let matrix = ageGroupMatrix(OGResults.base.c) || [];
-        OGResults.ages = $.map(matrix, (_, index) => startAge + index + 1);
+        let groupCount = sourceMatrix && sourceMatrix[0].length;
+        let runLambdas = validWeights(baseParams.lambdas, groupCount);
+        let schemaLambdas = validWeights(schema.lambdas && schema.lambdas.default, groupCount);
+        let lambdas = runLambdas || schemaLambdas;
+        if (!groupCount && lambdas) groupCount = lambdas.length;
+        groupCount = groupCount || 0;
+        let notes = [];
+        if (lambdas){
+            let cumulative = 0;
+            OGResults.groups = $.map(lambdas, (weight, index) => {
+                let start = Math.round(cumulative * 100);
+                cumulative += Number(weight);
+                let end = Math.round(cumulative * 100);
+                if (index === 0) return `Bottom ${end}%`;
+                if (index == lambdas.length - 1) return `Top ${100 - start}%`;
+                return `${start}–${end}%`;
+            });
+        }else{
+            OGResults.groups = $.map(Array(groupCount), (_, index) => `Group ${index + 1}`);
+            if (groupCount) notes.push('Income-group metadata is unavailable, so generic group labels are shown.');
+        }
+        let runStartAge = firstNumber(baseParams.starting_age);
+        let schemaStartAge = firstNumber(schema.starting_age && schema.starting_age.default);
+        let startAge = runStartAge === null ? schemaStartAge : runStartAge;
+        let matrix = sourceMatrix || [];
+        OGResults.ages = $.map(matrix, (_, index) => startAge === null ? index + 1 : startAge + index + 1);
+        if (matrix.length && startAge === null) notes.push('Starting-age metadata is unavailable, so model age indices are shown.');
+        if (OGResults.schemaUnavailable) notes.unshift('Parameter metadata could not be loaded.');
+        $('#ogcDimensionNote').text(notes.join(' ')).prop('hidden', !notes.length);
+    }
+
+    static useTableCache(selection){
+        let key = JSON.stringify(selection);
+        OGResults.tableCache = OGResults.tableCache || Object.create(null);
+        if (!Object.prototype.hasOwnProperty.call(OGResults.tableCache, key)){
+            OGResults.tableCache[key] = Object.create(null);
+        }
+        OGResults.tables = OGResults.tableCache[key];
     }
 
     static renderAll(){
@@ -533,7 +599,7 @@ export default class OGResults {
     }
 
     static renderPolicy(){
-        let names = {};
+        let names = Object.create(null);
         $.each(OGResults.baseParams, name => { names[name] = true; });
         $.each(OGResults.reformParams, name => { names[name] = true; });
         let changes = [];
@@ -541,27 +607,25 @@ export default class OGResults {
             let schema = OGResults.schema[name] || {};
             let defaultValue = schema.default;
             let baseValue = name in OGResults.baseParams ? OGResults.baseParams[name] : defaultValue;
-            let reformValue = name in OGResults.reformParams ? OGResults.reformParams[name] : baseValue;
-            if (JSON.stringify(baseValue) != JSON.stringify(reformValue)){
-                changes.push({ name: name, label: schema.title || humanize(name), base: baseValue, reform: reformValue });
+            let reformValue = name in OGResults.reformParams ? OGResults.reformParams[name] : defaultValue;
+            if (!parameterEqual(baseValue, reformValue)){
+                let title = String(schema.title || '').trim();
+                changes.push({ name: name, label: title || humanize(name) });
             }
         });
+        changes.sort((left, right) => left.label.localeCompare(right.label));
         if (!changes.length){
             $('#ogcPolicyChange').html('<span class="ogc-mut">No parameter changes.</span>');
             return;
         }
-        let itemHtml = item => {
-            let values = $.isArray(item.base) || $.isArray(item.reform)
-                ? `<div class="ogc-policy-values"><strong>${esc(parameterChangeSummary(item.base, item.reform))}</strong></div>`
-                : `<div class="ogc-policy-values"><span>${esc(formatParameter(item.base))}</span><i class="fa fa-long-arrow-right"></i><strong>${esc(formatParameter(item.reform))}</strong></div>`;
-            return `<div class="ogc-policy-item"><div><b>${esc(item.label)}</b><code>${esc(item.name)}</code></div>${values}</div>`;
-        };
+        let itemHtml = item => `<div class="ogc-policy-item"><b>${esc(item.label)}</b><code>${esc(item.name)}</code></div>`;
         let primary = $.map(changes.slice(0, 4), itemHtml).join('');
         let remaining = changes.slice(4);
         let extra = remaining.length
             ? `<button class="ogc-policy-toggle" type="button" data-count="${remaining.length}">Show ${remaining.length} more</button><div class="ogc-policy-extra" hidden>${$.map(remaining, itemHtml).join('')}</div>`
             : '';
-        $('#ogcPolicyChange').html(primary + extra);
+        let count = `<div class="ogc-policy-count">${changes.length} parameter${changes.length == 1 ? '' : 's'} changed</div>`;
+        $('#ogcPolicyChange').html(count + primary + extra);
     }
 
     static renderKpis(){
@@ -622,7 +686,7 @@ export default class OGResults {
     static matrixTransform(name, measure){
         let base = ageGroupMatrix(OGResults.base[name]);
         let reform = ageGroupMatrix(OGResults.reform[name]);
-        if (!base || !reform) return null;
+        if (!compatibleMatrices(base, reform)) return null;
         return base.map((row, i) => row.map((value, j) =>
             measureValue(name, value, reform[i] && reform[i][j], measure)));
     }
@@ -867,13 +931,18 @@ export default class OGResults {
         let headers = [], rows = [];
         if (spec.kind == 'age_group'){
             let b = ageGroupMatrix(OGResults.base[name]), r = ageGroupMatrix(OGResults.reform[name]);
+            if (!compatibleMatrices(b, r)){
+                $('#ogcExploreTable').html('<div class="ogc-table-status">Comparable baseline and reform matrix data are unavailable.</div>').show();
+                return;
+            }
             if (measure == 'levels'){
                 headers = ['Age'];
-                $.each(OGResults.groups, label => headers.push('Baseline · ' + label, 'Reform · ' + label));
+                $.each(OGResults.groups, (_, label) => headers.push('Baseline: ' + label, 'Reform: ' + label));
                 rows = b.map((row, i) => [OGResults.ages[i]].concat(...row.map((value, j) => [level(name, value), level(name, r[i][j])])));
             }else{
                 headers = ['Age'].concat(OGResults.groups);
-                rows = b.map((row, i) => [OGResults.ages[i]].concat(row.map((value, j) => measureValue(name, value, r[i][j], measure))));
+                let transformed = OGResults.matrixTransform(name, measure);
+                rows = transformed.map((row, i) => [OGResults.ages[i]].concat(row));
             }
         }else if (spec.kind == 'matrix'){
             let pairs = [];
@@ -936,7 +1005,7 @@ export default class OGResults {
         OGResults.activeTable = null;
         let requestedAt = ++OGResults.tableRequestID;
         $('#ogcTableExport').prop('disabled', true);
-        if (OGResults.tables[key]){
+        if (Object.prototype.hasOwnProperty.call(OGResults.tables, key)){
             OGResults.renderTableRows(OGResults.tables[key]);
             return;
         }
@@ -1003,12 +1072,12 @@ export default class OGResults {
         $(window).off('resize.ogresults').on('resize.ogresults', () => {
             $.each(OGResults.charts, (_, chart) => { if (chart && !chart.isDisposed()) chart.resize(); });
         });
-        $(window).off('hashchange.ogresults').on('hashchange.ogresults', () => {
-            if (window.location.hash == '#/OGResults') return;
-            OGResults.disposeCharts();
-            $(window).off('.ogresults');
-            $(document).off('.ogresults');
-        });
+    }
+
+    static teardown(){
+        OGResults.disposeCharts();
+        $(window).off('.ogresults');
+        $(document).off('.ogresults');
     }
 
     static openTab(name){
@@ -1078,9 +1147,12 @@ export default class OGResults {
 
     static initEvents(){
         $(document).off('.ogresults');
+        $(window).off('hashchange.ogresults').on('hashchange.ogresults', () => {
+            if (routePath() == '/OGResults') return;
+            OGResults.teardown();
+        });
         $(document).on('click.ogresults', '.ogc-result-tabs button', function(){ OGResults.openTab($(this).data('result-tab')); });
-        $(document).on('change.ogresults', '#ogcResultCase', () => OGResults.renderRunOptions(null));
-        $(document).on('change.ogresults', '#ogcResultBase', () => OGResults.renderReformOptions(null));
+        $(document).on('change.ogresults', '#ogcResultCase', () => OGResults.renderReformOptions(null));
         $(document).on('change.ogresults', '#ogcResultReform', () => OGResults.loadComparison());
         $(document).on('change.ogresults', '#ogcDistributionVariable, #ogcDistributionMeasure', () => OGResults.renderDistribution());
         $(document).on('change.ogresults', '#ogcProfileVariable, #ogcProfileGroup, #ogcProfileMeasure', () => OGResults.renderProfile());
