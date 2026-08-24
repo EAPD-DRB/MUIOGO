@@ -391,11 +391,17 @@ def test_results_matrix_headers_and_missing_data_guard(page, base_url):
         Results.renderExploreTable('c', 'levels');
         const headers = [...document.querySelectorAll('#ogcExploreTable th')]
             .map(cell => cell.textContent.trim());
+        const heat = Results.heatOption('c', 'pct');
 
         Results.reform = {c: [[2, 3]]};
         Results.renderExploreTable('c', 'pct');
         return {
             headers,
+            heatContract: {
+                hasOption: Boolean(heat.option && heat.option.series),
+                hasScale: Boolean(heat.scale && heat.scale.bound),
+                unknownOptionKey: Object.prototype.hasOwnProperty.call(heat.option, 'ogcScale'),
+            },
             missing: document.querySelector('#ogcExploreTable').textContent.trim(),
         };
     }""")
@@ -408,6 +414,7 @@ def test_results_matrix_headers_and_missing_data_guard(page, base_url):
             "Baseline: Top 50%",
             "Reform: Top 50%",
         ],
+        "heatContract": {"hasOption": True, "hasScale": True, "unknownOptionKey": False},
         "missing": "Comparable baseline and reform matrix data are unavailable.",
     }
 
@@ -486,12 +493,24 @@ def test_results_comparison_tables_are_cached_independently(page, base_url):
         const secondStartsEmpty = !Object.prototype.hasOwnProperty.call(Results.tables, 'ineq');
         Results.tables.gini = [{Baseline: 0.4, Reform: 0.39}];
         Results.useTableCache(first);
+        const firstIneq = Results.tables.ineq;
+        const firstHasGini = Object.prototype.hasOwnProperty.call(Results.tables, 'gini');
+
+        for (let index = 3; index <= 6; index++){
+            Results.useTableCache({
+                casename: 'Baseline 1', base: 'baseline', reform: `Reform ${index}`
+            });
+        }
+        const firstKey = JSON.stringify(first);
+        const secondKey = JSON.stringify(second);
 
         return {
             secondStartsEmpty,
-            firstIneq: Results.tables.ineq,
-            firstHasGini: Object.prototype.hasOwnProperty.call(Results.tables, 'gini'),
+            firstIneq,
+            firstHasGini,
             cacheCount: Object.keys(Results.tableCache).length,
+            firstEvicted: !Object.prototype.hasOwnProperty.call(Results.tableCache, firstKey),
+            secondEvicted: !Object.prototype.hasOwnProperty.call(Results.tableCache, secondKey),
         };
     }""")
 
@@ -499,7 +518,9 @@ def test_results_comparison_tables_are_cached_independently(page, base_url):
         "secondStartsEmpty": True,
         "firstIneq": [{"Baseline": 0.3, "Reform": 0.29}],
         "firstHasGini": False,
-        "cacheCount": 2,
+        "cacheCount": 5,
+        "firstEvicted": False,
+        "secondEvicted": True,
     }
 
 
@@ -2309,6 +2330,7 @@ def test_array_parameters_use_a_compact_preview_and_round_trip_table_data(page, 
         const { OGTableEditor } = await import(
             new URL('App/Controller/OGTableEditor.js', location.href).href
         );
+        const arrays = await import(new URL('Classes/Array.Class.js', location.href).href);
         const value = [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]];
         const model = new Model(
             { io_matrix: {title: 'Input-output matrix', shape: 'time_x_industry',
@@ -2332,7 +2354,12 @@ def test_array_parameters_use_a_compact_preview_and_round_trip_table_data(page, 
             fallbackChanged: fallbackModel.changedNames().includes('io_matrix'),
             nullEqualsZero: Model.equal(null, 0),
             blankInvalid: Parameters.outOfRange(model.fields.io_matrix, [[0.1, null]]),
-            removedValueCount: Parameters.countDifferences([0.1], [0.1, 0.2])
+            removedValueCount: Parameters.countDifferences([0.1], [0.1, 0.2]),
+            sharedArrays: {
+                dimensions: arrays.dimensions(value),
+                rank: arrays.rank(value),
+                flattened: arrays.flatten(value)
+            }
         };
     }""")
     assert result['editable'] is True
@@ -2345,6 +2372,11 @@ def test_array_parameters_use_a_compact_preview_and_round_trip_table_data(page, 
     assert result['nullEqualsZero'] is False
     assert result['blankInvalid'] is True
     assert result['removedValueCount'] == 1
+    assert result['sharedArrays'] == {
+        'dimensions': [2, 3],
+        'rank': 2,
+        'flattened': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+    }
 
 
 def test_unchanged_lazy_defaults_and_string_choices_do_not_block_save(page, base_url):

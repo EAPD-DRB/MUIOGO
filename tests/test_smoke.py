@@ -112,3 +112,8 @@ class AppSmokeTests(unittest.TestCase):
         self.assertIn("routePath() == '/OGResults'", controller)
         self.assertNotIn("[0.25, 0.25, 0.20, 0.10, 0.10, 0.09, 0.01]", controller)
         self.assertNotIn("window.location.hash == '#/OGResults'", controller)
+        self.assertIn('escapeHtml as esc', controller)
+        self.assertIn('from "../../Classes/Array.Class.js"', controller)
+        self.assertIn("const MAX_TABLE_CACHE = 5", controller)
+        self.assertNotIn("option.ogcScale", controller)
+        self.assertNotIn("function metaLabel", controller)

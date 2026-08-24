@@ -1,4 +1,5 @@
 import { GROUPS, LOCKED_DIMS, decorate } from "./OGParams.Overlay.js";
+import { dimensions, flatten } from "../../Classes/Array.Class.js";
 
 export class Model {
 
@@ -167,20 +168,11 @@ export class Model {
     }
 
     static flatten(value){
-        if (!$.isArray(value)) return [value];
-        let out = [];
-        $.each(value, function (id, item) { out = out.concat(Model.flatten(item)); });
-        return out;
+        return flatten(value);
     }
 
     static dimensions(value){
-        let out = [];
-        let current = value;
-        while ($.isArray(current)){
-            out.push(current.length);
-            current = current.length ? current[0] : null;
-        }
-        return out;
+        return dimensions(value);
     }
 
     refValue(name, refName){

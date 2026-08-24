@@ -1,4 +1,6 @@
 import { Ogc } from "../../Classes/Ogc.Class.js";
+import { dimensions, rank } from "../../Classes/Array.Class.js";
+import { escapeHtml as esc } from "../../Classes/Html.Class.js";
 import { loadWorkspace } from "./OGCases.js";
 
 const ECHARTS_URL = 'References/echarts/echarts-6.1.0.min.js';
@@ -8,6 +10,7 @@ const SLATE = '#3a3f51';
 const BLUE = '#39769f';
 const MUTED = '#8a8f9c';
 const GRID = '#e8e9ed';
+const MAX_TABLE_CACHE = 5;
 
 const CATALOG = {
     Y: { label: 'Gross domestic product', short: 'GDP', category: 'Macroeconomy' },
@@ -57,9 +60,6 @@ const FISCAL_VARS = [
 ];
 let PAGE_ID = 0;
 
-const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g,
-    ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-
 function humanize(name){
     return String(name || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
@@ -84,24 +84,6 @@ function firstNumber(value){
         }
     }
     return null;
-}
-
-function rank(value){
-    let r = 0, current = value;
-    while ($.isArray(current)){
-        r++;
-        current = current.length ? current[0] : null;
-    }
-    return r;
-}
-
-function dimensions(value){
-    let dims = [], current = value;
-    while ($.isArray(current)){
-        dims.push(current.length);
-        current = current.length ? current[0] : null;
-    }
-    return dims;
 }
 
 function routePath(){
@@ -566,10 +548,14 @@ export default class OGResults {
     static useTableCache(selection){
         let key = JSON.stringify(selection);
         OGResults.tableCache = OGResults.tableCache || Object.create(null);
-        if (!Object.prototype.hasOwnProperty.call(OGResults.tableCache, key)){
-            OGResults.tableCache[key] = Object.create(null);
-        }
-        OGResults.tables = OGResults.tableCache[key];
+        let tables = Object.prototype.hasOwnProperty.call(OGResults.tableCache, key)
+            ? OGResults.tableCache[key]
+            : Object.create(null);
+        delete OGResults.tableCache[key];
+        OGResults.tableCache[key] = tables;
+        let keys = Object.keys(OGResults.tableCache);
+        while (keys.length > MAX_TABLE_CACHE) delete OGResults.tableCache[keys.shift()];
+        OGResults.tables = tables;
     }
 
     static renderAll(){
@@ -693,7 +679,7 @@ export default class OGResults {
 
     static heatOption(name, measure){
         let matrix = OGResults.matrixTransform(name, measure);
-        if (!matrix) return chartBase('No compatible matrix data.');
+        if (!matrix) return { option: chartBase('No compatible matrix data.'), scale: null };
         let values = [], transformed = [];
         $.each(matrix, (i, row) => $.each(row, (j, value) => {
             if (value !== null && isFinite(value)){
@@ -715,8 +701,7 @@ export default class OGResults {
             visualMap: { min: -bound, max: bound, calculable: false, orient: 'horizontal', left: 'center', bottom: 3, precision: 2, text: ['Increase', 'Decrease'], textStyle: { color: MUTED }, inRange: { color: ['#39769f', '#d9e4ea', '#f7f7f5', '#f9d8b8', '#d9680b'] } },
             series: [{ type: 'heatmap', data: values, progressive: 1000, emphasis: { itemStyle: { borderColor: SLATE, borderWidth: 1 } }, itemStyle: { borderColor: '#fff', borderWidth: 0.35 } }]
         });
-        option.ogcScale = scale;
-        return option;
+        return { option: option, scale: scale };
     }
 
     static renderDistributionControls(){
@@ -730,13 +715,12 @@ export default class OGResults {
         let measure = $('#ogcDistributionMeasure').val() || 'pct';
         $('#ogcDistributionTitle').text(`${info(name).label} by age and lifetime income`);
         $('#ogcDistributionChart').attr('aria-label', `${info(name).label}, ${measureLabel(name, measure).toLowerCase()}, by age and lifetime-income group`);
-        let option = OGResults.heatOption(name, measure);
-        let scale = option.ogcScale;
-        delete option.ogcScale;
+        let heat = OGResults.heatOption(name, measure);
+        let scale = heat.scale;
         $('#ogcDistributionScale').text(scale
             ? `Color scale ±${fmt(scale.bound)}${measureSuffix(name, measure)}${scale.clipped ? ` · ${scale.cappedPercent}% outside scale` : ''}`
             : '');
-        OGResults.setChart('ogcDistributionChart', option);
+        OGResults.setChart('ogcDistributionChart', heat.option);
         let chart = OGResults.charts.ogcDistributionChart;
         chart.off('click');
         chart.on('click', params => {
@@ -880,12 +864,12 @@ export default class OGResults {
         }
         let option;
         if (view == 'heatmap'){
-            option = OGResults.heatOption(name, measure);
-            let scale = option.ogcScale;
+            let heat = OGResults.heatOption(name, measure);
+            option = heat.option;
+            let scale = heat.scale;
             if (scale){
                 $('#ogcExploreUnit').text(`${measureLabel(name, measure)} · Color scale ±${fmt(scale.bound)}${measureSuffix(name, measure)}${scale.clipped ? ` · ${scale.cappedPercent}% outside scale` : ''}`);
             }
-            delete option.ogcScale;
         }
         else if (view == 'profile') option = OGResults.profileOption(name, group, measure);
         else option = OGResults.comparisonOption(name, measure);
@@ -916,7 +900,7 @@ export default class OGResults {
             let values = baseValues.map((value, i) => measureValue(name, value, reformValues[i], measure));
             series = [{ name: measureLabel(name, measure), type: 'bar', data: values.map(v => ({value:v, itemStyle:{color:v >= 0 ? ORANGE : BLUE}})), barMaxWidth: 28, label: { show: values.length <= 12, position: 'top', color: SLATE, formatter: p => signed(p.value, measureSuffix(name, measure)) }, markLine: { silent: true, symbol: 'none', data: [{yAxis:0}], lineStyle:{color:'#9ba1ad'}, label:{show:false} } }];
         }
-        return $.extend(true, chartBase(`${metaLabel(name)} comparison.`), {
+        return $.extend(true, chartBase(`${info(name).label} comparison.`), {
             tooltip: { trigger: 'axis', valueFormatter: value => fmt(value) + measureSuffix(name, measure) },
             legend: { show: measure == 'levels', top: 0, right: 10, textStyle: {color:MUTED} },
             grid: { left: 24, right: 26, top: measure == 'levels' ? 40 : 24, bottom: labels.length > 10 ? 70 : 34, containLabel: true },
@@ -1177,5 +1161,3 @@ export default class OGResults {
         $(document).on('click.ogresults', '#ogcTableExport', () => OGResults.exportTable());
     }
 }
-
-function metaLabel(name){ return info(name).label; }
