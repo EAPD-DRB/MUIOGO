@@ -105,6 +105,25 @@ def active_capacity(
     return min(capacity, total_limit)
 
 
+def minimum_active_capacity(
+    tech: str,
+    year: str,
+    years: tuple[str, ...],
+    residual: dict[tuple[str], dict[str, Any]],
+    min_investment: dict[tuple[str], dict[str, Any]],
+    min_total: dict[tuple[str], dict[str, Any]],
+    life: dict[str, Any],
+) -> float:
+    """Lower bound implied by residual stock and explicit capacity minima."""
+    capacity = float(residual[(tech,)][year])
+    lifetime = int(float(life.get(tech, 100)))
+    for vintage in years:
+        age = int(year) - int(vintage)
+        if 0 <= age < lifetime:
+            capacity += max(0.0, float(min_investment[(tech,)][vintage]))
+    return max(capacity, max(0.0, float(min_total[(tech,)][year])))
+
+
 def allocate_minimum_input(
     demand: float,
     routes: list[dict[str, float]],
@@ -142,6 +161,7 @@ def evaluate_slice(
     queued = set(queue)
     failures: list[dict[str, Any]] = []
     diagnostics: list[dict[str, Any]] = []
+    forced_activity_lower: dict[str, float] = defaultdict(float)
     iterations = 0
 
     while queue:
@@ -168,6 +188,7 @@ def evaluate_slice(
             route_records.append({
                 "tech": tech,
                 "mode": mode,
+                "output_ratio": output_ratio,
                 "output_capacity": output_capacity,
                 "inputs": {
                     input_commodity: ratio / output_ratio
@@ -185,6 +206,15 @@ def evaluate_slice(
             "optimistic_production_upper_rate": production_upper,
             "headroom_rate": headroom,
             "producer_count": len(route_records),
+            "producers": [
+                {
+                    "technology": tech_name.get(route["tech"], route["tech"]),
+                    "technology_id": route["tech"],
+                    "mode": route["mode"],
+                    "output_capacity_rate": route["output_capacity"],
+                }
+                for route in route_records
+            ],
         })
         if production_upper + TOL < demand:
             failures.append({
@@ -207,6 +237,18 @@ def evaluate_slice(
                 ],
             })
             continue
+
+
+        # A producer has a deterministic activity floor only for the portion
+        # of demand that every combination of the other routes cannot cover.
+        # This remains an optimistic relaxation when routes share capacity.
+        for route in route_records:
+            other_output = production_upper - route["output_capacity"]
+            forced_output = max(0.0, demand - other_output)
+            forced_activity_lower[route["tech"]] = max(
+                forced_activity_lower[route["tech"]],
+                forced_output / route["output_ratio"],
+            )
 
         input_commodities = {
             input_commodity
@@ -233,8 +275,16 @@ def evaluate_slice(
         "status": "failed" if failures else "passed",
         "worst_commodity": worst,
         "failures": failures,
+        "commodity_diagnostics": diagnostics,
+        "forced_activity_lower_rate": dict(forced_activity_lower),
         "propagation_iterations": iterations,
     }
+
+
+def interval_term(coefficient: float, lower: float, upper: float) -> tuple[float, float]:
+    if coefficient >= 0:
+        return coefficient * lower, coefficient * upper
+    return coefficient * upper, coefficient * lower
 
 
 def validate_case(
@@ -251,6 +301,8 @@ def validate_case(
     rycts = read_json(case / "RYCTs.json")
     ryts = read_json(case / "RYTs.json")
     rt = read_json(case / "RT.json")
+    rytcn = read_json(case / "RYTCn.json")
+    rycn = read_json(case / "RYCn.json")
 
     scenarios = tuple(item["ScenarioId"] for item in gen["osy-scenarios"])
     base = scenarios[0]
@@ -271,13 +323,17 @@ def validate_case(
 
     residual = keyed(scenario_rows(ryt, "RC", selected, base), "TechId")
     max_investment = keyed(scenario_rows(ryt, "TAMaxCI", selected, base), "TechId")
+    min_investment = keyed(scenario_rows(ryt, "TAMinCI", selected, base), "TechId")
     max_total = keyed(scenario_rows(ryt, "TAMaxC", selected, base), "TechId")
+    min_total = keyed(scenario_rows(ryt, "TAMinC", selected, base), "TechId")
     availability = keyed(scenario_rows(ryt, "AF", selected, base), "TechId")
     activity_limit = keyed(scenario_rows(ryt, "TAU", selected, base), "TechId")
+    activity_minimum = keyed(scenario_rows(ryt, "TAL", selected, base), "TechId")
     capacity_factor = keyed(scenario_rows(rytts, "CF", selected, base), "TechId", "TsId")
     iar = scenario_rows(rytcm, "IAR", selected, base)
     oar = scenario_rows(rytcm, "OAR", selected, base)
     specified_demand = keyed(scenario_rows(ryc, "SAD", selected, base), "CommId")
+    accumulated_demand = keyed(scenario_rows(ryc, "AAD", selected, base), "CommId")
     demand_profile = keyed(scenario_rows(rycts, "SDP", selected, base), "CommId", "TsId")
     year_splits = keyed(scenario_rows(ryts, "YS", selected, base), "TsId")
     life = rt["OL"][base][0]
@@ -292,6 +348,7 @@ def validate_case(
 
     slice_results = []
     all_failures = []
+    udc_results = []
     for year in years:
         capacity = {
             tech: active_capacity(
@@ -320,6 +377,8 @@ def validate_case(
             * weighted_cf[tech]
             for tech in technologies
         }
+
+        forced_annual_from_slices: dict[str, float] = defaultdict(float)
 
         for ts in timeslices:
             split = float(year_splits[(ts,)][year])
@@ -366,6 +425,123 @@ def validate_case(
             )
             slice_results.append(result)
             all_failures.extend(result["failures"])
+            for tech, rate in result["forced_activity_lower_rate"].items():
+                forced_annual_from_slices[tech] += rate * split
+
+        # AccumulatedAnnualDemand is governed by the annual balance rather
+        # than a demand profile.  Evaluate it independently and combine the
+        # resulting technology floors optimistically with the slice floors.
+        annual_routes: dict[str, list[tuple[str, Any, float]]] = defaultdict(list)
+        annual_inputs: dict[tuple[str, Any], dict[str, float]] = defaultdict(dict)
+        for (tech, mode), rows in inputs_by_route.items():
+            annual_inputs[(tech, mode)] = {
+                commodity: float(row[year]) for commodity, row in rows.items()
+            }
+        for (tech, mode, commodity), row in output_rows.items():
+            ratio = float(row[year])
+            if ratio > TOL:
+                annual_routes[commodity].append((tech, mode, ratio))
+        aad_direct = {
+            commodity: float(row[year])
+            for (commodity,), row in accumulated_demand.items()
+            if float(row[year]) > TOL
+        }
+        annual_result = evaluate_slice(
+            year=year,
+            timeslice="ANNUAL",
+            year_split=1.0,
+            direct_demand=aad_direct,
+            technologies=technologies,
+            routes_by_output=annual_routes,
+            inputs_by_route=annual_inputs,
+            activity_ceiling={
+                tech: min(
+                    annual_envelope[tech],
+                    finite_limit(float(activity_limit[(tech,)][year])),
+                )
+                for tech in technologies
+            },
+            tech_name=tech_name,
+            commodity_name=commodity_name,
+        )
+        annual_result["kind"] = "accumulated_annual_demand"
+        all_failures.extend(annual_result["failures"])
+
+        forced_annual = {
+            tech: max(
+                forced_annual_from_slices.get(tech, 0.0),
+                annual_result["forced_activity_lower_rate"].get(tech, 0.0),
+                max(0.0, float(activity_minimum[(tech,)][year])),
+            )
+            for tech in technologies
+        }
+
+        # Generic interval screen for active user-defined constraints.  It
+        # proves a contradiction only when even independently favorable
+        # capacity/activity bounds cannot reach the required interval.
+        constraints = {row["ConId"]: row for row in gen.get("osy-constraints", [])}
+        constants = keyed(scenario_rows(rycn, "UCC", selected, base), "ConId")
+        multipliers = {
+            key: keyed(scenario_rows(rytcn, key, selected, base), "TechId", "ConId")
+            for key in ("CCM", "CNCM", "CAM")
+        }
+        min_capacity = {
+            tech: minimum_active_capacity(
+                tech, year, years, residual, min_investment, min_total, life
+            )
+            for tech in technologies
+        }
+        for con_id, metadata in constraints.items():
+            if (con_id,) not in constants:
+                continue
+            lower_lhs = 0.0
+            upper_lhs = 0.0
+            for tech in technologies:
+                def coefficient(parameter: str) -> float:
+                    row = multipliers[parameter].get((tech, con_id))
+                    return float(row[year]) if row is not None else 0.0
+
+                variables = (
+                    (
+                        coefficient("CCM"),
+                        min_capacity[tech], capacity[tech],
+                    ),
+                    (
+                        coefficient("CNCM"),
+                        max(0.0, float(min_investment[(tech,)][year])),
+                        finite_limit(float(max_investment[(tech,)][year])),
+                    ),
+                    (
+                        coefficient("CAM"),
+                        forced_annual[tech],
+                        min(
+                            annual_envelope[tech],
+                            finite_limit(float(activity_limit[(tech,)][year])),
+                        ),
+                    ),
+                )
+                for coefficient, lower, upper in variables:
+                    term_lower, term_upper = interval_term(coefficient, lower, upper)
+                    lower_lhs += term_lower
+                    upper_lhs += term_upper
+            constant = float(constants[(con_id,)][year])
+            tag = int(metadata.get("Tag", metadata.get("tag", 0)))
+            failed = (
+                lower_lhs > constant + TOL if tag == 0
+                else constant < lower_lhs - TOL or constant > upper_lhs + TOL
+            )
+            check = {
+                "constraint": metadata.get("Con", con_id),
+                "constraint_id": con_id,
+                "year": year,
+                "tag": tag,
+                "optimistic_lhs_interval": [lower_lhs, upper_lhs],
+                "constant": constant,
+                "status": "failed" if failed else "passed_no_deterministic_contradiction",
+            }
+            udc_results.append(check)
+            if failed:
+                all_failures.append({"kind": "user_defined_constraint_interval", **check})
 
     worst_slices = sorted(
         (
@@ -385,13 +561,16 @@ def validate_case(
         "model_generation_runs": 0,
         "years_checked": len(years),
         "timeslices_checked": len(slice_results),
+        "user_defined_constraint_years_checked": len(udc_results),
         "failure_count": len(all_failures),
         "failures": all_failures,
+        "user_defined_constraints": udc_results,
         "worst_slices": worst_slices,
         "limitations": [
             "A pass is not a proof of full-model feasibility.",
             "Shared producer capacity and route-mix coupling are relaxed optimistically.",
-            "AccumulatedAnnualDemand, storage, trade and user-defined constraints are not yet included.",
+            "Storage chronology and trade coupling are not yet included.",
+            "AccumulatedAnnualDemand and user-defined constraints use optimistic independent-route intervals.",
             "Historical-stock treatment requires an explicit --historical-through classification.",
         ],
     }

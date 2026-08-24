@@ -2,6 +2,12 @@
 
 These instructions apply whenever changing or validating an OSeMOSYS case in this repository.
 
+## Skill-use preference
+
+Never invoke or consult a Codex skill unless the user explicitly asks for that
+specific skill. Do not infer skill authorization from the task type or from a
+skill's trigger description.
+
 ## Non-forcing calibration master rule
 
 Never force an endogenous model outcome to match an observed outcome merely
