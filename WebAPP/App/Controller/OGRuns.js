@@ -1,12 +1,8 @@
 import { Message } from "../../Classes/Message.Class.js";
 import { Ogc } from "../../Classes/Ogc.Class.js";
+import { escapeHtml as esc } from "../../Classes/Html.Class.js";
 import { Model } from "../Model/OGCases.Model.js";
-import {
-    clearRunStale, isRunStale, loadSelection, loadWorkspace, runKey
-} from "./OGCases.js";
-
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
-    ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+import { loadSelection, loadWorkspace, runKey } from "./OGCases.js";
 const STATUS = {
     completed: ['ogc-tag-done', 'Completed'],
     running: ['ogc-tag-run', 'Running'],
@@ -89,18 +85,19 @@ export default class OGRuns {
         $.each(items || [], function (id, item) {
             let runs = new Model([], {}, [], null).flattenRuns(item.runs);
             $.each(runs, function (rid, run) {
+                let hasReusable = run.reusable !== undefined;
+                let backendStale = hasReusable
+                    ? (!run.reusable && (run.status == 'completed' || !!run.stale_reason))
+                    : !!run.stale;
                 let key = runKey(
                     item.case.country_id, item.case.casename, run.run_name
                 );
-                let hasReusable = run.reusable !== undefined;
-                let backendStale = hasReusable
-                    ? (run.status == 'completed' && !run.reusable)
-                    : (run.stale === undefined ? isRunStale(key) : !!run.stale);
                 let entry = {
                     case: item.case,
                     run: run,
                     key: key,
                     stale: backendStale,
+                    staleReason: run.stale_reason || '',
                     reusable: hasReusable ? !!run.reusable : undefined,
                     name: run.run_type == 'baseline' && run.run_name == 'baseline'
                         ? item.case.casename : run.run_name
@@ -157,11 +154,13 @@ export default class OGRuns {
         let owns = key => Object.prototype.hasOwnProperty.call(status, key);
         if (status.reusable !== undefined){
             entry.reusable = !!status.reusable;
-            if (String(status.run_state || status.status || '').toLowerCase() == 'completed'){
+            if (String(status.run_state || status.status || '').toLowerCase() == 'completed'
+                || status.stale_reason){
                 entry.stale = !entry.reusable;
             }
         }
         if (status.stale !== undefined) entry.stale = !!status.stale;
+        if (owns('stale_reason')) entry.staleReason = status.stale_reason || '';
         entry.state = OGRuns.normaliseState(status, entry.stale);
         if (owns('run_stage') || owns('stage')){
             entry.stage = status.run_stage || status.stage || '';
@@ -192,21 +191,27 @@ export default class OGRuns {
 
     static async hydrateBackendState(pageToken){
         let queue = [];
-        if (typeof Ogc.getRunQueue == 'function'){
-            let caseNames = [];
-            $.each(OGRuns.entries || [], function (id, entry) {
-                if (caseNames.indexOf(entry.case.casename) < 0) caseNames.push(entry.case.casename);
-            });
-            let snapshots = await Promise.all($.map(caseNames, async function (casename) {
-                try {
-                    return OGRuns.queueRecords(await Ogc.getRunQueue(
+        let caseNames = [];
+        $.each(OGRuns.entries || [], function (id, entry) {
+            if (caseNames.indexOf(entry.case.casename) < 0) caseNames.push(entry.case.casename);
+        });
+        let snapshots = await Promise.all($.map(caseNames, async function (casename) {
+            try {
+                return {
+                    casename: casename,
+                    records: OGRuns.queueRecords(await Ogc.getRunQueue(
                         OGRuns.workspace.country_id, casename
-                    ));
-                }
-                catch (error) { return []; }
-            }));
-            $.each(snapshots, function (id, records) { queue = queue.concat(records); });
-        }
+                    )),
+                    failed: false
+                };
+            }
+            catch (error) { return {casename: casename, records: [], failed: true}; }
+        }));
+        let failedCases = {};
+        $.each(snapshots, function (id, snapshot) {
+            queue = queue.concat(snapshot.records);
+            if (snapshot.failed) failedCases[snapshot.casename] = true;
+        });
         if (!OGRuns.isCurrent(pageToken)) return;
         let byKey = OGRuns.entriesByKey();
         $.each(queue, function (id, record) {
@@ -214,10 +219,10 @@ export default class OGRuns {
             if (entry) OGRuns.applyBackendStatus(entry, record);
         });
 
-        //Older backends have no queue-list endpoint. Pending runs are probed so
-        //getRunStatus can distinguish a genuinely queued run from one never run.
+        //Fall back to per-run probes only for cases whose queue snapshot failed.
         let candidates = $.grep(OGRuns.entries, entry =>
-            entry.state == 'pending' || ACTIVE_STATES.indexOf(entry.state) >= 0);
+            failedCases[entry.case.casename]
+            && (entry.state == 'pending' || ACTIVE_STATES.indexOf(entry.state) >= 0));
         await Promise.all($.map(candidates, async function (entry) {
             try {
                 let status = await Ogc.getRunStatus(
@@ -269,11 +274,13 @@ export default class OGRuns {
             let reusable = !force && (entry.reusable !== undefined
                 ? entry.reusable : (entry.state == 'completed' && !entry.stale));
             let from = entry.run.run_type == 'reform' ? OGRuns.baselineName(entry) : '&mdash;';
+            let staleReason = entry.state == 'stale' && entry.staleReason
+                ? `<div class="ogc-run-stale-reason">${esc(entry.staleReason)}</div>` : '';
             rows += `<tr data-key="${esc(entry.key)}">
                 <td><input type="checkbox" data-role="select-run" data-key="${esc(entry.key)}"${OGRuns.selected[entry.key] ? ' checked' : ''}${OGRuns.running ? ' disabled' : ''}></td>
                 <td><b>${esc(entry.name)}</b> <span class="ogc-tag ogc-tag-${entry.run.run_type == 'reform' ? 'reform' : 'base'}">${esc(entry.run.run_type)}</span></td>
                 <td class="ogc-mut">${entry.run.run_type == 'reform' ? esc(from) : from}</td>
-                <td><span class="ogc-run-state"><i class="fa fa-${OGRuns.statusIcon(entry.state)}"></i> ${esc(status[1])}</span>${reusable ? ' <span class="ogc-cache-tag">Cached result</span>' : ''}</td>
+                <td><span class="ogc-run-state"><i class="fa fa-${OGRuns.statusIcon(entry.state)}"></i> ${esc(status[1])}</span>${reusable ? ' <span class="ogc-cache-tag">Cached result</span>' : ''}${staleReason}</td>
             </tr>`;
         });
         if (!rows) rows = '<tr><td class="ogc-empty-cell" colspan="4">No configured runs yet. Create a baseline from Cases.</td></tr>';
@@ -313,15 +320,44 @@ export default class OGRuns {
         let status = STATUS[state] || STATUS.pending;
         let completedAt = job.completedAt || entry.completedAt;
         let error = job.error || entry.error;
+        let staleReason = state == 'stale' ? (entry.staleReason || '') : '';
         return `<button class="ogc-history-row" data-act="outcome" data-case="${esc(entry.case.casename)}" data-run="${esc(entry.run.run_name)}" data-key="${esc(entry.key)}">
             <span><i class="fa fa-caret-right"></i> <b>${esc(entry.name)}</b> <span class="ogc-mut">${esc(entry.run.run_type)}</span></span>
             <span><span class="ogc-outcome-time">${esc(OGRuns.formatTime(completedAt))}</span><span class="ogc-tag ${status[0]}">${esc(status[1])}</span></span></button>
             <div class="ogc-history-log" data-outcome="${esc(entry.key)}" style="display:none">
+                ${staleReason ? `<div class="ogc-run-error">${esc(staleReason)}</div>` : ''}
                 ${error ? `<div class="ogc-run-error">${esc(error)}</div>` : ''}
             </div>`;
     }
 
+    static captureLiveLogScroll(){
+        let positions = {};
+        $('#ogcCurrentQueue .ogc-job').each(function () {
+            let log = $(this).find('.ogc-live-run-log')[0];
+            if (!log) return;
+            positions[$(this).attr('data-job')] = {
+                top: log.scrollTop,
+                atBottom: log.scrollHeight - log.scrollTop - log.clientHeight < 24
+            };
+        });
+        return positions;
+    }
+
+    static restoreLiveLogScroll(positions){
+        $('#ogcCurrentQueue .ogc-job').each(function () {
+            let log = $(this).find('.ogc-live-run-log')[0];
+            if (!log) return;
+            let previous = positions[$(this).attr('data-job')];
+            if (!previous || previous.atBottom){
+                log.scrollTop = log.scrollHeight;
+            }else{
+                log.scrollTop = previous.top;
+            }
+        });
+    }
+
     static renderQueue(){
+        let logPositions = OGRuns.captureLiveLogScroll();
         let current = [];
         let seen = {};
         $.each(OGRuns.plan || [], function (id, job) {
@@ -349,6 +385,7 @@ export default class OGRuns {
         $('#ogcCurrentQueue').html(current.length
             ? $.map(current, job => OGRuns.renderCurrent(job)).join('')
             : '<div class="ogc-queue-empty">No runs are currently queued or running.</div>');
+        OGRuns.restoreLiveLogScroll(logPositions);
 
         let outcomes = [], outcomeSeen = {};
         $.each(OGRuns.plan || [], function (id, job) {
@@ -536,8 +573,8 @@ export default class OGRuns {
             let status = await OGRuns.readStatus(job);
             if (OGRuns.isCurrent(execution.pageToken)) OGRuns.render();
             if (job.state == 'completed'){
-                clearRunStale(job.entry.key);
                 job.entry.stale = false;
+                job.entry.staleReason = '';
                 return 'terminal';
             }
             if (['failed', 'cancelled'].indexOf(job.state) >= 0) return 'terminal';
@@ -617,10 +654,11 @@ export default class OGRuns {
         let monitor = async function () {
             while (OGRuns.isCurrent(pageToken) && window.location.hash.split('?')[0] == '#/OGRuns'
                 && monitorID == OGRuns.monitorID && !OGRuns.running){
-                let active = $.grep(OGRuns.entries || [], entry => ACTIVE_STATES.indexOf(entry.state) >= 0);
-                if (!active.length) return;
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 if (!OGRuns.isCurrent(pageToken) || monitorID != OGRuns.monitorID) return;
+                await OGRuns.hydrateBackendState(pageToken);
+                if (!OGRuns.isCurrent(pageToken) || monitorID != OGRuns.monitorID) return;
+                let active = $.grep(OGRuns.entries || [], entry => ACTIVE_STATES.indexOf(entry.state) >= 0);
                 await Promise.all($.map(active, async function (entry) {
                     try {
                         let status = await Ogc.getRunStatus(

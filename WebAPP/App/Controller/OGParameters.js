@@ -1,13 +1,11 @@
 import { Message } from "../../Classes/Message.Class.js";
 import { NavigationGuard } from "../../Classes/NavigationGuard.Class.js";
 import { Ogc } from "../../Classes/Ogc.Class.js";
+import { escapeHtml as esc } from "../../Classes/Html.Class.js";
 import { Model } from "../Model/OGParameters.Model.js";
-import { loadSelection, markRunsStale, runKey } from "./OGCases.js";
+import { loadSelection } from "./OGCases.js";
 import { GROUPS, TIER } from "../Model/OGParams.Overlay.js";
 import { OGTableEditor } from "./OGTableEditor.js";
-
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
-    ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
 const TIER_LABEL = {};
 TIER_LABEL[TIER.LEVERS] = 'Policy levers';
@@ -30,7 +28,7 @@ export default class OGParameters {
     }
 
     static isCurrent(pageID){
-        return pageID == PAGE_ID;
+        return pageID == PAGE_ID && localStorage.getItem('osy-pageId') == 'OGParameters';
     }
 
     static load(pageID){
@@ -277,7 +275,7 @@ export default class OGParameters {
         if (f.large){
             shown = '\u2014';
         }else if ($.isArray(v)){
-            let flat = OGParameters.flatten(v);
+            let flat = Model.flatten(v);
             let head = $.map(flat.slice(0, 8), function (x) { return OGParameters.fmt(x); }).join(', ');
             shown = head + (flat.length > 8 ? ', ... (' + flat.length + ' values)' : '');
         }else if (v === null || v === undefined){
@@ -289,13 +287,7 @@ export default class OGParameters {
     }
 
     static dimensions(value){
-        let out = [];
-        let current = value;
-        while ($.isArray(current)){
-            out.push(current.length);
-            current = current.length ? current[0] : null;
-        }
-        return out;
+        return Model.dimensions(value);
     }
 
     static tableShapeLabel(shape){
@@ -525,14 +517,7 @@ export default class OGParameters {
     }
 
     static flatten(v){
-        if (!$.isArray(v)){
-            return [v];
-        }
-        let out = [];
-        $.each(v, function (id, x) {
-            out = out.concat(OGParameters.flatten(x));
-        });
-        return out;
+        return Model.flatten(v);
     }
 
     static fieldEl(name){
@@ -934,25 +919,6 @@ export default class OGParameters {
         )
         .then(response => {
             dirty = false;
-            if (count){
-                let stale = [runKey(
-                    model.selection.country_id,
-                    model.selection.casename,
-                    model.selection.run_name
-                )];
-                if (!model.isReform){
-                    $.each(OGParameters.runs || [], function (id, r) {
-                        if (r.run_type == 'reform' && r.baseline_run == model.selection.run_name){
-                            stale.push(runKey(
-                                model.selection.country_id,
-                                model.selection.casename,
-                                r.run_name
-                            ));
-                        }
-                    });
-                }
-                markRunsStale(stale);
-            }
             Message.smallBoxInfo('OG-Core',
                 count ? (count + ' change' + (count == 1 ? '' : 's') + ' saved.') : 'Saved with no changes.',
                 3500);

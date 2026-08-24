@@ -157,10 +157,30 @@ export class Model {
     }
 
     static clone(value){
-        if (!$.isArray(value)){
-            return value;
+        if ($.isArray(value)) return value.map(item => Model.clone(item));
+        if (value && typeof value == 'object'){
+            let copy = {};
+            $.each(value, function (key, item) { copy[key] = Model.clone(item); });
+            return copy;
         }
-        return value.map(item => Model.clone(item));
+        return value;
+    }
+
+    static flatten(value){
+        if (!$.isArray(value)) return [value];
+        let out = [];
+        $.each(value, function (id, item) { out = out.concat(Model.flatten(item)); });
+        return out;
+    }
+
+    static dimensions(value){
+        let out = [];
+        let current = value;
+        while ($.isArray(current)){
+            out.push(current.length);
+            current = current.length ? current[0] : null;
+        }
+        return out;
     }
 
     refValue(name, refName){

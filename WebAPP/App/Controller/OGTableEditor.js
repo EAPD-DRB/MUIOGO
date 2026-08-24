@@ -1,37 +1,4 @@
-const clone = value => JSON.parse(JSON.stringify(value));
-
-const equal = (left, right) => {
-    if ($.isArray(left) || $.isArray(right)){
-        if (!$.isArray(left) || !$.isArray(right) || left.length != right.length){
-            return false;
-        }
-        for (let i = 0; i < left.length; i++){
-            if (!equal(left[i], right[i])) return false;
-        }
-        return true;
-    }
-    let a = parseFloat(left);
-    let b = parseFloat(right);
-    if (!isNaN(a) && !isNaN(b)) return Math.abs(a - b) < 1e-12;
-    return left === right;
-};
-
-const flatten = value => {
-    if (!$.isArray(value)) return [value];
-    let out = [];
-    $.each(value, function (id, item) { out = out.concat(flatten(item)); });
-    return out;
-};
-
-const dimensions = value => {
-    let out = [];
-    let current = value;
-    while ($.isArray(current)){
-        out.push(current.length);
-        current = current.length ? current[0] : null;
-    }
-    return out;
-};
+import { Model } from "../Model/OGParameters.Model.js";
 
 const unflatten = (values, shape) => {
     if (!shape.length) return values.shift();
@@ -71,19 +38,19 @@ export class OGTableEditor {
     }
 
     static shapeLabel(value){
-        let shape = dimensions(value);
+        let shape = Model.dimensions(value);
         if (shape.length == 1) return shape[0] + (shape[0] == 1 ? ' value' : ' values');
         return shape.join(' × ');
     }
 
     static rows(value, reference){
-        let shape = dimensions(value);
+        let shape = Model.dimensions(value);
         let first = shape[0] || 0;
         let rows = [];
         for (let i = 0; i < first; i++){
-            let values = shape.length == 1 ? [value[i]] : flatten(value[i]);
+            let values = shape.length == 1 ? [value[i]] : Model.flatten(value[i]);
             let baseline = $.isArray(reference)
-                ? (shape.length == 1 ? [reference[i]] : flatten(reference[i]))
+                ? (shape.length == 1 ? [reference[i]] : Model.flatten(reference[i]))
                 : [];
             let row = { id: i + 1, label: String(i + 1), _baseline: baseline };
             $.each(values, function (column, item) { row['value_' + column] = item; });
@@ -137,7 +104,7 @@ export class OGTableEditor {
 
         OGTableEditor.close();
         OGTableEditor.options = options;
-        OGTableEditor.shape = dimensions(options.value);
+        OGTableEditor.shape = Model.dimensions(options.value);
         OGTableEditor.returnFocus = document.activeElement;
 
         $('#ogcTableTitle').text(options.title);
@@ -151,14 +118,14 @@ export class OGTableEditor {
         $('body').addClass('ogc-table-open');
 
         let rowData = OGTableEditor.rows(options.value, options.reference);
-        let columnCount = rowData.length ? flatten(options.value[0]).length : 0;
+        let columnCount = rowData.length ? Model.flatten(options.value[0]).length : 0;
         if (OGTableEditor.shape.length == 1) columnCount = 1;
         let trailingShape = OGTableEditor.shape.slice(1);
         let formatter = function (cell) {
             let row = cell.getRow().getData();
             let column = parseInt(cell.getField().slice(6), 10);
             let baseline = row._baseline[column];
-            let changed = !equal(cell.getValue(), baseline);
+            let changed = !Model.equal(cell.getValue(), baseline);
             cell.getElement().classList.toggle('ogc-table-modified', changed);
             cell.getElement().classList.toggle('ogc-table-invalid', !OGTableEditor.validValue(cell.getValue()));
             cell.getElement().title = changed && baseline !== undefined
@@ -243,7 +210,7 @@ export class OGTableEditor {
             $.each(row, function (field, value) {
                 if (field.indexOf('value_') !== 0) return;
                 let column = parseInt(field.slice(6), 10);
-                if (!equal(value, row._baseline[column])) count++;
+                if (!Model.equal(value, row._baseline[column])) count++;
                 if (!OGTableEditor.validValue(value)) invalid++;
             });
         });
@@ -254,7 +221,7 @@ export class OGTableEditor {
 
     static apply(){
         if (!OGTableEditor.table || !OGTableEditor.options) return;
-        let rows = clone(OGTableEditor.table.getData());
+        let rows = Model.clone(OGTableEditor.table.getData());
         let invalid = 0;
         $.each(rows, function (id, row) {
             $.each(row, function (field, value) {

@@ -1,6 +1,7 @@
 import { Message } from "../../Classes/Message.Class.js";
 import { Ogc } from "../../Classes/Ogc.Class.js";
 import { OGWorkspace } from "../../Classes/OGWorkspace.Class.js";
+import { escapeHtml as esc } from "../../Classes/Html.Class.js";
 import { Model } from "../Model/OGCore.Model.js";
 
 //register country ids (repo name suffix) -> vendored flag files (ISO2, see
@@ -8,9 +9,6 @@ import { Model } from "../Model/OGCore.Model.js";
 const FLAG_ISO2 = { ETH: 'et', ZAF: 'za', IDN: 'id', PHL: 'ph', USA: 'us', UK: 'gb', THA: 'th', BRA: 'br' };
 
 //register values render into markup, escape them
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
-    ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-
 const BADGES = {
     'installed': ['ogc-b-ok', 'installed'],
     'update_available': ['ogc-b-upd', 'update available'],

@@ -309,7 +309,7 @@ span.ogc-flag-none{width:34px;height:26px;display:flex;align-items:center;justif
 .ogc-run-error{margin:8px 0;color:#a94442;font-size:12px;line-height:1.4}
 .ogc-reference-row>td{background:#fafbfc}
 .ogc-live-log-label{margin-top:10px;color:#8a8f9c;text-transform:uppercase;font-size:9px;font-weight:700;letter-spacing:.05em}
-.ogc-live-run-log{margin:5px 0 0;max-height:180px;overflow:auto}
+.ogc-live-run-log{margin:5px 0 0;max-height:180px;overflow:auto;color:#fff}
 .ogc-live-log-empty{margin-top:5px;padding:8px 10px;background:#f6f7f9;color:#8a8f9c;font-size:11px;border-radius:2px}
 .ogc-job{margin:7px 14px 10px;border:1px solid #e4e4e4;border-radius:3px;padding:10px 12px}
 .ogc-job-active{border-left:3px solid var(--osy-og)}
@@ -317,6 +317,7 @@ span.ogc-flag-none{width:34px;height:26px;display:flex;align-items:center;justif
 .ogc-job-head .ogc-tag{margin-left:auto}
 .ogc-job-meta{font-size:11px;color:#6e7687;margin-top:5px}
 .ogc-run-log{max-height:210px;overflow:auto;background:#20232d;color:#d8ead0;border-radius:2px;padding:10px 12px;margin:8px 0 0;font:11px/1.45 monospace;white-space:pre-wrap;word-break:break-word}
+.ogc-run-stale-reason{margin-top:3px;max-width:360px;color:#a94442;font-size:11px;line-height:1.3}
 .ogc-history-row{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px);margin:0 14px;padding:9px 2px;border:0;border-bottom:1px solid #eee;background:#fff;text-align:left;color:#3a3f51}
 .ogc-history-row:hover{background:#fafbfc}
 .ogc-history-row .fa{color:#8a8f9c;margin-right:6px;transition:transform .12s}

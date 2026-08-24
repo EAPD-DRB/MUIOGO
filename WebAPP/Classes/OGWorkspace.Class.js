@@ -1,4 +1,5 @@
 import { Ogc } from "./Ogc.Class.js";
+import { escapeHtml as esc } from "./Html.Class.js";
 
 const WORKSPACE_KEY = 'osy-ogc-country';
 const SELECTION_KEY = 'osy-ogc-selection';
@@ -13,9 +14,6 @@ let prepareVersion = 0;
 let preparing = false;
 let lifecycleTimer = null;
 let lifecycleView = null;
-
-const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g,
-    ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
 export class OGWorkspace {
     static current(){
@@ -32,6 +30,26 @@ export class OGWorkspace {
         localStorage.removeItem(WORKSPACE_KEY);
         localStorage.removeItem(SELECTION_KEY);
         prepared = null;
+    }
+
+    static reconcileEntry(route){
+        let path = String(route || '/').split('?')[0];
+        if (path != '/OGCore' || !OGWorkspace.current()){
+            return null;
+        }
+        OGWorkspace.clearLocal();
+        return Ogc.setSession(null).then(() => true).catch(() => false);
+    }
+
+    static async activateCountry(countryId){
+        try {
+            return await Ogc.setSession(null, countryId);
+        }catch (error){
+            //A reload outside the workspace can leave only the backend session
+            //behind. Clear it and retry once before showing a dead-end 409.
+            await Ogc.setSession(null);
+            return Ogc.setSession(null, countryId);
+        }
     }
 
     static takePrepared(countryId){
@@ -245,7 +263,7 @@ export class OGWorkspace {
                 OGWorkspace.setStep(0, 'done');
                 OGWorkspace.setStep(1, 'current');
 
-                await Ogc.setSession(null, country.country_id);
+                await OGWorkspace.activateCountry(country.country_id);
                 sessionActivated = true;
                 if (!active()){
                     await Ogc.setSession(null).catch(() => {});

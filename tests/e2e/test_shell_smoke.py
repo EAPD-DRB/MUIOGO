@@ -354,25 +354,21 @@ def test_country_workspace_filters_cases(page, base_url):
     assert result == ['ethiopia-case']
 
 
-def test_browser_run_state_is_scoped_by_country(page, base_url):
+def test_run_keys_are_scoped_by_country(page, base_url):
     page.goto(base_url)
     result = page.evaluate("""async () => {
         const cases = await import(new URL('App/Controller/OGCases.js', location.href).href);
-        localStorage.removeItem('osy-ogc-stale-runs');
         const eth = cases.runKey('ETH', 'Baseline', 'baseline');
         const usa = cases.runKey('USA', 'Baseline', 'baseline');
-        cases.markRunsStale([eth]);
         return {
             eth, usa,
-            ethStale: cases.isRunStale(eth),
-            usaStale: cases.isRunStale(usa)
+            browserStaleStoreRemoved: cases.markRunsStale === undefined
         };
     }""")
     assert result == {
         'eth': 'ETH:Baseline:baseline',
         'usa': 'USA:Baseline:baseline',
-        'ethStale': True,
-        'usaStale': False,
+        'browserStaleStoreRemoved': True,
     }
 
 
@@ -422,6 +418,7 @@ def test_ogc_adapter_matches_run_backend_contract(page, base_url):
 
 def test_workspace_opening_uses_real_backend_stages(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
+    page.wait_for_function("localStorage.getItem('osy-pageId') === 'OGCore'")
     result = page.evaluate("""async () => {
         const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
@@ -459,6 +456,7 @@ def test_workspace_opening_uses_real_backend_stages(page, base_url):
 
 def test_workspace_opening_keeps_cases_when_one_run_read_fails(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
+    page.wait_for_function("localStorage.getItem('osy-pageId') === 'OGCore'")
     result = page.evaluate("""async () => {
         const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
@@ -483,6 +481,7 @@ def test_workspace_opening_keeps_cases_when_one_run_read_fails(page, base_url):
 
 def test_workspace_opening_unwinds_country_session_on_error(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
+    page.wait_for_function("localStorage.getItem('osy-pageId') === 'OGCore'")
     page.evaluate("""async () => {
         const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
@@ -516,6 +515,7 @@ def test_workspace_opening_unwinds_country_session_on_error(page, base_url):
 
 def test_workspace_opening_is_cancelled_when_ogcore_is_left(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
+    page.wait_for_function("localStorage.getItem('osy-pageId') === 'OGCore'")
     result = page.evaluate("""async () => {
         const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
@@ -541,6 +541,7 @@ def test_workspace_opening_is_cancelled_when_ogcore_is_left(page, base_url):
 
 def test_stay_in_workspace_changes_nothing(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
+    page.wait_for_function("localStorage.getItem('osy-pageId') === 'OGCore'")
     page.evaluate("""async () => {
         const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
@@ -566,6 +567,7 @@ def test_stay_in_workspace_changes_nothing(page, base_url):
 
 def test_workspace_exit_stay_restores_unsaved_navigation_guard(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
+    page.wait_for_function("localStorage.getItem('osy-pageId') === 'OGCore'")
     page.evaluate("""async () => {
         const { NavigationGuard } = await import(new URL('Classes/NavigationGuard.Class.js', location.href).href);
         const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
@@ -602,6 +604,7 @@ def test_workspace_exit_stay_restores_unsaved_navigation_guard(page, base_url):
 
 def test_confirmed_workspace_exit_clears_session_and_local_state(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
+    page.wait_for_function("localStorage.getItem('osy-pageId') === 'OGCore'")
     page.evaluate("""async () => {
         const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
@@ -620,6 +623,33 @@ def test_confirmed_workspace_exit_clears_session_and_local_state(page, base_url)
     })""")
     assert result == {
         'left': True, 'calls': [None], 'workspace': None, 'selection': None
+    }
+
+
+def test_non_workspace_entry_reconciles_a_stranded_country_session(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { OGWorkspace } = await import(new URL('Classes/OGWorkspace.Class.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        localStorage.setItem('osy-ogc-country', JSON.stringify({country_id: 'ETH', country_name: 'Ethiopia'}));
+        localStorage.setItem('osy-ogc-selection', JSON.stringify({casename: 'c1', run_name: 'baseline'}));
+        const calls = [];
+        Ogc.setSession = async (casename, countryId) => {
+            calls.push([casename, countryId === undefined ? null : countryId]);
+        };
+        const reconciled = await OGWorkspace.reconcileEntry('/OGCore');
+        return {
+            reconciled,
+            calls,
+            workspace: localStorage.getItem('osy-ogc-country'),
+            selection: localStorage.getItem('osy-ogc-selection')
+        };
+    }""")
+    assert result == {
+        'reconciled': True,
+        'calls': [[None, None]],
+        'workspace': None,
+        'selection': None,
     }
 
 
@@ -736,7 +766,7 @@ def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
     baseline_actions = baseline_menu.locator("xpath=..//span[@role='menu']")
     expect(baseline_actions).to_be_visible()
     expect(baseline_actions.get_by_text("Add reform", exact=True)).to_be_visible()
-    expect(baseline_actions.get_by_text("Delete", exact=True)).to_be_visible()
+    expect(baseline_actions.get_by_text("Delete case", exact=True)).to_be_visible()
 
     baseline_actions.get_by_text("Add reform", exact=True).click()
     expect(page.locator("#ogcCasesModalHead")).to_have_text("Add a case")
@@ -750,7 +780,7 @@ def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
     reform_menu.click()
     reform_actions = reform_menu.locator("xpath=..//span[@role='menu']")
     expect(reform_actions).to_be_visible()
-    expect(reform_actions.get_by_text("Delete", exact=True)).to_be_visible()
+    expect(reform_actions.get_by_text("Delete reform", exact=True)).to_be_visible()
     expect(reform_actions.get_by_text("Add reform", exact=True)).to_have_count(0)
 
 
@@ -872,6 +902,54 @@ def test_create_baseline_creates_its_container_and_opens_parameters(page, base_u
     }
 
 
+def test_failed_baseline_run_creation_rolls_back_the_case(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGCases")
+    expect(page.locator("#ogcCasesPage")).to_be_visible()
+    page.evaluate("""async () => {
+        const { default: Cases } = await import(new URL('App/Controller/OGCases.js', location.href).href);
+        const { Model } = await import(new URL('App/Model/OGCases.Model.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
+        Cases.model = new Model([], {}, [{country_id: 'ETH'}], 'ETH');
+        window.__rollbackCalls = [];
+        Ogc.saveCase = async () => ({status_code: 'created'});
+        Ogc.createRun = async () => { throw 'run creation failed'; };
+        Ogc.deleteCase = async (countryId, casename) => {
+            window.__rollbackCalls.push([countryId, casename]);
+            return {status_code: 'success'};
+        };
+        Cases.initEvents();
+        Cases.openNewCase();
+    }""")
+    page.locator("#ogcCaseName").fill("Incomplete baseline")
+    page.locator("[data-act='new-case-confirm']").click()
+    expect(page.locator("#ogcCaseErr")).to_contain_text("run creation failed")
+    assert page.evaluate("window.__rollbackCalls") == [['ETH', 'Incomplete baseline']]
+
+
+def test_runless_case_is_visible_and_recoverable(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Cases } = await import(new URL('App/Controller/OGCases.js', location.href).href);
+        const { Model } = await import(new URL('App/Model/OGCases.Model.js', location.href).href);
+        Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
+        Cases.model = new Model(
+            [{casename: 'Incomplete baseline', country_id: 'ETH'}],
+            {'Incomplete baseline': []}, [{country_id: 'ETH'}], 'ETH'
+        );
+        const entries = Cases.entries(Cases.model);
+        return {count: entries.length, html: Cases.entryRows(entries[0])};
+    }""")
+    assert result['count'] == 1
+    assert 'Incomplete baseline' in result['html']
+    assert 'Retry setup' in result['html']
+    assert 'Delete case' in result['html']
+
+
 def test_run_queue_orders_dependencies_and_marks_cache(page, base_url):
     page.goto(base_url)
     result = page.evaluate("""async () => {
@@ -927,6 +1005,22 @@ def test_calibration_defaults_are_reference_only(page, base_url):
     assert 'Baselines <span>(0)</span>' in result['panel']
     assert result['choices'] == []
     assert 'Default baseline' not in result['row']
+
+
+def test_parameters_page_token_also_requires_the_current_page(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Parameters } = await import(
+            new URL('App/Controller/OGParameters.js', location.href).href
+        );
+        localStorage.setItem('osy-pageId', 'OGParameters');
+        Parameters.onLoad();
+        const token = Parameters.pageID;
+        const current = Parameters.isCurrent(token);
+        localStorage.setItem('osy-pageId', 'OGRuns');
+        return {current, afterNavigation: Parameters.isCurrent(token)};
+    }""")
+    assert result == {'current': True, 'afterNavigation': False}
 
 
 def test_og_run_clears_clews_messages_and_late_home_is_scoped(page, base_url):
@@ -1065,10 +1159,14 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
             casename: 'case-one', run_name: 'baseline', state: 'queued', queue_position: 2
             }]};
         };
-        Ogc.getRunStatus = async () => ({
+        let statusCalls = 0;
+        Ogc.getRunStatus = async () => {
+            statusCalls++;
+            return {
             run_state: 'pending', run_stage: 'Queued', queue_position: 2,
             run_log: ['Worker accepted the run.']
-        });
+            };
+        };
         const cancelled = [];
         Ogc.cancelRun = async (countryId, casename, runName) => {
             cancelled.push([countryId, casename, runName]);
@@ -1081,7 +1179,8 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
             state: Runs.entries[0].state,
             selected: Runs.selected[Runs.entries[0].key],
             queue: document.querySelector('#ogcCurrentQueue').textContent,
-            perJobCancel: document.querySelectorAll('[data-act="cancel-job"]').length
+            perJobCancel: document.querySelectorAll('[data-act="cancel-job"]').length,
+            statusCalls
         };
         await Runs.cancelEntry('ETH:case-one:baseline');
         return {before, after: Runs.entries[0].state, cancelled, queueCases};
@@ -1089,11 +1188,77 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
     assert result['before']['state'] == 'queued'
     assert result['before']['selected'] is False
     assert 'Queue position 2' in result['before']['queue']
-    assert 'Worker accepted the run.' in result['before']['queue']
     assert result['before']['perJobCancel'] == 0
+    assert result['before']['statusCalls'] == 0
     assert result['after'] == 'cancelled'
     assert result['cancelled'] == [['ETH', 'case-one', 'baseline']]
     assert result['queueCases'] == ['case-one']
+
+
+def test_idle_run_monitor_keeps_checking_queue_without_status_fanout(page, base_url):
+    page.goto(base_url)
+    page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
+        country_id: 'ETH', country_name: 'Ethiopia'
+    }))""")
+    page.goto(f"{base_url}/#/OGRuns")
+    expect(page.locator('#ogcRunsPage')).to_be_visible()
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
+        localStorage.setItem('osy-pageId', 'OGRuns');
+        Ogc.getCases = async () => [{casename: 'case-one', country_id: 'ETH'}];
+        Ogc.getRuns = async () => ({runs: [{
+            run_name: 'baseline', run_type: 'baseline', status: 'pending', reusable: false
+        }]});
+        let queueCalls = 0;
+        let statusCalls = 0;
+        Ogc.getRunQueue = async () => {
+            queueCalls++;
+            return {active: null, queued: []};
+        };
+        Ogc.getRunStatus = async () => {
+            statusCalls++;
+            return {run_state: 'pending'};
+        };
+        Runs.onLoad('OGCases');
+        let deadline = Date.now() + 5000;
+        while (queueCalls < 2 && Date.now() < deadline){
+            await new Promise(resolve => setTimeout(resolve, 25));
+        }
+        history.replaceState(null, '', '#/OGCases');
+        return {queueCalls, statusCalls};
+    }""")
+    assert result['queueCalls'] >= 2
+    assert result['statusCalls'] == 0
+
+
+def test_live_log_scroll_follows_bottom_and_preserves_manual_position(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        document.querySelector('#ogcCurrentQueue')?.remove();
+        const host = document.createElement('div');
+        host.id = 'ogcCurrentQueue';
+        document.body.appendChild(host);
+        const renderLog = lines => {
+            host.innerHTML = `<div class="ogc-job" data-job="run"><pre class="ogc-live-run-log" style="display:block;height:100px;overflow:auto">${'line\\n'.repeat(lines)}</pre></div>`;
+            return host.querySelector('pre');
+        };
+        let log = renderLog(100);
+        log.scrollTop = log.scrollHeight;
+        const bottom = Runs.captureLiveLogScroll();
+
+        log = renderLog(120);
+        Runs.restoreLiveLogScroll(bottom);
+        const followed = log.scrollHeight - log.scrollTop - log.clientHeight < 2;
+
+        log.scrollTop = 75;
+        const manual = Runs.captureLiveLogScroll();
+        log = renderLog(140);
+        Runs.restoreLiveLogScroll(manual);
+        return {followed, preserved: log.scrollTop};
+    }""")
+    assert result == {'followed': True, 'preserved': 75}
 
 
 def test_backend_reusability_overrides_browser_cache(page, base_url):
@@ -1111,6 +1276,31 @@ def test_backend_reusability_overrides_browser_cache(page, base_url):
         return {state: plan[0].state};
     }""")
     assert result == {'state': 'planned'}
+
+
+def test_invalidated_pending_run_is_shown_as_stale_with_reason(page, base_url):
+    page.goto(base_url)
+    result = page.evaluate("""async () => {
+        const { default: Runs } = await import(new URL('App/Controller/OGRuns.js', location.href).href);
+        const entries = Runs.flatten([{
+            case: {country_id: 'ETH', casename: 'case-one'},
+            runs: [{
+                run_name: 'baseline', run_type: 'baseline', status: 'pending',
+                reusable: false,
+                stale_reason: 'Parameters changed after the latest completed run.'
+            }]
+        }]);
+        return {
+            state: entries[0].state,
+            stale: entries[0].stale,
+            reason: entries[0].staleReason
+        };
+    }""")
+    assert result == {
+        'state': 'stale',
+        'stale': True,
+        'reason': 'Parameters changed after the latest completed run.',
+    }
 
 
 def test_new_backend_attempt_clears_previous_activity(page, base_url):
@@ -1752,6 +1942,7 @@ def test_array_parameters_use_a_compact_preview_and_round_trip_table_data(page, 
             shape: OGTableEditor.shapeLabel(value),
             baseIsIndependent: fallbackModel.base.io_matrix[0][0] === 0.1,
             fallbackChanged: fallbackModel.changedNames().includes('io_matrix'),
+            nullEqualsZero: Model.equal(null, 0),
             blankInvalid: Parameters.outOfRange(model.fields.io_matrix, [[0.1, null]]),
             removedValueCount: Parameters.countDifferences([0.1], [0.1, 0.2])
         };
@@ -1763,6 +1954,7 @@ def test_array_parameters_use_a_compact_preview_and_round_trip_table_data(page, 
     assert result['shape'] == '2 × 3'
     assert result['baseIsIndependent'] is True
     assert result['fallbackChanged'] is True
+    assert result['nullEqualsZero'] is False
     assert result['blankInvalid'] is True
     assert result['removedValueCount'] == 1
 

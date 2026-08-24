@@ -264,6 +264,7 @@ export class Routes {
         function routeFromHash(hash){
             return hash && hash.length > 0 ? hash.split('#').pop() : '/';
         }
+        let entryReconcile = OGWorkspace.reconcileEntry(routeFromHash(acceptedHash));
         function restoreAcceptedHash(clearModelRequest = true){
             if (clearModelRequest) requestedModel = null;
             if (window.location.hash !== acceptedHash) {
@@ -296,6 +297,10 @@ export class Routes {
             navigationPending = true;
             Promise.resolve(NavigationGuard.requestLeave(
                 async () => {
+                    if (entryReconcile){
+                        await entryReconcile;
+                        entryReconcile = null;
+                    }
                     if (OGWorkspace.isWorkspaceRoute(currentRoute) && !OGWorkspace.isWorkspaceRoute(route)){
                         let left = await OGWorkspace.leave();
                         if (!left){
