@@ -2,6 +2,7 @@ from pathlib import Path
 import pandas as pd
 import traceback
 import json, shutil, os, time, subprocess
+import concurrent.futures
 from collections import defaultdict
 from itertools import product
 
@@ -1997,18 +1998,54 @@ class DataFile(Osemosys):
             print("An error occurred:")
             traceback.print_exc()  # Prints full traceback
 
-    def batchRun(self, solver, cases):
+    def postProcess(self, caserunname):
+        """CSV extraction + results-viewer pivots for an already-solved caserun.
+
+        Split out of run() so parallel batch solves can defer this phase: it
+        rewrites view files shared between caseruns, so it must run
+        sequentially."""
+        dataFile = Path(Config.DATA_STORAGE, self.case, 'res', caserunname, 'data.txt')
+        resFile = Path(Config.DATA_STORAGE, self.case, 'res', caserunname, 'results.txt')
+        resPath = Path(Config.DATA_STORAGE, self.case, 'res', caserunname)
+        self.generateCSVfromCBC(dataFile, resFile, resPath)
+        self.generateResultsViewer(caserunname)
+
+    def batchRun(self, solver, cases, parallel=True):
         try:
             batchlog=""
             msg=""
             status = "Success"
             results = []
 
-            ##################################Sequential code
-            for caserun in cases:
-                runout =self.run(solver, caserun)
+            if parallel and len(cases) > 1:
+                # Solve phase in parallel: each scenario's solve is independent
+                # (own res/<caserun> folder, own subprocesses) and mostly waits
+                # on the solver binary, so threads scale. Each worker gets its
+                # OWN DataFile instance because run() stores per-caserun paths
+                # on self. The shared-view post-processing runs sequentially
+                # below — that is what broke earlier parallelization attempts.
+                workers = min(len(cases), max(1, (os.cpu_count() or 4) - 2))
+                case_name = self.case
+                # Sequential pre-phase: clear each caserun's old entries from the
+                # shared view files before any parallel work touches disk.
+                for caserun in cases:
+                    self.deleteCaseResultsJSON(caserun)
+                def _solve(caserun):
+                    return DataFile(case_name).run(solver, caserun, postprocess=False)
+                with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+                    outs = list(executor.map(_solve, cases))
+                for runout in outs:
+                    if runout["status_code"] == "success":
+                        try:
+                            self.postProcess(runout["caserun"])
+                        except Exception as ex:
+                            runout["status_code"] = "error"
+                            runout["timer"] = f"Post-processing failed: {ex}"
+            else:
+                outs = [self.run(solver, caserun) for caserun in cases]
+
+            for runout in outs:
                 msg+="Case: {0}{1}{2}".format( runout["caserun"], runout["timer"],  '\n')
-                # batchlog+="GLPK status {0}{1}{2}GLPK log {3}{4}{5}{6}CBC log {7}{8}{9}{10}{11}".format(runout["status_code"], runout["timer"],'\n',runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n\n')
                 batchlog+="{0}{1}{2}{3}{4}{5}{6}{7}{8}".format(runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n')
                 batchlog+="------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ {0}".format('\n')
                 if runout["status_code"] != 'success':
@@ -2093,7 +2130,7 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def run( self, solver, caserun, lock=None ):
+    def run( self, solver, caserun, lock=None, postprocess=True ):
         try:
             caserunname = caserun
             if lock is not None:
@@ -2140,7 +2177,10 @@ class DataFile(Osemosys):
             # respath = self.resPath.resolve()
             # resCBCPath = self.resCBCPath.resolve()
 
-            self.deleteCaseResultsJSON(caserunname)
+            # Rewrites shared view files, so parallel batch solves defer it to
+            # batchRun's sequential pre-phase (postprocess=False skips it here).
+            if postprocess:
+                self.deleteCaseResultsJSON(caserunname)
 
             if solver == 'glpk':
                 glpk_out = subprocess.run(
@@ -2248,7 +2288,10 @@ class DataFile(Osemosys):
                     customMsg = customMsg + times[0]
                     statusFlag = "error"
 
-                if statusFlag == "success":
+                # postprocess=False defers CSV/pivot generation so parallel batch
+                # solves never write the shared view files concurrently; the caller
+                # runs postProcess() sequentially afterwards.
+                if statusFlag == "success" and postprocess:
                     self.generateCSVfromCBC(self.dataFile, self.resFile, self.resPath)
                     print("CSV DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                     txtOut = txtOut + ("csv files extraction time {:0.2f} s;{}".format(time.time() - start_time, '\n'))
