@@ -347,8 +347,32 @@ def validate_case(
         output_rows[(row["TechId"], row["MoId"], row["CommId"])] = row
 
     slice_results = []
+    annual_results = []
     all_failures = []
     udc_results = []
+    capacity_ceiling_results = []
+    # OSeMOSYS TCC1 applies TotalCapacityAnnual <= TAMaxC while residual
+    # capacity is a non-negative component of TotalCapacityAnnual.  Therefore
+    # RC > TAMaxC is an immediate contradiction even when new investment is
+    # fixed to zero.  Check this exact equation before any optimistic supply
+    # propagation so it cannot be hidden by relaxed route/resource coupling.
+    for tech in technologies:
+        for year in years:
+            rc_value = float(residual[(tech,)][year])
+            ceiling_value = float(max_total[(tech,)][year])
+            failed = rc_value > ceiling_value + TOL
+            result = {
+                "technology": tech_name[tech],
+                "technology_id": tech,
+                "year": year,
+                "residual_capacity": rc_value,
+                "total_annual_max_capacity": ceiling_value,
+                "headroom": ceiling_value - rc_value,
+                "status": "failed" if failed else "passed",
+            }
+            capacity_ceiling_results.append(result)
+            if failed:
+                all_failures.append({"kind": "residual_capacity_exceeds_total_maximum", **result})
     for year in years:
         capacity = {
             tech: active_capacity(
@@ -465,6 +489,7 @@ def validate_case(
             commodity_name=commodity_name,
         )
         annual_result["kind"] = "accumulated_annual_demand"
+        annual_results.append(annual_result)
         all_failures.extend(annual_result["failures"])
 
         forced_annual = {
@@ -562,10 +587,18 @@ def validate_case(
         "years_checked": len(years),
         "timeslices_checked": len(slice_results),
         "user_defined_constraint_years_checked": len(udc_results),
+        "capacity_ceiling_years_checked": len(capacity_ceiling_results),
         "failure_count": len(all_failures),
         "failures": all_failures,
         "user_defined_constraints": udc_results,
+        "capacity_ceiling_failures": [
+            result for result in capacity_ceiling_results if result["status"] == "failed"
+        ],
+        "worst_capacity_ceiling_headrooms": sorted(
+            capacity_ceiling_results, key=lambda result: result["headroom"]
+        )[:20],
         "worst_slices": worst_slices,
+        "accumulated_annual_demand_results": annual_results,
         "limitations": [
             "A pass is not a proof of full-model feasibility.",
             "Shared producer capacity and route-mix coupling are relaxed optimistically.",

@@ -32,6 +32,13 @@ BASELINE_RUNS = {
     "EV": ("EV_TRUCK_TURNOVER_V22_EV", 369806562.606, 191.08,
            {"rows": 553001, "columns": 584981, "matrix_nonzeros": 8108623}),
 }
+MAX_MATRIX_RATIO = 1.05
+MAX_RUNTIME_RATIO: float | None = None
+CBC_INFEASIBLE_MARKERS = (
+    "presolve determined that the problem was infeasible",
+    "analysis indicates model infeasible or unbounded",
+    "problem is infeasible",
+)
 
 
 dotenv_stub = types.ModuleType("dotenv")
@@ -60,6 +67,20 @@ def matrix_metrics(log: str) -> dict[str, int]:
         "matrix_nonzeros": r"Number of non-zeros \(matrix\)\s*=\s*(\d+)",
     }
     return {key: int(re.search(pattern, log).group(1)) for key, pattern in patterns.items()}
+
+
+def cbc_presolve_infeasible(log: str) -> bool:
+    low = log.lower()
+    return any(marker in low for marker in CBC_INFEASIBLE_MARKERS)
+
+
+def stop_process(proc: subprocess.Popen[str]) -> None:
+    proc.terminate()
+    try:
+        proc.wait(timeout=15)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
 
 
 def require_clean_source_gates(case: Path, scenario: str) -> dict[str, str]:
@@ -92,7 +113,11 @@ def generate_check(case_name: str, run_name: str, scenario: str) -> None:
     gate_hashes = require_clean_source_gates(case, scenario)
     if scenario != "BASE":
         base_record = case / "res" / DEFAULT_RUN / "optimization_record.json"
-        if not base_record.is_file() or not str(json.loads(base_record.read_text())["status"]).startswith("Optimal"):
+        base_result = json.loads(base_record.read_text()) if base_record.is_file() else {}
+        if (
+            not str(base_result.get("status", "")).startswith("Optimal")
+            or not base_result.get("promotion_allowed", False)
+        ):
             raise RuntimeError("policy generation requires the same candidate's proven BASE optimum")
     df = data_file(case_name)
     scenarios = [
@@ -143,7 +168,7 @@ def generate_check(case_name: str, run_name: str, scenario: str) -> None:
     ratios = {key: dimensions[key] / baseline_matrix[key] for key in dimensions}
     # Package 1 adds one technology and one annual user-defined constraint.
     # A 5% ceiling is a corruption/regression tripwire, not a performance target.
-    if any(value > 1.05 for value in ratios.values()):
+    if any(value > MAX_MATRIX_RATIO for value in ratios.values()):
         raise RuntimeError(f"unexpected matrix growth: {ratios}")
     report = {
         "phase": "generate_preprocess_matrix_check",
@@ -159,7 +184,7 @@ def generate_check(case_name: str, run_name: str, scenario: str) -> None:
         "baseline_matrix_dimensions": baseline_matrix,
         "matrix_deltas": deltas,
         "matrix_ratios": ratios,
-        "maximum_allowed_matrix_ratio": 1.05,
+        "maximum_allowed_matrix_ratio": MAX_MATRIX_RATIO,
         "glpsol_tail": log[-4000:],
     }
     (run / "generation_matrix_report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -188,35 +213,64 @@ def solve_export(case_name: str, run_name: str, timeout: int, scenario: str) -> 
     if cbc is None:
         raise RuntimeError("CBC solver is unavailable")
     command = [str(cbc), str(run / "lp.lp"), "solve", "-printing", "all", "-solu", str(run / "results.txt")]
+    (run / "results.txt").unlink(missing_ok=True)
+    log_path = run / "cbc.log"
     started = time.monotonic()
-    try:
-        solved = subprocess.run(
+    deadline = started + timeout
+    timed_out = False
+    presolve_abort = False
+    scan_offset = 0
+    scan_overlap = ""
+    marker_overlap = max(len(marker) for marker in CBC_INFEASIBLE_MARKERS) - 1
+    with log_path.open("w", encoding="utf-8") as sink:
+        proc = subprocess.Popen(
             command,
             cwd=df.cbcFolder.resolve() if df.cbc_is_bundled else None,
-            capture_output=True, text=True, timeout=timeout,
+            stdout=sink, stderr=subprocess.STDOUT, text=True,
         )
-    except subprocess.TimeoutExpired as exc:
-        elapsed = time.monotonic() - started
-        stdout = exc.stdout.decode(errors="replace") if isinstance(exc.stdout, bytes) else (exc.stdout or "")
-        stderr = exc.stderr.decode(errors="replace") if isinstance(exc.stderr, bytes) else (exc.stderr or "")
-        log = stdout + "\n" + stderr
-        (run / "cbc.log").write_text(log, encoding="utf-8")
+        while proc.poll() is None:
+            now = time.monotonic()
+            if now >= deadline:
+                timed_out = True
+                stop_process(proc)
+                break
+            sink.flush()
+            with log_path.open("rb") as source:
+                source.seek(scan_offset)
+                new_bytes = source.read()
+                scan_offset = source.tell()
+            scan_text = scan_overlap + new_bytes.decode(encoding="utf-8", errors="replace")
+            scan_lower = scan_text.lower()
+            if any(marker in scan_lower for marker in CBC_INFEASIBLE_MARKERS):
+                presolve_abort = True
+                stop_process(proc)
+                break
+            scan_overlap = scan_lower[-marker_overlap:]
+            time.sleep(min(2.0, deadline - now))
+        returncode = proc.poll()
+    elapsed = time.monotonic() - started
+    log = log_path.read_text(encoding="utf-8", errors="replace")
+    presolve_infeasible = presolve_abort or cbc_presolve_infeasible(log)
+    if timed_out or presolve_infeasible:
         record = {
             "phase": "single_candidate_optimization",
-            "status": "timed_out_without_optimal_solution",
+            "status": (
+                "infeasible_or_unbounded_reported_by_presolve"
+                if presolve_infeasible else "timed_out_without_optimal_solution"
+            ),
             "case": str(case), "run": str(run), "optimizer_runs": 1,
             "purpose": "Establish exact coupled feasibility and optimality after all zero-solve gates passed.",
             "why_deterministic_checks_were_insufficient": "The analytic gate is deliberately optimistic and cannot prove storage chronology, trade coupling, or simultaneous shared-resource feasibility.",
             "scenario": scenario, "baseline_runtime_seconds": baseline_runtime, "timeout_seconds": timeout,
             "solve_seconds": elapsed, "promotion_allowed": False,
-            "lp_sha256": sha256(run / "lp.lp"), "cbc_tail": log[-4000:],
+            "lp_sha256": sha256(run / "lp.lp"),
+            "presolve_infeasible": presolve_infeasible,
+            "cbc_head": log[:4000],
+            "cbc_tail": log[-4000:],
         }
         (run / "optimization_record.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
-        raise RuntimeError(json.dumps(record, indent=2)) from exc
-    elapsed = time.monotonic() - started
-    log = solved.stdout + "\n" + solved.stderr
-    (run / "cbc.log").write_text(log, encoding="utf-8")
-    if solved.returncode != 0 or not (run / "results.txt").is_file():
+        raise RuntimeError(json.dumps(record, indent=2))
+    if returncode != 0 or not (run / "results.txt").is_file():
         raise RuntimeError(log[-12000:])
     status_line = (run / "results.txt").read_text(encoding="utf-8").splitlines()[0]
     if not status_line.startswith("Optimal"):
@@ -225,6 +279,8 @@ def solve_export(case_name: str, run_name: str, timeout: int, scenario: str) -> 
     if objective_match is None:
         raise RuntimeError(f"could not parse objective: {status_line}")
     objective = float(objective_match.group(1))
+    runtime_ratio = elapsed / baseline_runtime
+    runtime_acceptable = MAX_RUNTIME_RATIO is None or runtime_ratio < MAX_RUNTIME_RATIO
     started = time.monotonic()
     df.generateCSVfromCBC(run / "data.txt", run / "results.txt", run)
     export_seconds = time.monotonic() - started
@@ -238,14 +294,23 @@ def solve_export(case_name: str, run_name: str, timeout: int, scenario: str) -> 
         "baseline_case": str(BASELINE_CASE), "baseline_run": str(baseline_run),
         "baseline_objective": baseline_objective, "baseline_runtime_seconds": baseline_runtime,
         "timeout_seconds": timeout, "solve_seconds": elapsed, "csv_export_seconds": export_seconds,
+        "runtime_ratio_to_baseline": runtime_ratio,
+        "maximum_allowed_runtime_ratio": MAX_RUNTIME_RATIO,
+        "runtime_acceptance_passed": runtime_acceptable,
         "objective": objective,
         "objective_change": objective - baseline_objective,
         "objective_change_percent": (objective / baseline_objective - 1.0) * 100.0,
         "lp_sha256": sha256(run / "lp.lp"), "results_sha256": sha256(run / "results.txt"),
-        "promotion_allowed": True, "cbc_tail": log[-4000:],
+        "promotion_allowed": runtime_acceptable,
+        "cbc_head": log[:4000], "cbc_tail": log[-4000:],
     }
     (run / "optimization_record.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(record, indent=2))
+    if not runtime_acceptable:
+        raise RuntimeError(
+            f"optimal solution exceeded runtime acceptance gate: "
+            f"{runtime_ratio:.3f}x baseline, must be < {MAX_RUNTIME_RATIO:.3f}x"
+        )
 
 
 def main() -> None:
