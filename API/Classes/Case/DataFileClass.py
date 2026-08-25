@@ -3,6 +3,7 @@ import pandas as pd
 import traceback
 import json, shutil, os, time, subprocess
 import concurrent.futures
+import hashlib
 from collections import defaultdict
 from itertools import product
 
@@ -2130,6 +2131,46 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
+    @staticmethod
+    def _matrix_fingerprint(model_path, data_path, flavor):
+        """Identity of a built matrix: hash of the two files it is built from
+        (model equations + processed case data) plus the matrix flavor
+        ('exact' keeps whole-unit restrictions, 'relaxed' has them removed)."""
+        h = hashlib.sha256()
+        for p in (model_path, data_path):
+            with open(p, 'rb') as f:
+                for chunk in iter(lambda: f.read(1 << 20), b''):
+                    h.update(chunk)
+        h.update(str(flavor).encode())
+        return h.hexdigest()
+
+    def _ensure_lp_matrix(self, glpsol_exec, glpk_cwd, modelfile, datafile_processed, lpfile, flavor):
+        """Build lp.lp with glpsol, or reuse the previous build when nothing
+        it depends on has changed. A sidecar file next to lp.lp records the
+        fingerprint of the inputs that produced it. Returns (glpsol_result,
+        reused). A failed build removes the sidecar so a stale matrix can
+        never be picked up later."""
+        fp = self._matrix_fingerprint(modelfile, datafile_processed, flavor)
+        sidecar = Path(str(lpfile) + '.fingerprint')
+        if Path(lpfile).is_file() and sidecar.is_file() and sidecar.read_text().strip() == fp:
+            done = subprocess.CompletedProcess(args=["glpsol"], returncode=0,
+                                               stdout="matrix reused (inputs unchanged)\n", stderr="")
+            return done, True
+        out = subprocess.run(
+            [str(glpsol_exec), "--check", "-m", modelfile, "-d", datafile_processed, "--wlp", lpfile],
+            cwd=glpk_cwd,
+            capture_output=True,
+            text=True,
+        )
+        if out.returncode == 0 and Path(lpfile).is_file():
+            sidecar.write_text(fp)
+        else:
+            try:
+                sidecar.unlink()
+            except OSError:
+                pass
+        return out, False
+
     def run( self, solver, caserun, lock=None, postprocess=True ):
         try:
             caserunname = caserun
@@ -2207,12 +2248,7 @@ class DataFile(Osemosys):
                 txtOut = txtOut + ("Preprocessing time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
                 #return output to variable preprocessed data file
-                glpk_out = subprocess.run(
-                    [str(glpsol_exec), "--check", "-m", modelfile, "-d", datafile_processed, "--wlp", lpfile],
-                    cwd=glpk_cwd,
-                    capture_output=True,
-                    text=True,
-                )
+                glpk_out, lp_reused = self._ensure_lp_matrix(glpsol_exec, glpk_cwd, modelfile, datafile_processed, lpfile, 'exact')
             
 
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
@@ -2221,8 +2257,8 @@ class DataFile(Osemosys):
                 #original data file without preprocessing
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile_original +' -d ' + datafile +' --wlp ' + lpfile, cwd=glpfolder,  capture_output=True, text=True, shell=True)
                 
-                print("CREATINON OF LP FILE DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
-                txtOut = txtOut + ("Creation of LP file time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
+                print("CREATINON OF LP FILE DONE (%s)! --- %s seconds --- %s" % ('reused' if lp_reused else 'rebuilt', time.time() - start_time, caserunname))
+                txtOut = txtOut + ("Creation of LP file time {:0.2f}s ({});{}".format(time.time() - start_time, 'reused' if lp_reused else 'rebuilt', '\n'))
 
 
                 ####output to logfile.txt
