@@ -2011,6 +2011,51 @@ class DataFile(Osemosys):
         self.generateCSVfromCBC(dataFile, resFile, resPath)
         self.generateResultsViewer(caserunname)
 
+    @staticmethod
+    def _total_memory_gb():
+        """Total machine memory in GB. Deliberately total, not free: free memory
+        changes minute to minute, and worker count should be predictable for
+        the same machine. Falls back to 8 GB (the conservative direction) when
+        detection fails."""
+        try:
+            if hasattr(os, "sysconf"):  # macOS / Linux
+                return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / 1024 ** 3
+            import ctypes  # Windows
+            class MEMORYSTATUSEX(ctypes.Structure):
+                _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                            ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                            ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                            ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                            ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+            stat = MEMORYSTATUSEX()
+            stat.dwLength = ctypes.sizeof(stat)
+            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))
+            return stat.ullTotalPhys / 1024 ** 3
+        except Exception:
+            return 8.0
+
+    @staticmethod
+    def _batch_workers(n_cases):
+        """How many scenarios to solve at once.
+
+            workers = min( scenarios,
+                           cpus - 2,             leave cores for the app and OS
+                           (total_GB - 8) // 3,  8 GB reserved; ~3 GB per solve
+                           4 )                   widest configuration measured
+
+        The 3 GB covers a country-scale solve (~1.5 GB observed) plus its
+        matrix build. MUIOGO_BATCH_WORKERS overrides everything (1 forces
+        sequential); values below 1 are clamped to 1."""
+        override = os.environ.get("MUIOGO_BATCH_WORKERS")
+        if override:
+            try:
+                return max(1, int(override))
+            except ValueError:
+                pass
+        by_cpu = max(1, (os.cpu_count() or 4) - 2)
+        by_mem = max(1, int((DataFile._total_memory_gb() - 8) // 3))
+        return max(1, min(n_cases, by_cpu, by_mem, 4))
+
     def batchRun(self, solver, cases, parallel=True):
         try:
             batchlog=""
@@ -2018,21 +2063,33 @@ class DataFile(Osemosys):
             status = "Success"
             results = []
 
-            if parallel and len(cases) > 1:
+            # A caserun listed twice would make two workers write into the same
+            # folder; keep first occurrence, preserve order.
+            cases = list(dict.fromkeys(cases))
+            workers = self._batch_workers(len(cases))
+
+            if parallel and len(cases) > 1 and workers > 1:
                 # Solve phase in parallel: each scenario's solve is independent
                 # (own res/<caserun> folder, own subprocesses) and mostly waits
                 # on the solver binary, so threads scale. Each worker gets its
                 # OWN DataFile instance because run() stores per-caserun paths
                 # on self. The shared-view post-processing runs sequentially
                 # below — that is what broke earlier parallelization attempts.
-                workers = min(len(cases), max(1, (os.cpu_count() or 4) - 2))
                 case_name = self.case
                 # Sequential pre-phase: clear each caserun's old entries from the
                 # shared view files before any parallel work touches disk.
                 for caserun in cases:
                     self.deleteCaseResultsJSON(caserun)
                 def _solve(caserun):
-                    return DataFile(case_name).run(solver, caserun, postprocess=False)
+                    # A failing scenario must not sink the batch: report it and
+                    # let the others finish.
+                    try:
+                        return DataFile(case_name).run(solver, caserun, postprocess=False)
+                    except Exception as ex:
+                        return {"caserun": caserun, "status_code": "error",
+                                "timer": f"Run failed: {ex}",
+                                "glpk_message": "", "glpk_stdmsg": "",
+                                "cbc_message": "", "cbc_stdmsg": str(ex)}
                 with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
                     outs = list(executor.map(_solve, cases))
                 for runout in outs:
