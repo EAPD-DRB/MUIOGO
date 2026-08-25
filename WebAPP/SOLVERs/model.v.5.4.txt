@@ -263,7 +263,6 @@ s.t. EBa11_EnergyBalanceEachTS5
 
 
 s.t. EBa9_EnergyBalanceEachTS3{r in REGION, l in TIMESLICE, f in COMMODITY, y in YEAR}: SpecifiedAnnualDemand[r,f,y]*SpecifiedDemandProfile[r,f,l,y] = Demand[r,l,f,y];
-s.t. EBb4_EnergyBalanceEachYear4{r in REGION, f in COMMODITY, y in YEAR}: sum{(m,t) in MODExTECHNOLOGYperFUELout[f], l in TIMESLICE} RateOfActivity[r,l,t,m,y]*OutputActivityRatio[r,t,f,m,y]*YearSplit[l,y] >= sum{(m,t) in MODExTECHNOLOGYperFUELin[f], l in TIMESLICE} RateOfActivity[r,l,t,m,y]*InputActivityRatio[r,t,f,m,y]*YearSplit[l,y] + sum{l in TIMESLICE, rr in REGION} Trade[r,rr,l,f,y]*TradeRoute[r,rr,f,y] + AccumulatedAnnualDemand[r,f,y];
 #20240611 VK commented, 3 params removed
 #s.t. RM3_ReserveMargin_Constraint{r in REGION, l in TIMESLICE, y in YEAR}: sum{f in COMMODITY, (m,t) in MODExTECHNOLOGYperFUELout[f]} RateOfActivity[r,l,t,m,y]*OutputActivityRatio[r,t,f,m,y] * ReserveMarginTagFuel[r,f,y] * ReserveMargin[r,y]<= sum {t in TECHNOLOGY} ((sum{yy in YEAR: y-yy < OperationalLife[r,t] && y-yy>=0} NewCapacity[r,t,yy])+ ResidualCapacity[r,t,y]) * ReserveMarginTagTechnology[r,t,y] * CapacityToActivityUnit[r,t];
 
