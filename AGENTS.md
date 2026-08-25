@@ -108,10 +108,10 @@ CBC/GLPK optimization; generation, preprocessing, `glpsol --check` and
 source/hash validation are not optimizer runs.
 
 For a source-parameter change, the default budget is one new optimization: the
-disposable candidate solve. Do not rerun an unchanged control when an existing
+sealed-candidate solve. Do not rerun an unchanged control when an existing
 canonical result can be verified against the pre-change source. Do not rerun
-the promoted live case when its source and regenerated solver input are
-byte-identical to the solved candidate.
+the promoted live case: promotion transfers the already generated and solved
+sealed candidate without regenerating model inputs.
 
 Before launching any additional optimization, state:
 
@@ -172,12 +172,13 @@ control or disclose concurrent resource contention.
    scenario, source identity, generated-data identity, solver status and
    timestamp from retained manifests or run records. Use it as the unchanged
    baseline; do not rerun it by default.
-2. Work on a disposable copy of the case. Do not overwrite the live case's
-   `res/` outputs while testing. Run the deterministic design checks and stop
+2. Work on a clean promotable staging case. Do not overwrite the live case's
+   `res/` outputs while testing, and do not mix failed diagnostic experiments
+   into the staging case. Run the deterministic design checks and stop
    on any unexplained shortfall,
    ID mismatch, unintended activity bound, negative stock or source-diff
    violation.
-3. Generate and preprocess the disposable candidate through the same
+3. Generate and preprocess the promotable staging candidate through the same
    application path used by the UI: call
    `DataFile(case).generateDatafile(run)` and then `.preprocessData()`.
 4. Inspect the generated data and derived sets to confirm that the source edits
@@ -191,25 +192,53 @@ control or disclose concurrent resource contention.
    constraint residuals and duals, adjacent-year changes, and unexpected
    changes elsewhere.
 6. Verify result timestamps and case/version identity so stale or mismatched
-   outputs are never treated as results of the new inputs.
-7. Promote only the validated source files. After promotion, verify that the
-   promoted source is byte-identical to the solved candidate; regenerate and
-   preprocess the live solver input; verify that live `data.txt` is
-   byte-identical to the candidate input; and run `glpsol --check`.
-8. If the promoted source and regenerated solver input are byte-identical,
-   treat the disposable candidate solve as the validated live result. Do not
-   solve again, and do not copy disposable runtime results into the live case.
-9. An additional control or post-promotion optimization is permitted only when:
+   outputs are never treated as results of the new inputs. Run every required
+   policy scenario in this same staging directory.
+7. Seal the complete staging case after all gates and required scenarios pass.
+   The seal must hash the source files, generated inputs, solver logs/results,
+   run records, ledgers and documentation; identify the intended final case
+   name; and reject any failed, timed-out, unlisted or otherwise extraneous
+   optimizer run. Do not change sealed content afterward.
+8. Promote by an atomic or recoverable filesystem rename/swap of the complete
+   sealed directory, or by atomically switching an established live-case
+   pointer. Do not copy individual source files. Do not regenerate,
+   preprocess, rebuild the matrix, run `glpsol`, or run an optimizer during or
+   after promotion. Preserve the previous live directory as a rollback backup.
+   Only path-dependent UI caches may be refreshed separately when necessary;
+   they are not validation evidence.
+9. If a sealed candidate cannot be promoted unchanged—for example because its
+   final identity is embedded incorrectly, required runtime artifacts are
+   missing, or it contains diagnostic/failed runs—do not promote it. Rebuild a
+   clean release candidate under the correct identity and repeat the candidate
+   validation chain before promotion.
+10. An additional control optimization is permitted before sealing only when:
    - no trustworthy pre-change result can be matched to its source;
-   - promoted source or generated solver input differs from the solved
-     candidate;
    - application generation is nondeterministic in a result-relevant way;
    - the change modifies model equations, scenario activation, structural
      sets, preprocessing or solver configuration;
    - the candidate result is numerically unstable or otherwise suspect; or
    - the user explicitly requests replication or sensitivity runs.
-10. Record every optimizer run, its purpose and why it was necessary. Report
+11. Record every optimizer run, its purpose and why it was necessary. Report
     generation/check-only executions separately from optimizer runs.
+
+## Sealed-candidate promotion contract
+
+- Use `scripts/sealed_case_promotion.py seal` after validation and before any
+  promotion. The seal is the immutable hand-off artifact.
+- Use `scripts/sealed_case_promotion.py promote` for the filesystem swap. The
+  command must verify every sealed hash before renaming anything and must
+  refuse cross-filesystem moves, a mismatched final name, an existing backup,
+  unsealed mutations or an unclean run inventory.
+- The staging directory must contain only the canonical required case runs.
+  Diagnostics belong in a separate top-level directory and are never sealed.
+- Promotion is content-preserving. Adding a promotion record inside the case,
+  editing ledgers, changing scenario records or refreshing generated model
+  files after sealing invalidates the seal.
+- A promotion receipt, if required, must be written outside the sealed case so
+  it does not mutate the promoted artifact.
+- Older case-specific `promote_*` and `verify_*_promotion.py` scripts that copy
+  source files or regenerate the live case are historical records only. Do not
+  use them for new promotions.
 
 ## Diagnostic exception
 
@@ -239,10 +268,10 @@ control or disclose concurrent resource contention.
 
 - Document every model change in the affected case's `MODEL_FIXES*.md` file before considering the work complete. If the case does not yet have one, create it using the case's existing naming convention.
 - Each entry must record the reason for the change, the source files and parameters changed, the before/after formulation or values, the generated artifacts and baseline inspected, the validation results, and any incomplete checks or known limitations.
-- A promoted source-only change is fully validated when its disposable
-  candidate has completed the normal generation, preprocessing, matrix and CBC
-  chain; it has been compared with a verified canonical baseline; and the
-  promoted source plus regenerated solver input are byte-identical to that
-  solved candidate. A second CBC solve of the live copy is not required.
+- A promoted change is fully validated when its clean staging candidate has
+  completed the normal generation, preprocessing, matrix and CBC chain, has
+  been compared with a verified canonical baseline, has passed every required
+  scenario, and its seal verifies immediately before a content-preserving
+  filesystem promotion. No live regeneration or second solve is permitted.
 - Report exactly which checks passed, failed, timed out, or were not run.
 - Preserve an audit trail of the source files changed, generated artifacts inspected, baseline used, and material result differences.
