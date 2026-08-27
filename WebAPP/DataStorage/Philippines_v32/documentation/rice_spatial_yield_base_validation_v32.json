@@ -1,0 +1,359 @@
+{
+  "case": "Philippines_v32",
+  "gate": "BASE rice reconstruction plus endogenous-allocation validation",
+  "status": "pass_with_advisories",
+  "optimizer_runs_in_candidate": 1,
+  "benchmarks_not_constraints": {
+    "irrigated_area_1000km2": 20.06,
+    "rainfed_area_1000km2": 14.6544173,
+    "irrigated_production_mt": 14.57176519,
+    "rainfed_production_mt": 4.72309035
+  },
+  "baseline_v31": {
+    "status": "Optimal - objective value 816774.34133720",
+    "rice_by_regime": {
+      "rainfed": {
+        "area_1000km2": 0.0,
+        "production_mt": 0.0
+      },
+      "irrigated": {
+        "area_1000km2": 15.0520631,
+        "production_mt": 19.29485550489568
+      }
+    },
+    "rice_by_cluster": [
+      {
+        "cluster": 1,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.42023026407554087,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 1,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.993110219724228,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 2,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.515120968866792,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 2,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 1.149170397109464,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 3,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.5422325988071496,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 3,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 1.22010684137548,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 4,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.515120968866792,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 4,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 1.1349831082562607,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 5,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.5354546913220601,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 5,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 1.4013916,
+        "oar_mt_per_1000km2": 1.2768559967882933,
+        "production_mt": 1.7893752683087412
+      },
+      {
+        "cluster": 6,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.5557884137773282,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 6,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 8.3262947,
+        "oar_mt_per_1000km2": 1.2768559967882933,
+        "production_mt": 10.631479318721583
+      },
+      {
+        "cluster": 7,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.5218988763518815,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 7,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 5.3243768,
+        "oar_mt_per_1000km2": 1.2910432856414964,
+        "production_mt": 6.874000917865356
+      },
+      {
+        "cluster": 8,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.440563986530809,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 8,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.9363610643114151,
+        "production_mt": 0.0
+      }
+    ],
+    "total_rice_area_1000km2": 15.0520631,
+    "total_rice_production_mt": 19.29485550489568,
+    "irrigation_service_use_1000km2": 20.060004,
+    "nonrice_irrigated_crop_area_1000km2": 5.0079408999999995,
+    "surface_withdrawal_km3": 46.454569,
+    "groundwater_withdrawal_km3": 0.0
+  },
+  "candidate_v32": {
+    "status": "Optimal - objective value 838560.95562083",
+    "rice_by_regime": {
+      "rainfed": {
+        "area_1000km2": 10.4468102,
+        "production_mt": 4.0390872593536775
+      },
+      "irrigated": {
+        "area_1000km2": 20.060004,
+        "production_mt": 15.255768240704318
+      }
+    },
+    "rice_by_cluster": [
+      {
+        "cluster": 1,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.2940874247556069,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 1,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.7058391982558367,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 2,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.3173107047520517,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 2,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.7520132914532285,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 3,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.3162817395652182,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 3,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.7330691859063916,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 4,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.3135509160350217,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 4,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.7527981524525049,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 5,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 3.0026997,
+        "oar_mt_per_1000km2": 0.3561683843368409,
+        "production_mt": 1.0694667007977168
+      },
+      {
+        "cluster": 5,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 20.060004,
+        "oar_mt_per_1000km2": 0.7605067397147238,
+        "production_mt": 15.255768240704318
+      },
+      {
+        "cluster": 6,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.3240824550897107,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 6,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.6936156660396153,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 7,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 7.4441105,
+        "oar_mt_per_1000km2": 0.3989221490675025,
+        "production_mt": 2.9696205585559605
+      },
+      {
+        "cluster": 7,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.7562009127509419,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 8,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.3065199443827652,
+        "production_mt": 0.0
+      },
+      {
+        "cluster": 8,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 0.0,
+        "oar_mt_per_1000km2": 0.6548205929061439,
+        "production_mt": 0.0
+      }
+    ],
+    "total_rice_area_1000km2": 30.5068142,
+    "total_rice_production_mt": 19.294855500057995,
+    "irrigation_service_use_1000km2": 20.060004,
+    "nonrice_irrigated_crop_area_1000km2": 0.0,
+    "surface_withdrawal_km3": 58.219721,
+    "groundwater_withdrawal_km3": 0.0
+  },
+  "benchmark_comparison": {
+    "irrigated_area_error_percent": 1.994017946316262e-05,
+    "rainfed_area_error_percent": -28.71221020845367,
+    "total_area_error_percent": -12.120621422615674,
+    "irrigated_production_error_percent": 4.69403014518599,
+    "rainfed_production_error_percent": -14.482108957460916,
+    "total_production_error_percent": -2.0700857694677666e-07
+  },
+  "gates": {
+    "candidate_optimal": true,
+    "irrigated_area_within_10_percent": true,
+    "irrigated_production_within_10_percent": true,
+    "rainfed_production_within_20_percent": true,
+    "total_rice_area_within_15_percent": true,
+    "total_rice_production_balance_within_0_01_percent": true,
+    "irrigation_service_use_within_10_percent": true,
+    "surface_withdrawal_in_predicted_39_to_71_km3_range": true
+  },
+  "advisories": {
+    "rainfed_area_within_10_percent": false,
+    "groundwater_withdrawal_nonzero": false,
+    "rice_uses_all_shared_irrigation": true,
+    "cluster_concentration": [
+      {
+        "cluster": 5,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 3.0026997,
+        "oar_mt_per_1000km2": 0.3561683843368409,
+        "production_mt": 1.0694667007977168
+      },
+      {
+        "cluster": 5,
+        "regime": "irrigated",
+        "mode": 19,
+        "area_1000km2": 20.060004,
+        "oar_mt_per_1000km2": 0.7605067397147238,
+        "production_mt": 15.255768240704318
+      },
+      {
+        "cluster": 7,
+        "regime": "rainfed",
+        "mode": 11,
+        "area_1000km2": 7.4441105,
+        "oar_mt_per_1000km2": 0.3989221490675025,
+        "production_mt": 2.9696205585559605
+      }
+    ]
+  }
+}

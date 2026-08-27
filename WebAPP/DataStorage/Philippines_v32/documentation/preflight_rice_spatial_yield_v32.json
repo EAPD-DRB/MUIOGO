@@ -1,0 +1,66 @@
+{
+  "case": "Philippines_v32",
+  "gate": "rice_spatial_yield_deterministic_pre_solve",
+  "status": "pass",
+  "optimizer_runs": 0,
+  "equation_mapping": {
+    "source": "RYTCM.json / OAR / SC_0",
+    "generated": "OutputActivityRatio",
+    "formulation": "AnnualTechnologyProductionByMode and commodity balance in SOLVERs/model.v.5.4.txt",
+    "effect": "Rice output per unit of endogenous land-technology activity"
+  },
+  "classification": {
+    "rice_demand": "exogenous final demand",
+    "irrigation_service_20_06": "inherited physical stock",
+    "rice_regime_area_and_production": "benchmark-only validation values",
+    "land_cluster_technologies": "physical land/water-to-crop conversions"
+  },
+  "checks": {
+    "genData_only_identity_changed": true,
+    "oar_row_count_unchanged": true,
+    "exactly_544_allowed_oar_cells_changed": true,
+    "no_forbidden_rytcM_changes": true,
+    "all_16_anchors_exact": true,
+    "all_544_fofa_indices_preserved": true,
+    "benchmark_reconstruction": {
+      "irrigated_production_mt": 14.57176519,
+      "irrigated_area_1000km2": 20.06,
+      "rainfed_production_mt": 4.72309035,
+      "rainfed_area_1000km2": 14.6544173
+    },
+    "benchmark_reconstruction_exact": true,
+    "all_other_parameter_json_unchanged": true,
+    "unchanged_parameter_files": {
+      "RYC.json": true,
+      "RYCTs.json": true,
+      "RYCn.json": true,
+      "RYDtb.json": true,
+      "RYE.json": true,
+      "RYS.json": true,
+      "RYSeDt.json": true,
+      "RYT.json": true,
+      "RYTC.json": true,
+      "RYTCn.json": true,
+      "RYTEM.json": true,
+      "RYTM.json": true,
+      "RYTTs.json": true,
+      "RYTs.json": true
+    },
+    "no_activity_or_share_constraint_change": true
+  },
+  "identity_differences": {
+    "osy-casename": [
+      "Philippines_v31",
+      "Philippines_v32"
+    ],
+    "osy-date": [
+      "2026-08-26",
+      "2026-08-27"
+    ],
+    "osy-desc": [
+      "Philippines v31 non-road transport unit and cost repair. Shipping is stated on tonne-km and thousand-vessel capacity; aviation is normalized to aircraft-km without changing calibrated fuel use or fleet capacity; rail is stated on train-km and thousand trainsets. Ammonia shipping includes a 95% ammonia/5% liquid pilot heat-rate split.\n\nPhilippines v30 crop-yield and renewable-land repair. Only one evidenced management system per crop and water regime is operable; yields are initialized in 2020 and subsequently follow the FAO 2050 Business As Usual projection. Population, solar PV and onshore wind consume a shared built-site service produced through the existing physical built-up land chain, with an exact endogenous annual land identity.\n\nPhilippines v29 crop-land simplification. The 24 crop-specific land pass-through technologies and commodities are replaced by one physical cropland account; cultivated and idle/fallow use are endogenous. One shared irrigation-service stock is available to all irrigated crop modes. Crop variable costs use crop-specific Philippine per-hectare evidence and disclosed transfer proxies. No crop, cultivated, fallow, irrigation-use, or share outcome is forced. CBC was deliberately not run before user review.\n\nPhilippines v28 closed-cluster land account and offline biomass successor of Philippines v25. The duplicate ENV_LAND terminal, seven ENV_LND commodities and BAL_ENV_LAND UDC are retired. The eight cluster totals retain the complete national partition; renewable footprints are reported after solving as a subset of existing built-up land and do not consume land separately. A sparse service commodity retains at least 4% of total cropland as idle/fallow. Annual biomass caps are ordinary BASE parameter data. Expanded charcoal and domestic biofuel modeling remain deferred.\n\nPhilippines v25 clean unsolved VariableCost candidate. Power values retain the 2026-08-25 sourced proposal; crop values use PSA net cash resource costs after excluding separately represented fuel/oil, irrigation, land and financing items; road values retain Philippine class anchors with DOE/Argonne drivetrain repair multipliers. No demand, stock, activity, share, dispatch, resource constraint or model equation is changed. Scenario validation has deliberately not been run.\n\nPhilippines v24 agriculture repair. PSA achieved crop yields are combined with normalized GAEZ relative mode/cluster patterns; post-2024 land productivity grows at a transparent 1%/year. Agriculture delivery TAUs equal the existing national water envelopes rather than observed withdrawals. Rice CH4 and managed-soil N2O are represented as ordinary CO2e EARs. Irrigation stocks, crop/water shares and activity remain endogenous; no activity or share target is added.\n\nPhilippines v23 minimal biomass-supply repair. The founding undocumented biomass processor is reclassified as a finite sourced generic supply boundary; one finite residue boundary supplies both closed legacy CHP slices and may also supply generic users. Legacy charcoal losses and kiln emissions are integrated into its closed cooking route. No activity, dispatch, build or fuel share is forced. Conservative 2020 resource ceilings remain flat pending an endogenous crop/land formulation.\n\nPhilippines v23 Package 1 physical-possibility and adequacy repair. Undefined biofuel processing is disabled behind a positive-cost import boundary; the inherited household coal label becomes a closed biomass-energy charcoal proxy; technology entry, build, availability, cooling, T&D, solar timing, worst-day electricity profiles and reserve accounting are corrected without activity or share targets.\n\nFIT-accounting correction: the closed biomass FIT tranche uses a dedicated physical residue-supply mode at positive collection cost. Feed-in-tariff payments are excluded from the national resource-cost objective and disclosed post-solve; no activity, build, dispatch or share outcome is forced.\n\nPhilippines v21 compact endogenous power-allocation repair. It separates official off-grid customer service and legacy oil/renewable stocks, separates the 250 MW FIT biomass tranche with a crop-derived physical residue ceiling, and restores the retained seasonal hydro design envelope at DOE dependable capacity. No generation/share/activity target or realized investment equality is used.\n\nPhilippines v20 minimal endogenous power-history calibration. Existing coal, gas, oil, and biomass availability is limited by DOE 2020 dependable capacity. The 2020-2021 Malampaya take-or-pay payment is represented as a sunk fixed cost on the closed legacy gas fleet and a matching plant-specific contract credit, while other gas users retain the sourced fuel price. No generation, fuel-share, or capacity-addition target is imposed.\n\nPhilippines v19 PM2.5 coverage extension. Adds source-traceable endogenous PM2.5 activity-emission ratios for existing combustion, road non-exhaust, and coal mining/handling technologies. CO2e, model structure, constraints, costs, demands, and capacities are unchanged.\n\nPhilippines v18 fossil-resource accounting update. Domestic coal and crude extraction are source-tagged and may serve the domestic market or optional exports; imports cannot be re-exported. Annual extraction follows physical mine/field capability and cumulative activity follows opening recoverable reserves. Observed production and trade remain validation benchmarks.\n\nPhilippines v18 energy-input successor of Philippines v17. The complete v17 national land account and safeguards are retained. V18 sets a 0.70 geothermal resource ceiling, aligns onshore-wind capacity factor with the national restricted resource screen, updates coal and SMR capital costs, uses a 60-year large-hydro life, and separates the existing domestic-gas and LNG import routes by observed chronology, prices and annual limits. No technology or commodity is added.\n\nPhilippines v17 land-accounting successor of Philippines v16. The complete v16 model is retained; v17 initializes the 2020 national PSA/NAMRIA land-cover partition, closes the annual national land balance, reuses LNDOTHTOT mode 2 as endogenous idle/fallow cropland, preserves true grassland and 2020 cropland, grows built-up land with the central population-urbanization pathway, and limits forest expansion to a Philippine policy-rate envelope over the documented forest-suitable share of brush/shrub. Forest mode-27 variable cost remains -10.\n\nPhilippines v16 identity-only canonical successor of Philippines v15. Model parameters are unchanged; the version change establishes the simplified ZIP/push and pull/unzip workflow.\n\nPhilippines full scale CLEWs model\n* updated cap act units in the transport technologies\n* adding EF for railways liquid tech\n\nv7\n* capital costs PP and TD\n* RE target (PEP)\n\nv8\n* lower limit PPs generation 2021-2024 official stats\n* updated EV PEP starting on 2025; removed EV targets from base\n\nv9\n* updated IAR for housing elc demand\n\nv10 scaffold\n* added Fisheries Phase 1 (FSH): fleet motive power, aquaculture operations, post-harvest demands + TD link\n* Fisheries was subsequently updated to v2.3; dated v2.2 and earlier records are retained under documentation/history/fisheries\n* removed orphan tech PHL_PWR_GAS (consumed cooling water, produced nothing, zero activity in all runs)\n* PM2.5 EAR corrections: HOU_COOK oil/biomass values swapped back; transport LIQ factors rescaled x1e-3 (were g/vkm entered as Mt/1e9km). See documentation/history/v10/MODEL_FIXES_2026-07-17.md\n* transport PM2.5 occupancy refinement (car/1.7, 2-3wheel/1.6, light truck/1.85) + activity-basis labels on transport demands (bus/van/heavy-truck/rail are VEHICLE- or TRAIN-km based). See documentation/history/v10/MODEL_FIXES_2026-07-17.md Fix 3\n* the v10 placeholder land formulation is retired; its record is preserved at documentation/history/v10/LAND_CALIBRATION_v10_RETIRED.md\n\nv12\n* preserves the v10 energy system and current Fisheries v2.3\n* Fisheries v2.3 uses ordinary residual stock with lifetime retirement, AF = 1, open activity and investment bounds, and a direct useful-service Industry carve-out. See documentation/data_sources/fisheries/FSH_CALIBRATION_v2.3.md\n* replaces the placeholder land block with an uncalibrated, eight-cluster CLEWs Global land-agriculture-water system\n* connects irrigation pumping to PHL_AGR_ELE and connects raw surface/groundwater flows to the inherited water system\n* retains raw crop demands, land availability, precipitation, technology options, and costs without historical tuning Derived case with exact in-model ENV_LAND accounting; water accounting remains reporting-only. Diagnostic extension with an unforced ENV_WATER sink; its activity must be reconciled against the reporting-only reference.\n\nPhilippines v13 calibration: coherent PM2.5 kt accounting, 2020 sector anchoring, navigation PM2.5 coverage, and corrected blue-hydrogen CO2 capture accounting.\n\nPhilippines v14 stock-and-turnover recalibration. Observed activity is used only to initialize effective stocks or retained as final demand; historical activity is not pinned. Official 2020 power, road and household-cooking evidence replaces inherited stock totals where a defensible mapping is available. The stranded PHL_POW_HEAT and PHL_POW_HEAT1 commodities and the geothermal-old heat output link are removed; geothermal electricity production is unchanged.\n\nNational water envelope: groundwater irrigation is connected to the raw groundwater commodity; the inherited land hydrology is rebased to the ERA5 1991-2020 normal and follows one SSP2-4.5 ensemble-median path; annual national surface-water and groundwater withdrawal ceilings are solver enforced. See documentation/national_water_manifest.json.",
+      "Philippines v32 candidate: v31 plus achieved province-to-GAEZ-cluster rice yields; observed regime outcomes remain validation benchmarks."
+    ]
+  },
+  "forbidden_changes": []
+}

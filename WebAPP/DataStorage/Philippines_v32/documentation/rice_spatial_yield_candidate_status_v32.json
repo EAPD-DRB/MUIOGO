@@ -1,0 +1,57 @@
+{
+  "case": "Philippines_v32",
+  "parent": "Philippines_v31",
+  "date": "2026-08-27",
+  "status": "validated_and_eligible_with_forward_irrigation_advisory",
+  "promotion_recommendation": "eligible_with_forward_irrigation_followup",
+  "promotion_allowed": true,
+  "advisory_accepted_for_followup": true,
+  "promotion_state_at_qualification": "pending_seal",
+  "live_case_unchanged": true,
+  "source_change": {
+    "file": "RYTCM.json",
+    "parameter": "OAR",
+    "scenario": "SC_0",
+    "technologies": [
+      "LNDAGRPHLC01",
+      "LNDAGRPHLC02",
+      "LNDAGRPHLC03",
+      "LNDAGRPHLC04",
+      "LNDAGRPHLC05",
+      "LNDAGRPHLC06",
+      "LNDAGRPHLC07",
+      "LNDAGRPHLC08"
+    ],
+    "modes": [11, 19],
+    "years": [2020, 2053],
+    "changed_cells": 544,
+    "constraints_added": 0
+  },
+  "validation": {
+    "deterministic_source_gate": "pass",
+    "generation_preprocessing_matrix_checks": "pass_all_four_scenarios",
+    "optimizer_runs": 4,
+    "optimal_runs": 4,
+    "failed_or_diagnostic_runs": 0,
+    "four_scenario_gate": "pass_with_advisories"
+  },
+  "base_2020": {
+    "irrigated_rice_area_mha": 2.0060004,
+    "rainfed_rice_area_mha": 1.04468102,
+    "total_rice_area_mha": 3.05068142,
+    "irrigated_rice_production_mt": 15.255768240704318,
+    "rainfed_rice_production_mt": 4.0390872593536775,
+    "total_rice_production_mt": 19.294855500057995,
+    "surface_withdrawal_km3": 58.219721,
+    "groundwater_withdrawal_km3": 0.0
+  },
+  "accepted_advisory": {
+    "year": 2021,
+    "irrigation_service_mha": 2.5604057,
+    "new_irrigation_from_2020_mha": 0.5544053,
+    "rainfed_rice_area_mha": 0.0,
+    "reason": "Unrestricted and economically preferred endogenous irrigation investment after the inherited 2020 stock year requires a sourced, high-priority follow-up audit after this promotion."
+  },
+  "durable_evidence": "data_sources/evidence/v32_rice_spatial_yield/",
+  "model_fix_record": "documentation/MODEL_FIXES_RICE_SPATIAL_YIELDS_V32_2026-08-27.md"
+}

@@ -1,0 +1,3840 @@
+{
+  "case": "Philippines_v32",
+  "source_case": "Philippines_v31",
+  "status": "source_candidate_built",
+  "parameter": "RYTCM.json OAR SC_0",
+  "technologies": [
+    "LNDAGRPHLC01",
+    "LNDAGRPHLC02",
+    "LNDAGRPHLC03",
+    "LNDAGRPHLC04",
+    "LNDAGRPHLC05",
+    "LNDAGRPHLC06",
+    "LNDAGRPHLC07",
+    "LNDAGRPHLC08"
+  ],
+  "modes": {
+    "rainfed": 11,
+    "irrigated": 19
+  },
+  "years": [
+    2020,
+    2053
+  ],
+  "changed_cells": 544,
+  "future_path": "Each existing v31 year/2020 FOFA BAU index is preserved exactly within each regime and cluster.",
+  "non_forcing": true,
+  "source_anchor_sha256": "95fa0b66bb076aac45b21d0aa81669e840a4f054603b7a4afa6c144cdab85424",
+  "rytm_unchanged_sha256": "5de3d3cb2face8462276258157da5b31ee97b78438bac107c3e2a61f51fd71b5",
+  "ryc_unchanged_sha256": "4dcd819cf0dacd2451068d6261fdaa3b899ff44827a18f5c5d581e69893242d9",
+  "changes": [
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2020,
+      "before": 0.42023026407554087,
+      "after": 0.2940874247556069
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2021,
+      "before": 0.42478578671191425,
+      "after": 0.2972754910018449
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2022,
+      "before": 0.42934130934828757,
+      "after": 0.3004635572480829
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2023,
+      "before": 0.43389683198466095,
+      "after": 0.3036516234943209
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2024,
+      "before": 0.4384523546210342,
+      "after": 0.30683968974055886
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2025,
+      "before": 0.44300787725740753,
+      "after": 0.3100277559867968
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2026,
+      "before": 0.4475633998937809,
+      "after": 0.3132158222330348
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2027,
+      "before": 0.45211892253015423,
+      "after": 0.3164038884792728
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2028,
+      "before": 0.4566744451665275,
+      "after": 0.3195919547255108
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2029,
+      "before": 0.4612299678029009,
+      "after": 0.32278002097174874
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2030,
+      "before": 0.4657854904392742,
+      "after": 0.32596808721798676
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2031,
+      "before": 0.46956082972677887,
+      "after": 0.3286101620601769
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2032,
+      "before": 0.47333616901428355,
+      "after": 0.3312522369023671
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2033,
+      "before": 0.4771115083017883,
+      "after": 0.3338943117445573
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2034,
+      "before": 0.48088684758929295,
+      "after": 0.33653638658674745
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2035,
+      "before": 0.48466218687679763,
+      "after": 0.33917846142893765
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2036,
+      "before": 0.48807682495848986,
+      "after": 0.3415681087384345
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2037,
+      "before": 0.4914914630401819,
+      "after": 0.3439577560479313
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2038,
+      "before": 0.4949061011218741,
+      "after": 0.34634740335742825
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2039,
+      "before": 0.49832073920356623,
+      "after": 0.34873705066692506
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2040,
+      "before": 0.5017353772852584,
+      "after": 0.35112669797642193
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2041,
+      "before": 0.504500753196488,
+      "after": 0.3530619757270708
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2042,
+      "before": 0.5072661291077175,
+      "after": 0.35499725347771965
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2043,
+      "before": 0.510031505018947,
+      "after": 0.3569325312283685
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2044,
+      "before": 0.5127968809301766,
+      "after": 0.3588678089790173
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2045,
+      "before": 0.5155622568414062,
+      "after": 0.36080308672966627
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2046,
+      "before": 0.5183276327526357,
+      "after": 0.3627383644803151
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2047,
+      "before": 0.5210930086638653,
+      "after": 0.36467364223096393
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2048,
+      "before": 0.5238583845750948,
+      "after": 0.36660891998161277
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2049,
+      "before": 0.5266237604863244,
+      "after": 0.3685441977322617
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2050,
+      "before": 0.5293891363975539,
+      "after": 0.3704794754829105
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2051,
+      "before": 0.5321545123087835,
+      "after": 0.3724147532335594
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2052,
+      "before": 0.5349198882200131,
+      "after": 0.3743500309842083
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 11,
+      "year": 2053,
+      "before": 0.5376852641312426,
+      "after": 0.3762853087348571
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2020,
+      "before": 0.993110219724228,
+      "after": 0.7058391982558367
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2021,
+      "before": 1.0042480743777007,
+      "after": 0.7137552726680809
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2022,
+      "before": 1.0153859290311735,
+      "after": 0.7216713470803253
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2023,
+      "before": 1.0265237836846461,
+      "after": 0.7295874214925695
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2024,
+      "before": 1.0376616383381185,
+      "after": 0.7375034959048135
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2025,
+      "before": 1.0487994929915914,
+      "after": 0.7454195703170579
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2026,
+      "before": 1.0599373476450638,
+      "after": 0.7533356447293019
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2027,
+      "before": 1.0710752022985366,
+      "after": 0.7612517191415462
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2028,
+      "before": 1.082213056952009,
+      "after": 0.7691677935537903
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2029,
+      "before": 1.0933509116054816,
+      "after": 0.7770838679660343
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2030,
+      "before": 1.1044887662589544,
+      "after": 0.7849999423782786
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2031,
+      "before": 1.1138582023572428,
+      "after": 0.7916591380369051
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2032,
+      "before": 1.1232276384555313,
+      "after": 0.7983183336955317
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2033,
+      "before": 1.13259707455382,
+      "after": 0.8049775293541584
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2034,
+      "before": 1.1419665106521086,
+      "after": 0.8116367250127852
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2035,
+      "before": 1.1513359467503972,
+      "after": 0.8182959206714117
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2036,
+      "before": 1.1599280060545045,
+      "after": 0.8244026066465714
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2037,
+      "before": 1.1685200653586119,
+      "after": 0.8305092926217311
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2038,
+      "before": 1.1771121246627196,
+      "after": 0.8366159785968912
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2039,
+      "before": 1.185704183966827,
+      "after": 0.8427226645720508
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2040,
+      "before": 1.1942962432709343,
+      "after": 0.8488293505472105
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2041,
+      "before": 1.2013744635547945,
+      "after": 0.8538600966124614
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2042,
+      "before": 1.2084526838386542,
+      "after": 0.858890842677712
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2043,
+      "before": 1.2155309041225142,
+      "after": 0.8639215887429627
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2044,
+      "before": 1.2226091244063741,
+      "after": 0.8689523348082133
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2045,
+      "before": 1.229687344690234,
+      "after": 0.8739830808734641
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2046,
+      "before": 1.236765564974094,
+      "after": 0.8790138269387148
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2047,
+      "before": 1.243843785257954,
+      "after": 0.8840445730039656
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2048,
+      "before": 1.250922005541814,
+      "after": 0.8890753190692162
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2049,
+      "before": 1.2580002258256737,
+      "after": 0.8941060651344667
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2050,
+      "before": 1.2650784461095337,
+      "after": 0.8991368111997173
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2051,
+      "before": 1.2721566663933939,
+      "after": 0.9041675572649682
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2052,
+      "before": 1.2792348866772538,
+      "after": 0.9091983033302189
+    },
+    {
+      "technology": "LNDAGRPHLC01",
+      "mode": 19,
+      "year": 2053,
+      "before": 1.2863131069611136,
+      "after": 0.9142290493954695
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2020,
+      "before": 0.515120968866792,
+      "after": 0.3173107047520517
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2021,
+      "before": 0.5207051579049271,
+      "after": 0.3207505238746499
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2022,
+      "before": 0.5262893469430622,
+      "after": 0.32419034299724814
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2023,
+      "before": 0.5318735359811972,
+      "after": 0.3276301621198464
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2024,
+      "before": 0.5374577250193323,
+      "after": 0.33106998124244463
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2025,
+      "before": 0.5430419140574673,
+      "after": 0.3345098003650428
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2026,
+      "before": 0.5486261030956024,
+      "after": 0.3379496194876411
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2027,
+      "before": 0.5542102921337374,
+      "after": 0.34138943861023924
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2028,
+      "before": 0.5597944811718725,
+      "after": 0.34482925773283746
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2029,
+      "before": 0.5653786702100075,
+      "after": 0.34826907685543573
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2030,
+      "before": 0.5709628592481426,
+      "after": 0.35170889597803395
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2031,
+      "before": 0.5755906945037934,
+      "after": 0.35455960824796423
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2032,
+      "before": 0.5802185297594443,
+      "after": 0.3574103205178946
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2033,
+      "before": 0.5848463650150953,
+      "after": 0.360261032787825
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2034,
+      "before": 0.5894742002707462,
+      "after": 0.36311174505775534
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2035,
+      "before": 0.5941020355263971,
+      "after": 0.36596245732768573
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2036,
+      "before": 0.5982877209168586,
+      "after": 0.36854080855271837
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2037,
+      "before": 0.6024734063073197,
+      "after": 0.37111915977775084
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2038,
+      "before": 0.6066590916977812,
+      "after": 0.3736975110027835
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2039,
+      "before": 0.6108447770882425,
+      "after": 0.376275862227816
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2040,
+      "before": 0.6150304624787039,
+      "after": 0.3788542134528486
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2041,
+      "before": 0.618420278111824,
+      "after": 0.38094231479706514
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2042,
+      "before": 0.6218100937449441,
+      "after": 0.3830304161412817
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2043,
+      "before": 0.6251999093780641,
+      "after": 0.3851185174854981
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2044,
+      "before": 0.6285897250111843,
+      "after": 0.38720661882971463
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2045,
+      "before": 0.6319795406443044,
+      "after": 0.3892947201739312
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2046,
+      "before": 0.6353693562774244,
+      "after": 0.3913828215181477
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2047,
+      "before": 0.6387591719105445,
+      "after": 0.3934709228623642
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2048,
+      "before": 0.6421489875436647,
+      "after": 0.3955590242065807
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2049,
+      "before": 0.6455388031767848,
+      "after": 0.39764712555079723
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2050,
+      "before": 0.6489286188099048,
+      "after": 0.39973522689501373
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2051,
+      "before": 0.652318434443025,
+      "after": 0.4018233282392302
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2052,
+      "before": 0.6557082500761451,
+      "after": 0.4039114295834468
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 11,
+      "year": 2053,
+      "before": 0.6590980657092651,
+      "after": 0.4059995309276633
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2020,
+      "before": 1.149170397109464,
+      "after": 0.7520132914532285
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2021,
+      "before": 1.1620584860656251,
+      "after": 0.760447214064569
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2022,
+      "before": 1.1749465750217867,
+      "after": 0.76888113667591
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2023,
+      "before": 1.1878346639779478,
+      "after": 0.7773150592872504
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2024,
+      "before": 1.2007227529341087,
+      "after": 0.7857489818985909
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2025,
+      "before": 1.21361084189027,
+      "after": 0.7941829045099316
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2026,
+      "before": 1.226498930846431,
+      "after": 0.802616827121272
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2027,
+      "before": 1.2393870198025925,
+      "after": 0.8110507497326128
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2028,
+      "before": 1.2522751087587534,
+      "after": 0.8194846723439533
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2029,
+      "before": 1.2651631977149145,
+      "after": 0.8279185949552939
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2030,
+      "before": 1.278051286671076,
+      "after": 0.8363525175666346
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2031,
+      "before": 1.288893062727667,
+      "after": 0.8434473398123378
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2032,
+      "before": 1.2997348387842578,
+      "after": 0.850542162058041
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2033,
+      "before": 1.3105766148408493,
+      "after": 0.8576369843037445
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2034,
+      "before": 1.3214183908974402,
+      "after": 0.8647318065494476
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2035,
+      "before": 1.3322601669540315,
+      "after": 0.8718266287951509
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2036,
+      "before": 1.3422024070059269,
+      "after": 0.8783327976667563
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2037,
+      "before": 1.3521446470578227,
+      "after": 0.884838966538362
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2038,
+      "before": 1.3620868871097187,
+      "after": 0.8913451354099677
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2039,
+      "before": 1.3720291271616145,
+      "after": 0.8978513042815734
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2040,
+      "before": 1.3819713672135099,
+      "after": 0.9043574731531788
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2041,
+      "before": 1.3901618792562624,
+      "after": 0.9097173170331208
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2042,
+      "before": 1.3983523912990146,
+      "after": 0.9150771609130625
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2043,
+      "before": 1.4065429033417667,
+      "after": 0.920437004793004
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2044,
+      "before": 1.4147334153845188,
+      "after": 0.9257968486729459
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2045,
+      "before": 1.422923927427271,
+      "after": 0.9311566925528875
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2046,
+      "before": 1.4311144394700235,
+      "after": 0.9365165364328295
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2047,
+      "before": 1.4393049515127756,
+      "after": 0.9418763803127711
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2048,
+      "before": 1.4474954635555277,
+      "after": 0.9472362241927129
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2049,
+      "before": 1.45568597559828,
+      "after": 0.9525960680726547
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2050,
+      "before": 1.4638764876410322,
+      "after": 0.9579559119525963
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2051,
+      "before": 1.4720669996837845,
+      "after": 0.9633157558325381
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2052,
+      "before": 1.4802575117265366,
+      "after": 0.96867559971248
+    },
+    {
+      "technology": "LNDAGRPHLC02",
+      "mode": 19,
+      "year": 2053,
+      "before": 1.488448023769289,
+      "after": 0.9740354435924218
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2020,
+      "before": 0.5422325988071496,
+      "after": 0.3162817395652182
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2021,
+      "before": 0.5481106925315024,
+      "after": 0.31971040415040836
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2022,
+      "before": 0.553988786255855,
+      "after": 0.32313906873559844
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2023,
+      "before": 0.5598668799802078,
+      "after": 0.3265677333207886
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2024,
+      "before": 0.5657449737045603,
+      "after": 0.32999639790597857
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2025,
+      "before": 0.571623067428913,
+      "after": 0.33342506249116866
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2026,
+      "before": 0.5775011611532658,
+      "after": 0.3368537270763588
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2027,
+      "before": 0.5833792548776184,
+      "after": 0.3402823916615489
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2028,
+      "before": 0.5892573486019711,
+      "after": 0.3437110562467389
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2029,
+      "before": 0.5951354423263239,
+      "after": 0.34713972083192907
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2030,
+      "before": 0.6010135360506764,
+      "after": 0.3505683854171191
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2031,
+      "before": 0.6058849415829406,
+      "after": 0.35340985348683973
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2032,
+      "before": 0.6107563471152047,
+      "after": 0.35625132155656025
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2033,
+      "before": 0.6156277526474688,
+      "after": 0.3590927896262809
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2034,
+      "before": 0.6204991581797329,
+      "after": 0.3619342576960014
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2035,
+      "before": 0.625370563711997,
+      "after": 0.3647757257657219
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2036,
+      "before": 0.6297765483335354,
+      "after": 0.3673457159943865
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2037,
+      "before": 0.6341825329550734,
+      "after": 0.36991570622305087
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2038,
+      "before": 0.6385885175766118,
+      "after": 0.3724856964517154
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2039,
+      "before": 0.6429945021981501,
+      "after": 0.3750556866803799
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2040,
+      "before": 0.6474004868196883,
+      "after": 0.37762567690904436
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2041,
+      "before": 0.65096871380192,
+      "after": 0.3797070070238079
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2042,
+      "before": 0.6545369407841518,
+      "after": 0.3817883371385714
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2043,
+      "before": 0.6581051677663834,
+      "after": 0.3838696672533348
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2044,
+      "before": 0.6616733947486151,
+      "after": 0.38595099736809835
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2045,
+      "before": 0.6652416217308469,
+      "after": 0.38803232748286187
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2046,
+      "before": 0.6688098487130785,
+      "after": 0.3901136575976253
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2047,
+      "before": 0.6723780756953102,
+      "after": 0.39219498771238875
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2048,
+      "before": 0.6759463026775417,
+      "after": 0.3942763178271522
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2049,
+      "before": 0.6795145296597735,
+      "after": 0.39635764794191575
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2050,
+      "before": 0.6830827566420051,
+      "after": 0.39843897805667916
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2051,
+      "before": 0.6866509836242368,
+      "after": 0.4005203081714427
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2052,
+      "before": 0.6902192106064686,
+      "after": 0.4026016382862062
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 11,
+      "year": 2053,
+      "before": 0.6937874375887002,
+      "after": 0.4046829684009697
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2020,
+      "before": 1.22010684137548,
+      "after": 0.7330691859063916
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2021,
+      "before": 1.233790491378318,
+      "after": 0.7412906480174474
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2022,
+      "before": 1.2474741413811559,
+      "after": 0.749512110128503
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2023,
+      "before": 1.2611577913839938,
+      "after": 0.7577335722395587
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2024,
+      "before": 1.2748414413868312,
+      "after": 0.7659550343506142
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2025,
+      "before": 1.2885250913896693,
+      "after": 0.77417649646167
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2026,
+      "before": 1.3022087413925068,
+      "after": 0.7823979585727254
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2027,
+      "before": 1.3158923913953449,
+      "after": 0.7906194206837812
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2028,
+      "before": 1.3295760413981823,
+      "after": 0.7988408827948367
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2029,
+      "before": 1.3432596914010202,
+      "after": 0.8070623449058923
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2030,
+      "before": 1.356943341403858,
+      "after": 0.8152838070169481
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2031,
+      "before": 1.368454362896041,
+      "after": 0.8221999022866974
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2032,
+      "before": 1.379965384388224,
+      "after": 0.8291159975564464
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2033,
+      "before": 1.3914764058804077,
+      "after": 0.836032092826196
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2034,
+      "before": 1.4029874273725906,
+      "after": 0.8429481880959452
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2035,
+      "before": 1.4144984488647738,
+      "after": 0.8498642833656944
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2036,
+      "before": 1.4250544074383913,
+      "after": 0.8562065541370801
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2037,
+      "before": 1.435610366012009,
+      "after": 0.8625488249084658
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2038,
+      "before": 1.4461663245856269,
+      "after": 0.8688910956798518
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2039,
+      "before": 1.4567222831592448,
+      "after": 0.8752333664512377
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2040,
+      "before": 1.467278241732862,
+      "after": 0.8815756372226231
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2041,
+      "before": 1.4759743409387474,
+      "after": 0.8868004602866697
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2042,
+      "before": 1.4846704401446325,
+      "after": 0.8920252833507161
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2043,
+      "before": 1.4933665393505176,
+      "after": 0.8972501064147625
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2044,
+      "before": 1.5020626385564024,
+      "after": 0.9024749294788087
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2045,
+      "before": 1.5107587377622875,
+      "after": 0.9076997525428552
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2046,
+      "before": 1.5194548369681729,
+      "after": 0.9129245756069017
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2047,
+      "before": 1.5281509361740577,
+      "after": 0.9181493986709479
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2048,
+      "before": 1.5368470353799428,
+      "after": 0.9233742217349943
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2049,
+      "before": 1.545543134585828,
+      "after": 0.9285990447990408
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2050,
+      "before": 1.5542392337917128,
+      "after": 0.933823867863087
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2051,
+      "before": 1.5629353329975981,
+      "after": 0.9390486909271335
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2052,
+      "before": 1.5716314322034832,
+      "after": 0.9442735139911799
+    },
+    {
+      "technology": "LNDAGRPHLC03",
+      "mode": 19,
+      "year": 2053,
+      "before": 1.580327531409368,
+      "after": 0.9494983370552261
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2020,
+      "before": 0.515120968866792,
+      "after": 0.3135509160350217
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2021,
+      "before": 0.5207051579049271,
+      "after": 0.3169499770207778
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2022,
+      "before": 0.5262893469430622,
+      "after": 0.32034903800653386
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2023,
+      "before": 0.5318735359811972,
+      "after": 0.3237480989922899
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2024,
+      "before": 0.5374577250193323,
+      "after": 0.327147159978046
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2025,
+      "before": 0.5430419140574673,
+      "after": 0.330546220963802
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2026,
+      "before": 0.5486261030956024,
+      "after": 0.3339452819495581
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2027,
+      "before": 0.5542102921337374,
+      "after": 0.33734434293531407
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2028,
+      "before": 0.5597944811718725,
+      "after": 0.34074340392107016
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2029,
+      "before": 0.5653786702100075,
+      "after": 0.34414246490682626
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2030,
+      "before": 0.5709628592481426,
+      "after": 0.3475415258925823
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2031,
+      "before": 0.5755906945037934,
+      "after": 0.3503584603048246
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2032,
+      "before": 0.5802185297594443,
+      "after": 0.353175394717067
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2033,
+      "before": 0.5848463650150953,
+      "after": 0.3559923291293095
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2034,
+      "before": 0.5894742002707462,
+      "after": 0.35880926354155185
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2035,
+      "before": 0.5941020355263971,
+      "after": 0.36162619795379425
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2036,
+      "before": 0.5982877209168586,
+      "after": 0.36417399850499443
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2037,
+      "before": 0.6024734063073197,
+      "after": 0.3667217990561945
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2038,
+      "before": 0.6066590916977812,
+      "after": 0.3692695996073947
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2039,
+      "before": 0.6108447770882425,
+      "after": 0.37181740015859477
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2040,
+      "before": 0.6150304624787039,
+      "after": 0.374365200709795
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2041,
+      "before": 0.618420278111824,
+      "after": 0.37642856031111904
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2042,
+      "before": 0.6218100937449441,
+      "after": 0.3784919199124431
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2043,
+      "before": 0.6251999093780641,
+      "after": 0.3805552795137671
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2044,
+      "before": 0.6285897250111843,
+      "after": 0.3826186391150912
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2045,
+      "before": 0.6319795406443044,
+      "after": 0.3846819987164153
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2046,
+      "before": 0.6353693562774244,
+      "after": 0.38674535831773926
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2047,
+      "before": 0.6387591719105445,
+      "after": 0.38880871791906335
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2048,
+      "before": 0.6421489875436647,
+      "after": 0.3908720775203874
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2049,
+      "before": 0.6455388031767848,
+      "after": 0.3929354371217115
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2050,
+      "before": 0.6489286188099048,
+      "after": 0.3949987967230355
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2051,
+      "before": 0.652318434443025,
+      "after": 0.39706215632435954
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2052,
+      "before": 0.6557082500761451,
+      "after": 0.3991255159256836
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 11,
+      "year": 2053,
+      "before": 0.6590980657092651,
+      "after": 0.40118887552700766
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2020,
+      "before": 1.1349831082562607,
+      "after": 0.7527981524525049
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2021,
+      "before": 1.1477120850030866,
+      "after": 0.7612408773775863
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2022,
+      "before": 1.1604410617499126,
+      "after": 0.7696836023026676
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2023,
+      "before": 1.1731700384967385,
+      "after": 0.778126327227749
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2024,
+      "before": 1.185899015243564,
+      "after": 0.7865690521528301
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2025,
+      "before": 1.1986279919903902,
+      "after": 0.7950117770779116
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2026,
+      "before": 1.2113569687372159,
+      "after": 0.8034545020029928
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2027,
+      "before": 1.2240859454840418,
+      "after": 0.8118972269280742
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2028,
+      "before": 1.2368149222308675,
+      "after": 0.8203399518531554
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2029,
+      "before": 1.2495438989776932,
+      "after": 0.8287826767782367
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2030,
+      "before": 1.2622728757245194,
+      "after": 0.8372254017033183
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2031,
+      "before": 1.272980802693992,
+      "after": 0.8443276286709069
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2032,
+      "before": 1.2836887296634645,
+      "after": 0.8514298556384956
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2033,
+      "before": 1.2943966566329375,
+      "after": 0.8585320826060846
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2034,
+      "before": 1.30510458360241,
+      "after": 0.8656343095736734
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2035,
+      "before": 1.3158125105718828,
+      "after": 0.8727365365412623
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2036,
+      "before": 1.3256320069194338,
+      "after": 0.8792494957691819
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2037,
+      "before": 1.3354515032669854,
+      "after": 0.8857624549971018
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2038,
+      "before": 1.3452709996145369,
+      "after": 0.8922754142250219
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2039,
+      "before": 1.3550904959620882,
+      "after": 0.8987883734529417
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2040,
+      "before": 1.3649099923096393,
+      "after": 0.9053013326808612
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2041,
+      "before": 1.3729993869197652,
+      "after": 0.9106667705210051
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2042,
+      "before": 1.381088781529891,
+      "after": 0.9160322083611485
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2043,
+      "before": 1.3891781761400164,
+      "after": 0.9213976462012919
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2044,
+      "before": 1.397267570750142,
+      "after": 0.9267630840414356
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2045,
+      "before": 1.4053569653602676,
+      "after": 0.932128521881579
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2046,
+      "before": 1.4134463599703935,
+      "after": 0.9374939597217227
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2047,
+      "before": 1.4215357545805192,
+      "after": 0.9428593975618662
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2048,
+      "before": 1.4296251491906447,
+      "after": 0.9482248354020095
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2049,
+      "before": 1.4377145438007704,
+      "after": 0.9535902732421531
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2050,
+      "before": 1.4458039384108958,
+      "after": 0.9589557110822965
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2051,
+      "before": 1.4538933330210217,
+      "after": 0.9643211489224401
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2052,
+      "before": 1.4619827276311472,
+      "after": 0.9696865867625836
+    },
+    {
+      "technology": "LNDAGRPHLC04",
+      "mode": 19,
+      "year": 2053,
+      "before": 1.470072122241273,
+      "after": 0.9750520246027272
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2020,
+      "before": 0.5354546913220601,
+      "after": 0.3561683843368409
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2021,
+      "before": 0.5412593088748585,
+      "after": 0.36002944165687095
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2022,
+      "before": 0.5470639264276567,
+      "after": 0.3638904989769008
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2023,
+      "before": 0.552868543980455,
+      "after": 0.36775155629693085
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2024,
+      "before": 0.5586731615332533,
+      "after": 0.3716126136169608
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2025,
+      "before": 0.5644777790860516,
+      "after": 0.3754736709369908
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2026,
+      "before": 0.5702823966388498,
+      "after": 0.37933472825702075
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2027,
+      "before": 0.5760870141916481,
+      "after": 0.3831957855770507
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2028,
+      "before": 0.5818916317444464,
+      "after": 0.3870568428970807
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2029,
+      "before": 0.5876962492972447,
+      "after": 0.3909179002171107
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2030,
+      "before": 0.5935008668500429,
+      "after": 0.3947789575371406
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2031,
+      "before": 0.5983113798131537,
+      "after": 0.3979787663308077
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2032,
+      "before": 0.6031218927762645,
+      "after": 0.4011785751244747
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2033,
+      "before": 0.6079324057393753,
+      "after": 0.4043783839181418
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2034,
+      "before": 0.6127429187024862,
+      "after": 0.4075781927118089
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2035,
+      "before": 0.617553431665597,
+      "after": 0.4107780015054759
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2036,
+      "before": 0.6219043414793661,
+      "after": 0.41367209608318756
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2037,
+      "before": 0.626255251293135,
+      "after": 0.4165661906608991
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2038,
+      "before": 0.6306061611069042,
+      "after": 0.4194602852386108
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2039,
+      "before": 0.6349570709206731,
+      "after": 0.42235437981632235
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2040,
+      "before": 0.6393079807344422,
+      "after": 0.425248474394034
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2041,
+      "before": 0.642831604879396,
+      "after": 0.4275922833830258
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2042,
+      "before": 0.6463552290243498,
+      "after": 0.42993609237201763
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2043,
+      "before": 0.6498788531693035,
+      "after": 0.43227990136100936
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2044,
+      "before": 0.6534024773142574,
+      "after": 0.4346237103500012
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2045,
+      "before": 0.6569261014592112,
+      "after": 0.436967519338993
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2046,
+      "before": 0.6604497256041649,
+      "after": 0.4393113283279848
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2047,
+      "before": 0.6639733497491187,
+      "after": 0.4416551373169766
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2048,
+      "before": 0.6674969738940725,
+      "after": 0.44399894630596837
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2049,
+      "before": 0.6710205980390263,
+      "after": 0.4463427552949602
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2050,
+      "before": 0.6745442221839799,
+      "after": 0.44868656428395187
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2051,
+      "before": 0.6780678463289338,
+      "after": 0.45103037327294376
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2052,
+      "before": 0.6815914704738876,
+      "after": 0.45337418226193554
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 11,
+      "year": 2053,
+      "before": 0.6851150946188413,
+      "after": 0.4557179912509274
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2020,
+      "before": 1.2768559967882933,
+      "after": 0.7605067397147238
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2021,
+      "before": 1.2911760956284724,
+      "after": 0.7690359174048709
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2022,
+      "before": 1.3054961944686518,
+      "after": 0.7775650950950181
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2023,
+      "before": 1.3198162933088309,
+      "after": 0.7860942727851652
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2024,
+      "before": 1.3341363921490097,
+      "after": 0.7946234504753121
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2025,
+      "before": 1.348456490989189,
+      "after": 0.8031526281654592
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2026,
+      "before": 1.3627765898293678,
+      "after": 0.8116818058556061
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2027,
+      "before": 1.377096688669547,
+      "after": 0.8202109835457534
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2028,
+      "before": 1.3914167875097259,
+      "after": 0.8287401612359001
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2029,
+      "before": 1.405736886349905,
+      "after": 0.8372693389260473
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2030,
+      "before": 1.4200569851900844,
+      "after": 0.8457985166161945
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2031,
+      "before": 1.432103403030741,
+      "after": 0.852973469766967
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2032,
+      "before": 1.4441498208713976,
+      "after": 0.8601484229177396
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2033,
+      "before": 1.4561962387120546,
+      "after": 0.8673233760685125
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2034,
+      "before": 1.4682426565527114,
+      "after": 0.8744983292192852
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2035,
+      "before": 1.480289074393368,
+      "after": 0.8816732823700578
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2036,
+      "before": 1.4913360077843631,
+      "after": 0.8882529337310282
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2037,
+      "before": 1.5023829411753584,
+      "after": 0.8948325850919989
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2038,
+      "before": 1.5134298745663541,
+      "after": 0.9014122364529696
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2039,
+      "before": 1.5244768079573494,
+      "after": 0.9079918878139402
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2040,
+      "before": 1.5355237413483442,
+      "after": 0.9145715391749106
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2041,
+      "before": 1.544624310284736,
+      "after": 0.9199919186294246
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2042,
+      "before": 1.5537248792211271,
+      "after": 0.9254122980839384
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2043,
+      "before": 1.5628254481575186,
+      "after": 0.9308326775384523
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2044,
+      "before": 1.5719260170939098,
+      "after": 0.9362530569929661
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2045,
+      "before": 1.5810265860303012,
+      "after": 0.94167343644748
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2046,
+      "before": 1.5901271549666927,
+      "after": 0.947093815901994
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2047,
+      "before": 1.599227723903084,
+      "after": 0.9525141953565078
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2048,
+      "before": 1.6083282928394753,
+      "after": 0.9579345748110215
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2049,
+      "before": 1.6174288617758665,
+      "after": 0.9633549542655354
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2050,
+      "before": 1.626529430712258,
+      "after": 0.9687753337200492
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2051,
+      "before": 1.6356299996486494,
+      "after": 0.9741957131745632
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2052,
+      "before": 1.6447305685850409,
+      "after": 0.9796160926290771
+    },
+    {
+      "technology": "LNDAGRPHLC05",
+      "mode": 19,
+      "year": 2053,
+      "before": 1.653831137521432,
+      "after": 0.9850364720835909
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2020,
+      "before": 0.5557884137773282,
+      "after": 0.3240824550897107
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2021,
+      "before": 0.5618134598447898,
+      "after": 0.3275956836370655
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2022,
+      "before": 0.5678385059122513,
+      "after": 0.33110891218442023
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2023,
+      "before": 0.5738635519797128,
+      "after": 0.334622140731775
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2024,
+      "before": 0.5798885980471743,
+      "after": 0.33813536927912974
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2025,
+      "before": 0.5859136441146358,
+      "after": 0.3416485978264845
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2026,
+      "before": 0.5919386901820973,
+      "after": 0.34516182637383924
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2027,
+      "before": 0.5979637362495588,
+      "after": 0.348675054921194
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2028,
+      "before": 0.6039887823170202,
+      "after": 0.35218828346854875
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2029,
+      "before": 0.6100138283844818,
+      "after": 0.3557015120159036
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2030,
+      "before": 0.6160388744519433,
+      "after": 0.3592147405632583
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2031,
+      "before": 0.621032065122514,
+      "after": 0.36212629008666725
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2032,
+      "before": 0.6260252557930847,
+      "after": 0.3650378396100762
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2033,
+      "before": 0.6310184464636555,
+      "after": 0.3679493891334852
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2034,
+      "before": 0.6360116371342261,
+      "after": 0.3708609386568941
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2035,
+      "before": 0.6410048278047968,
+      "after": 0.373772488180303
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2036,
+      "before": 0.6455209620418736,
+      "after": 0.3764058641823672
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2037,
+      "before": 0.6500370962789502,
+      "after": 0.37903924018443136
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2038,
+      "before": 0.654553230516027,
+      "after": 0.3816726161864955
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2039,
+      "before": 0.6590693647531037,
+      "after": 0.3843059921885597
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2040,
+      "before": 0.6635854989901804,
+      "after": 0.3869393681906238
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2041,
+      "before": 0.6672429316469679,
+      "after": 0.3890720318542673
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2042,
+      "before": 0.6709003643037554,
+      "after": 0.39120469551791087
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2043,
+      "before": 0.6745577969605429,
+      "after": 0.3933373591815543
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2044,
+      "before": 0.6782152296173304,
+      "after": 0.3954700228451979
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2045,
+      "before": 0.6818726622741179,
+      "after": 0.3976026865088414
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2046,
+      "before": 0.6855300949309053,
+      "after": 0.39973535017248485
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2047,
+      "before": 0.6891875275876929,
+      "after": 0.4018680138361284
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2048,
+      "before": 0.6928449602444803,
+      "after": 0.40400067749977187
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2049,
+      "before": 0.6965023929012677,
+      "after": 0.4061333411634153
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2050,
+      "before": 0.7001598255580551,
+      "after": 0.4082660048270588
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2051,
+      "before": 0.7038172582148426,
+      "after": 0.4103986684907024
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2052,
+      "before": 0.7074746908716302,
+      "after": 0.4125313321543459
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 11,
+      "year": 2053,
+      "before": 0.7111321235284176,
+      "after": 0.41466399581798935
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2020,
+      "before": 1.2768559967882933,
+      "after": 0.6936156660396153
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2021,
+      "before": 1.2911760956284724,
+      "after": 0.7013946520174921
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2022,
+      "before": 1.3054961944686518,
+      "after": 0.7091736379953689
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2023,
+      "before": 1.3198162933088309,
+      "after": 0.7169526239732457
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2024,
+      "before": 1.3341363921490097,
+      "after": 0.7247316099511222
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2025,
+      "before": 1.348456490989189,
+      "after": 0.732510595928999
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2026,
+      "before": 1.3627765898293678,
+      "after": 0.7402895819068757
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2027,
+      "before": 1.377096688669547,
+      "after": 0.7480685678847524
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2028,
+      "before": 1.3914167875097259,
+      "after": 0.755847553862629
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2029,
+      "before": 1.405736886349905,
+      "after": 0.7636265398405058
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2030,
+      "before": 1.4200569851900844,
+      "after": 0.7714055258183826
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2031,
+      "before": 1.432103403030741,
+      "after": 0.7779493993287514
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2032,
+      "before": 1.4441498208713976,
+      "after": 0.7844932728391204
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2033,
+      "before": 1.4561962387120546,
+      "after": 0.7910371463494895
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2034,
+      "before": 1.4682426565527114,
+      "after": 0.7975810198598583
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2035,
+      "before": 1.480289074393368,
+      "after": 0.8041248933702273
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2036,
+      "before": 1.4913360077843631,
+      "after": 0.8101258254103035
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2037,
+      "before": 1.5023829411753584,
+      "after": 0.8161267574503798
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2038,
+      "before": 1.5134298745663541,
+      "after": 0.8221276894904564
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2039,
+      "before": 1.5244768079573494,
+      "after": 0.8281286215305327
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2040,
+      "before": 1.5355237413483442,
+      "after": 0.8341295535706087
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2041,
+      "before": 1.544624310284736,
+      "after": 0.8390731785369576
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2042,
+      "before": 1.5537248792211271,
+      "after": 0.844016803503306
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2043,
+      "before": 1.5628254481575186,
+      "after": 0.8489604284696548
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2044,
+      "before": 1.5719260170939098,
+      "after": 0.8539040534360032
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2045,
+      "before": 1.5810265860303012,
+      "after": 0.8588476784023519
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2046,
+      "before": 1.5901271549666927,
+      "after": 0.8637913033687005
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2047,
+      "before": 1.599227723903084,
+      "after": 0.8687349283350492
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2048,
+      "before": 1.6083282928394753,
+      "after": 0.8736785533013977
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2049,
+      "before": 1.6174288617758665,
+      "after": 0.8786221782677461
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2050,
+      "before": 1.626529430712258,
+      "after": 0.8835658032340947
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2051,
+      "before": 1.6356299996486494,
+      "after": 0.8885094282004434
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2052,
+      "before": 1.6447305685850409,
+      "after": 0.893453053166792
+    },
+    {
+      "technology": "LNDAGRPHLC06",
+      "mode": 19,
+      "year": 2053,
+      "before": 1.653831137521432,
+      "after": 0.8983966781331406
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2020,
+      "before": 0.5218988763518815,
+      "after": 0.3989221490675025
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2021,
+      "before": 0.5275565415615711,
+      "after": 0.4032466802485815
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2022,
+      "before": 0.5332142067712604,
+      "after": 0.40757121142966035
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2023,
+      "before": 0.53887187198095,
+      "after": 0.41189574261073936
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2024,
+      "before": 0.5445295371906393,
+      "after": 0.4162202737918182
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2025,
+      "before": 0.5501872024003288,
+      "after": 0.42054480497289715
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2026,
+      "before": 0.5558448676100183,
+      "after": 0.42486933615397604
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2027,
+      "before": 0.5615025328197077,
+      "after": 0.42919386733505493
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2028,
+      "before": 0.5671601980293971,
+      "after": 0.4335183985161338
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2029,
+      "before": 0.5728178632390867,
+      "after": 0.4378429296972128
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2030,
+      "before": 0.5784755284487761,
+      "after": 0.44216746087829173
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2031,
+      "before": 0.5831642562735803,
+      "after": 0.44575136853744973
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2032,
+      "before": 0.5878529840983845,
+      "after": 0.44933527619660774
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2033,
+      "before": 0.5925417119231887,
+      "after": 0.45291918385576585
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2034,
+      "before": 0.597230439747993,
+      "after": 0.4565030915149239
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2035,
+      "before": 0.6019191675727971,
+      "after": 0.4600869991740819
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2036,
+      "before": 0.6061599277710278,
+      "after": 0.4633284952734479
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2037,
+      "before": 0.6104006879692583,
+      "after": 0.46656999137281374
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2038,
+      "before": 0.6146414481674889,
+      "after": 0.46981148747217966
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2039,
+      "before": 0.6188822083657195,
+      "after": 0.4730529835715456
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2040,
+      "before": 0.62312296856395,
+      "after": 0.47629447967091143
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2041,
+      "before": 0.626557387034348,
+      "after": 0.4789196349626515
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2042,
+      "before": 0.6299918055047461,
+      "after": 0.48154479025439145
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2043,
+      "before": 0.633426223975144,
+      "after": 0.48416994554613146
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2044,
+      "before": 0.6368606424455421,
+      "after": 0.4867951008378715
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2045,
+      "before": 0.6402950609159401,
+      "after": 0.4894202561296115
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2046,
+      "before": 0.6437294793863381,
+      "after": 0.4920454114213514
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2047,
+      "before": 0.647163897856736,
+      "after": 0.4946705667130914
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2048,
+      "before": 0.6505983163271339,
+      "after": 0.4972957220048313
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2049,
+      "before": 0.654032734797532,
+      "after": 0.4999208772965713
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2050,
+      "before": 0.6574671532679299,
+      "after": 0.5025460325883112
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2051,
+      "before": 0.660901571738328,
+      "after": 0.5051711878800512
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2052,
+      "before": 0.664335990208726,
+      "after": 0.5077963431717913
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 11,
+      "year": 2053,
+      "before": 0.667770408679124,
+      "after": 0.5104214984635312
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2020,
+      "before": 1.2910432856414964,
+      "after": 0.7562009127509419
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2021,
+      "before": 1.3055224966910108,
+      "after": 0.7646818000560611
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2022,
+      "before": 1.3200017077405255,
+      "after": 0.7731626873611804
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2023,
+      "before": 1.33448091879004,
+      "after": 0.7816435746662996
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2024,
+      "before": 1.348960129839554,
+      "after": 0.7901244619714185
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2025,
+      "before": 1.3634393408890686,
+      "after": 0.7986053492765379
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2026,
+      "before": 1.3779185519385828,
+      "after": 0.8070862365816569
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2027,
+      "before": 1.3923977629880975,
+      "after": 0.8155671238867763
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2028,
+      "before": 1.4068769740376115,
+      "after": 0.8240480111918952
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2029,
+      "before": 1.421356185087126,
+      "after": 0.8325288984970144
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2030,
+      "before": 1.4358353961366406,
+      "after": 0.8410097858021338
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2031,
+      "before": 1.4480156630644156,
+      "after": 0.8481441158983993
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2032,
+      "before": 1.4601959299921907,
+      "after": 0.8552784459946648
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2033,
+      "before": 1.4723761969199662,
+      "after": 0.8624127760909305
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2034,
+      "before": 1.4845564638477413,
+      "after": 0.869547106187196
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2035,
+      "before": 1.4967367307755166,
+      "after": 0.8766814362834616
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2036,
+      "before": 1.507906407870856,
+      "after": 0.8832238350616962
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2037,
+      "before": 1.5190760849661955,
+      "after": 0.889766233839931
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2038,
+      "before": 1.5302457620615355,
+      "after": 0.8963086326181658
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2039,
+      "before": 1.5414154391568753,
+      "after": 0.9028510313964008
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2040,
+      "before": 1.5525851162522146,
+      "after": 0.9093934301746354
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2041,
+      "before": 1.5617868026212327,
+      "after": 0.914783120596705
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2042,
+      "before": 1.5709884889902506,
+      "after": 0.9201728110187746
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2043,
+      "before": 1.5801901753592684,
+      "after": 0.9255625014408443
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2044,
+      "before": 1.5893918617282863,
+      "after": 0.9309521918629139
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2045,
+      "before": 1.5985935480973041,
+      "after": 0.9363418822849833
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2046,
+      "before": 1.6077952344663224,
+      "after": 0.9417315727070531
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2047,
+      "before": 1.6169969208353403,
+      "after": 0.9471212631291227
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2048,
+      "before": 1.6261986072043582,
+      "after": 0.9525109535511924
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2049,
+      "before": 1.635400293573376,
+      "after": 0.957900643973262
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2050,
+      "before": 1.6446019799423939,
+      "after": 0.9632903343953314
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2051,
+      "before": 1.653803666311412,
+      "after": 0.9686800248174012
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2052,
+      "before": 1.6630053526804298,
+      "after": 0.9740697152394707
+    },
+    {
+      "technology": "LNDAGRPHLC07",
+      "mode": 19,
+      "year": 2053,
+      "before": 1.6722070390494477,
+      "after": 0.9794594056615403
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2020,
+      "before": 0.440563986530809,
+      "after": 0.3065199443827652
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2021,
+      "before": 0.44533993768184565,
+      "after": 0.30984278584495123
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2022,
+      "before": 0.45011588883288217,
+      "after": 0.31316562730713726
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2023,
+      "before": 0.4548918399839188,
+      "after": 0.3164884687693233
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2024,
+      "before": 0.4596677911349553,
+      "after": 0.31981131023150927
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2025,
+      "before": 0.46444374228599183,
+      "after": 0.32313415169369525
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2026,
+      "before": 0.46921969343702846,
+      "after": 0.32645699315588134
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2027,
+      "before": 0.473995644588065,
+      "after": 0.3297798346180673
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2028,
+      "before": 0.4787715957391015,
+      "after": 0.33310267608025323
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2029,
+      "before": 0.48354754689013807,
+      "after": 0.33642551754243927
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2030,
+      "before": 0.4883234980411746,
+      "after": 0.33974835900462524
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2031,
+      "before": 0.4922815150361392,
+      "after": 0.3425021273249002
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2032,
+      "before": 0.49623953203110377,
+      "after": 0.3452558956451751
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2033,
+      "before": 0.5001975490260684,
+      "after": 0.3480096639654502
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2034,
+      "before": 0.504155566021033,
+      "after": 0.3507634322857251
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2035,
+      "before": 0.5081135830159975,
+      "after": 0.35351720060600006
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2036,
+      "before": 0.5116934455209975,
+      "after": 0.3560078700421724
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2037,
+      "before": 0.5152733080259971,
+      "after": 0.35849853947834454
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2038,
+      "before": 0.5188531705309971,
+      "after": 0.3609892089145169
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2039,
+      "before": 0.522433033035997,
+      "after": 0.3634798783506892
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2040,
+      "before": 0.5260128955409967,
+      "after": 0.3659705477868614
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2041,
+      "before": 0.52891207996406,
+      "after": 0.3679876392316488
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2042,
+      "before": 0.5318112643871233,
+      "after": 0.37000473067643624
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2043,
+      "before": 0.5347104488101865,
+      "after": 0.37202182212122353
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2044,
+      "before": 0.5376096332332497,
+      "after": 0.374038913566011
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2045,
+      "before": 0.5405088176563131,
+      "after": 0.37605600501079844
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2046,
+      "before": 0.5434080020793762,
+      "after": 0.3780730964555858
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2047,
+      "before": 0.5463071865024395,
+      "after": 0.38009018790037313
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2048,
+      "before": 0.5492063709255027,
+      "after": 0.3821072793451606
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2049,
+      "before": 0.552105555348566,
+      "after": 0.384124370789948
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2050,
+      "before": 0.5550047397716291,
+      "after": 0.3861414622347353
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2051,
+      "before": 0.5579039241946925,
+      "after": 0.3881585536795228
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2052,
+      "before": 0.5608031086177557,
+      "after": 0.3901756451243102
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 11,
+      "year": 2053,
+      "before": 0.5637022930408189,
+      "after": 0.39219273656909753
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2020,
+      "before": 0.9363610643114151,
+      "after": 0.6548205929061439
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2021,
+      "before": 0.9468624701275464,
+      "after": 0.662164487312864
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2022,
+      "before": 0.9573638759436779,
+      "after": 0.6695083817195844
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2023,
+      "before": 0.9678652817598092,
+      "after": 0.6768522761263045
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2024,
+      "before": 0.9783666875759404,
+      "after": 0.6841961705330245
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2025,
+      "before": 0.9888680933920719,
+      "after": 0.6915400649397448
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2026,
+      "before": 0.9993694992082031,
+      "after": 0.6988839593464649
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2027,
+      "before": 1.0098709050243346,
+      "after": 0.7062278537531853
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2028,
+      "before": 1.0203723108404656,
+      "after": 0.7135717481599052
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2029,
+      "before": 1.0308737166565969,
+      "after": 0.7209156425666253
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2030,
+      "before": 1.0413751224727286,
+      "after": 0.7282595369733457
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2031,
+      "before": 1.0502091622225433,
+      "after": 0.7344374007987539
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2032,
+      "before": 1.0590432019723581,
+      "after": 0.740615264624162
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2033,
+      "before": 1.0678772417221734,
+      "after": 0.7467931284495705
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2034,
+      "before": 1.0767112814719884,
+      "after": 0.7529709922749788
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2035,
+      "before": 1.0855453212218034,
+      "after": 0.7591488561003871
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2036,
+      "before": 1.0936464057085329,
+      "after": 0.7648141460712852
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2037,
+      "before": 1.1017474901952629,
+      "after": 0.7704794360421837
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2038,
+      "before": 1.109848574681993,
+      "after": 0.7761447260130824
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2039,
+      "before": 1.1179496591687228,
+      "after": 0.7818100159839807
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2040,
+      "before": 1.1260507436554525,
+      "after": 0.787475305954879
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2041,
+      "before": 1.1327244942088064,
+      "after": 0.7921424257880478
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2042,
+      "before": 1.13939824476216,
+      "after": 0.7968095456212165
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2043,
+      "before": 1.1460719953155136,
+      "after": 0.8014766654543851
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2044,
+      "before": 1.1527457458688672,
+      "after": 0.8061437852875538
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2045,
+      "before": 1.1594194964222209,
+      "after": 0.8108109051207224
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2046,
+      "before": 1.1660932469755747,
+      "after": 0.8154780249538913
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2047,
+      "before": 1.1727669975289283,
+      "after": 0.8201451447870599
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2048,
+      "before": 1.179440748082282,
+      "after": 0.8248122646202286
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2049,
+      "before": 1.1861144986356356,
+      "after": 0.8294793844533973
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2050,
+      "before": 1.1927882491889892,
+      "after": 0.8341465042865659
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2051,
+      "before": 1.199461999742343,
+      "after": 0.8388136241197347
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2052,
+      "before": 1.2061357502956966,
+      "after": 0.8434807439529034
+    },
+    {
+      "technology": "LNDAGRPHLC08",
+      "mode": 19,
+      "year": 2053,
+      "before": 1.2128095008490503,
+      "after": 0.8481478637860721
+    }
+  ]
+}

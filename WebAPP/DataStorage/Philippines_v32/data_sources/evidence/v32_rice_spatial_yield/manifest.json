@@ -1,0 +1,44 @@
+{
+  "created": "2026-08-27",
+  "purpose": "Recover and retain the exact Philippines CLEWs cell clusters and derive non-forcing achieved rice yields by cluster.",
+  "clews_gaez": {
+    "repository": "https://github.com/OSeMOSYS/CLEWs_GAEZ.git",
+    "commit": "30ec12e6524dc9c8ce474ffe1a467508f992007f",
+    "retained_config_sha256": "7df61b4720af62111d65a3beebb86109f987257303ae6e84c547f5c509f3169e",
+    "retained_patch_sha256": "d56050e5d90f3a0bf8c3a69d89680dd4eaf40b5327416520f63065f632129937",
+    "raster_cache_manifest_sha256": "d9325d79f75dd4dcbd26791aea133de811fbc217b783990a18d24b4959e87f26",
+    "bundled_base_raster_manifest_sha256": "48745a54c23e22cde7ae82a69a77abbaa8bc6ed48f9aca0cfc7cfff54dd56486",
+    "plotting_change": "Disposable-run diagnostic plots were skipped after macOS killed plotting processes; no data transformation, clustering, or summary calculation was changed."
+  },
+  "gadm_level1": {
+    "version": "4.1",
+    "url": "https://geodata.ucdavis.edu/gadm/gadm4.1/shp/gadm41_PHL_shp.zip",
+    "archive_sha256": "a7bb9d6593fbc372bb10c80af8714ec04f12df18e9bc6b36565878f43b93b566"
+  },
+  "psa_openstat": {
+    "production_api": "https://openstat.psa.gov.ph/PXWeb/api/v1/en/DB/2E/CS/0012E4EVCP0.px",
+    "harvested_area_api": "https://openstat.psa.gov.ph/PXWeb/api/v1/en/DB/2E/CS/0022E4EAHC0.px",
+    "selection": "2020 Annual; Irrigated Palay and Rainfed Palay; all geolocations",
+    "production_csv_sha256": "585de6caac3b199f8f51c4faf0a76817fe3131d89a500daec7d3e87c65cdf89d",
+    "area_csv_sha256": "e9fefbbba9ee4d697b350d8df0acc7c8fe832e86f545a20caee0668ead5c4c45"
+  },
+  "retained_outputs": {
+    "reconstructed_geospatial/PHL_clustered_cells.gpkg": "f5c9baedbcceaf5c8d79a5f913ef1a4d4f16cf530ab64f89fd79c24aec542b3a",
+    "reconstructed_geospatial/PHL_LandCover_byCluster_summary.csv": "e913f955d35835dbb0d9da14d66842925bfc61b9f4ce67fc7775bba955cdc85d",
+    "reconstructed_geospatial/PHL_Parameter_byCluster_summary.csv": "18fefbb05967f36aa4f6407cc80cb55c0f01cbb38bd86910061903c6121055b6",
+    "derived/phl_rice_cluster_yields_2020.csv": "95fa0b66bb076aac45b21d0aa81669e840a4f054603b7a4afa6c144cdab85424",
+    "derived/phl_rice_province_cluster_allocation_2020.csv": "5b07ebbe104e3e536ba36f3a646542fc13777c6194ff575aac674c91241cd366",
+    "derive_philippines_rice_cluster_yields.py": "1cc8b2546cf60b2799097a47b06bac6b05158d248896e5c398ee234c3a4e1ae9"
+  },
+  "deterministic_validation": {
+    "regenerated_vs_archived_parameter_max_abs_difference": 0.0,
+    "regenerated_vs_archived_land_max_abs_difference": 0.0,
+    "cells": 3457,
+    "clusters": 8,
+    "adjusted_national_land_km2": 295813.1,
+    "irrigated_reconstructed_production_mt": 14.57176519,
+    "irrigated_reconstructed_physical_area_1000km2": 20.06,
+    "rainfed_reconstructed_production_mt": 4.72309035,
+    "rainfed_reconstructed_physical_area_1000km2": 14.6544173
+  }
+}

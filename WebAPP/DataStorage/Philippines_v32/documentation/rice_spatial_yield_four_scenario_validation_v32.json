@@ -1,0 +1,761 @@
+{
+  "case": "Philippines_v32",
+  "status": "pass_with_advisories",
+  "promotion_recommendation": "eligible_with_forward_irrigation_followup",
+  "optimizer_run_count": 4,
+  "parallel_policy_solves": [
+    "COAL_PHASEOUT",
+    "RE",
+    "EV"
+  ],
+  "viewer_json_updated": false,
+  "scenarios": {
+    "BASE": {
+      "baseline_status": "Optimal - objective value 816774.34133720",
+      "candidate_status": "Optimal - objective value 838560.95562083",
+      "objective": 838560.95562083,
+      "objective_change": 21786.614283629926,
+      "objective_change_percent": 2.6673970007384806,
+      "solve_seconds": 66.15766029099905,
+      "runtime_ratio_to_v31": 0.8913724102802351,
+      "runtime_acceptance_passed": true,
+      "baseline_rice_2020": {
+        "rainfed": {
+          "area_1000km2": 0.0,
+          "production_mt": 0.0
+        },
+        "irrigated": {
+          "area_1000km2": 15.0520631,
+          "production_mt": 19.29485550489568
+        }
+      },
+      "candidate_rice_2020_to_2022": {
+        "2020": {
+          "rainfed": {
+            "area_1000km2": 10.4468102,
+            "production_mt": 4.0390872593536775
+          },
+          "irrigated": {
+            "area_1000km2": 20.060004,
+            "production_mt": 15.255768240704318
+          }
+        },
+        "2021": {
+          "rainfed": {
+            "area_1000km2": 0.0,
+            "production_mt": 0.0
+          },
+          "irrigated": {
+            "area_1000km2": 25.6040571,
+            "production_mt": 19.580414376682874
+          }
+        },
+        "2022": {
+          "rainfed": {
+            "area_1000km2": 0.0,
+            "production_mt": 0.0
+          },
+          "irrigated": {
+            "area_1000km2": 25.6940079,
+            "production_mt": 19.865973263370016
+          }
+        }
+      },
+      "irrigation_service_2020_to_2022_1000km2": {
+        "2020": 20.060004,
+        "2021": 25.604057,
+        "2022": 25.694008
+      },
+      "surface_withdrawal_2020_km3": 58.219721,
+      "groundwater_withdrawal_2020_km3": 0.0,
+      "outside_affected_technology_activity_difference_count": 25,
+      "outside_affected_2020_nonwater_difference_over_0_01_count": 0,
+      "maximum_absolute_outside_affected_difference": 5.2143469,
+      "largest_outside_affected_differences": [
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2044,
+          "difference": -5.2143469
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2052,
+          "difference": 1.2565000000000008
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2052,
+          "difference": -1.25649933
+        },
+        {
+          "technology": "PHL_POW_PP_SPV",
+          "mode": 1,
+          "year": 2052,
+          "difference": -0.8795499999999947
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2029,
+          "difference": -0.8562739599999999
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2029,
+          "difference": 0.8562739500000001
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2044,
+          "difference": -0.6037800000000004
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2044,
+          "difference": 0.60377955
+        },
+        {
+          "technology": "PHL_POW_PP_SPV",
+          "mode": 1,
+          "year": 2044,
+          "difference": 0.42264000000000124
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2024,
+          "difference": 0.30294893
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2024,
+          "difference": -0.3029488899999999
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2050,
+          "difference": -0.2737613000000001
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2050,
+          "difference": 0.27376100000000037
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2048,
+          "difference": 0.23843300000000056
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2048,
+          "difference": -0.2384327300000001
+        },
+        {
+          "technology": "PHL_POW_PP_SPV",
+          "mode": 1,
+          "year": 2050,
+          "difference": -0.19163000000003194
+        },
+        {
+          "technology": "PHL_POW_PP_SPV",
+          "mode": 1,
+          "year": 2048,
+          "difference": -0.16690000000005512
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2049,
+          "difference": 0.05139877999999998
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2049,
+          "difference": -0.05139873000000006
+        },
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2020,
+          "difference": 0.0017910993
+        }
+      ],
+      "gate_passed": true
+    },
+    "COAL_PHASEOUT": {
+      "baseline_status": "Optimal - objective value 832681.23504832",
+      "candidate_status": "Optimal - objective value 854467.84939736",
+      "objective": 854467.84939736,
+      "objective_change": 21786.61434903997,
+      "objective_change_percent": 2.6164411340164007,
+      "solve_seconds": 130.409787083001,
+      "runtime_ratio_to_v31": 1.3164727143448516,
+      "runtime_acceptance_passed": true,
+      "baseline_rice_2020": {
+        "rainfed": {
+          "area_1000km2": 0.0,
+          "production_mt": 0.0
+        },
+        "irrigated": {
+          "area_1000km2": 15.0520631,
+          "production_mt": 19.29485550489568
+        }
+      },
+      "candidate_rice_2020_to_2022": {
+        "2020": {
+          "rainfed": {
+            "area_1000km2": 10.4468102,
+            "production_mt": 4.0390872593536775
+          },
+          "irrigated": {
+            "area_1000km2": 20.060004,
+            "production_mt": 15.255768240704318
+          }
+        },
+        "2021": {
+          "rainfed": {
+            "area_1000km2": 0.0,
+            "production_mt": 0.0
+          },
+          "irrigated": {
+            "area_1000km2": 25.6040571,
+            "production_mt": 19.580414376682874
+          }
+        },
+        "2022": {
+          "rainfed": {
+            "area_1000km2": 0.0,
+            "production_mt": 0.0
+          },
+          "irrigated": {
+            "area_1000km2": 25.6940079,
+            "production_mt": 19.865973263370016
+          }
+        }
+      },
+      "irrigation_service_2020_to_2022_1000km2": {
+        "2020": 20.060004,
+        "2021": 25.604057,
+        "2022": 25.694008
+      },
+      "surface_withdrawal_2020_km3": 58.219721,
+      "groundwater_withdrawal_2020_km3": 0.0,
+      "outside_affected_technology_activity_difference_count": 30,
+      "outside_affected_2020_nonwater_difference_over_0_01_count": 0,
+      "maximum_absolute_outside_affected_difference": 9.4783107,
+      "largest_outside_affected_differences": [
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2033,
+          "difference": 9.4783107
+        },
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2048,
+          "difference": 5.5101895
+        },
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2044,
+          "difference": 3.6821909999999995
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2021,
+          "difference": 1.8791766
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2021,
+          "difference": -1.8791764999999998
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2023,
+          "difference": 1.199472777
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2023,
+          "difference": -1.19947274
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2048,
+          "difference": 1.0982943
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2048,
+          "difference": -1.0982939999999992
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2047,
+          "difference": -1.0643124
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2047,
+          "difference": 1.0643119999999993
+        },
+        {
+          "technology": "PHL_POW_PP_WON",
+          "mode": 1,
+          "year": 2048,
+          "difference": 0.7688099999999736
+        },
+        {
+          "technology": "PHL_POW_PP_WON",
+          "mode": 1,
+          "year": 2047,
+          "difference": -0.745019999999954
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2040,
+          "difference": -0.5117945000000002
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2040,
+          "difference": 0.5117944999999999
+        },
+        {
+          "technology": "PHL_AGR_HEAT_NG",
+          "mode": 1,
+          "year": 2053,
+          "difference": 0.43992460000000033
+        },
+        {
+          "technology": "PHL_AGR_HEAT_OIL",
+          "mode": 1,
+          "year": 2053,
+          "difference": -0.4399245999999999
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2024,
+          "difference": -0.292285043
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2024,
+          "difference": 0.29228504
+        },
+        {
+          "technology": "PHL_SER_HEAT_OIL",
+          "mode": 1,
+          "year": 2052,
+          "difference": 0.24496039999999986
+        }
+      ],
+      "gate_passed": true
+    },
+    "RE": {
+      "baseline_status": "Optimal - objective value 826050.65517129",
+      "candidate_status": "Optimal - objective value 847837.26946077",
+      "objective": 847837.26946077,
+      "objective_change": 21786.614289479912,
+      "objective_change_percent": 2.637442892041797,
+      "solve_seconds": 140.4315942079993,
+      "runtime_ratio_to_v31": 1.2261555418492909,
+      "runtime_acceptance_passed": true,
+      "baseline_rice_2020": {
+        "rainfed": {
+          "area_1000km2": 0.0,
+          "production_mt": 0.0
+        },
+        "irrigated": {
+          "area_1000km2": 15.0520631,
+          "production_mt": 19.29485550489568
+        }
+      },
+      "candidate_rice_2020_to_2022": {
+        "2020": {
+          "rainfed": {
+            "area_1000km2": 10.4468102,
+            "production_mt": 4.0390872593536775
+          },
+          "irrigated": {
+            "area_1000km2": 20.060004,
+            "production_mt": 15.255768240704318
+          }
+        },
+        "2021": {
+          "rainfed": {
+            "area_1000km2": 0.0,
+            "production_mt": 0.0
+          },
+          "irrigated": {
+            "area_1000km2": 25.6040571,
+            "production_mt": 19.580414376682874
+          }
+        },
+        "2022": {
+          "rainfed": {
+            "area_1000km2": 0.0,
+            "production_mt": 0.0
+          },
+          "irrigated": {
+            "area_1000km2": 25.6940079,
+            "production_mt": 19.865973263370016
+          }
+        }
+      },
+      "irrigation_service_2020_to_2022_1000km2": {
+        "2020": 20.060004,
+        "2021": 25.604057,
+        "2022": 25.694008
+      },
+      "surface_withdrawal_2020_km3": 58.219721,
+      "groundwater_withdrawal_2020_km3": 0.0,
+      "outside_affected_technology_activity_difference_count": 45,
+      "outside_affected_2020_nonwater_difference_over_0_01_count": 0,
+      "maximum_absolute_outside_affected_difference": 3.9822925,
+      "largest_outside_affected_differences": [
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2049,
+          "difference": -3.9822925
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2053,
+          "difference": -2.9195691
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2053,
+          "difference": 2.9195690000000027
+        },
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2048,
+          "difference": -2.6910155
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2047,
+          "difference": 1.9697463
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2047,
+          "difference": -1.9697459999999989
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2028,
+          "difference": -1.0056599
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2028,
+          "difference": 1.0056598
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2043,
+          "difference": 0.85055708
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2043,
+          "difference": -0.8505570000000002
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2051,
+          "difference": 0.7466248000000002
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2051,
+          "difference": -0.7466239999999988
+        },
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2027,
+          "difference": 0.70636468
+        },
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2032,
+          "difference": -0.63914628
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2049,
+          "difference": -0.5336052199999999
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2049,
+          "difference": 0.5336050000000014
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2046,
+          "difference": -0.48100400000000043
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2046,
+          "difference": 0.4810039800000001
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2034,
+          "difference": 0.43489291999999996
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2034,
+          "difference": -0.43489291620000003
+        }
+      ],
+      "gate_passed": true
+    },
+    "EV": {
+      "baseline_status": "Optimal - objective value 793751.53299466",
+      "candidate_status": "Optimal - objective value 815538.14726765",
+      "objective": 815538.14726765,
+      "objective_change": 21786.61427299003,
+      "objective_change_percent": 2.7447650010568925,
+      "solve_seconds": 140.42719862500235,
+      "runtime_ratio_to_v31": 1.2344163029623976,
+      "runtime_acceptance_passed": true,
+      "baseline_rice_2020": {
+        "rainfed": {
+          "area_1000km2": 0.0,
+          "production_mt": 0.0
+        },
+        "irrigated": {
+          "area_1000km2": 15.0520631,
+          "production_mt": 19.29485550489568
+        }
+      },
+      "candidate_rice_2020_to_2022": {
+        "2020": {
+          "rainfed": {
+            "area_1000km2": 10.4468102,
+            "production_mt": 4.0390872593536775
+          },
+          "irrigated": {
+            "area_1000km2": 20.060004,
+            "production_mt": 15.255768240704318
+          }
+        },
+        "2021": {
+          "rainfed": {
+            "area_1000km2": 0.0,
+            "production_mt": 0.0
+          },
+          "irrigated": {
+            "area_1000km2": 25.6040571,
+            "production_mt": 19.580414376682874
+          }
+        },
+        "2022": {
+          "rainfed": {
+            "area_1000km2": 0.0,
+            "production_mt": 0.0
+          },
+          "irrigated": {
+            "area_1000km2": 25.6940079,
+            "production_mt": 19.865973263370016
+          }
+        }
+      },
+      "irrigation_service_2020_to_2022_1000km2": {
+        "2020": 20.060004,
+        "2021": 25.604057,
+        "2022": 25.694008
+      },
+      "surface_withdrawal_2020_km3": 58.219721,
+      "groundwater_withdrawal_2020_km3": 0.0,
+      "outside_affected_technology_activity_difference_count": 34,
+      "outside_affected_2020_nonwater_difference_over_0_01_count": 0,
+      "maximum_absolute_outside_affected_difference": 2.2505348792,
+      "largest_outside_affected_differences": [
+        {
+          "technology": "ENV_WATER",
+          "mode": 2,
+          "year": 2053,
+          "difference": 2.2505348792
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2052,
+          "difference": 1.3530570000000015
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2052,
+          "difference": -1.3530564
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2050,
+          "difference": 1.0754659999999987
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2050,
+          "difference": -1.0754656999999999
+        },
+        {
+          "technology": "PHL_POW_PP_SPV",
+          "mode": 1,
+          "year": 2052,
+          "difference": -0.947140000000104
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2024,
+          "difference": 0.9078369
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2024,
+          "difference": -0.9078368999999995
+        },
+        {
+          "technology": "PHL_POW_PP_SPV",
+          "mode": 1,
+          "year": 2050,
+          "difference": -0.7528199999999288
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2046,
+          "difference": -0.64893716
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2046,
+          "difference": 0.6489370000000001
+        },
+        {
+          "technology": "PHL_POW_PP_SPV",
+          "mode": 1,
+          "year": 2046,
+          "difference": -0.4542600000000334
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2051,
+          "difference": -0.4200619999999997
+        },
+        {
+          "technology": "PHL_DEM_PWR_GWT_WAT",
+          "mode": 1,
+          "year": 2051,
+          "difference": 0.4200619000000001
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2047,
+          "difference": -0.37090194
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2047,
+          "difference": 0.37090192
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_FIT_OLD",
+          "mode": 1,
+          "year": 2053,
+          "difference": 0.33981481
+        },
+        {
+          "technology": "PHL_POW_CHP_BIOM_OLD",
+          "mode": 1,
+          "year": 2053,
+          "difference": -0.33981478
+        },
+        {
+          "technology": "PHL_POW_PP_SPV",
+          "mode": 1,
+          "year": 2051,
+          "difference": 0.2940399999999954
+        },
+        {
+          "technology": "PHL_DEM_PWR_SUR_WAT",
+          "mode": 1,
+          "year": 2047,
+          "difference": -0.28501200000000004
+        }
+      ],
+      "gate_passed": true
+    }
+  },
+  "advisories": [
+    "Rainfed 2020 area remains 28.7% below the benchmark although the production split is substantially restored.",
+    "Groundwater withdrawal remains zero in every scenario.",
+    "Rice activity remains concentrated in clusters 5 and 7; observed yields now support that ranking, but the national pooled-cropland formulation does not preserve province crop area.",
+    "From 2021 the optimizer expands irrigation service to about 25.60 thousand km2 and returns rainfed rice to zero; the inherited 2020 stock is reproduced, but the forward irrigation build rate and economics require a high-priority follow-up.",
+    "Policy-run wall times include concurrent CPU contention and are not clean serial benchmarks. Later-year differences outside the land/agriculture technology family are small endogenous or degenerate substitutions; 2020 has no non-water difference above 0.01 outside scope."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "status": "promoted_and_verified",
+  "date": "2026-08-27",
+  "promotion_mode": "first_publication",
+  "live_case": "WebAPP/DataStorage/Philippines_v32",
+  "parent_case": "WebAPP/DataStorage/Philippines_v31",
+  "candidate_before_promotion": "WebAPP/DataStorage/.Philippines_v32-rice-yield-candidate-20260827",
+  "candidate_after_promotion_exists": false,
+  "backup_created": false,
+  "sealed_file_count": 631,
+  "seal_sha256": "824dadeb617bfe3e12bdeb101b90af1e97bfb9e78ebfd36b99ab201424cca884",
+  "required_runs": [
+    "BASE_V32_RICE_YIELD",
+    "COAL_PHASEOUT_V32_RICE_YIELD",
+    "RE_V32_RICE_YIELD",
+    "EV_V32_RICE_YIELD"
+  ],
+  "post_promotion_seal_verification": "pass",
+  "generation_runs_during_promotion": 0,
+  "preprocess_runs_during_promotion": 0,
+  "glpsol_runs_during_promotion": 0,
+  "optimizer_runs_during_promotion": 0,
+  "accepted_followup": "Audit the physical and economic drivers of endogenous irrigation expansion from 2.006 Mha in 2020 to 2.560 Mha in 2021; do not impose an arbitrary rice-area or irrigation-share constraint."
+}
