@@ -1,0 +1,76 @@
+{
+  "schema": "philippines-v33-historical-comparison-register-evidence-v1",
+  "generated_date": "2026-08-27",
+  "case": "Philippines_v33",
+  "run": "BASE_V33_GAS_DELIVERY",
+  "read_only_extraction": true,
+  "validation": {
+    "unique_comparison_ids": true,
+    "score_ready_required_fields_complete": true,
+    "source_ids_resolve_in_register_source_catalog": true,
+    "non_score_ready_rows_have_exclusion_or_gap_reasons": true
+  },
+  "row_counts": {
+    "total": 30,
+    "score_ready": 19,
+    "diagnostic_only": 7,
+    "evidence_gap": 4
+  },
+  "modeled_metrics": {
+    "water_2020_km3": {
+      "surface_irrigation": 58.2197,
+      "groundwater_irrigation": 0.0,
+      "surface_public": 3.7202,
+      "groundwater_public": 0.0,
+      "surface_power": 10.5634,
+      "groundwater_power": 0.0,
+      "irrigation_total": 58.2197,
+      "total": 72.50330000000001,
+      "surface_total": 72.5033,
+      "groundwater_total": 0.0
+    },
+    "rice_2020": {
+      "rainfed_area": 10.4468,
+      "irrigated_area": 20.06,
+      "rainfed_production": 4.0392,
+      "irrigated_production": 15.255599999999992,
+      "total_area": 30.5068,
+      "total_production": 19.29479999999999
+    },
+    "managed_crop_activity_1000km2": 73.11149999999999,
+    "emissions_2020_mtco2e": {
+      "total": 158.7154,
+      "energy_including_transport": 128.89659999999998,
+      "crop": 29.8188,
+      "rice_ch4": 24.242499668897075,
+      "managed_soil_n2o": 5.576300331102924
+    },
+    "aff_energy_2020_pj": {
+      "total": 50.528499999999994,
+      "electricity": 16.754800000000003,
+      "electricity_share": 0.33159108226050654
+    },
+    "crop_residue_supply_activity_2020_pj": 110.3467
+  },
+  "observed_metrics_and_calculations": {
+    "power": "Existing documentation/doe_power_validation_2020_2024.csv values; GWh converted to PJ at 0.0036 PJ/GWh.",
+    "rice": "PSA 2020: irrigation service area 2.006 Mha = 20.06 thousand km2; rainfed harvested area 1.46544173 Mha = 14.6544173 thousand km2; production 14.57176519 + 4.72309035 = 19.29485554 Mt.",
+    "water": "AQUASTAT 2020 agricultural withdrawal 67.85109005 km3; 2006 irrigation-only reference 65.59 km3; revised PSA 2020 total abstraction 218.58 km3 and 2024 surface share 0.976; earlier retained PSA release gives 218.46 km3.",
+    "climate": "BTR 2020 energy 99.854 + transport 29.431 = 129.285 MtCO2e (NDC table rounded 129.286); agriculture 54.080; forestry -71.355 + other land use 45.420 = -25.935. Retained GHGI extract: rice CH4 26.985; managed-soil N2O 6.875 + 2.277 = 9.152.",
+    "nexus": "Retained DOE extract: AFF energy 438.8 ktoe x 0.041868 PJ/ktoe = 18.3716784 PJ; electricity share 0.656. DOE agriwaste 836 ktoe x 0.041868 PJ/ktoe = 35.001648 PJ."
+  },
+  "source_hashes": {
+    "res/BASE_V33_GAS_DELIVERY/csv/TotalAnnualTechnologyActivityByMode.csv": "7f68283da3f5460d3b1be2a9e475669a626e256b4caacfd791931692f6a1c5ab",
+    "res/BASE_V33_GAS_DELIVERY/csv/UseByTechnologyByMode.csv": "062bb64c7652c433006dd967a0ddaa7344d62939817f70391f5f85750737b250",
+    "res/BASE_V33_GAS_DELIVERY/csv/ProductionByTechnologyByMode.csv": "b23f496e926839ec8f1e496fbd30a1dabb70ab0deef29839cf1f842f8bbb355c",
+    "res/BASE_V33_GAS_DELIVERY/csv/AnnualTechnologyEmission.csv": "7e2173f606f4facc1f1c770d5eb0d2f1f32e0518b9d520cfb3bcf5abf2d2e0c2",
+    "res/BASE_V33_GAS_DELIVERY/csv/AnnualTechnologyEmissionByMode.csv": "601603cf638a15ca9fe020a8000a6e1418756cc20595aa3852b9c2ca7851d09e",
+    "documentation/doe_power_validation_2020_2024.csv": "403bcc1db577ff504f9fbec38cbee6ddba77982068b463895f7b3d0e7b46644b",
+    "documentation/gas_delivery_four_scenario_validation_v33.json": "8c30196a5a897c1e5f11d242717d43e5b22408110c6d4b55fadbad5c84f1b5c5",
+    "data_sources/SOURCES.csv": "80d888f1aabad2fb25a72c9b04f6b221c9934323515f7327c4767db31d099665",
+    "data_sources/snapshots/aquastat_philippines_irrigation_boundary_2026-08-11.json": "f63485ee3a8c8ddee5936d5de7ce3a5bd42040d025477c0f58fc80fdf87366b8",
+    "data_sources/snapshots/psa_openstat_agriculture_2020.json": "30d7ab1b45c07a1847f48e9c1eddbcba5197e0dbecc2aa9bc20a2284beba9122",
+    "data_sources/snapshots/philippines_v22_transition_scope_extracts_2026-08-20.json": "10ee8b46f4f8438851c12804ceddd6dff04bb5c55df1a787dbf7bf2e614017a3"
+  },
+  "classification_rule": "score_ready means aligned enough for quantitative fit; diagnostic_only preserves a useful but mismatched boundary/period; evidence_gap records a missing observed or modeled counterpart."
+}
