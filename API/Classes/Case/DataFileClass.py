@@ -1739,15 +1739,22 @@ class DataFile(Osemosys):
             data_itnc = data['InputToNewCapacityRatio']
             data_ittc = data['InputToTotalCapacityRatio']
                             
-            data_out = list(set(data_out))
-            data_inp = list(set(data_inp))
-            data_all = list(set(data_all))
-            data_emi = list(set(data_emi))
-            data_emichange = list(set(data_emichange))
-            data_tts = list(set(data_tts))
-            data_tfs = list(set(data_tfs))
-            data_itnc = list(set(data_itnc))
-            data_ittc = list(set(data_ittc))
+            # Deterministic de-duplication: preserve first-seen order (the order the
+            # rows were parsed from the data file) instead of hash-set order.
+            # list(set(...)) reorders by hash, which Python randomizes per process
+            # (PYTHONHASHSEED) -> a differently ordered LP -> the solver returns a
+            # different (equally optimal, same-cost) solution on each run. dict.fromkeys
+            # keeps insertion order, so the LP and results are stable no matter how the
+            # run is launched (web UI, direct python, MUIOGO-AI over HTTP).
+            data_out = list(dict.fromkeys(data_out))
+            data_inp = list(dict.fromkeys(data_inp))
+            data_all = list(dict.fromkeys(data_all))
+            data_emi = list(dict.fromkeys(data_emi))
+            data_emichange = list(dict.fromkeys(data_emichange))
+            data_tts = list(dict.fromkeys(data_tts))
+            data_tfs = list(dict.fromkeys(data_tfs))
+            data_itnc = list(dict.fromkeys(data_itnc))
+            data_ittc = list(dict.fromkeys(data_ittc))
 
             dict_out = defaultdict(list)
             dict_inp = defaultdict(list)

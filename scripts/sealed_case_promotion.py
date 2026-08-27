@@ -163,7 +163,7 @@ def verify_seal(case: Path) -> dict:
     return manifest
 
 
-def promote_case(candidate: Path, live: Path, backup: Path, execute: bool) -> dict:
+def promote_case(candidate: Path, live: Path, backup: Path, execute: bool, allow_new: bool = False) -> dict:
     candidate = candidate.resolve()
     live = live.parent.resolve() / live.name
     backup = backup.parent.resolve() / backup.name
@@ -172,20 +172,24 @@ def promote_case(candidate: Path, live: Path, backup: Path, execute: bool) -> di
         raise RuntimeError(f"seal targets {manifest['final_case_name']}, not {live.name}")
     if candidate.parent != live.parent or live.parent != backup.parent:
         raise RuntimeError("candidate, live case and backup must be siblings")
-    if not live.is_dir():
+    live_exists = live.is_dir()
+    if live.exists() and not live_exists:
+        raise RuntimeError(f"live path exists but is not a directory: {live}")
+    if not live_exists and not allow_new:
         raise FileNotFoundError(live)
     if backup.exists():
         raise FileExistsError(backup)
     if len({candidate, live, backup}) != 3:
         raise RuntimeError("candidate, live case and backup must be distinct")
     device = candidate.stat().st_dev
-    if live.stat().st_dev != device or live.parent.stat().st_dev != device:
+    if (live_exists and live.stat().st_dev != device) or live.parent.stat().st_dev != device:
         raise RuntimeError("promotion must remain on one filesystem")
     report = {
         "status": "ready" if not execute else "promoted",
         "candidate": str(candidate),
         "live": str(live),
         "backup": str(backup),
+        "promotion_mode": "replace" if live_exists else "first_publication",
         "sealed_file_count": len(manifest["files"]),
         "generation_runs": 0,
         "preprocess_runs": 0,
@@ -194,12 +198,15 @@ def promote_case(candidate: Path, live: Path, backup: Path, execute: bool) -> di
     }
     if not execute:
         return report
-    os.rename(live, backup)
-    try:
+    if not live_exists:
         os.rename(candidate, live)
-    except BaseException:
-        os.rename(backup, live)
-        raise
+    else:
+        os.rename(live, backup)
+        try:
+            os.rename(candidate, live)
+        except BaseException:
+            os.rename(backup, live)
+            raise
     return report
 
 
@@ -217,6 +224,7 @@ def parser() -> argparse.ArgumentParser:
     promote.add_argument("--candidate", type=Path, required=True)
     promote.add_argument("--live", type=Path, required=True)
     promote.add_argument("--backup", type=Path, required=True)
+    promote.add_argument("--allow-new", action="store_true", help="allow first publication when the live case does not yet exist")
     promote.add_argument("--execute", action="store_true", help="perform the rename; default is dry-run")
     return root
 
@@ -230,7 +238,7 @@ def main() -> None:
         result = verify_seal(args.candidate)
         output = {"status": "verified", "files": len(result["files"]), "runs": result["required_runs"]}
     else:
-        output = promote_case(args.candidate, args.live, args.backup, args.execute)
+        output = promote_case(args.candidate, args.live, args.backup, args.execute, args.allow_new)
     print(json.dumps(output, indent=2, sort_keys=True))
 
 
