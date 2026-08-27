@@ -1,0 +1,122 @@
+{
+  "schema": "philippines-v33-historical-heat-cooking-processing-benchmarks-v1",
+  "access_date": "2026-08-27",
+  "observation_year": 2020,
+  "purpose": "Benchmark-only evidence for industrial heat, services heating, household cooking and fossil-fuel processing. No observation in this file is a model constraint.",
+  "unit_conversions": {
+    "pj_per_mtoe": 41.868,
+    "natural_gas_mmscf_to_pj": 0.00109303786331432,
+    "natural_gas_conversion_basis": "Existing v33 full-precision conversion: 1036 Btu/scf and 1055.05585262 J/Btu."
+  },
+  "benchmarks": {
+    "industry_final_energy": {
+      "total_mtoe": 6.21,
+      "fuel_share_fraction": {
+        "oil": 0.251,
+        "coal": 0.2408,
+        "natural_gas": 0.006,
+        "biodiesel": 0.0021,
+        "electricity": 0.3543,
+        "biomass": 0.1459
+      },
+      "source_locator": "Philippine Energy Plan 2020-2040, Table 73, 2020 levels and percent shares.",
+      "boundary_note": "Whole-industry final energy, including motive power and non-heat electricity. It is not a process-heat-only balance and is therefore diagnostic against the model's industrial heat routes."
+    },
+    "services_final_energy": {
+      "total_mtoe_rounded": 4.6,
+      "fuel_share_fraction": {
+        "oil": 0.504,
+        "electricity": 0.387,
+        "biomass": 0.101,
+        "biodiesel": 0.008
+      },
+      "oil_aggregation": "Diesel 40.7% + LPG 7.0% + fuel oil 2.7% = 50.4%.",
+      "source_locator": "2020 Philippine Energy Situationer, Figure 10.",
+      "boundary_note": "Whole-services final energy, not heating-only energy. It is therefore diagnostic against the model's services-heating routes."
+    },
+    "household_primary_cooking_fuel": {
+      "published_share_fraction": {
+        "lpg": 0.479,
+        "wood": 0.322,
+        "charcoal": 0.072,
+        "electricity": 0.068,
+        "kerosene": 0.052,
+        "other_fuels": 0.003
+      },
+      "covered_sum": 0.996,
+      "model_route_aggregation_before_normalization": {
+        "oil": 0.531,
+        "electricity": 0.068,
+        "charcoal": 0.072,
+        "biomass_and_other": 0.325
+      },
+      "model_route_aggregation_normalized": {
+        "oil": 0.5331325301204819,
+        "electricity": 0.06827309236947791,
+        "charcoal": 0.07228915662650602,
+        "biomass_and_other": 0.3263052208835341
+      },
+      "source_locator": "PSA Household Characteristics, 2020 CPH, paragraph 11 and Figure 4.",
+      "boundary_note": "Share of households reporting the fuel used most of the time for cooking, not cooking energy or useful-service share. The same observation informed the v23 cooking proxy and initial-stock mix, so it is not independent validation."
+    },
+    "oil_refining": {
+      "marketable_products_mtoe": 4.5,
+      "marketable_products_pj": 188.406,
+      "refinery_output_million_barrels": 34.6,
+      "source_locator": "2020 Philippine Energy Situationer, Transformation, Oil Refining, Figure 12.",
+      "boundary_note": "Domestic refinery output. The model oil-processing route also carries the aggregate imported-oil supply pool and therefore is not an aligned refinery-only result."
+    },
+    "natural_gas": {
+      "production_mmscf": 141732,
+      "consumption_mmscf": 133606,
+      "consumption_pj": 146.0359669258191,
+      "power_consumption_mmscf": 132009,
+      "industrial_consumption_mmscf": 1597,
+      "source_locator": "DOE Natural Gas Development Plan, 2020 narrative and natural-gas consumption/production table.",
+      "boundary_note": "National delivered natural-gas consumption; aligned with output of the model's national natural-gas processing route in 2020, before LNG imports."
+    },
+    "coal": {
+      "total_consumption_million_metric_tonnes": 32.85,
+      "total_consumption_mtoe": 17.34,
+      "total_consumption_pj": 725.99112,
+      "power_input_million_metric_tonnes": 29.76,
+      "power_input_mtoe": 15.7,
+      "industry_consumption_million_metric_tonnes": 3.09,
+      "industry_consumption_mtoe": 1.63,
+      "source_locator": "Philippine Energy Plan 2020-2040, Table 11 and surrounding 2020 coal-consumption text.",
+      "boundary_note": "National coal consumption across power and industry; aligned with output of the model's national coal-processing route."
+    }
+  },
+  "sources": {
+    "psa_cooking": {
+      "provider": "Philippine Statistics Authority",
+      "title": "Household Characteristics (2020 Census of Population and Housing)",
+      "url": "https://psa.gov.ph/statistics/population-and-housing/node/1684059981",
+      "source_type": "Primary national statistics"
+    },
+    "doe_situationer_2020": {
+      "provider": "Philippine Department of Energy",
+      "title": "2020 Philippine Energy Situationer and Key Energy Statistics",
+      "url": "https://legacy.doe.gov.ph/sites/default/files/pdf/energy_statistics/doe-pes-kes-2020-rev_13June2023.pdf",
+      "source_type": "Primary national energy statistics"
+    },
+    "doe_pep_2020_2040": {
+      "provider": "Philippine Department of Energy",
+      "title": "Philippine Energy Plan 2020-2040",
+      "url": "https://legacy.doe.gov.ph/sites/default/files/pdf/pep/PEP-2020-2040-Final%20eCopy-as-of-15-June-2023.pdf",
+      "source_type": "Primary national energy plan and historical tables"
+    },
+    "doe_natural_gas_plan": {
+      "provider": "Philippine Department of Energy",
+      "title": "Natural Gas Development Plan",
+      "url": "https://legacy.doe.gov.ph/sites/default/files/pdf/downstream_natgas/NaturalGasDevelopmentPlan.pdf",
+      "source_type": "Primary national gas-sector report"
+    }
+  },
+  "research_limitations": [
+    "No national 2020 process-heat-only fuel balance was located for industry.",
+    "No national 2020 heating-only fuel balance was located for services.",
+    "No nationally representative 2020 cooking-energy-by-fuel table with device efficiencies was located; PSA reports primary household fuel instead.",
+    "The legacy DOE PDF URLs were discoverable and their indexed tables/text were checked, but direct byte retrieval was unavailable during this research pass; this normalized extract preserves the exact values and locators used."
+  ]
+}

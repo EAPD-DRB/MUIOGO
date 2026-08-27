@@ -67,6 +67,7 @@ def main() -> None:
     aquastat_snapshot_path = case / "data_sources" / "snapshots" / "aquastat_philippines_irrigation_boundary_2026-08-11.json"
     psa_agriculture_snapshot_path = case / "data_sources" / "snapshots" / "psa_openstat_agriculture_2020.json"
     ghgi_extract_path = case / "data_sources" / "snapshots" / "philippines_v22_transition_scope_extracts_2026-08-20.json"
+    heat_cooking_processing_path = case / "data_sources" / "snapshots" / "historical_heat_cooking_processing_2020_2026-08-27.json"
 
     activity_rows = read_csv(activity_path)
     use_rows = read_csv(use_path)
@@ -76,6 +77,7 @@ def main() -> None:
     doe_rows = read_csv(doe_path)
     gas_validation = read_json(gas_validation_path)
     ghgi_extract = read_json(ghgi_extract_path)
+    heat_cooking_processing = read_json(heat_cooking_processing_path)
 
     activity = defaultdict(float)
     for row in activity_rows:
@@ -142,6 +144,72 @@ def main() -> None:
             aff_electricity += value
     aff_electricity_share = aff_electricity / aff_energy
 
+    fuel_by_commodity = {
+        "PHL_PRO_OIL": "oil",
+        "PHL_PRO_NG": "natural_gas",
+        "PHL_PRO_COAL": "coal",
+        "PHL_PRO_BIOM": "biomass",
+        "PHL_INDU_ELE": "electricity",
+        "PHL_SER_ELE": "electricity",
+        "PHL_POW_H2": "hydrogen",
+    }
+    industrial_input_by_fuel = defaultdict(float)
+    services_heat_input_by_fuel = defaultdict(float)
+    for row in use_rows:
+        if row["y"] != YEAR or row["f"] not in fuel_by_commodity:
+            continue
+        fuel = fuel_by_commodity[row["f"]]
+        value = float(row["UseByTechnologyByMode"])
+        if row["t"].startswith("PHL_INDU_OTHLPH_") or row["t"].startswith("PHL_INDU_OTHHPH_"):
+            industrial_input_by_fuel[fuel] += value
+        if row["t"].startswith("PHL_SER_HEAT_"):
+            services_heat_input_by_fuel[fuel] += value
+
+    def with_shares(values: dict[str, float], fuels: tuple[str, ...]) -> dict:
+        total = sum(values.values())
+        if total <= 0:
+            raise ValueError("Cannot calculate fuel shares from a non-positive total")
+        return {
+            "total_pj": total,
+            "input_by_fuel_pj": {fuel: values.get(fuel, 0.0) for fuel in fuels},
+            "share_by_fuel": {fuel: values.get(fuel, 0.0) / total for fuel in fuels},
+        }
+
+    industrial_heat = with_shares(
+        industrial_input_by_fuel,
+        ("oil", "coal", "natural_gas", "electricity", "biomass", "hydrogen"),
+    )
+    services_heat = with_shares(
+        services_heat_input_by_fuel,
+        ("oil", "natural_gas", "coal", "electricity", "biomass"),
+    )
+
+    cooking_technology_fuel = {
+        "PHL_HOU_COOK_OIL": "oil",
+        "PHL_HOU_COOK_ELE": "electricity",
+        "PHL_HOU_COOK_NG": "natural_gas",
+        "PHL_HOU_COOK_CHARCOAL_OLD": "charcoal",
+        "PHL_HOU_COOK_BIOM": "biomass_and_other",
+    }
+    cooking_activity_by_fuel = defaultdict(float)
+    for (tech, _mode, year), value in activity.items():
+        if year == YEAR and tech in cooking_technology_fuel:
+            cooking_activity_by_fuel[cooking_technology_fuel[tech]] += value
+    cooking = with_shares(
+        cooking_activity_by_fuel,
+        ("oil", "electricity", "natural_gas", "charcoal", "biomass_and_other"),
+    )
+
+    processing_technology_fuel = {
+        "PHL_PRO_PROC_OIL": "oil",
+        "PHL_PRO_PROC_NG": "natural_gas",
+        "PHL_PRO_PROC_COAL": "coal",
+    }
+    processing_output_pj = defaultdict(float)
+    for row in production_rows:
+        if row["y"] == YEAR and row["t"] in processing_technology_fuel:
+            processing_output_pj[processing_technology_fuel[row["t"]]] += float(row["ProductionByTechnologyByMode"])
+
     biomass_crop_residue = sum(
         value for (tech, _mode, year), value in activity.items()
         if tech == "PHL_PRO_SUP_CROP_RESIDUE" and year == YEAR
@@ -201,6 +269,87 @@ def main() -> None:
             result_ref=f"gas_delivery_four_scenario_validation_v33.json:BASE:{year}:legacy_gas_generation_pj",
             constraint_refs="gas extraction envelope; residual gas stock; plant availability; VOM; take-or-pay economics",
             uncertainty="15% tolerance reflects annual copperplate aggregation and plant-class representation")
+
+    benchmark = heat_cooking_processing["benchmarks"]
+    pep_url = heat_cooking_processing["sources"]["doe_pep_2020_2040"]["url"]
+    situationer_2020_url = heat_cooking_processing["sources"]["doe_situationer_2020"]["url"]
+    psa_cooking_url = heat_cooking_processing["sources"]["psa_cooking"]["url"]
+    gas_plan_url = heat_cooking_processing["sources"]["doe_natural_gas_plan"]["url"]
+
+    for fuel, label in (
+        ("oil", "Oil"),
+        ("coal", "Coal"),
+        ("natural_gas", "Natural gas"),
+        ("electricity", "Electricity"),
+        ("biomass", "Biomass"),
+    ):
+        add(f"ENE-IND-HEAT-{fuel.upper()}-SHARE-2020", "energy",
+            f"{label} share of industrial process-heat input",
+            benchmark["industry_final_energy"]["fuel_share_fraction"][fuel],
+            industrial_heat["share_by_fuel"][fuel], "fraction", "diagnostic_only", "E",
+            source_id="SRC_PHL_DOE_PEP_2020_2040_INDUSTRY_COAL", source_url=pep_url,
+            observed_boundary="DOE whole-industry final-energy fuel share",
+            modeled_boundary="Fuel input to PHL_INDU_OTHLPH_* and PHL_INDU_OTHHPH_* process-heat routes",
+            result_ref="UseByTechnologyByMode.csv:industrial low/high process-heat technologies, 2020",
+            constraint_refs="industrial process-heat service demand; residual stocks; efficiencies; fuel and route costs",
+            uncertainty="Not scoreable: the official denominator includes all industrial final energy, while the model denominator is process heat only.")
+
+    for fuel, label in (("oil", "Oil"), ("electricity", "Electricity"), ("biomass", "Biomass")):
+        add(f"ENE-SER-HEAT-{fuel.upper()}-SHARE-2020", "energy",
+            f"{label} share of services-heating input",
+            benchmark["services_final_energy"]["fuel_share_fraction"][fuel],
+            services_heat["share_by_fuel"][fuel], "fraction", "diagnostic_only", "E",
+            source_id="SRC_PHL_DOE_PES_KES_2020_SERVICES_REFINING", source_url=situationer_2020_url,
+            observed_boundary="DOE whole-services final-energy fuel share",
+            modeled_boundary="Fuel input to PHL_SER_HEAT_* routes",
+            result_ref="UseByTechnologyByMode.csv:services-heating technologies, 2020",
+            constraint_refs="services heat demand; residual stocks; efficiencies; fuel and route costs",
+            uncertainty="Not scoreable: the official denominator includes all services final energy, while the model denominator is heating only.")
+
+    for fuel, label in (
+        ("oil", "Oil (LPG and kerosene)"),
+        ("electricity", "Electricity"),
+        ("charcoal", "Charcoal"),
+        ("biomass_and_other", "Wood and other fuels"),
+    ):
+        add(f"ENE-HOU-COOK-{fuel.upper()}-SHARE-2020", "energy",
+            f"{label} share of household cooking",
+            benchmark["household_primary_cooking_fuel"]["model_route_aggregation_normalized"][fuel],
+            cooking["share_by_fuel"][fuel], "fraction", "diagnostic_only", "J",
+            source_id="SRC_PHL_V23_BIOMASS_PSA_COOKING", source_url=psa_cooking_url,
+            observed_boundary="Normalized share of households reporting the fuel used most of the time for cooking",
+            modeled_boundary="Share of solved useful-cooking activity across household cooking routes",
+            result_ref="TotalAnnualTechnologyActivityByMode.csv:PHL_HOU_COOK_*, 2020",
+            constraint_refs="useful-cooking demand; residual cooking stocks; route efficiencies; fuel and route costs",
+            uncertainty="Not scoreable: household incidence is not an energy/service share, and this PSA observation informed the v23 cooking proxy and initial-stock mix.")
+
+    add("ENE-PROC-OIL-2020", "energy", "Domestic refinery marketable output",
+        benchmark["oil_refining"]["marketable_products_pj"], processing_output_pj["oil"], "PJ",
+        "diagnostic_only", "E", source_id="SRC_PHL_DOE_PES_KES_2020_SERVICES_REFINING",
+        source_url=situationer_2020_url,
+        observed_boundary="DOE domestic-refinery marketable petroleum-product output",
+        modeled_boundary="Output of PHL_PRO_PROC_OIL, which processes the aggregate raw-oil pool including the model's oil-import route",
+        result_ref="ProductionByTechnologyByMode.csv:PHL_PRO_PROC_OIL, PHL_PRO_OIL, 2020",
+        constraint_refs="oil-service demands; crude/import supply; processing efficiency and cost",
+        uncertainty="Not scoreable: imported crude and finished products are not separated, so the model processor is broader than domestic refinery output.")
+    add("ENE-PROC-NG-2020", "energy", "National natural-gas consumption",
+        benchmark["natural_gas"]["consumption_pj"], processing_output_pj["natural_gas"], "PJ",
+        "score_ready", "E", tolerance=0.05, source_id="SRC_PHL_DOE_NATGAS_DEVELOPMENT_PLAN",
+        source_url=gas_plan_url,
+        observed_boundary="DOE national delivered natural-gas consumption before LNG imports",
+        modeled_boundary="Output of PHL_PRO_PROC_NG supplied by domestic raw gas in 2020",
+        result_ref="ProductionByTechnologyByMode.csv:PHL_PRO_PROC_NG, PHL_PRO_NG, 2020",
+        constraint_refs="domestic gas deliverability; gas-consuming technologies; processing efficiency and cost",
+        notes="Observed 133,606 MMSCF converted with the existing v33 full-precision gas conversion.")
+    add("ENE-PROC-COAL-2020", "energy", "National coal consumption",
+        benchmark["coal"]["total_consumption_pj"], processing_output_pj["coal"], "PJ",
+        "score_ready", "E", tolerance=0.10, source_id="SRC_PHL_DOE_PEP_2020_2040_INDUSTRY_COAL",
+        source_url=pep_url,
+        observed_boundary="DOE national coal consumption across power and industry",
+        modeled_boundary="Output of PHL_PRO_PROC_COAL to all national coal users",
+        result_ref="ProductionByTechnologyByMode.csv:PHL_PRO_PROC_COAL, PHL_PRO_COAL, 2020",
+        constraint_refs="power and industry service demands; coal supply/trade; processing efficiency and cost",
+        notes="Observed 17.34 MTOE converted at 41.868 PJ/MTOE; the 10% tolerance is declared independently of the model result.")
 
     add("LND-RICE-IRR-AREA-2020", "land", "Irrigated rice area", 20.06, rice["irrigated_area"], "1000 km2",
         "score_ready", "J", tolerance=0.10, source_id="SRC_PSA_SSAF_2022",
@@ -424,6 +573,50 @@ def main() -> None:
             "local_evidence_sha256": sha256(sources_path),
             "provenance_note": "Existing canonical v33 source-ledger entry reused; commodity mismatch keeps it diagnostic-only.",
         },
+        {
+            "source_id": "SRC_PHL_DOE_PEP_2020_2040_INDUSTRY_COAL",
+            "provider": "Philippine Department of Energy",
+            "title": "Philippine Energy Plan 2020-2040",
+            "observation_period": "2020",
+            "indicators_used": "industry final-energy fuel shares; total coal consumption",
+            "source_url": heat_cooking_processing["sources"]["doe_pep_2020_2040"]["url"],
+            "local_evidence": "data_sources/snapshots/historical_heat_cooking_processing_2020_2026-08-27.json",
+            "local_evidence_sha256": sha256(heat_cooking_processing_path),
+            "provenance_note": "Official national tables retained at published precision. Industry shares remain diagnostic because no process-heat-only national table was located; total coal consumption is aligned and score-ready.",
+        },
+        {
+            "source_id": "SRC_PHL_DOE_PES_KES_2020_SERVICES_REFINING",
+            "provider": "Philippine Department of Energy",
+            "title": "2020 Philippine Energy Situationer and Key Energy Statistics",
+            "observation_period": "2020",
+            "indicators_used": "services final-energy fuel shares; domestic refinery output",
+            "source_url": heat_cooking_processing["sources"]["doe_situationer_2020"]["url"],
+            "local_evidence": "data_sources/snapshots/historical_heat_cooking_processing_2020_2026-08-27.json",
+            "local_evidence_sha256": sha256(heat_cooking_processing_path),
+            "provenance_note": "Official national values retained at published precision; both comparisons remain diagnostic because the model boundaries are narrower for services heat and broader for oil processing.",
+        },
+        {
+            "source_id": "SRC_PHL_DOE_NATGAS_DEVELOPMENT_PLAN",
+            "provider": "Philippine Department of Energy",
+            "title": "Natural Gas Development Plan",
+            "observation_period": "2020",
+            "indicators_used": "national natural-gas production and consumption",
+            "source_url": heat_cooking_processing["sources"]["doe_natural_gas_plan"]["url"],
+            "local_evidence": "data_sources/snapshots/historical_heat_cooking_processing_2020_2026-08-27.json",
+            "local_evidence_sha256": sha256(heat_cooking_processing_path),
+            "provenance_note": "DOE consumption is converted with the same full-precision physical conversion already retained by v33; 2020 predates LNG imports.",
+        },
+        {
+            "source_id": "SRC_PHL_V23_BIOMASS_PSA_COOKING",
+            "provider": "Philippine Statistics Authority",
+            "title": "Household Characteristics, 2020 Census of Population and Housing",
+            "observation_period": "2020",
+            "indicators_used": "primary household cooking-fuel shares",
+            "source_url": heat_cooking_processing["sources"]["psa_cooking"]["url"],
+            "local_evidence": "data_sources/snapshots/historical_heat_cooking_processing_2020_2026-08-27.json; data_sources/SOURCES.csv:175",
+            "local_evidence_sha256": sha256(heat_cooking_processing_path),
+            "provenance_note": "Existing canonical source reused with a normalized extract. Household shares are diagnostic and not independent because they informed the v23 cooking proxy and stock mix.",
+        },
     ]
 
     comparison_ids = [row["comparison_id"] for row in rows]
@@ -479,7 +672,7 @@ def main() -> None:
             })
 
     evidence = {
-        "schema": "philippines-v33-historical-comparison-register-evidence-v1",
+        "schema": "philippines-v33-historical-comparison-register-evidence-v2",
         "generated_date": str(date.today()),
         "case": case.name,
         "run": RUN_NAME,
@@ -489,6 +682,7 @@ def main() -> None:
             "score_ready_required_fields_complete": True,
             "source_ids_resolve_in_register_source_catalog": True,
             "non_score_ready_rows_have_exclusion_or_gap_reasons": True,
+            "legacy_history_summary_regenerated": False,
         },
         "row_counts": {
             "total": len(rows),
@@ -502,6 +696,10 @@ def main() -> None:
             "managed_crop_activity_1000km2": managed_crop_activity,
             "emissions_2020_mtco2e": {"total": total_co2e, "energy_including_transport": energy_co2e, "crop": crop_co2e, "rice_ch4": rice_ch4, "managed_soil_n2o": soil_n2o},
             "aff_energy_2020_pj": {"total": aff_energy, "electricity": aff_electricity, "electricity_share": aff_electricity_share},
+            "industrial_process_heat_input_2020": industrial_heat,
+            "services_heating_input_2020": services_heat,
+            "household_cooking_activity_2020": cooking,
+            "fuel_processing_output_2020_pj": dict(processing_output_pj),
             "crop_residue_supply_activity_2020_pj": biomass_crop_residue,
         },
         "observed_metrics_and_calculations": {
@@ -510,8 +708,9 @@ def main() -> None:
             "water": "AQUASTAT 2020 agricultural withdrawal 67.85109005 km3; 2006 irrigation-only reference 65.59 km3; revised PSA 2020 total abstraction 218.58 km3 and 2024 surface share 0.976; earlier retained PSA release gives 218.46 km3.",
             "climate": "BTR 2020 energy 99.854 + transport 29.431 = 129.285 MtCO2e (NDC table rounded 129.286); agriculture 54.080; forestry -71.355 + other land use 45.420 = -25.935. Retained GHGI extract: rice CH4 26.985; managed-soil N2O 6.875 + 2.277 = 9.152.",
             "nexus": "Retained DOE extract: AFF energy 438.8 ktoe x 0.041868 PJ/ktoe = 18.3716784 PJ; electricity share 0.656. DOE agriwaste 836 ktoe x 0.041868 PJ/ktoe = 35.001648 PJ.",
+            "heat_cooking_processing": "DOE industry and services fuel shares are published whole-sector final-energy shares and remain diagnostic against heat-only routes. PSA cooking shares cover 99.6% of households in the published categories and are normalized over that covered total. Processing observations: refinery output 4.5 MTOE = 188.406 PJ; gas consumption 133,606 MMSCF x 0.00109303786331432 PJ/MMSCF; coal consumption 17.34 MTOE x 41.868 PJ/MTOE = 725.99112 PJ.",
         },
-        "source_hashes": {str(path.relative_to(case)): sha256(path) for path in (activity_path, use_path, production_path, emissions_path, emissions_mode_path, doe_path, gas_validation_path, sources_path, aquastat_snapshot_path, psa_agriculture_snapshot_path, ghgi_extract_path)},
+        "source_hashes": {str(path.relative_to(case)): sha256(path) for path in (activity_path, use_path, production_path, emissions_path, emissions_mode_path, doe_path, gas_validation_path, sources_path, aquastat_snapshot_path, psa_agriculture_snapshot_path, ghgi_extract_path, heat_cooking_processing_path)},
         "classification_rule": "score_ready means aligned enough for quantitative fit; diagnostic_only preserves a useful but mismatched boundary/period; evidence_gap records a missing observed or modeled counterpart.",
     }
     evidence_path = output / "historical_comparison_register_v33_evidence.json"
@@ -536,6 +735,9 @@ This register is a read-only comparison of the canonical `{case.name}/{RUN_NAME}
 - Water: national and agricultural-withdrawal boundary diagnostics, current PSA abstraction revision, source-share diagnostic, and explicit missing cooling/pumping-energy evidence.
 - Climate: 2020 national energy-plus-transport emissions, rice CH4, managed-soil N2O, agriculture-scope coverage, and missing land-carbon accounting.
 - Nexus: AFF final-energy total and electricity share, irrigation water, biomass-to-energy boundary, and thermal-power water.
+- Industrial heat and services heating: official 2020 DOE fuel-mix diagnostics with the whole-sector versus heat-only denominator mismatch disclosed.
+- Household cooking: official 2020 PSA primary-fuel shares, retained as a calibrated-stock diagnostic rather than independent fit evidence.
+- Fuel processing: official refinery, natural-gas and coal quantities; gas and coal are aligned enough to score, while oil remains a structural boundary diagnostic.
 
 ## Important boundary decisions
 
@@ -543,6 +745,10 @@ This register is a read-only comparison of the canonical `{case.name}/{RUN_NAME}
 - AQUASTAT variable 4250 is broader than crop irrigation; it is diagnostic only.
 - The complete national agriculture GHG inventory includes livestock and manure categories absent from v33; only rice CH4 and managed-soil N2O are score-ready.
 - DOE agriwaste and the model's recoverable residue basket are not identical; the biomass row is diagnostic only.
+- DOE industry and services balances are broader than the model's heat-only routes; their fuel shares are diagnostic only.
+- PSA cooking shares measure households, not energy, and informed the v23 initial-stock calibration; they are diagnostic only.
+- The oil-processing route does not distinguish refinery output from imported finished petroleum products; refinery output is diagnostic only.
+- National gas and coal consumption align with the corresponding processed-fuel outputs and are score-ready benchmark observations.
 - No observed outcome is converted into a model constraint.
 
 ## Files
@@ -551,7 +757,7 @@ This register is a read-only comparison of the canonical `{case.name}/{RUN_NAME}
 - `historical_comparison_register_v33_score_ready.csv`: aligned subset for the comparison scorer.
 - `historical_comparison_register_v33_sources.csv`: source catalogue, retained-evidence paths, and hashes.
 - `historical_comparison_register_v33_evidence.json`: exact calculations and SHA-256 identities of model-result inputs.
-- `historical_comparison_register_v33_history.json`: generated fit/forcing summary for score-ready rows.
+- `historical_comparison_register_v33_history.json`: legacy 19-row fit/forcing snapshot; it was not regenerated by this extractor and must not be used for the expanded register. The score-ready CSV is the authoritative expanded scoring input.
 - `build_historical_comparison_register_v33.py`: reproducible read-only extractor retained with the case.
 """, encoding="utf-8")
 

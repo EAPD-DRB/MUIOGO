@@ -1,5 +1,5 @@
 {
-  "schema": "philippines-v33-historical-comparison-register-evidence-v1",
+  "schema": "philippines-v33-historical-comparison-register-evidence-v2",
   "generated_date": "2026-08-27",
   "case": "Philippines_v33",
   "run": "BASE_V33_GAS_DELIVERY",
@@ -8,12 +8,13 @@
     "unique_comparison_ids": true,
     "score_ready_required_fields_complete": true,
     "source_ids_resolve_in_register_source_catalog": true,
-    "non_score_ready_rows_have_exclusion_or_gap_reasons": true
+    "non_score_ready_rows_have_exclusion_or_gap_reasons": true,
+    "legacy_history_summary_regenerated": false
   },
   "row_counts": {
-    "total": 30,
-    "score_ready": 19,
-    "diagnostic_only": 7,
+    "total": 45,
+    "score_ready": 21,
+    "diagnostic_only": 20,
     "evidence_gap": 4
   },
   "modeled_metrics": {
@@ -50,6 +51,64 @@
       "electricity": 16.754800000000003,
       "electricity_share": 0.33159108226050654
     },
+    "industrial_process_heat_input_2020": {
+      "total_pj": 224.9476000000001,
+      "input_by_fuel_pj": {
+        "oil": 108.84000000000007,
+        "coal": 82.72800000000004,
+        "natural_gas": 1.1788999999999994,
+        "electricity": 0.0,
+        "biomass": 32.2007,
+        "hydrogen": 0.0
+      },
+      "share_by_fuel": {
+        "oil": 0.4838460156943218,
+        "coal": 0.3677656485332584,
+        "natural_gas": 0.005240776074072357,
+        "electricity": 0.0,
+        "biomass": 0.14314755969834744,
+        "hydrogen": 0.0
+      }
+    },
+    "services_heating_input_2020": {
+      "total_pj": 138.8731,
+      "input_by_fuel_pj": {
+        "oil": 122.38739999999999,
+        "natural_gas": 0.0,
+        "coal": 0.0,
+        "electricity": 12.1579,
+        "biomass": 4.3278
+      },
+      "share_by_fuel": {
+        "oil": 0.8812894649863796,
+        "natural_gas": 0.0,
+        "coal": 0.0,
+        "electricity": 0.08754683232389858,
+        "biomass": 0.031163702689721767
+      }
+    },
+    "household_cooking_activity_2020": {
+      "total_pj": 105.4355,
+      "input_by_fuel_pj": {
+        "oil": 56.2111,
+        "electricity": 7.1984,
+        "natural_gas": 0.0,
+        "charcoal": 7.6218,
+        "biomass_and_other": 34.4042
+      },
+      "share_by_fuel": {
+        "oil": 0.5331325786855471,
+        "electricity": 0.06827301999800826,
+        "natural_gas": 0.0,
+        "charcoal": 0.07228874525183643,
+        "biomass_and_other": 0.3263056560646082
+      }
+    },
+    "fuel_processing_output_2020_pj": {
+      "coal": 642.3756000000001,
+      "natural_gas": 146.596,
+      "oil": 799.6459
+    },
     "crop_residue_supply_activity_2020_pj": 110.3467
   },
   "observed_metrics_and_calculations": {
@@ -57,7 +116,8 @@
     "rice": "PSA 2020: irrigation service area 2.006 Mha = 20.06 thousand km2; rainfed harvested area 1.46544173 Mha = 14.6544173 thousand km2; production 14.57176519 + 4.72309035 = 19.29485554 Mt.",
     "water": "AQUASTAT 2020 agricultural withdrawal 67.85109005 km3; 2006 irrigation-only reference 65.59 km3; revised PSA 2020 total abstraction 218.58 km3 and 2024 surface share 0.976; earlier retained PSA release gives 218.46 km3.",
     "climate": "BTR 2020 energy 99.854 + transport 29.431 = 129.285 MtCO2e (NDC table rounded 129.286); agriculture 54.080; forestry -71.355 + other land use 45.420 = -25.935. Retained GHGI extract: rice CH4 26.985; managed-soil N2O 6.875 + 2.277 = 9.152.",
-    "nexus": "Retained DOE extract: AFF energy 438.8 ktoe x 0.041868 PJ/ktoe = 18.3716784 PJ; electricity share 0.656. DOE agriwaste 836 ktoe x 0.041868 PJ/ktoe = 35.001648 PJ."
+    "nexus": "Retained DOE extract: AFF energy 438.8 ktoe x 0.041868 PJ/ktoe = 18.3716784 PJ; electricity share 0.656. DOE agriwaste 836 ktoe x 0.041868 PJ/ktoe = 35.001648 PJ.",
+    "heat_cooking_processing": "DOE industry and services fuel shares are published whole-sector final-energy shares and remain diagnostic against heat-only routes. PSA cooking shares cover 99.6% of households in the published categories and are normalized over that covered total. Processing observations: refinery output 4.5 MTOE = 188.406 PJ; gas consumption 133,606 MMSCF x 0.00109303786331432 PJ/MMSCF; coal consumption 17.34 MTOE x 41.868 PJ/MTOE = 725.99112 PJ."
   },
   "source_hashes": {
     "res/BASE_V33_GAS_DELIVERY/csv/TotalAnnualTechnologyActivityByMode.csv": "7f68283da3f5460d3b1be2a9e475669a626e256b4caacfd791931692f6a1c5ab",
@@ -70,7 +130,8 @@
     "data_sources/SOURCES.csv": "80d888f1aabad2fb25a72c9b04f6b221c9934323515f7327c4767db31d099665",
     "data_sources/snapshots/aquastat_philippines_irrigation_boundary_2026-08-11.json": "f63485ee3a8c8ddee5936d5de7ce3a5bd42040d025477c0f58fc80fdf87366b8",
     "data_sources/snapshots/psa_openstat_agriculture_2020.json": "30d7ab1b45c07a1847f48e9c1eddbcba5197e0dbecc2aa9bc20a2284beba9122",
-    "data_sources/snapshots/philippines_v22_transition_scope_extracts_2026-08-20.json": "10ee8b46f4f8438851c12804ceddd6dff04bb5c55df1a787dbf7bf2e614017a3"
+    "data_sources/snapshots/philippines_v22_transition_scope_extracts_2026-08-20.json": "10ee8b46f4f8438851c12804ceddd6dff04bb5c55df1a787dbf7bf2e614017a3",
+    "data_sources/snapshots/historical_heat_cooking_processing_2020_2026-08-27.json": "ea9ffcd0ddc2acd366f6ca6dcb9783875c046303acfd8827d83845f61ac41e83"
   },
   "classification_rule": "score_ready means aligned enough for quantitative fit; diagnostic_only preserves a useful but mismatched boundary/period; evidence_gap records a missing observed or modeled counterpart."
 }
