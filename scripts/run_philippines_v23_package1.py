@@ -34,6 +34,7 @@ BASELINE_RUNS = {
 }
 MAX_MATRIX_RATIO = 1.05
 MAX_RUNTIME_RATIO: float | None = None
+REQUIRE_BASE_OPTIMUM_FOR_POLICY = True
 OPTIMIZATION_PURPOSE = "Establish exact coupled feasibility and optimality after all zero-solve gates passed."
 WHY_DETERMINISTIC_CHECKS_INSUFFICIENT = "The analytic gate is deliberately optimistic and cannot prove storage chronology, trade coupling, or simultaneous shared-resource feasibility."
 CBC_INFEASIBLE_MARKERS = (
@@ -113,7 +114,7 @@ def generate_check(case_name: str, run_name: str, scenario: str) -> None:
     if run.exists():
         raise FileExistsError(f"refusing to replace existing run: {run}")
     gate_hashes = require_clean_source_gates(case, scenario)
-    if scenario != "BASE":
+    if scenario != "BASE" and REQUIRE_BASE_OPTIMUM_FOR_POLICY:
         base_record = case / "res" / DEFAULT_RUN / "optimization_record.json"
         base_result = json.loads(base_record.read_text()) if base_record.is_file() else {}
         if (

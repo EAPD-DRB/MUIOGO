@@ -1,0 +1,69 @@
+{
+  "version": "vIS1",
+  "date": "2026-08-28",
+  "nodes": ["LUZ", "VIS", "MIN", "OFF"],
+  "main_grids": ["LUZ", "VIS", "MIN"],
+  "sources": {
+    "capacity": "https://prod-cms.doe.gov.ph/documents/d/guest/03_installed-and-dependable-capacity-pdf",
+    "sales": "https://prod-cms.doe.gov.ph/documents/d/guest/06_electricity-consumption-pdf",
+    "peak": "https://prod-cms.doe.gov.ph/documents/d/guest/02_summary-pdf",
+    "lv_interconnector": "https://www.ngcp.ph/Attachment-Uploads/Transmission%20Development%20Plan%202022-2040%20Report-2023-01-04-10-49-08.pdf",
+    "vm_interconnector": "https://www.ngcp.ph/article?cid=16899",
+    "off_grid": "https://www.erc.gov.ph/Press-Singular/83549",
+    "water": "https://depdev.gov.ph/wp-content/uploads/2021/09/021122_PWSSMP_Main-Report.pdf"
+  },
+  "installed_mw_2020": {
+    "gas": {"LUZ": 3452, "VIS": 1, "MIN": 0},
+    "oil": {"LUZ": 2642, "VIS": 705, "MIN": 889},
+    "coal": {"LUZ": 7280, "VIS": 1399, "MIN": 2264},
+    "geothermal": {"LUZ": 865, "VIS": 955, "MIN": 108},
+    "hydro": {"LUZ": 2593, "VIS": 21, "MIN": 1165},
+    "solar": {"LUZ": 460, "VIS": 476, "MIN": 84},
+    "wind": {"LUZ": 353, "VIS": 90, "MIN": 0},
+    "biomass": {"LUZ": 195, "VIS": 216, "MIN": 73}
+  },
+  "dependable_mw_2020": {
+    "gas": {"LUZ": 3286, "VIS": 0, "MIN": 0},
+    "oil": {"LUZ": 1748, "VIS": 516, "MIN": 790},
+    "coal": {"LUZ": 6855, "VIS": 1349, "MIN": 2041},
+    "geothermal": {"LUZ": 769, "VIS": 881, "MIN": 103},
+    "hydro": {"LUZ": 2499, "VIS": 20, "MIN": 1007},
+    "solar": {"LUZ": 369, "VIS": 381, "MIN": 67},
+    "wind": {"LUZ": 353, "VIS": 90, "MIN": 0},
+    "biomass": {"LUZ": 131, "VIS": 131, "MIN": 23}
+  },
+  "offgrid_installed_mw_2020_by_broad_group": {"LUZ": 496, "VIS": 48, "MIN": 79},
+  "sales_gwh": {
+    "2020": {"LUZ": {"residential": 24992.520, "commercial": 17787.676, "industrial": 17161.923, "others": 1170.022, "total": 61112.142}, "VIS": {"residential": 4629.883, "commercial": 1459.399, "industrial": 4335.541, "others": 915.274, "total": 11340.097}, "MIN": {"residential": 4669.182, "commercial": 1480.028, "industrial": 4068.863, "others": 572.471, "total": 10790.544}},
+    "2021": {"LUZ": {"residential": 25358.808, "commercial": 18163.993, "industrial": 19002.657, "others": 1895.004, "total": 64420.461}, "VIS": {"residential": 4708.070, "commercial": 1375.515, "industrial": 4197.491, "others": 1273.689, "total": 11554.765}, "MIN": {"residential": 4913.786, "commercial": 1579.276, "industrial": 4423.137, "others": 525.983, "total": 11442.181}},
+    "2022": {"LUZ": {"residential": 25691.925, "commercial": 20951.225, "industrial": 19285.187, "others": 1607.214, "total": 67535.552}, "VIS": {"residential": 4746.402, "commercial": 1701.598, "industrial": 4710.797, "others": 706.822, "total": 11865.619}, "MIN": {"residential": 4886.127, "commercial": 1641.095, "industrial": 4847.686, "others": 556.512, "total": 11931.420}},
+    "2023": {"LUZ": {"residential": 26782.632, "commercial": 22501.471, "industrial": 19471.728, "others": 1730.105, "total": 70485.936}, "VIS": {"residential": 5044.183, "commercial": 1950.267, "industrial": 5054.019, "others": 742.613, "total": 12791.082}, "MIN": {"residential": 5141.129, "commercial": 1783.894, "industrial": 4966.850, "others": 638.961, "total": 12530.835}},
+    "2024": {"LUZ": {"residential": 29656.835, "commercial": 23904.218, "industrial": 20305.933, "others": 2078.315, "total": 75945.302}, "VIS": {"residential": 5768.094, "commercial": 2174.313, "industrial": 5387.367, "others": 802.554, "total": 14132.327}, "MIN": {"residential": 5780.449, "commercial": 1954.392, "industrial": 5380.593, "others": 715.072, "total": 13830.505}}
+  },
+  "consumption_gwh": {
+    "2020": {"LUZ": 73504.450, "VIS": 14399.201, "MIN": 13852.069},
+    "2021": {"LUZ": 76752.994, "VIS": 14757.369, "MIN": 14604.350},
+    "2022": {"LUZ": 80868.287, "VIS": 15174.716, "MIN": 15472.666},
+    "2023": {"LUZ": 84289.310, "VIS": 16701.458, "MIN": 17013.142},
+    "2024": {"LUZ": 91269.813, "VIS": 17711.112, "MIN": 17959.902}
+  },
+  "peak_mw": {
+    "2020": {"LUZ": 11103, "VIS": 2201, "MIN": 1978},
+    "2021": {"LUZ": 11640, "VIS": 2252, "MIN": 2144},
+    "2022": {"LUZ": 12113, "VIS": 2316, "MIN": 2167},
+    "2023": {"LUZ": 12550, "VIS": 2458, "MIN": 2323},
+    "2024": {"LUZ": 14016, "VIS": 2681, "MIN": 2577}
+  },
+  "interconnectors": {
+    "LV": {"from": "LUZ", "to": "VIS", "residual_gw": {"2020": 0.44}, "loss_fraction": 0.03, "capital_cost_musd_per_gw": 887.8, "additional_limit_gw": 0.44, "additional_from_year": 2034},
+    "VM": {"from": "VIS", "to": "MIN", "residual_gw": {"2020": 0.0, "2023": 0.45}, "loss_fraction": 0.03, "capital_cost_musd_per_gw": 1982.4, "additional_limit_gw": 0.45, "additional_from_year": 2036}
+  },
+  "assumptions": {
+    "reserve_margin": 0.25,
+    "interconnector_dependable_credit_each_end": 0.5,
+    "post_2024_load_and_loss_basis": "hold 2024 node shares and consumption-to-sales ratios",
+    "timeslice_profile": "inherit the national v36 normalized profile at every main-grid node pending sourced hourly grid profiles",
+    "fuel_delivery_cost": "zero-cost explicit national-to-node delivery boundary pending a consistent port/freight series",
+    "water_and_land": "retain national model balances in vIS1; preserve crosswalk evidence for a later source-gated spatial stage"
+  }
+}

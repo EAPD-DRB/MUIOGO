@@ -136,6 +136,7 @@ class DataFile(Osemosys):
             self.f.write('{}{}{}'.format(self.emis, ':=', '\n'))
             reString = ''
             for emiId in self.emiIDs:
+                tmp = self.defaultValue[id]
                 for sc in self.scOrder:
                     if re[id][sc['ScId']][emiId] is not None and sc['Active'] == True:
                         tmp = re[id][sc['ScId']][emiId]
@@ -170,7 +171,7 @@ class DataFile(Osemosys):
                     # self.f.write('{}{}'.format('[RE1,'+ self.techMap[activityTechId] + ','+ self.commMap[activityCommId] +',*,*]:', '\n'))
                     # self.f.write('{}{}{}'.format( self.years, ':=', '\n'))
                     for mod in self.modIds:
-                        
+                        tmp = self.defaultValue[id]
                         
                         # for yearId in self.yearIDs:
                         for sc in self.scOrder:
@@ -197,12 +198,16 @@ class DataFile(Osemosys):
             for conId in self.conIDs:
                 rycnString = ''
                 for yearId in self.yearIDs:
+                    # Each constraint-year cell is independent. If every active
+                    # scenario is null, emit the parameter default rather than
+                    # carrying the preceding constraint's value into this cell.
+                    tmp = self.defaultValue[id]
                     for sc in self.scOrder:
                         if rycn[id][sc['ScId']][yearId][conId] is not None and sc['Active'] == True:
                             tmp = rycn[id][sc['ScId']][yearId][conId]
                     rycnString += '{} '.format(tmp)
                 self.f.write('{} {}{}'.format(self.conMap[conId], rycnString, '\n'))
-        self.f.write('{}{}'.format(';', '\n'))
+            self.f.write('{}{}'.format(';', '\n'))
 
     def gen_RYTs(self):
         ryts = self.RYTs(File.readFile(self.rytsPath))
@@ -213,6 +218,7 @@ class DataFile(Osemosys):
                 rytsString = ''
                 #defaultValueFlag = False
                 for yearId in self.yearIDs:
+                    tmp = self.defaultValue[id]
                     for sc in self.scOrder:
                         rytsValue = ryts[id][sc['ScId']][yearId][timesliceId]
                         if rytsValue is not None and sc['Active'] == True:
@@ -233,6 +239,7 @@ class DataFile(Osemosys):
                 rydtbString = ''
                 #defaultValueFlag = False
                 for yearId in self.yearIDs:
+                    tmp = self.defaultValue[id]
                     for sc in self.scOrder:
                         rydtbValue = rydtb[id][sc['ScId']][yearId][dtbId]
                         if rydtbValue is not None and sc['Active'] == True:

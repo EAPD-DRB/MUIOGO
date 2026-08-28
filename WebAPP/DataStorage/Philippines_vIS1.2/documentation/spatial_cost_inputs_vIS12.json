@@ -1,0 +1,109 @@
+{
+  "version": "vIS1.2",
+  "access_date": "2026-08-28",
+  "non_forcing_classification": {
+    "observed_generation": "benchmark_only",
+    "grid_transmission_charges": "observed cost evidence",
+    "renewable_capacity_factors": "continuing physical resource characteristic",
+    "renewable_potentials": "continuing physical resource ceiling",
+    "renewable_capital_and_fixed_costs": "technology cost anchor"
+  },
+  "exchange_rate": {
+    "php_per_usd_2019": 51.7958,
+    "source_id": "SRC_PHL_VIS12_BSP_FX_2019"
+  },
+  "transmission": {
+    "observed_total_charge_php_per_kwh_june_2019": {
+      "LUZ": 0.89,
+      "VIS": 0.68,
+      "MIN": 0.93
+    },
+    "common_charge_floor_php_per_kwh": 0.68,
+    "node_increment_php_per_kwh": {
+      "LUZ": 0.21,
+      "VIS": 0.0,
+      "MIN": 0.25
+    },
+    "interconnector_pds_proxy_php_per_kwh": 0.39,
+    "conversion_formula": "MUSD/PJ = PHP/kWh * (1e9 kWh / 3.6 PJ) / (PHP/USD) / 1e6 USD/MUSD",
+    "boundary": "Only each grid's non-negative increment above the lowest observed grid charge is added to node T&D, because the inherited T&D capital representation already carries the common network cost. The lowest published PDS component is used as a conservative inter-island wheeling proxy; it is not claimed to be a project-specific LV or VM tariff.",
+    "source_id": "SRC_PHL_VIS12_DOE_EPIRA_TRANSMISSION_2019"
+  },
+  "renewables": {
+    "solar": {
+      "technology": "PHL_POW_PP_SPV",
+      "capital_cost_php_million_per_mw": 83.99,
+      "fixed_om_php_million_per_mw_year": 0.84,
+      "source_exchange_rate_php_per_usd": 56.0,
+      "capacity_factor_midpoint": {
+        "LUZ": 0.17,
+        "VIS": 0.16,
+        "MIN": 0.16
+      },
+      "gross_crez_potential_mw": {
+        "LUZ": 35031,
+        "VIS": 11876,
+        "MIN": 11203
+      }
+    },
+    "onshore_wind": {
+      "technology": "PHL_POW_PP_WON",
+      "capital_cost_php_million_per_mw": 139.99,
+      "fixed_om_php_million_per_mw_year": 1.4,
+      "source_exchange_rate_php_per_usd": 56.0,
+      "capacity_factor_midpoint": {
+        "LUZ": 0.315,
+        "VIS": 0.34,
+        "MIN": 0.24
+      },
+      "gross_crez_potential_mw": {
+        "LUZ": 54115,
+        "VIS": 25429,
+        "MIN": 14443
+      }
+    },
+    "cost_mapping": "The official Philippine 2024 capital and fixed-O&M anchors replace each technology's 2024 national anchor; inherited year-to-2024 cost ratios preserve the existing learning trajectory. The anchor is common across nodes because DOE reports a common plant cost. Geographic differentiation comes from resource CF, finite potential and grid delivery charges, not an invented plant-cost wedge.",
+    "source_id": "SRC_PHL_VIS12_DOE_INVESTMENT_KIT_2024"
+  },
+  "structural_cleanup": {
+    "removed_zero_reachability_node_technologies": [
+      "PHL_POW_CHP_NG_OLD_VIS",
+      "PHL_POW_CHP_NG_OLD_MIN",
+      "PHL_POW_PP_NGCC_VIS",
+      "PHL_POW_PP_NGCC_MIN",
+      "PHL_POW_PP_NGCC_CCS_VIS",
+      "PHL_POW_PP_NGCC_CCS_MIN"
+    ],
+    "reason": "All six have zero residual capacity and zero total/new-capacity reachability in every retained scenario. This implements the existing sourced Luzon-only grid-gas boundary; it is not inferred from zero BASE activity."
+  },
+  "sources": [
+    {
+      "source_id": "SRC_PHL_VIS12_DOE_EPIRA_TRANSMISSION_2019",
+      "provider": "Philippine Department of Energy",
+      "title": "35th Status Report on EPIRA Implementation",
+      "reference_period": "June 2019; report as of October 2019",
+      "exact_locator": "Table 7, page 13: transmission charges LUZ 0.89, VIS 0.68, MIN 0.93 PHP/kWh; page 16 text: Visayas PDS about 0.39 PHP/kWh",
+      "url": "https://legacy.doe.gov.ph/sites/default/files/pdf/electric_power/35th-epira-status-report.pdf",
+      "retention_note": "Official host was unavailable to the execution environment; exact extracted cells and locator are retained in this file."
+    },
+    {
+      "source_id": "SRC_PHL_VIS12_BSP_FX_2019",
+      "provider": "Bangko Sentral ng Pilipinas",
+      "title": "2021 Annual Report, Chapter 4, Cross Rates of the Philippine Peso",
+      "reference_period": "2019 annual average",
+      "exact_locator": "Table 8: 2019 average 51.7958 PHP per US dollar",
+      "url": "https://www.bsp.gov.ph/Media_And_Research/Annual%20Report/annrep2021_chapter4.pdf",
+      "retention_note": "Official host was unavailable to the execution environment; exact extracted cell and locator are retained in this file."
+    },
+    {
+      "source_id": "SRC_PHL_VIS12_DOE_INVESTMENT_KIT_2024",
+      "provider": "Philippine Department of Energy",
+      "title": "2024 Energy Investment Kit - Renewable Energy",
+      "reference_period": "2024 publication; CREZ resource assessment",
+      "exact_locator": "Tables 18, 20 and 21: grid CREZ potentials and solar/wind capacity-factor ranges; accompanying text: technology capital and fixed O&M costs at 56 PHP/USD",
+      "url": "https://legacy.doe.gov.ph/sites/default/files/pdf/e_ipo/2024-Energy-Investment-Kit.pdf",
+      "alternate_url": "https://prod-cms.doe.gov.ph/documents/d/guest/doe-renewable-energy",
+      "retention_note": "Official host was unavailable to the execution environment; exact extracted table values and locator are retained in this file."
+    }
+  ]
+}

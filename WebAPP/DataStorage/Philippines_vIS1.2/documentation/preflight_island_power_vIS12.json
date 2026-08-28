@@ -1,0 +1,123 @@
+{
+  "case": "Philippines_vIS1.2",
+  "status": "pass_zero_solve",
+  "optimizer_runs": 0,
+  "generation_runs": 0,
+  "failure_count": 0,
+  "baseline_witness": "sealed Philippines_v36 BASE annual electricity use; benchmark only",
+  "checks": [
+    {
+      "name": "case_identity",
+      "status": "pass",
+      "detail": "Philippines_vIS1.2"
+    },
+    {
+      "name": "unique_structural_names",
+      "status": "pass",
+      "detail": {
+        "technology_duplicates": 0,
+        "constraint_duplicates": 0
+      }
+    },
+    {
+      "name": "no_base_udc_constant_fallthrough_cells",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "national_final_demand_and_profiles_not_duplicated",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "stock_and_investment_envelopes_split_never_duplicated",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "no_generation_activity_or_capacity_floor",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "node_commodity_reachability_and_off_isolation",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "redundant_fuel_delivery_removed_and_gas_access_bounded",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "interconnector_modes_losses_and_historical_commissioning",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "sector_electricity_bundles_replace_load_equalities",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "no_negative_capacity_parameters",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "coal_phaseout_oil_import_floor_removed",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "base_nuclear_policy_equality_explicitly_neutral",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "removed_gas_variants_were_structurally_unreachable_in_parent",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "sourced_node_grid_and_interconnector_costs_exact",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "renewable_cost_cf_and_physical_potential_inputs_exact",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "historical_node_residual_stock_meets_reserve_before_optimization",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "all_year_energy_envelope_meets_v36_demand_witness",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "every_year_every_timeslice_capacity_envelope_meets_projected_peak_witness",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "four_required_scenarios_present",
+      "status": "pass",
+      "detail": {
+        "BASE": "SC_0",
+        "COAL_PHASEOUT": "SC_3hgjb",
+        "RE": "SC_w03qj",
+        "EV": "SC_huc7i"
+      }
+    },
+    {
+      "name": "national_policy_constraints_aggregate_split_members_once",
+      "status": "pass",
+      "detail": []
+    }
+  ]
+}

@@ -1,0 +1,2785 @@
+{
+  "candidate_directory_at_seal": ".Philippines_vIS12-finalfix-candidate-20260828",
+  "excluded_from_seal": [
+    "view/**",
+    ".DS_Store",
+    "documentation/SEALED_CANDIDATE.json"
+  ],
+  "files": {
+    "MODEL_FIXES_ISLAND_POWER_VIS11_2026-08-28.md": {
+      "bytes": 2270,
+      "sha256": "3136d6fd273bf0f776790ec70f9c87b6c1538ddcc46da4fb551d4d1fd5718cd5"
+    },
+    "MODEL_FIXES_ISLAND_POWER_VIS12_2026-08-28.md": {
+      "bytes": 4958,
+      "sha256": "cd34cb7e50866cfbfe2f53dac6e62cb96bf0bd0125f6b154ccbe0bfb9de4726d"
+    },
+    "R.json": {
+      "bytes": 380,
+      "sha256": "8e352ff8017301cb6fb2857b399a2d66f534e5691b03fd2c0ffbfe1b51994e84"
+    },
+    "RE.json": {
+      "bytes": 531,
+      "sha256": "85e0ea73dfd7ce398e0638ed23b8c8cd7b7ec7e0f0b4119d2963ce94625aba15"
+    },
+    "README.md": {
+      "bytes": 418,
+      "sha256": "8625165d2a1e820d062911c994e31facc5c242f21cd0160b59176c86e28f5116"
+    },
+    "RS.json": {
+      "bytes": 416,
+      "sha256": "a954bbe1c640eabaa9b247534bf7caaf6e924de043ca22563b2515f0413e255e"
+    },
+    "RT.json": {
+      "bytes": 146901,
+      "sha256": "80dd0d2de33b3d1501a3ccea8a7f81ad2715171cc8748f2790f289e2639574f0"
+    },
+    "RTSM.json": {
+      "bytes": 224,
+      "sha256": "b5f05d6916f988e122fa368636e8f6841e2b89bb35f551bea3fd0f171c28609b"
+    },
+    "RYC.json": {
+      "bytes": 711698,
+      "sha256": "ade10eee333d1d9c82ab9a0c537b43e36547291f40a509e47489d9efb6b244fc"
+    },
+    "RYCTs.json": {
+      "bytes": 6579933,
+      "sha256": "5a6484a10e6395b898911560775651337f861b34daa1a014fad0d4b89932cd0a"
+    },
+    "RYCn.json": {
+      "bytes": 40355,
+      "sha256": "75c635ed174e0c80c4f6826872bf6377ddf5a82e89a5699c8437f4dfbdca4552"
+    },
+    "RYDtb.json": {
+      "bytes": 25580,
+      "sha256": "5441dd7e9ac61fc9498c85ec20a8935a2870280035fecbe89a89e72b611826af"
+    },
+    "RYE.json": {
+      "bytes": 17817,
+      "sha256": "025be0c838019c347dda8310cd326f5e65c414f49f83086db5b0763b96ba4e78"
+    },
+    "RYS.json": {
+      "bytes": 335,
+      "sha256": "a224467bc0afb311731cf9b588b04599d71529289e9660ce88a99eb11592a5e2"
+    },
+    "RYSeDt.json": {
+      "bytes": 13216,
+      "sha256": "02be62970eeacca14942e16c534323bc4f5c0b4ac14b74255a21fb36c8f3c484"
+    },
+    "RYT.json": {
+      "bytes": 7299243,
+      "sha256": "9531681c93ed91bf20daad39efa568ba4a52d68c38d20e433192beaf7bb960e4"
+    },
+    "RYTC.json": {
+      "bytes": 27720,
+      "sha256": "be1ea39655c5fdfb80959045b00b3ec24a8b4df15f62cfb06c85b8163c7fec27"
+    },
+    "RYTCM.json": {
+      "bytes": 81730023,
+      "sha256": "870a5888b7d5e7ff3dab7c69e20dabe7d3a91cd31363ed04538143812af9b5ff"
+    },
+    "RYTCn.json": {
+      "bytes": 1621400,
+      "sha256": "f77e9c92215b419d0921b5b605b00e54d42750a94e00acf76284f4082e8e3fcb"
+    },
+    "RYTEM.json": {
+      "bytes": 31066866,
+      "sha256": "4a18334a8f80ecd8e586275d56adbdf08633a92dd3b7a003e1576709b38a9c6b"
+    },
+    "RYTM.json": {
+      "bytes": 99606147,
+      "sha256": "2505d6f25372f8fe981c1fce7ced8bf2b4158f00a61fddd04fd7a771b39a03a5"
+    },
+    "RYTTs.json": {
+      "bytes": 12095809,
+      "sha256": "4a5ad245220d855132ce2137f9df1abfe4e701f289700935bbe02dc34a5add3e"
+    },
+    "RYTs.json": {
+      "bytes": 80420,
+      "sha256": "e2c7ab12d3e298f4558e3782af9a6855f2fdd74d2358fbe743cc28bb2146a271"
+    },
+    "data_sources/ASSUMPTIONS.csv": {
+      "bytes": 96019,
+      "sha256": "9cf6098c53042eff58908fd8bd658c041c038fae228d34f25b055c7f126d56a2"
+    },
+    "data_sources/CALCULATIONS.csv": {
+      "bytes": 474406,
+      "sha256": "a64cea8765c9fd22d663ec365246fa31ace375edfab5e12b12335e39140b7b09"
+    },
+    "data_sources/CHANGES.csv": {
+      "bytes": 43926,
+      "sha256": "975a30ef8e7b9acd81f3d2fc08ad616e6b045344e9c18b65a256c678981676a2"
+    },
+    "data_sources/DATA_SOURCES.md": {
+      "bytes": 5554,
+      "sha256": "7fcaef4eb29e1e9a8c384400f5fb84fe6835be8200f898322b756c4e3e7cfb57"
+    },
+    "data_sources/GAPS.csv": {
+      "bytes": 39885,
+      "sha256": "bdec9be9b305d21e4ff05dac56ae968d439dd70fe2e0f6ad190637fbdd93708c"
+    },
+    "data_sources/MODEL_MAP.csv": {
+      "bytes": 37219044,
+      "sha256": "6f6aafe0a66949c48a7e721fea8f846f64cc73219cd00380f9ada3dc48387825"
+    },
+    "data_sources/PHILIPPINES_V15_CANONICAL_SCHEMA_LEDGER.xlsx": {
+      "bytes": 4116162,
+      "sha256": "5ae727bb7b518ea1fbd5c57b6ce19b1269d07c5f656fbaf699a46070fe0f8f59"
+    },
+    "data_sources/PHILIPPINES_V15_WATER_SCHEMA_LEDGER.xlsx": {
+      "bytes": 30579,
+      "sha256": "945aba80b47814181216efe93c16973beda8a2f6c81a39382670c609468b0baa"
+    },
+    "data_sources/PHILIPPINES_V16_CANONICAL_SCHEMA_LEDGER.xlsx": {
+      "bytes": 4152369,
+      "sha256": "2edb42d2addd4284b1dcca9ad1389ea92c3b0acfeb6c39f59e9a14df61714318"
+    },
+    "data_sources/PHILIPPINES_V17_CANONICAL_SCHEMA_LEDGER.xlsx": {
+      "bytes": 4186932,
+      "sha256": "a39090e47780f3230e6d92fd2024fb1e81f47b81a24959a41e26c686a8e12449"
+    },
+    "data_sources/PHILIPPINES_V18_CANONICAL_SCHEMA_LEDGER.xlsx": {
+      "bytes": 4235028,
+      "sha256": "8789d96f53da04081ddc426f248e3bb93c022073ef5014595a595c4b9dc448de"
+    },
+    "data_sources/PHILIPPINES_V23_BIOMASS_SIMPLE_SCHEMA_LEDGER.xlsx": {
+      "bytes": 4260225,
+      "sha256": "0710d2109dd2d597fdc91bde3630c79cb22442dd12b4c3674fcfd8372afe8706"
+    },
+    "data_sources/PHILIPPINES_V30_CANONICAL_SCHEMA_LEDGER.xlsx": {
+      "bytes": 4341838,
+      "sha256": "71daf354ccffa05434d01bffbbd593591255d8b73a531c354b6c2a78208de037"
+    },
+    "data_sources/PHILIPPINES_V31_CANONICAL_SCHEMA_LEDGER.xlsx": {
+      "bytes": 4355933,
+      "sha256": "fd2e842dd8f7ae6bd0320c02e6f73c4361b7f9d5094ed804a908f8b3d54e444a"
+    },
+    "data_sources/PHILIPPINES_V31_CANONICAL_SCHEMA_LEDGER.xlsx.inspect.ndjson": {
+      "bytes": 301188319,
+      "sha256": "c68f02d5d84f29d8665890b30fecbe69f824a7cd83274a7dc7adf34c8b535113"
+    },
+    "data_sources/README.md": {
+      "bytes": 1050,
+      "sha256": "3bd196a7864bf1e91a551e4b16e912710e95afc9cbd5b9e1072afa2e5d806274"
+    },
+    "data_sources/SOURCES.csv": {
+      "bytes": 135826,
+      "sha256": "723b2505e7477b5ae642cc8f04c9da5e8c3ae9212b86124de850348ccdc056ad"
+    },
+    "data_sources/V16_MODEL_ARCHIVE_MANIFEST.csv": {
+      "bytes": 202,
+      "sha256": "698e9a55b811a784ac48160905428e1fd94cb8fcc3d301f899fea60806cd1ab2"
+    },
+    "data_sources/V17_MODEL_ARCHIVE_MANIFEST.csv": {
+      "bytes": 440,
+      "sha256": "1750d046bb0921ad21fb4bf2c3f4edc59fe73549e1bf39f2e0495122b76ee192"
+    },
+    "data_sources/V18_MODEL_ARCHIVE_MANIFEST.csv": {
+      "bytes": 454,
+      "sha256": "a6c2af0090f20d33c1de608ba7c98561a3ce6470e941e51010bc33fc58d3a255"
+    },
+    "data_sources/calculation_notes/CANONICAL_LEDGER_RECONSTRUCTION_2026-08-05.md": {
+      "bytes": 3077,
+      "sha256": "8ad3ec07dceef8090cc1e20d29e252029ff79374d2252b69fddf69fbb5307998"
+    },
+    "data_sources/calculation_notes/MODEL_FIXES_AGRICULTURE_V24_2026-08-25.md": {
+      "bytes": 8136,
+      "sha256": "63ac0e0f7bfe28963fc1d758df88106aceff143b3bd9854563e4b382eaef27d0"
+    },
+    "data_sources/calculation_notes/MODEL_FIXES_BIOMASS_SIMPLE_V23_2026-08-24.md": {
+      "bytes": 2778,
+      "sha256": "ea5813e7f5f509f3cf03b9019ff14bfff027e791bd451463ddaa50ebeb5f307b"
+    },
+    "data_sources/calculation_notes/MODEL_FIXES_PACKAGE_1_V23_2026-08-24.md": {
+      "bytes": 4032,
+      "sha256": "92cc7ce1f7940f5ff60fe3f6643d82f4180236cacfb807f3fc4f4b484f26ef70"
+    },
+    "data_sources/calculation_notes/MODEL_FIXES_TRANSITION_SCOPE_ONLY_V22_2026-08-20.md": {
+      "bytes": 3971,
+      "sha256": "e9d7d3686a25fe7c5fdea09b884b8934a8595e5111434d67512678e26f2019fe"
+    },
+    "data_sources/calculation_notes/PHILIPPINES_V31_PROVENANCE_CLEANUP_2026-08-27.md": {
+      "bytes": 2938,
+      "sha256": "e8b0dd0b6d7acd83d1978bdfc19486e5748035af2a2831ad5ccbeccd49905283"
+    },
+    "data_sources/calculation_notes/PROVENANCE_RECONSTRUCTION_2026-07-30.md": {
+      "bytes": 1635,
+      "sha256": "6b4783865ae2a5cb77624f4f980dbadd9d011b00c203e9f8ce2c371f2b0fb379"
+    },
+    "data_sources/calculation_notes/SOURCE_PROVENANCE_RECOVERY_2026-08-05.md": {
+      "bytes": 6428,
+      "sha256": "1ac843c2ecb21af17e5332ed0ea6c33c24c3668c2add6ef9c55eec8ba0a2c054"
+    },
+    "data_sources/calculation_notes/crop_yields_v16_2026-08-11.md": {
+      "bytes": 7693,
+      "sha256": "696392f6dfcfc6c3877c4856415dbb6de487e4cc60350485fbf8beb00c22b892"
+    },
+    "data_sources/calculation_notes/energy_inputs_v16_2026-08-11.md": {
+      "bytes": 8205,
+      "sha256": "392b4b172dccd90003a180aae6e0622a61e5ea2e162c1206b619265e63115099"
+    },
+    "data_sources/calculation_notes/energy_inputs_v18_2026-08-12.md": {
+      "bytes": 3100,
+      "sha256": "9e756fa687fd1a96289195b1718cd78b7e6b516a89b6e3628e628ee9ac1a2f97"
+    },
+    "data_sources/calculation_notes/irrigated_rice_v16_2026-08-07.md": {
+      "bytes": 4816,
+      "sha256": "660c9d966f56c8cd23dfa4528ba7978003d00f800415f4fc3db1198c8bc3cd67"
+    },
+    "data_sources/calculation_notes/irrigation_water_engineering_v16_2026-08-11.md": {
+      "bytes": 6394,
+      "sha256": "189a6afcb95a247bfb0faaa1064fc2b2c33640f912b4a41645ad48ad6ce53c06"
+    },
+    "data_sources/calculation_notes/land_cover_v17_2026-08-12.md": {
+      "bytes": 2945,
+      "sha256": "1d0d8a2a6109b9eb96532cc325a3ddf87eadb28f86636fdba4cc12d7f5cfa77c"
+    },
+    "data_sources/calculation_notes/land_water_boundaries_v16_2026-08-11.md": {
+      "bytes": 3221,
+      "sha256": "66601e4f94a58f531e458e8c090a97ce49d38d3e53718ba1332e9bde50f15d90"
+    },
+    "data_sources/calculation_notes/national_water_v15.md": {
+      "bytes": 7678,
+      "sha256": "8a9f4a4531826a0235d35c8007baddca13da1d2ae7a46f087d43231b29458d95"
+    },
+    "data_sources/calculation_notes/philippines_v16_migration_2026-08-05.md": {
+      "bytes": 418,
+      "sha256": "8d16d21d8d38b340ceff6e68196d6d683e4ef35608470235a563d0b9f31defde"
+    },
+    "data_sources/calculation_notes/water_demand_v16_2026-08-07.md": {
+      "bytes": 1851,
+      "sha256": "1fbc4e1231d0592b48130dc124477a62d53fef18b617da8d37f97210736181ad"
+    },
+    "data_sources/evidence/CURRENT_MODEL_ARCHIVE_MANIFEST.csv": {
+      "bytes": 202,
+      "sha256": "4671297fa4217cdccb3ab97b011d586af33c8a4e8422d101b3159cc16639bdd7"
+    },
+    "data_sources/evidence/RETAINED_EVIDENCE_MANIFEST.csv": {
+      "bytes": 43874,
+      "sha256": "9fe6b378edc20ed03a9a28f5e84a84b5c27515c764d50c53e51bbb6d16deff96"
+    },
+    "data_sources/evidence/crop_land_v29/derived_cost_evidence.json": {
+      "bytes": 3005,
+      "sha256": "24303da9bc99202a03cb00ede39fbb621b9dbe1db719a7922abbd4dc8e8163b8"
+    },
+    "data_sources/evidence/crop_land_v29/official_source_extract_register.csv": {
+      "bytes": 1061,
+      "sha256": "131e53cdc66b80e7bd30f0789ba2ff98cc9b7dfb6244f8bcb1bfdacc653eccf9"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/config/clewsy_otoole_config.yaml": {
+      "bytes": 12169,
+      "sha256": "2b6bc9013b6d28ecaef9b69d3642e603fa17db2c50946654d399bb3e1d5e69b9"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/config/config.yaml": {
+      "bytes": 9807,
+      "sha256": "7df61b4720af62111d65a3beebb86109f987257303ae6e84c547f5c509f3169e"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/config/upstream_versions.json": {
+      "bytes": 871,
+      "sha256": "9816e7270f53f1420b0866ea1991060a6c7788eb81bc062c69d37ee7dcb3d1f0"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/boundary/gadm41_PHL_0.dbf": {
+      "bytes": 259,
+      "sha256": "31622834c2ea4257f1183817514fc65606ac424f96cc9868f950e047465d68e4"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/boundary/gadm41_PHL_0.prj": {
+      "bytes": 145,
+      "sha256": "a02a27b1d1982c8516d83398e85a3c8b1aef1713c13ef4d84d7bde17430c07c4"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/boundary/gadm41_PHL_0.shp": {
+      "bytes": 826272,
+      "sha256": "9376d83ffdedeff9fd4342eceff8a56ad3b69ccf66c4de15209c8eec55418344"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/boundary/gadm41_PHL_0.shx": {
+      "bytes": 108,
+      "sha256": "68c2aac02fabb3752effbdbcdaa474a925987e80ae0554e46ca3b4105b33a307"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/region_PHL_PHL_Clustered_Yield.png": {
+      "bytes": 22486,
+      "sha256": "9ff9d13e4ab6d01e1b495a25a81aed2663dfc2d37659c9790b4468710dfc4cbf"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/summary_stats/PHL_LandCover_byCluster_summary.csv": {
+      "bytes": 527,
+      "sha256": "e913f955d35835dbb0d9da14d66842925bfc61b9f4ce67fc7775bba955cdc85d"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/summary_stats/PHL_Parameter_byCluster_summary.csv": {
+      "bytes": 6082,
+      "sha256": "ce9182d9161f499565cdd49a2bf31743b9f6d5f0f1cc27ca746401491bce888f"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/summary_stats/clustering_results_PHL.csv": {
+      "bytes": 1870,
+      "sha256": "546c2ebff34e233bd141290fcb7ab79c9d2c70ecab13cc01596f0ab1da95a7c4"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/summary_stats/clustering_results_cwd_PHL.csv": {
+      "bytes": 1857,
+      "sha256": "2adb8a6416034e5f7721aa245a83dbb47278b424c6d7e3c3984698195c0b1c0a"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/summary_stats/clustering_results_evt_PHL.csv": {
+      "bytes": 1867,
+      "sha256": "47e6a097f0e01be961506d3dc6a6db78b2d7b553904ee98b316b61c4b85cfd0d"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/geospatial/summary_stats/clustering_results_prc_PHL.csv": {
+      "bytes": 92,
+      "sha256": "7873a6c27485b5cc0963a44f0a12b5ae0f4a45cc88ef8df04032e63d9feb2d67"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/CROP.csv": {
+      "bytes": 29,
+      "sha256": "8662a6b7748ea5f4d6a20c5845b682d34c9be4a4da1190529a242003fa8557aa"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/AccumulatedAnnualDemand.csv": {
+      "bytes": 7630,
+      "sha256": "555eafdd8cf82ba99b39e89cdc7b123f18a58edd02fb734404b37ca83c640445"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/AnnualEmissionLimit.csv": {
+      "bytes": 27,
+      "sha256": "8a7c9987194b84f02aa7f46ab311c12bf8cc24c9b2d1033c37a210dd4dd4aef8"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/AnnualExogenousEmission.csv": {
+      "bytes": 27,
+      "sha256": "8a7c9987194b84f02aa7f46ab311c12bf8cc24c9b2d1033c37a210dd4dd4aef8"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/AvailabilityFactor.csv": {
+      "bytes": 17369,
+      "sha256": "368f5558e8ac4725f34714f1959cf07c3b7b4a1f248c19eeedf2e446fbdbd59f"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/CapacityFactor.csv": {
+      "bytes": 25845,
+      "sha256": "2fcb1c31bb79037115e4172b2ab48cf0b888169c1ad2d2bc3a19059fd20d1e53"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/CapacityOfOneTechnologyUnit.csv": {
+      "bytes": 29,
+      "sha256": "ccbba4c84068930fde3737bd69d5add70ac8b68b67aa1728f2f2aa1ccb3583ac"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/CapacityToActivityUnit.csv": {
+      "bytes": 660,
+      "sha256": "c969563bbcc2482fb6c0bd1c48bf863168f4a6a6d8bb5a5e8fd88c8a1d59cedd"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/CapitalCost.csv": {
+      "bytes": 47018,
+      "sha256": "55b584d7d2c75de48a0e4d7440ba6f069283692aa6e621ffc8c06d33df9ee6f9"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/CapitalCostStorage.csv": {
+      "bytes": 26,
+      "sha256": "efcaac6a4336d5803e68e8cd8abd7e50fc7054590a2f51190847cfb94de80e4d"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/Conversionld.csv": {
+      "bytes": 60,
+      "sha256": "64fa2216e9a6dbc9bd42cc8c748eb6bf349522c9440834a4131b8664ca760614"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/Conversionlh.csv": {
+      "bytes": 121,
+      "sha256": "560a5afb1559147c4fc154a8a6cc467be3920716d6a41cd41f348e0eba85dae5"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/Conversionls.csv": {
+      "bytes": 111,
+      "sha256": "a1f635954ec2a1a5f27bcf69481416376c4f95a3762ca1341b3eaaf79acd36ed"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/DAILYTIMEBRACKET.csv": {
+      "bytes": 10,
+      "sha256": "f30f4e892d018dd5ad9bee2265b62592fa9698d4e9fc990c32ea14fb30930693"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/DAYTYPE.csv": {
+      "bytes": 8,
+      "sha256": "35a587ec4688c2240c2d6bef6ab2a7a3efca8633217ffff4b7affa7cb0521c61"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/DaySplit.csv": {
+      "bytes": 980,
+      "sha256": "80c51931fa6bef84b425aa13f3e70ec0f3cdd04b12d3dda63fbcab8118dee347"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/DaysInDayType.csv": {
+      "bytes": 26,
+      "sha256": "b2c2adda943102739e308934035c2a32ceb8757d5e19bdae371f29c5a9a45bab"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/DepreciationMethod.csv": {
+      "bytes": 13,
+      "sha256": "0bf8df0a3cdef6197683562562ae8737c38775c0fa1ad16faa4c08321a7b494c"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/DiscountRate.csv": {
+      "bytes": 13,
+      "sha256": "0bf8df0a3cdef6197683562562ae8737c38775c0fa1ad16faa4c08321a7b494c"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/DiscountRateStorage.csv": {
+      "bytes": 21,
+      "sha256": "f802c879163d8160b38794f054f9e2cb23d85e982d21a5496c1c480ff5d9beb0"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/EMISSION.csv": {
+      "bytes": 13,
+      "sha256": "29fe9bde657c458e56b4ea5896c7f39e5d40e39261fda6130b146c77db13ff06"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/EmissionActivityRatio.csv": {
+      "bytes": 29976,
+      "sha256": "af33c4367c5871e673dbc2bc0fca8a23d31fc6efb02713a53786ec5a223d9d94"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/EmissionsPenalty.csv": {
+      "bytes": 27,
+      "sha256": "8a7c9987194b84f02aa7f46ab311c12bf8cc24c9b2d1033c37a210dd4dd4aef8"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/FUEL.csv": {
+      "bytes": 907,
+      "sha256": "a9bcb3ac656fb5c7374800af000ef1afbb817cb63871b6e3bfe20877348d27a6"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/FixedCost.csv": {
+      "bytes": 23345,
+      "sha256": "76655167a2c3952d2004ff32989c9cfb66635167d02a9359bcab42fab6b1b5b0"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/InputActivityRatio.csv": {
+      "bytes": 989129,
+      "sha256": "82dca26abe52c25300946144f8099e4fc276760cfdd852dae0e5d5046bfa5b36"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/MODE_OF_OPERATION.csv": {
+      "bytes": 87,
+      "sha256": "12f034245cb483371675b8614740072de9828f459aad734d28c21f1bdb6f19d4"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/MinStorageCharge.csv": {
+      "bytes": 26,
+      "sha256": "efcaac6a4336d5803e68e8cd8abd7e50fc7054590a2f51190847cfb94de80e4d"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/ModelPeriodEmissionLimit.csv": {
+      "bytes": 22,
+      "sha256": "72a8033b1d6d4ab9eb07599fbf52a7f2b4e8541509c3b9cb5545a703f875cbeb"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/ModelPeriodExogenousEmission.csv": {
+      "bytes": 22,
+      "sha256": "72a8033b1d6d4ab9eb07599fbf52a7f2b4e8541509c3b9cb5545a703f875cbeb"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/OperationalLife.csv": {
+      "bytes": 1033,
+      "sha256": "42e0bc3a06bd790607376025d42a177a1ca867d711ba5dafaee7f68b9e216c83"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/OperationalLifeStorage.csv": {
+      "bytes": 21,
+      "sha256": "f802c879163d8160b38794f054f9e2cb23d85e982d21a5496c1c480ff5d9beb0"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/OutputActivityRatio.csv": {
+      "bytes": 1508803,
+      "sha256": "99df7d53b8f519892c64aad2c578f05938c3f9d7b60f2e7430d54dc35c4bdda2"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/REGION.csv": {
+      "bytes": 13,
+      "sha256": "28aa4cf81d85382206504344173b59ab135d7a3dd111d903314abe0996bca849"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/REMinProductionTarget.csv": {
+      "bytes": 18,
+      "sha256": "4c6f9f62a2dcf51e0b11a194585851b460de510b5c7199327be9fe5a06b9c8ce"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/RETagFuel.csv": {
+      "bytes": 23,
+      "sha256": "9cd2c32f4e1301daf2992ae60b716d462d3b2a6f5775b8b85a80bfa36680a285"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/RETagTechnology.csv": {
+      "bytes": 29,
+      "sha256": "ccbba4c84068930fde3737bd69d5add70ac8b68b67aa1728f2f2aa1ccb3583ac"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/ReserveMargin.csv": {
+      "bytes": 18,
+      "sha256": "4c6f9f62a2dcf51e0b11a194585851b460de510b5c7199327be9fe5a06b9c8ce"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/ReserveMarginTagFuel.csv": {
+      "bytes": 873,
+      "sha256": "50f9790931bfd4ed03ab0a152868dc09f9b232a39a1911a119907034e33909be"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/ReserveMarginTagTechnology.csv": {
+      "bytes": 20361,
+      "sha256": "a39c79ef85c0e9ec1bdf09cf30d1abe7ba73fc1bb6d6158f1f18435bf1f362d7"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/ResidualCapacity.csv": {
+      "bytes": 9651,
+      "sha256": "7142221c74af16fc02d98de8ef4ed2d0b820024eec30cad0eb5b9813cc6e7011"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/ResidualStorageCapacity.csv": {
+      "bytes": 26,
+      "sha256": "efcaac6a4336d5803e68e8cd8abd7e50fc7054590a2f51190847cfb94de80e4d"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/SEASON.csv": {
+      "bytes": 10,
+      "sha256": "f30f4e892d018dd5ad9bee2265b62592fa9698d4e9fc990c32ea14fb30930693"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/STORAGE.csv": {
+      "bytes": 6,
+      "sha256": "e13b29b5256a4298f997b26a65cfd7a8a73b4c6d550831f5cd986cd627c6743a"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/SpecifiedAnnualDemand.csv": {
+      "bytes": 1073,
+      "sha256": "77b92e61f23faeb65052dd18d4b67c4c7ae449793d111a0913c37008c4463461"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/SpecifiedDemandProfile.csv": {
+      "bytes": 4521,
+      "sha256": "b97c958a0a5c4ca46f23b17505bbfae36c7629344af5a8729262282a5a38da8a"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/StorageLevelStart.csv": {
+      "bytes": 21,
+      "sha256": "f802c879163d8160b38794f054f9e2cb23d85e982d21a5496c1c480ff5d9beb0"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/StorageMaxChargeRate.csv": {
+      "bytes": 21,
+      "sha256": "f802c879163d8160b38794f054f9e2cb23d85e982d21a5496c1c480ff5d9beb0"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/StorageMaxDischargeRate.csv": {
+      "bytes": 21,
+      "sha256": "f802c879163d8160b38794f054f9e2cb23d85e982d21a5496c1c480ff5d9beb0"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TECHNOLOGY.csv": {
+      "bytes": 1561,
+      "sha256": "5086dedc8fec9d6df7e6782747d840111811b3a6df6279f2d5e906bca9bdb578"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TIMESLICE.csv": {
+      "bytes": 26,
+      "sha256": "2792df50449ad6b5d187bd2854603ac86a9f4c01a332ecc068fab5e0185a2bb3"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TechnologyActivityByModeLowerLimit.csv": {
+      "bytes": 19064,
+      "sha256": "2bf88da8c86072164b068c916f66ca5ab4dd256191268d0a42b5e6be0ce9a564"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TechnologyActivityByModeUpperLimit.csv": {
+      "bytes": 47,
+      "sha256": "d799dc60ac83b01ce674c8f08af16f9473fbc985f423220dfce80faef9355a08"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TechnologyActivityDecreaseByModeLimit.csv": {
+      "bytes": 47,
+      "sha256": "d799dc60ac83b01ce674c8f08af16f9473fbc985f423220dfce80faef9355a08"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TechnologyActivityIncreaseByModeLimit.csv": {
+      "bytes": 47,
+      "sha256": "d799dc60ac83b01ce674c8f08af16f9473fbc985f423220dfce80faef9355a08"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TechnologyFromStorage.csv": {
+      "bytes": 50,
+      "sha256": "5da5e726ff3fc450bef693d1a22ad1c0a0f8b7a0a6dcc6fa4d6088ad211f2d06"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TechnologyToStorage.csv": {
+      "bytes": 50,
+      "sha256": "5da5e726ff3fc450bef693d1a22ad1c0a0f8b7a0a6dcc6fa4d6088ad211f2d06"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TotalAnnualMaxCapacity.csv": {
+      "bytes": 5843,
+      "sha256": "9906838f9c28c4fe02b9b05b7fe2df330ff5ceaf755e9e65fd33f2374094c16e"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TotalAnnualMaxCapacityInvestment.csv": {
+      "bytes": 2069,
+      "sha256": "dfb79ba2bd8325f40ba963cb49d440495d2ec3dceb0e16f1629543178b5008c1"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TotalAnnualMinCapacity.csv": {
+      "bytes": 29,
+      "sha256": "ccbba4c84068930fde3737bd69d5add70ac8b68b67aa1728f2f2aa1ccb3583ac"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TotalAnnualMinCapacityInvestment.csv": {
+      "bytes": 29,
+      "sha256": "ccbba4c84068930fde3737bd69d5add70ac8b68b67aa1728f2f2aa1ccb3583ac"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TotalTechnologyAnnualActivityLowerLimit.csv": {
+      "bytes": 29,
+      "sha256": "ccbba4c84068930fde3737bd69d5add70ac8b68b67aa1728f2f2aa1ccb3583ac"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TotalTechnologyAnnualActivityUpperLimit.csv": {
+      "bytes": 15125,
+      "sha256": "4fa58b479ad22a7c2c2082863d427f60f9f0bde83895be12f833498e947e0567"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TotalTechnologyModelPeriodActivityLowerLimit.csv": {
+      "bytes": 24,
+      "sha256": "ca87fe1abc720e3ab02c35538552f2db664cad732de01622fbb7a79601d050e2"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TotalTechnologyModelPeriodActivityUpperLimit.csv": {
+      "bytes": 24,
+      "sha256": "ca87fe1abc720e3ab02c35538552f2db664cad732de01622fbb7a79601d050e2"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/TradeRoute.csv": {
+      "bytes": 23,
+      "sha256": "9cd2c32f4e1301daf2992ae60b716d462d3b2a6f5775b8b85a80bfa36680a285"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/VariableCost.csv": {
+      "bytes": 24901,
+      "sha256": "35b0961264be66f5bda0ee273394f8c7642be2bb997c7a7b70ee21996397f681"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/YEAR.csv": {
+      "bytes": 176,
+      "sha256": "458339b9661fc3255a2384de50bc82a81096bdb80412669e134f9b3f4ce5a191"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/model/inputs/clewsy/YearSplit.csv": {
+      "bytes": 2333,
+      "sha256": "b43438f3b2073a1262ea56a727c37260253bd764376269dee256782c4a5a8f32"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/envs/clews_global.yaml": {
+      "bytes": 267,
+      "sha256": "082a8801586dc7c27dee5e3439bc41a5c6cae5c7d1455e4cc0aaa0fe112cfef7"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/scripts/clewsy.py": {
+      "bytes": 23693,
+      "sha256": "2def9ccc2d598782dd85f02ee12b9f250cca8051471473ca918d39230e3c1692"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/submodules/CLEWs_GAEZ/GAEZ_Processing/Data/Crop_code.csv": {
+      "bytes": 1841,
+      "sha256": "39c7e0e4a0ef822d4179e0120f161d30c66cec4c948d50304406cc8a8352142c"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/submodules/CLEWs_GAEZ/GAEZ_Processing/libs/collect.py": {
+      "bytes": 6269,
+      "sha256": "94d0806581db4302b578f8c739feab30ebdeddbe1d740933a9199adb84d3c2fb"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/submodules/CLEWs_GAEZ/GAEZ_Processing/libs/extract_geospatial_attributes.py": {
+      "bytes": 8304,
+      "sha256": "dc1f9a47df519477c2538c64e6fa1956f1cd3cd53021f8e53491713633ff1894"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/submodules/CLEWs_GAEZ/GAEZ_Processing/libs/process_land_cells.py": {
+      "bytes": 7556,
+      "sha256": "9df849398543807acf25324190af1ce96955b91c698d7cd6a7e7080b37525060"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/submodules/CLEWs_GAEZ/GAEZ_Processing/libs/spatial_clustering.py": {
+      "bytes": 6213,
+      "sha256": "da6cd5823f10ee1755fb01b991710c95100825ff4985521f4dc9c9a0f46518eb"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/submodules/CLEWs_GAEZ/GAEZ_Processing/user_input/config.yaml": {
+      "bytes": 9807,
+      "sha256": "7df61b4720af62111d65a3beebb86109f987257303ae6e84c547f5c509f3169e"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/submodules/clewsy/optn_mds.txt": {
+      "bytes": 353,
+      "sha256": "987fa1c1023df26dcfca53a89dd808485a1b92be1517314d6b1f8ba6bf7c8491"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/overrides/workflow/submodules/clewsy/src/build/clewsy.py": {
+      "bytes": 63158,
+      "sha256": "874eff7358c531c2191743cccf49464f642624b7fae382a2953aa6da9adb335c"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/patches/CLEWs_GAEZ_changes.patch": {
+      "bytes": 23244,
+      "sha256": "d56050e5d90f3a0bf8c3a69d89680dd4eaf40b5327416520f63065f632129937"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/patches/CLEWs_Global_changes.patch": {
+      "bytes": 28132,
+      "sha256": "92251f37c1e3c8f2ab7c3d4dfa9e23d7c9a1f8dace9507d87ae14a4a91bd424f"
+    },
+    "data_sources/evidence/inherited_base/build_snapshot/patches/clewsy_changes.patch": {
+      "bytes": 1405,
+      "sha256": "ba9e87bc028bb7172dd37e239c5bc483ca2896857f8a9f9b43572aace23d0560"
+    },
+    "data_sources/evidence/inherited_base/calculation_notes/ENVIRONMENTAL_ACCOUNTING.md": {
+      "bytes": 2748,
+      "sha256": "07469563e7adc950e41ca9ed5ef23a6ff62388c87383a750e80e0a2999cabb5c"
+    },
+    "data_sources/evidence/inherited_base/calculation_notes/PROVENANCE_RECONSTRUCTION_2026-07-30.md": {
+      "bytes": 1635,
+      "sha256": "6b4783865ae2a5cb77624f4f980dbadd9d011b00c203e9f8ce2c371f2b0fb379"
+    },
+    "data_sources/evidence/inherited_base/calculation_notes/README.md": {
+      "bytes": 367,
+      "sha256": "5c62fdf2d118ec0fca6777ae2fdd59eb6178f00af560edb9048c836aa1bf2a27"
+    },
+    "data_sources/evidence/inherited_base/calculation_notes/SOURCE_PROVENANCE_RECOVERY_2026-08-05.md": {
+      "bytes": 6428,
+      "sha256": "1ac843c2ecb21af17e5332ed0ea6c33c24c3668c2add6ef9c55eec8ba0a2c054"
+    },
+    "data_sources/evidence/inherited_base/calculation_notes/fisheries/FSH_CALIBRATION_v2.3.md": {
+      "bytes": 12672,
+      "sha256": "1987ccea97ba413b8b8e5a4187a1ba65b31f8fdd297b160ab13b5c8f779ae733"
+    },
+    "data_sources/evidence/inherited_base/calculation_notes/fisheries/FSH_GLOBAL_PARITY_v2.3.md": {
+      "bytes": 6289,
+      "sha256": "b3dea05e57b9c229510f5c28f651e6995d79964887b822797654760b577e23bc"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_accounts/account_dictionary.csv": {
+      "bytes": 2074,
+      "sha256": "f4107f218494543080531da7fd2dadf21f6396b0547a744cdbb757cc2dcb4030"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_accounts/accounts.csv": {
+      "bytes": 157668,
+      "sha256": "8e1b7c483b27e564d0df8849c1b8d999b7632cff6816f1e5d4f869610b0d3336"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_accounts/native_emissions.csv": {
+      "bytes": 21661,
+      "sha256": "bae45979240c3da10993d34fa0cf5ab0b4ef03a727aad504d5f3894e0f97fedd"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_accounts/summary.json": {
+      "bytes": 322,
+      "sha256": "1f073138e85c9c300bc0abf798f661267a3bfb492df46ca04da4c0ceb421d35c"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_accounts/validation.json": {
+      "bytes": 8869,
+      "sha256": "27f12fe19c22d64005ca8530c43e40d853eeda4e7293ac7c2430d5a0d204eb7c"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_final/land_account_dictionary.csv": {
+      "bytes": 824,
+      "sha256": "a13f772b1a3838c3a093ef07eb3a602e02faa5265beedc8f5613ab092a49ebb5"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_final/land_accounts.csv": {
+      "bytes": 42932,
+      "sha256": "888d08ba0e2a7ec84a2241b52daebe189b11f6a8f9f6f4a20e76b2fb027f7c53"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_final/regression_Base_v12.json": {
+      "bytes": 35137,
+      "sha256": "79d03c1b7c9ebf45134e6e0964a708cee93d4d4b772b99acda65744c1af31bb3"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_final/regression_PEP_v12.json": {
+      "bytes": 34993,
+      "sha256": "eb82861f2364c2ec7daae2f9915c9382b9247dfac89065280ce87e6fb7b197d2"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_final/summary.json": {
+      "bytes": 61327,
+      "sha256": "c0be3148d209384114a8b532709d2cd789b9904aabc0d5242872831288de0605"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_env_land_final/validation.json": {
+      "bytes": 79313,
+      "sha256": "ce3b4f0727a35c05c3f3f27d58fcbeb2aa4c69f94276f789d1a80b7e56a6ce20"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_final/account_dictionary.csv": {
+      "bytes": 2074,
+      "sha256": "f4107f218494543080531da7fd2dadf21f6396b0547a744cdbb757cc2dcb4030"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_final/accounts.csv": {
+      "bytes": 194502,
+      "sha256": "9421160d52fae5f08f013a82d6f2a61bae7d317ba7712c58181b734666471596"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_final/native_emissions.csv": {
+      "bytes": 21661,
+      "sha256": "bae45979240c3da10993d34fa0cf5ab0b4ef03a727aad504d5f3894e0f97fedd"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_final/summary.json": {
+      "bytes": 284,
+      "sha256": "1b2fc11de70f3e17a0f9e587c96295af0f52903d9c3ce2a72fbc705547b0280b"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_final/validation.json": {
+      "bytes": 16362,
+      "sha256": "396acde4746dcb1a398dc67663301e079b1671139a5c750f95751b3b5de2aec4"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_initial/account_dictionary.csv": {
+      "bytes": 2074,
+      "sha256": "f4107f218494543080531da7fd2dadf21f6396b0547a744cdbb757cc2dcb4030"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_initial/accounts.csv": {
+      "bytes": 194502,
+      "sha256": "9421160d52fae5f08f013a82d6f2a61bae7d317ba7712c58181b734666471596"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_initial/native_emissions.csv": {
+      "bytes": 21661,
+      "sha256": "bae45979240c3da10993d34fa0cf5ab0b4ef03a727aad504d5f3894e0f97fedd"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_initial/summary.json": {
+      "bytes": 284,
+      "sha256": "1b2fc11de70f3e17a0f9e587c96295af0f52903d9c3ce2a72fbc705547b0280b"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-25_initial/validation.json": {
+      "bytes": 12344,
+      "sha256": "00e0d3b0e11dd93bf143986488d44074d515635dab8caa0c0db53290b6c61c36"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_accounts/account_dictionary.csv": {
+      "bytes": 2114,
+      "sha256": "a26827cedd61458bacca476d9aef2c4529f6b3b5402da45fb91359a9b409429a"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_accounts/accounts.csv": {
+      "bytes": 166656,
+      "sha256": "223685a395b7fdff3db58e047b773fb6bfa71c791e981376bd812f5437ef9e7b"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_accounts/native_emissions.csv": {
+      "bytes": 21661,
+      "sha256": "bae45979240c3da10993d34fa0cf5ab0b4ef03a727aad504d5f3894e0f97fedd"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_accounts/summary.json": {
+      "bytes": 542,
+      "sha256": "a8f292f1ae555bcab740800170b77632eb9d0e5961401c44f9e180d78d7f4bfd"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_accounts/validation.json": {
+      "bytes": 9895,
+      "sha256": "edd9bf400666b30e186ad9db5d217726b89186648be78f72c57797807d5da898"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_accounts/water_terminal_reconciliation.csv": {
+      "bytes": 28859,
+      "sha256": "203a75375495d7b91d39ed5e240df8d1241d9559513f7e46c4ce73d0cde02b82"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_validation/regression_Base_v12.json": {
+      "bytes": 35513,
+      "sha256": "3d76b388775ee6e17f9f7e20502b482a1a44d57fc7a68345c074bb8d8f87aebf"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_validation/regression_PEP_v12.json": {
+      "bytes": 34787,
+      "sha256": "f46edfab93fe5fbc62e412695f72735f490fb65d0dc4a064e192b74be56dc5e8"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_validation/summary.json": {
+      "bytes": 62482,
+      "sha256": "01967d0f00f8b87775b7d1a6ef9714960420737a40bc88e512c37b9d8865f66d"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_validation/validation.json": {
+      "bytes": 72642,
+      "sha256": "82d9e9650612e4081941e7e9531f62200cf34eb2a7a528539c2f0543703158ea"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_diagnostic_validation/water_terminal_reconciliation.csv": {
+      "bytes": 28859,
+      "sha256": "203a75375495d7b91d39ed5e240df8d1241d9559513f7e46c4ce73d0cde02b82"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_pivot_published/publication.json": {
+      "bytes": 6216,
+      "sha256": "e6d4369d8800a8fdf25cf471575a49c43de6f333dabc0e259d23e8a735e95168"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_pivot_published/timeslice_reference.csv": {
+      "bytes": 691920,
+      "sha256": "0e1e3f98e90acd4cc821abc0f3a073743e8d477fbf95e631a5e5bfb54b0f2d20"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/2026-07-26_env_water_pivot_published/validation.json": {
+      "bytes": 5302,
+      "sha256": "51952b103dc885d65c358e8f735f939ebff92aafc3d14a1f43a5249c5385ed8d"
+    },
+    "data_sources/evidence/inherited_base/environmental_accounting/README.md": {
+      "bytes": 2979,
+      "sha256": "e29e15499f35c4ddbc3e23f9a37bacb90f2c6a4c0d882f07d3a6b0e6b1501d0d"
+    },
+    "data_sources/evidence/inherited_base/external_sources/fisheries/FSH_calibration_data_v2.3.csv": {
+      "bytes": 4924,
+      "sha256": "89cdf0e14e9b126c9d299f00642e714faf3a833769a58358139902a43928d1e2"
+    },
+    "data_sources/evidence/inherited_base/external_sources/fisheries/FSH_industry_carveout_v2.3.csv": {
+      "bytes": 1750,
+      "sha256": "3cc11eace44378afb60c823b5774e4a83da5d85db15075a8e2e5b57caaff9f62"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/faostat/FAOSTAT_2020.csv": {
+      "bytes": 1569859,
+      "sha256": "082da2e1c708ea6f9837b021143eb193d9f240b0700be367d80ab91cfeb259b9"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/faostat/FAOSTAT_PHL_2020_SELECTION.csv": {
+      "bytes": 1348,
+      "sha256": "f1aff540fc2a3187548a9cc6b79b602baa7a6031b73e44c633974b56a31920bf"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/faostat/FAOSTAT_production_2020.csv": {
+      "bytes": 1608257,
+      "sha256": "51fe2f975b0d57ddcca0e4da860b12c89b7aa9a9daa41b3fe13df77fd746a14f"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_base_rasters/GAEZ_BUNDLED_BASE_RASTERS.csv": {
+      "bytes": 1013,
+      "sha256": "48745a54c23e22cde7ae82a69a77abbaa8bc6ed48f9aca0cfc7cfff54dd56486"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_base_rasters/LCType_ncb.tif": {
+      "bytes": 9346198,
+      "sha256": "17b77aa5fd7b56a4570119026034c0f3137b9e906c741c684556f762c34a30db"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_base_rasters/precipitation prc.tif": {
+      "bytes": 4603469,
+      "sha256": "c72b8cec38ea31755b9d6f02e518571f41f7d39ae2f5913ee64a14077079d83b"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_input_tables/GAEZ_PHL_RASTER_CACHE_MANIFEST.csv": {
+      "bytes": 28108,
+      "sha256": "d9325d79f75dd4dcbd26791aea133de811fbc217b783990a18d24b4959e87f26"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_input_tables/GAEZ_cwd_High_Input.csv": {
+      "bytes": 367744,
+      "sha256": "900596e1d956adc18e2c77cbc3a07e50c7363f72897f350b88c6a2a2e7db3e9a"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_input_tables/GAEZ_cwd_Low_Input.csv": {
+      "bytes": 87874,
+      "sha256": "6817b8d2561fac0bb7bfc38ba8076a50fd4d9e449815b78dfed8a9bb827afcd1"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_input_tables/GAEZ_evt_High_Input.csv": {
+      "bytes": 393616,
+      "sha256": "5e1df43709dfc16d94e690c0bacd76e8829d8e86cf747322a52467c7296e7cbc"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_input_tables/GAEZ_evt_Low_Input.csv": {
+      "bytes": 94174,
+      "sha256": "c931c0d6c6dffff7936f3835f872560576ca6f739c2c99cea713bac92220a874"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_input_tables/GAEZ_yld_High_Input.csv": {
+      "bytes": 376560,
+      "sha256": "47121388a94a61cd7158e9f2ad9474d3480d93b2aa292e154868760bcf84a531"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/gaez_input_tables/GAEZ_yld_Low_Input.csv": {
+      "bytes": 90018,
+      "sha256": "051c31b303930775bbe12229fd59b9257eed5d36b5a01c3249d4655e498a8beb"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/ssp2/SSP2_PHL_ANNUAL_INDEX_2020_2053.csv": {
+      "bytes": 1467,
+      "sha256": "a9c7297c06d33e07c512a38fd921eb02a7517a18a27e2cfef16f9fb9f8fd343c"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/ssp2/SSP2_PHL_SELECTED_ROW.csv": {
+      "bytes": 594,
+      "sha256": "a380ec78c557c93d491decfda48f41e2ac928c8776cd196c5f5ddb4d13f0d07c"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/ssp2/iamc_db_POP_Countries.xlsx": {
+      "bytes": 409620,
+      "sha256": "e013c76eacd95a2e0f6275446e9d1e71bdfb9556eab1c6619a5b0d7914ecab35"
+    },
+    "data_sources/evidence/inherited_base/external_sources/land_agriculture_water/workflow/WORKFLOW_SESSION_EVENTS.csv": {
+      "bytes": 3423,
+      "sha256": "b553b2939790a855c010bb5491e8052d7f653c4c851f5d102eaa5ed397f49250"
+    },
+    "data_sources/evidence/inherited_base/ledger_snapshot/ASSUMPTIONS.csv": {
+      "bytes": 2279,
+      "sha256": "273e165be009a679ca32622d7c0eb9ecc7451ae0dbada1f95a29f5fa7be11e82"
+    },
+    "data_sources/evidence/inherited_base/ledger_snapshot/CALCULATIONS.csv": {
+      "bytes": 7094,
+      "sha256": "30f7bd6a3e8348351af26ec07d9286fbe69f2c77e879352d42bc1a03130034da"
+    },
+    "data_sources/evidence/inherited_base/ledger_snapshot/CHANGES.csv": {
+      "bytes": 1265,
+      "sha256": "792c8a0e0f89b67738a31cf3fa7ee60b86334aa81e8e52cdfe222e65931f3a50"
+    },
+    "data_sources/evidence/inherited_base/ledger_snapshot/DATA_SOURCES.md": {
+      "bytes": 9052,
+      "sha256": "4fa8f6ba28fdd8eb9161dd7772ad9910b332d666a27a7552012021c99a1a8dbd"
+    },
+    "data_sources/evidence/inherited_base/ledger_snapshot/GAPS.csv": {
+      "bytes": 2018,
+      "sha256": "90504cc3407826e2776478e1061bcfb84b978fdfe6b9e075fb1ca19acdf50321"
+    },
+    "data_sources/evidence/inherited_base/ledger_snapshot/MODEL_MAP.csv": {
+      "bytes": 26464265,
+      "sha256": "e9d4cc49e4f1bf0be3a04b829417b5486ae98ba995ed7b1beccd109fe1e18239"
+    },
+    "data_sources/evidence/inherited_base/ledger_snapshot/README.md": {
+      "bytes": 2497,
+      "sha256": "d1be60477848d5e2312314e4ef992b63d5ca0c01dc38d981b08aa816bb59bb28"
+    },
+    "data_sources/evidence/inherited_base/ledger_snapshot/SOURCES.csv": {
+      "bytes": 18663,
+      "sha256": "1adb98c7272f79c01a9cf70b773c3c3775c10234e23e3623d0f9674e6b781f1e"
+    },
+    "data_sources/evidence/inherited_base/v10/LAND_CALIBRATION_v10_RETIRED.md": {
+      "bytes": 6544,
+      "sha256": "db13a148e10a8054f95cb364d8a4875299d82239b02eb86a5709afa3ff6b0588"
+    },
+    "data_sources/evidence/inherited_base/v10/MODEL_FIXES_2026-07-17.md": {
+      "bytes": 15848,
+      "sha256": "f46d4647f0a80aaf0f6f9c868562d939c5e78a5ec1c9cbbecf05a3f0cd1e624c"
+    },
+    "data_sources/evidence/stock_turnover/documentation/CLEWS_MODEL_REVIEW_V14_2026-07-28.md": {
+      "bytes": 1141,
+      "sha256": "9a074f9af65d3115e698b0ff2e51078768b749db1c1c54cd615b0774ebc73d3c"
+    },
+    "data_sources/evidence/stock_turnover/documentation/MODEL_FIXES_2026-07-27.md": {
+      "bytes": 4756,
+      "sha256": "547c705256741eaf21bd8000176648365577c28b23d7880f5d68436a3c444045"
+    },
+    "data_sources/evidence/stock_turnover/documentation/MODEL_FIXES_V14_2026-07-27.md": {
+      "bytes": 9865,
+      "sha256": "6aef5d9d5a39737615c97c9815b06be85fdb1d6ffc9a813f67a386a7721de1e4"
+    },
+    "data_sources/evidence/stock_turnover/documentation/PHL_POW_HEAT_ASSESSMENT_2026-07-28.md": {
+      "bytes": 2633,
+      "sha256": "4ac5c74eae8a6b479a31ed6667784e3cf0feff82f0a3f1b7ec01db6470611b23"
+    },
+    "data_sources/evidence/stock_turnover/documentation/README.md": {
+      "bytes": 865,
+      "sha256": "66fd0cea67ba093a2987a2acf0ae8c07dee71900474bb89a55a6a5c125d86101"
+    },
+    "data_sources/evidence/stock_turnover/documentation/VALIDATION_2026-07-27.md": {
+      "bytes": 3160,
+      "sha256": "9f6419327e3e0bc0981cc49f3a0b0597f932543fb577fdcd1167eeb2d4eabb07"
+    },
+    "data_sources/evidence/stock_turnover/documentation/VALIDATION_V14_2026-07-27.md": {
+      "bytes": 7856,
+      "sha256": "0d3b5f0e6dc3492ab17b3b020d17fbc5409431e43efc631fb6cf14741668f23d"
+    },
+    "data_sources/evidence/stock_turnover/documentation/calibration_generation.json": {
+      "bytes": 14196,
+      "sha256": "5e85ab92b7f5bda6453ee12b1ba96e0de784e71c019cc27104ce2829cd109b9b"
+    },
+    "data_sources/evidence/stock_turnover/documentation/environmental_water_pivot_publication.json": {
+      "bytes": 2657,
+      "sha256": "79c7d2c2388c9c7544c5619225c7b8e88b580ccccf265fa807bf4701642b12a4"
+    },
+    "data_sources/evidence/stock_turnover/documentation/generation.json": {
+      "bytes": 5374,
+      "sha256": "14ee5a24e7609b1f73c759645f19a2d1803b631b4998645a99317ce3fdba38c0"
+    },
+    "data_sources/evidence/stock_turnover/documentation/stock_turnover_generation.json": {
+      "bytes": 1981412,
+      "sha256": "a051b439890891a1d433a09ae4760f55fc497023762f3972b7b92cb7410225fb"
+    },
+    "data_sources/evidence/stock_turnover/documentation/validation_results.json": {
+      "bytes": 154496,
+      "sha256": "e3a491d88b693656f75e869747c5398168d833fa09f4eaa9e357ba17b184c5e4"
+    },
+    "data_sources/evidence/stock_turnover/legacy_tables/ASSUMPTIONS.csv": {
+      "bytes": 8016,
+      "sha256": "207aa89b78da6943a391fb0d31643fd2ffa4c2d0963b7958ad8951ca771b8f0f"
+    },
+    "data_sources/evidence/stock_turnover/legacy_tables/CALCULATIONS.csv": {
+      "bytes": 77319,
+      "sha256": "253787e6e36e6b1867d9ff63c1aca1c230ca004022d4bdce0cb75bedd0643640"
+    },
+    "data_sources/evidence/stock_turnover/legacy_tables/DATA_SOURCE_REGISTER.csv": {
+      "bytes": 8153,
+      "sha256": "8d8975e0c17c734d5fc1475c3a885b00bffccb4031466a0b1fc798022665e866"
+    },
+    "data_sources/evidence/stock_turnover/legacy_tables/MODEL_DATA_MAP.csv": {
+      "bytes": 13513,
+      "sha256": "bcf6f21ba143100a8e45fb02fa2f6838b23e875244c207eb94e112174ce24e6c"
+    },
+    "data_sources/evidence/stock_turnover/legacy_tables/PARAMETER_CHANGE_LOG.csv": {
+      "bytes": 986209,
+      "sha256": "6f7bf10016dabc1c901b338a05a9e140f6e2492bae32f63c6dc77b7a0a62ca5a"
+    },
+    "data_sources/evidence/stock_turnover/legacy_tables/README.md": {
+      "bytes": 2848,
+      "sha256": "219583605fa7b78262aba6eca303bdaa354439d129f0c9d134f98ff6785bb232"
+    },
+    "data_sources/evidence/v30_yield_built/fao_fofa2050_phl_bau_crop_yield_extract.csv": {
+      "bytes": 3829,
+      "sha256": "874daa2f9c6cf2f08e6ae26aa70100d7ac3f1c199e4367eb09ec0c4350f5e4fa"
+    },
+    "data_sources/evidence/v30_yield_built/population_built_path.csv": {
+      "bytes": 1946,
+      "sha256": "319c3161852d901dbc6b2873f2351c9756d2431e33d2607e88ac5cf9619beeb6"
+    },
+    "data_sources/evidence/v30_yield_built/source_decision_register.csv": {
+      "bytes": 1225,
+      "sha256": "cfd9bfd38ef77de3985dd952b7bb73f105060a4b5966302df5dd8e8b0cf12991"
+    },
+    "data_sources/evidence/v30_yield_built/yield_mode_mapping.csv": {
+      "bytes": 41562,
+      "sha256": "4860ef1e10a10812601c9d36fc9c84c4c13020881558b306679ac0ea69cb6809"
+    },
+    "data_sources/evidence/v31_transport/caap_movements_2020.csv": {
+      "bytes": 65,
+      "sha256": "f2618c704469ebd6357566dd2e8aa31d10e51ea395bd7ed18307a37f8c061efe"
+    },
+    "data_sources/evidence/v31_transport/doe_transport_energy_2020.csv": {
+      "bytes": 111,
+      "sha256": "94cea40861dddaed9103a29ad7fd03458a631871910f35216410fb75f8beb41b"
+    },
+    "data_sources/evidence/v31_transport/marina_vessel_acquisition_2020_2024.csv": {
+      "bytes": 614,
+      "sha256": "f19e95d98fead10248899f8be038cf42f7c02827936781364f01f84cecf638f6"
+    },
+    "data_sources/evidence/v31_transport/parameter_audit.csv": {
+      "bytes": 91728,
+      "sha256": "25bdb2a4a9404e7269915cfa6cb780716d3b22f7d36ba1774b13e3f1a0f75264"
+    },
+    "data_sources/evidence/v31_transport/psa_transport_extract.csv": {
+      "bytes": 162,
+      "sha256": "f62a60f15d8fa3e7b973f8ba8cc357e2f45a9a4ace67ac0ed280d13e046c78e6"
+    },
+    "data_sources/evidence/v31_transport/source_decision_register.csv": {
+      "bytes": 845,
+      "sha256": "ba3702062d3eaef825707e67f3ebec0f9b79f3064b5d42a6c1b81f14881221ba"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/README.md": {
+      "bytes": 3367,
+      "sha256": "c144741526dc1ec643e9dad8b45658e50c9c481ef87fd2c76db5d773bbacb92f"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/derive_philippines_rice_cluster_yields.py": {
+      "bytes": 6539,
+      "sha256": "1cc8b2546cf60b2799097a47b06bac6b05158d248896e5c398ee234c3a4e1ae9"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/derived/phl_rice_cluster_yields_2020.csv": {
+      "bytes": 2367,
+      "sha256": "95fa0b66bb076aac45b21d0aa81669e840a4f054603b7a4afa6c144cdab85424"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/derived/phl_rice_province_cluster_allocation_2020.csv": {
+      "bytes": 72182,
+      "sha256": "5b07ebbe104e3e536ba36f3a646542fc13777c6194ff575aac674c91241cd366"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/manifest.json": {
+      "bytes": 2865,
+      "sha256": "7f17c2c5d05f1b818e1da1156c96263d57110422d5717d11a7593362947ea211"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/psa_openstat/phl_palay_area_2020.csv": {
+      "bytes": 10167,
+      "sha256": "e9fefbbba9ee4d697b350d8df0acc7c8fe832e86f545a20caee0668ead5c4c45"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/psa_openstat/phl_palay_production_2020.csv": {
+      "bytes": 10278,
+      "sha256": "585de6caac3b199f8f51c4faf0a76817fe3131d89a500daec7d3e87c65cdf89d"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/reconstructed_geospatial/PHL_LandCover_byCluster_summary.csv": {
+      "bytes": 527,
+      "sha256": "e913f955d35835dbb0d9da14d66842925bfc61b9f4ce67fc7775bba955cdc85d"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/reconstructed_geospatial/PHL_Parameter_byCluster_summary.csv": {
+      "bytes": 6082,
+      "sha256": "18fefbb05967f36aa4f6407cc80cb55c0f01cbb38bd86910061903c6121055b6"
+    },
+    "data_sources/evidence/v32_rice_spatial_yield/reconstructed_geospatial/PHL_clustered_cells.gpkg": {
+      "bytes": 2940928,
+      "sha256": "f5c9baedbcceaf5c8d79a5f913ef1a4d4f16cf530ab64f89fd79c24aec542b3a"
+    },
+    "data_sources/evidence/v33_gas_delivery/elizabethtown_cng_vs_traditional_fuels.html": {
+      "bytes": 37950,
+      "sha256": "5a9de93aa4ae8c3768de6decf8a4b9e274c207d12c9a925e96bf63712cb6bc4e"
+    },
+    "data_sources/evidence/v36_power_gas/doe_2023_energy_situationer.pdf": {
+      "bytes": 9807428,
+      "sha256": "c9778141887e4e419530b96ed604700f43ae253db300649fcb8e675bea877655"
+    },
+    "data_sources/evidence/v36_power_gas/doe_2024_electricity_consumption.pdf": {
+      "bytes": 351335,
+      "sha256": "6d91e685ec3acda7b07312af4a80a2ee8f3e7dbc0de849880c2d6efb88f3f862"
+    },
+    "data_sources/evidence/v36_power_gas/doe_2024_energy_situationer.pdf": {
+      "bytes": 11122516,
+      "sha256": "441593caebef4ac55679eb248a1fca1c4273e12a7e882b877fc7781c6e179493"
+    },
+    "data_sources/evidence/v36_power_gas/doe_2024_grid_capacity_summary.pdf": {
+      "bytes": 509322,
+      "sha256": "cb346d9a6997556a605f8852972f14ec10edbe56b5a655cf25577faed94d8801"
+    },
+    "data_sources/evidence/v36_power_gas/fph_2024_annual_report.pdf": {
+      "bytes": 7735906,
+      "sha256": "27f61f82c473e3c4cc4eba471c6352a8c6551faa5b24b797c88fd3931314e79e"
+    },
+    "data_sources/history/water_delta_2026-08-04/ASSUMPTIONS.csv": {
+      "bytes": 5974,
+      "sha256": "c48285ffad5bafb41213bcf52c132ef3695e048be1f2cc062c401c5867dc4316"
+    },
+    "data_sources/history/water_delta_2026-08-04/CALCULATIONS.csv": {
+      "bytes": 7482,
+      "sha256": "81bbcc70d1192035e1d572bfee99312896a28ac78662241b59c58ed7b6348d82"
+    },
+    "data_sources/history/water_delta_2026-08-04/CHANGES.csv": {
+      "bytes": 2147,
+      "sha256": "589468680a2a267f1075e97394eeb9c346ffff3e8f70d3d3674e2be04dd3378c"
+    },
+    "data_sources/history/water_delta_2026-08-04/DATA_SOURCES.md": {
+      "bytes": 1218,
+      "sha256": "9f12aca23a65f6bba48288e41e8a8c3d9b4034776021bc2847fd919f9babf8ea"
+    },
+    "data_sources/history/water_delta_2026-08-04/GAPS.csv": {
+      "bytes": 3769,
+      "sha256": "3d3f8dccfb4fe452da9e93c7343bcab90eb186835d483a18df50d99804d0324d"
+    },
+    "data_sources/history/water_delta_2026-08-04/MODEL_MAP.csv": {
+      "bytes": 5852,
+      "sha256": "77ddf229b0d41f8e4a65f9a2f4e1ab93114f5e30ed2eb96fb61e41e8969a7784"
+    },
+    "data_sources/history/water_delta_2026-08-04/PHILIPPINES_V15_WATER_SCHEMA_LEDGER.xlsx": {
+      "bytes": 30579,
+      "sha256": "945aba80b47814181216efe93c16973beda8a2f6c81a39382670c609468b0baa"
+    },
+    "data_sources/history/water_delta_2026-08-04/SOURCES.csv": {
+      "bytes": 13288,
+      "sha256": "2c025a933d2796a17a60a6669584b40be9354333c757554dbc7281eb1c0527b3"
+    },
+    "data_sources/history/water_delta_2026-08-04/diagnostics/package_provenance_validation.json": {
+      "bytes": 1320,
+      "sha256": "8df5bb6d671edb115d4870b4734aadce900551f9404ce6508e983f6d0c4d8d93"
+    },
+    "data_sources/history/water_delta_2026-08-04/diagnostics/schema_ledger_live.json": {
+      "bytes": 91212,
+      "sha256": "ba21a53c6f1a19bd75eadac0986cc64514a4295a462960beed487a3a2fa21004"
+    },
+    "data_sources/history/water_delta_2026-08-04/validate_philippines_v15_schema_ledger.py": {
+      "bytes": 17679,
+      "sha256": "38ce7aa515058eb0b89ce451d6b9e3b1ca32acdbc7e1ac1bf87471ce620f50fa"
+    },
+    "data_sources/snapshots/agriculture_v24_2026-08-25.json": {
+      "bytes": 15322,
+      "sha256": "7b77564703318cfa236266ace3ed1e2b75503cf0453e01041cd54e03ff9f1902"
+    },
+    "data_sources/snapshots/aquastat_philippines_irrigation_boundary_2026-08-11.json": {
+      "bytes": 2701,
+      "sha256": "f63485ee3a8c8ddee5936d5de7ce3a5bd42040d025477c0f58fc80fdf87366b8"
+    },
+    "data_sources/snapshots/biomass_simple_v23_2026-08-24.json": {
+      "bytes": 1858,
+      "sha256": "c7edb56c01e0484e33c9af09436b6f432a3403df875ec3c5e759f6833099f548"
+    },
+    "data_sources/snapshots/crop_yield_calibration_manifest.json": {
+      "bytes": 2856,
+      "sha256": "cd9551576095669f0a2361aad082e53a7ef606abca7972dd3e99044e4a31b9fb"
+    },
+    "data_sources/snapshots/crop_yield_live_validation.json": {
+      "bytes": 4142,
+      "sha256": "424df4910754e87b95a6b8d2ddc720e799865869e1b2b3f946e9f1558ef61993"
+    },
+    "data_sources/snapshots/crop_yield_validation.json": {
+      "bytes": 8288,
+      "sha256": "2013830b0810b59a4eb01dd4f5a2601b0e6843e23a06e6ac470e255e1aa52103"
+    },
+    "data_sources/snapshots/crop_yields_2020.json": {
+      "bytes": 5389,
+      "sha256": "3cc90435dc84b14e6ef05ac5c9fd763c951423542fde4634b6f76fe992b86cdb"
+    },
+    "data_sources/snapshots/deployment_envelope_build_manifest.json": {
+      "bytes": 4713,
+      "sha256": "0e020d6d1bf4fdf11667c7b13d06f4fcd17aa4e0f06bc1cb76a9c66282220329"
+    },
+    "data_sources/snapshots/deployment_envelope_publication.json": {
+      "bytes": 447,
+      "sha256": "83a9b850af2a9ab3c91fce999c89dc7f1fd8f8ec1495243795036e9f2b4cd24b"
+    },
+    "data_sources/snapshots/deployment_envelope_static_validation.json": {
+      "bytes": 1872,
+      "sha256": "618fd09cddf0b603622ad7c8dc527f1832e18e9e0011a04150a4e59932436322"
+    },
+    "data_sources/snapshots/deployment_envelope_validation.json": {
+      "bytes": 86260,
+      "sha256": "5fb019a369612cbb164938ce5fefbee6124fd0ef9f7aeb35440e8eb6ff5bbfe5"
+    },
+    "data_sources/snapshots/deployment_envelopes_v18_2026-08-13.json": {
+      "bytes": 257641,
+      "sha256": "a0fd2e58299318622a7ca3e059889cebdf6cd07b2cf1670b2142b07234d1f14b"
+    },
+    "data_sources/snapshots/energy_input_calibration_manifest.json": {
+      "bytes": 3571,
+      "sha256": "051e573de329679c6f0686791d1c9859ec53ccbb9aff56409a6a3366f83e5e6e"
+    },
+    "data_sources/snapshots/energy_input_live_validation.json": {
+      "bytes": 3239,
+      "sha256": "7381fa0bc00c834d9a6b85b25f8fb0092f7c85b84b695abd52eb70d36d5a7940"
+    },
+    "data_sources/snapshots/energy_input_validation.json": {
+      "bytes": 4378,
+      "sha256": "92cc6074c4cae05b06cd4e92c905f1370e44fa2299dfc472bafe011630be823d"
+    },
+    "data_sources/snapshots/energy_inputs_2026-08-11.json": {
+      "bytes": 3230,
+      "sha256": "d16ac808cda4bf15b19c4969e406234cd1cd66a40ba96948b610c23b69cdf744"
+    },
+    "data_sources/snapshots/energy_inputs_v18_2026-08-12.json": {
+      "bytes": 4805,
+      "sha256": "fd4a4502685ecf7b95472ada0883fdd9640d96a41a765cb146efd029accdd9e1"
+    },
+    "data_sources/snapshots/energy_inputs_v18_build_manifest.json": {
+      "bytes": 5729,
+      "sha256": "6d97a121c573b5665b84b2115c25fbe7856c8da865eb9b632a36a7d03719e1e0"
+    },
+    "data_sources/snapshots/energy_inputs_v18_validation.json": {
+      "bytes": 4109,
+      "sha256": "37b8a126995dd3f6715981506186a56b8bce626e3e5e9e47d29c8d766cf0cae4"
+    },
+    "data_sources/snapshots/ev_truck_turnover_build_manifest.json": {
+      "bytes": 16339,
+      "sha256": "000c9c9b9e6abe10fbc24674f1f6a39f8b2d3804bd1a265e353b46befab2195a"
+    },
+    "data_sources/snapshots/ev_truck_turnover_promotion_identity.json": {
+      "bytes": 1432,
+      "sha256": "e1bece5576495ed904ec6fad3c385ee1c40064e94f7f0b23fb761514b66454f7"
+    },
+    "data_sources/snapshots/ev_truck_turnover_validation_manifest.json": {
+      "bytes": 6270,
+      "sha256": "326bfa6dea2925a624503065eb0578395010bdbbf15e26a01879af6ffd939d1d"
+    },
+    "data_sources/snapshots/fit_accounting_r9_promotion_identity.json": {
+      "bytes": 1403,
+      "sha256": "4dfcc89ff1a37eac0897530aba73995a49d0dd6826a3016d2753c7841b5dff5c"
+    },
+    "data_sources/snapshots/historical_heat_cooking_processing_2020_2026-08-27.json": {
+      "bytes": 6139,
+      "sha256": "ea9ffcd0ddc2acd366f6ca6dcb9783875c046303acfd8827d83845f61ac41e83"
+    },
+    "data_sources/snapshots/irrigated_rice_manifest.json": {
+      "bytes": 1246,
+      "sha256": "da244622377d92a42db1026187b00895740ec6770fdf0341f7ce94433d25cd63"
+    },
+    "data_sources/snapshots/irrigated_rice_validation.json": {
+      "bytes": 1117,
+      "sha256": "829300feed6c4d7609af538f88af02b34312695d4460aa751860002b43c603e1"
+    },
+    "data_sources/snapshots/irrigation_water_engineering_2026.json": {
+      "bytes": 6505,
+      "sha256": "75f7524f9737dbec0e17c9def37dfd1139156c6ea6cce0b2b70c06308baecf61"
+    },
+    "data_sources/snapshots/irrigation_water_live_validation.json": {
+      "bytes": 3047,
+      "sha256": "ae16864a02637eed46f09672f72290540c289c505777930512063d7b9dcae3a5"
+    },
+    "data_sources/snapshots/irrigation_water_manifest.json": {
+      "bytes": 4265,
+      "sha256": "231d394a56e0dedf39e5c7314b17ee117276c62b60b843253bf095d72b0cccfc"
+    },
+    "data_sources/snapshots/irrigation_water_validation.json": {
+      "bytes": 6526,
+      "sha256": "986e08822c0db0125ca8affd4a5808ac0a178eadab2476f455a0d1913e138745"
+    },
+    "data_sources/snapshots/land_cover_2020.json": {
+      "bytes": 4376,
+      "sha256": "4e2f7b222a8e74f4b7a7a30d79fe00c835d325c8ac16732e2182a57d63f8eae3"
+    },
+    "data_sources/snapshots/land_cover_build_manifest.json": {
+      "bytes": 7689,
+      "sha256": "2d51911b2f71e4d62421cc528ce9a51085264288be4f04b2ef03b5ee9bd1901f"
+    },
+    "data_sources/snapshots/land_cover_validation.json": {
+      "bytes": 10056,
+      "sha256": "5b6fb520ed28896e218a5434b43b83dbb1a95692b46ebbfa5ce2f8a4fcba1587"
+    },
+    "data_sources/snapshots/land_transition_safeguards.json": {
+      "bytes": 8479,
+      "sha256": "545feb67e4bae48632b26c71de9dc4a85e7a395ba585e69483f2215621bb3c67"
+    },
+    "data_sources/snapshots/model.v.5.4.txt": {
+      "bytes": 38945,
+      "sha256": "537d448b0252097065e47b84a72b1ec6dd008bb3bf6f84fce42ee377fc179736"
+    },
+    "data_sources/snapshots/national_water_ledger.json": {
+      "bytes": 48694,
+      "sha256": "274aad558bbeeb7d0dfd7695c09cf18a3297799e3e382203991791bfe7bc0610"
+    },
+    "data_sources/snapshots/national_water_manifest.json": {
+      "bytes": 16950,
+      "sha256": "782eec01b88284d3a3ff322e00248bf349181941b463b07c844f66fb576c5436"
+    },
+    "data_sources/snapshots/national_water_validation.json": {
+      "bytes": 81882,
+      "sha256": "e5eae7ad63603b26fbef1f826142086c1aaf3c0dc3c54265beac0e91d71821ea"
+    },
+    "data_sources/snapshots/package1_v23_promotion_identity.json": {
+      "bytes": 1410,
+      "sha256": "311a0599f02cddb9ecfefd88bf10443949c8594b356211906c7d16c0c60f8e3d"
+    },
+    "data_sources/snapshots/philippines_v14_genData.json": {
+      "bytes": 125818,
+      "sha256": "a558a31941fecee27cdc35c7bfb261af653126d68998ea50a5156278b819bd16"
+    },
+    "data_sources/snapshots/philippines_v22_transition_scope_extracts_2026-08-20.json": {
+      "bytes": 4121,
+      "sha256": "10ee8b46f4f8438851c12804ceddd6dff04bb5c55df1a787dbf7bf2e614017a3"
+    },
+    "data_sources/snapshots/philippines_v23_package1_sources_2026-08-24.json": {
+      "bytes": 5514,
+      "sha256": "02bb6677b08a3c4e9054a1cb609027251d87267880c503bb12a7e0596d876e90"
+    },
+    "data_sources/snapshots/philippines_v28_land_biomass_inputs_2026-08-26.json": {
+      "bytes": 16153,
+      "sha256": "0e4060bc3857a80df19bd88e48542404a101be267c7d1b685747d320203b5ae1"
+    },
+    "data_sources/snapshots/philippines_v29_crop_land_inputs_2026-08-26.json": {
+      "bytes": 3005,
+      "sha256": "24303da9bc99202a03cb00ede39fbb621b9dbe1db719a7922abbd4dc8e8163b8"
+    },
+    "data_sources/snapshots/philippines_v30_yield_built_inputs_2026-08-26.json": {
+      "bytes": 3795,
+      "sha256": "9a543d689432cbec00bd36d145234149efaadad641b467b50e2e6e29efc3c1e7"
+    },
+    "data_sources/snapshots/philippines_v31_transport_inputs_2026-08-26.json": {
+      "bytes": 659,
+      "sha256": "54068e9519fe4812afa9dd68ecaf349b4435da3cc396983a1986967b1cc87b49"
+    },
+    "data_sources/snapshots/philippines_water_precipitation_ssp245.json": {
+      "bytes": 12970,
+      "sha256": "97f024db29f4d5a2df7440c5414949cbadbefd726bea74d8f790f648948c548d"
+    },
+    "data_sources/snapshots/psa_openstat_agriculture_2020.json": {
+      "bytes": 319787,
+      "sha256": "30d7ab1b45c07a1847f48e9c1eddbcba5197e0dbecc2aa9bc20a2284beba9122"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/EQUATION_FIRST_DESIGN.json": {
+      "bytes": 1743,
+      "sha256": "157ac91c1cf746ad091a8051d4700e8acd8ce94296b69b03cad494c365ecafc3"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/README.md": {
+      "bytes": 2395,
+      "sha256": "aeb1adc3b3c05939282cf5cd4858e174034e5186ab33ae3778cfa3439e14175c"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/V25_APPLIED.csv": {
+      "bytes": 48415,
+      "sha256": "0bfe654611c4b4edbd7f08be7aadb765ff5d1341683ace218514817fc6a0bff4"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/V25_LAND_MODE_CLASSIFICATION.csv": {
+      "bytes": 10211,
+      "sha256": "eb23438e8e4fb3fa2fac67867e280c7ff136bdd2237728fd68a6f89f3bd997db"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/ASSUMPTIONS.csv": {
+      "bytes": 4824,
+      "sha256": "f43cae626dfd034116272b1f544a53a649195bda5e6ef3086d5252eea6a7e463"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/CALCULATIONS.csv": {
+      "bytes": 33487,
+      "sha256": "068bb7a59cc3c286008a2819a04e8ca9d8c0ffe7b6e77e24ef832577d5e0fb27"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/GAPS.csv": {
+      "bytes": 8511,
+      "sha256": "3bd6827dcc44c4bc47838f4b8640281f93612dac8549f94829080a5611465afe"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/README.md": {
+      "bytes": 8355,
+      "sha256": "201530fbef5dd4fb12c9b79c10d41557c8dae4b27149a7cf28c5c1c658ab1f2e"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/SOURCES.csv": {
+      "bytes": 10738,
+      "sha256": "16cddfe427e9d58156cbed2b603d0bf2803e584ad54fcc5f8817849111a1902c"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/VC_INVENTORY.csv": {
+      "bytes": 268575,
+      "sha256": "558ac2ee2bc3ee9c56921537604a19d8b43b3e0f3b95d0acff935738f9ba65b7"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/VC_PROPOSALS.csv": {
+      "bytes": 73852,
+      "sha256": "9766455a07f6907b02dfedccee65d9c4d241993ad84e59c4d060be9033efadab"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/snapshots/MANIFEST.sha256": {
+      "bytes": 788,
+      "sha256": "032934742a965a9a68fca8b5a0dd2094d498f12390fc991f41172a8a199535c1"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/snapshots/eia_aeo2023_elec_cost_perf_extract.txt": {
+      "bytes": 3647,
+      "sha256": "e5c17b1478fb9cbea9d1a55c8538fdf8fea5e6b8c657442bf60c04d4c8440c64"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/snapshots/jica_mmutis_tr9_extract.txt": {
+      "bytes": 3183,
+      "sha256": "a31684736c74e9f9950ede28962574b0136566acb1c5689ba0dc8a05b91ac2fd"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/snapshots/pids_dps1502_extract.txt": {
+      "bytes": 2545,
+      "sha256": "cc64616d53e8449b2715f2d525b0ca20e5f85545ede17d2467e9e0f54c77563b"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/snapshots/psa_cpi_0723_maintenance_repair.csv": {
+      "bytes": 2217,
+      "sha256": "1ea7a901535760182b93acfd9418c5b9f83759de603e2c5295d242aedbcd2d6b"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/snapshots/psa_t51_crop_value_volume_2021_2024.csv": {
+      "bytes": 4588,
+      "sha256": "16e8336a203e9d66a871287713b86db4c84cb7e39b9e10570aeb514c56c2cb03"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/snapshots/psa_t56_palay_irrigated_costs.csv": {
+      "bytes": 1129,
+      "sha256": "9f00fb6124797f50bd926a05cbc9b20d07ec2838805270f4c0ec2d2d2d3fc91f"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/snapshots/psa_t57_palay_nonirrigated_costs.csv": {
+      "bytes": 1119,
+      "sha256": "d7d1bc62eb862847267303ab4ab44b0e9109850b8b206a553c2f64b34df56210"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/claude_source_package/snapshots/tssp2025_extract.txt": {
+      "bytes": 1837,
+      "sha256": "731396b288749fad5aed3ca757ce5e51eefc60b8426d3b3fde5ea60aad09685f"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/snapshots/doe_argonne_tco_2021_extract.txt": {
+      "bytes": 413,
+      "sha256": "66c27f9d9a28463400bc40824c0b9e051169fc11790d005a1e7ea27c12533686"
+    },
+    "data_sources/variable_cost_v25_2026-08-25/snapshots/psa_palay_cost_structure_2022_net_cost_extract.csv": {
+      "bytes": 566,
+      "sha256": "8693c3c4f2e29e2d24df4c38acc7e260ad8677f1623c2059077aa71aa7bfc96b"
+    },
+    "documentation/BIOMASS_V23_PROMOTION_IDENTITY.json": {
+      "bytes": 2229,
+      "sha256": "e9451b5153c149a9349e3d5ed2ad5cdb3c0547632f0daf18817988dbbf2b8e28"
+    },
+    "documentation/CLEWS_MODEL_REVIEW_V14_2026-07-28.md": {
+      "bytes": 1141,
+      "sha256": "9a074f9af65d3115e698b0ff2e51078768b749db1c1c54cd615b0774ebc73d3c"
+    },
+    "documentation/EV_TRUCK_TURNOVER_PROMOTION_IDENTITY.json": {
+      "bytes": 1432,
+      "sha256": "e1bece5576495ed904ec6fad3c385ee1c40064e94f7f0b23fb761514b66454f7"
+    },
+    "documentation/FIT_ACCOUNTING_R9_PROMOTION_IDENTITY.json": {
+      "bytes": 1403,
+      "sha256": "4dfcc89ff1a37eac0897530aba73995a49d0dd6826a3016d2753c7841b5dff5c"
+    },
+    "documentation/FIT_ACCOUNTING_R9_VALIDATION_SUMMARY.json": {
+      "bytes": 6823,
+      "sha256": "c7e0cd064fb33b95fe81effb669036b22f59349404cb5d242d5b6c3d70be659e"
+    },
+    "documentation/GENERIC_GATE_INTERPRETATION.md": {
+      "bytes": 859,
+      "sha256": "b775e260e2feeed0bdaae8e4fc597b9e533b5f2cb5246eb2404cbbb8dcb9b909"
+    },
+    "documentation/HISTORICAL_COMPARISON_REGISTER_V33_2026-08-27.md": {
+      "bytes": 3516,
+      "sha256": "ca19465af5592173949617c2c5e2d0ba45ec9b898e4af598559d00255adcbac6"
+    },
+    "documentation/MODEL_FIXES_2026-07-27.md": {
+      "bytes": 4756,
+      "sha256": "547c705256741eaf21bd8000176648365577c28b23d7880f5d68436a3c444045"
+    },
+    "documentation/MODEL_FIXES_AGRICULTURE_V24_2026-08-25.md": {
+      "bytes": 8136,
+      "sha256": "63ac0e0f7bfe28963fc1d758df88106aceff143b3bd9854563e4b382eaef27d0"
+    },
+    "documentation/MODEL_FIXES_BIOMASS_SIMPLE_V23_2026-08-24.md": {
+      "bytes": 2778,
+      "sha256": "ea5813e7f5f509f3cf03b9019ff14bfff027e791bd451463ddaa50ebeb5f307b"
+    },
+    "documentation/MODEL_FIXES_COAL_DISPATCH_2026-08-07.md": {
+      "bytes": 5391,
+      "sha256": "d3568c40114ac7faa0f8415726026d339a36ba2898b99d0505a748bc52275ded"
+    },
+    "documentation/MODEL_FIXES_CROP_LAND_V29_2026-08-26.md": {
+      "bytes": 3800,
+      "sha256": "e71b545ef0e4a273c246af30f1ee0eacfcc8e734b04756995eebbd77acae92d0"
+    },
+    "documentation/MODEL_FIXES_CROP_YIELDS_2026-08-11.md": {
+      "bytes": 3671,
+      "sha256": "e16833993affbb02f86a63a71041189984c58d9bf8530421c38858ba7de152dd"
+    },
+    "documentation/MODEL_FIXES_DEPLOYMENT_ENVELOPES_2026-08-13.md": {
+      "bytes": 7972,
+      "sha256": "d4d10125baadc3bb30d288ebe18a62ab1f821cb60fbc39b7342c0c5d6be22415"
+    },
+    "documentation/MODEL_FIXES_ENERGY_INPUTS_2026-08-11.md": {
+      "bytes": 1837,
+      "sha256": "6fa5b0948650164565fff3599be45748508d3a265eb00219bb52b94b99210fab"
+    },
+    "documentation/MODEL_FIXES_ENERGY_INPUTS_V18_2026-08-12.md": {
+      "bytes": 3100,
+      "sha256": "9e756fa687fd1a96289195b1718cd78b7e6b516a89b6e3628e628ee9ac1a2f97"
+    },
+    "documentation/MODEL_FIXES_EV_TRUCK_TURNOVER_2026-08-24.md": {
+      "bytes": 8132,
+      "sha256": "76762bdf16f9680f4d32ef6d73788e874c946311e6d66f59fea0bb83385fd436"
+    },
+    "documentation/MODEL_FIXES_FIT_ACCOUNTING_V22_2026-08-20.md": {
+      "bytes": 4977,
+      "sha256": "00e9c06c51b3235b3cbc0f776995992017047ed44d0ba81ac0bcb2b4a145852c"
+    },
+    "documentation/MODEL_FIXES_FOSSIL_BORDER_PRICES_2026-08-18.md": {
+      "bytes": 6373,
+      "sha256": "514a5483a4e9c5239826bb20cb59f73660bec11a8de2846c7dee89e4208463a3"
+    },
+    "documentation/MODEL_FIXES_FOSSIL_RESOURCE_ACCOUNTING_2026-08-14.md": {
+      "bytes": 6198,
+      "sha256": "41be0494b8e3d703c91e0de1a2f9ea6e90625111cfcd4f3fd54561c7098e2ecd"
+    },
+    "documentation/MODEL_FIXES_GAS_DELIVERY_V33_2026-08-27.md": {
+      "bytes": 7859,
+      "sha256": "4d1c64e9d794693ada1748366873df1d9b231059bcbc1e64a088cdcef7f02fd9"
+    },
+    "documentation/MODEL_FIXES_IRRIGATION_WATER_2026-08-11.md": {
+      "bytes": 3937,
+      "sha256": "755fe267dd56a4a91d1b21be322f5b566e7416f09e80cf1dba7cd3299b432d2f"
+    },
+    "documentation/MODEL_FIXES_LAND_BIOMASS_V28_2026-08-26.md": {
+      "bytes": 3174,
+      "sha256": "58649e301658fb7743f4e1a2520072d1321aecef62813230a5cf85cba11f36d8"
+    },
+    "documentation/MODEL_FIXES_LAND_COVER_2026-08-12.md": {
+      "bytes": 8888,
+      "sha256": "3d41159962eecf241f2a47c4a1c463242cee8ac1d479c54491050c0bfb85f9e4"
+    },
+    "documentation/MODEL_FIXES_LAND_WATER_CLOSURE_2026-08-13.md": {
+      "bytes": 5095,
+      "sha256": "74be49aea10f42f3107bcc457af7d19ef536644e75dcfbb9d5e9474e481728e9"
+    },
+    "documentation/MODEL_FIXES_PACKAGE_1_V23_2026-08-24.md": {
+      "bytes": 8742,
+      "sha256": "d072476823d6b3158c40cfa28b44384c893f5a2623f2f22c9db910dad123b8fa"
+    },
+    "documentation/MODEL_FIXES_PM25_COVERAGE_2026-08-19.md": {
+      "bytes": 2398,
+      "sha256": "98a32470af5938b72c594d228d6c283b0580cb7076a3965349f8abcd6bc503cf"
+    },
+    "documentation/MODEL_FIXES_POWER_ALLOCATION_V21_2026-08-20.md": {
+      "bytes": 13484,
+      "sha256": "5618b1be6735a43f57bcde861f7bc9932e86767cde7e82a20030a3364d105e2a"
+    },
+    "documentation/MODEL_FIXES_POWER_GAS_HISTORY_V36_2026-08-28.md": {
+      "bytes": 12151,
+      "sha256": "0e7c67ed388542abbcc1b536c2ff0b52d3c3b7306b75c247eb49348ab8d2ebf8"
+    },
+    "documentation/MODEL_FIXES_POWER_HISTORY_V20_2026-08-20.md": {
+      "bytes": 6899,
+      "sha256": "a10748d4ba22b179d532aa1c107b3a535735b2670fc7d113ce8efb0c06aca16b"
+    },
+    "documentation/MODEL_FIXES_RE_NUCLEAR_CAPS_2026-08-13.md": {
+      "bytes": 2744,
+      "sha256": "2b6837cfa2a8446d82c87c746dab34874cd8764380017bb04d8fb054be1fee9e"
+    },
+    "documentation/MODEL_FIXES_RICE_SPATIAL_YIELDS_V32_2026-08-27.md": {
+      "bytes": 10285,
+      "sha256": "bb0a8e622b050855f95ead8283c31cf927d4189d18e65090142b44bf218ea406"
+    },
+    "documentation/MODEL_FIXES_TRANSPORT_V31_2026-08-26.md": {
+      "bytes": 4773,
+      "sha256": "c7c763f623286be5e82f32182e07929feab090463a771ffa28ad9b3f97ed8e41"
+    },
+    "documentation/MODEL_FIXES_V14_2026-07-27.md": {
+      "bytes": 9865,
+      "sha256": "6aef5d9d5a39737615c97c9815b06be85fdb1d6ffc9a813f67a386a7721de1e4"
+    },
+    "documentation/MODEL_FIXES_VARIABLE_COST_V25_2026-08-25.md": {
+      "bytes": 3462,
+      "sha256": "fcca33fa149fdc73bf43d2c9d713163b4f1e41175b39e704212893275348b8bc"
+    },
+    "documentation/MODEL_FIXES_WATER_2026-08-04.md": {
+      "bytes": 6447,
+      "sha256": "cd06457d5190e93d636a54d09d0a51307244601682641f19601423a5119a69c6"
+    },
+    "documentation/MODEL_FIXES_WATER_DEMAND_2026-08-07.md": {
+      "bytes": 4013,
+      "sha256": "3215151afaf73e74108db995d26f5c098a8aa0a6a209dc91fcf2f3d5b02cf731"
+    },
+    "documentation/MODEL_FIXES_YIELDS_RE_LAND_V30_2026-08-26.md": {
+      "bytes": 3725,
+      "sha256": "656baf1a89e62b25eaaddc612c782394bebf35605f44cf971c46c98682517c40"
+    },
+    "documentation/NON_FORCING_CALIBRATION_REVIEW_2026-08-07.md": {
+      "bytes": 7881,
+      "sha256": "2b6073b593de239a24bdd8b28c437bc87b5e4a0a252c4d5a6de50b4357f91f1c"
+    },
+    "documentation/PACKAGE1_V23_PROMOTION_IDENTITY.json": {
+      "bytes": 1410,
+      "sha256": "311a0599f02cddb9ecfefd88bf10443949c8594b356211906c7d16c0c60f8e3d"
+    },
+    "documentation/PHL_POW_HEAT_ASSESSMENT_2026-07-28.md": {
+      "bytes": 2633,
+      "sha256": "4ac5c74eae8a6b479a31ed6667784e3cf0feff82f0a3f1b7ec01db6470611b23"
+    },
+    "documentation/PM25_FACTOR_SELECTION.csv": {
+      "bytes": 5214,
+      "sha256": "6982b8a5490f752c1f233895cc3bb44a28a7fae244d2685cc3e46224673a0606"
+    },
+    "documentation/README.md": {
+      "bytes": 778,
+      "sha256": "6c47a964a566ef652cfc1f47dd67db4cdee4ec09c30f5729a0aa6e1cd12a34d2"
+    },
+    "documentation/RE_NUMERICAL_DIAGNOSTICS_2026-08-20.json": {
+      "bytes": 2328,
+      "sha256": "656f8ab8abc144c920f2386c887efc24a0cc5e8f49c3d026141c850af2b412c4"
+    },
+    "documentation/TRANSITION_SCOPE_R8_VALIDATION_SUMMARY.json": {
+      "bytes": 7127,
+      "sha256": "42e2b8c42b0319d1315a9b1dcbe8e8c1fac46935a9d2381bc3af711f27f4aa25"
+    },
+    "documentation/USER_ACCEPTANCE_V36_2026-08-28.json": {
+      "bytes": 904,
+      "sha256": "0f1b12de25e44260ab8dc2c53be71742454e3e871d0f3a3142091ec7375b4468"
+    },
+    "documentation/VALIDATION_2026-07-27.md": {
+      "bytes": 3160,
+      "sha256": "9f6419327e3e0bc0981cc49f3a0b0597f932543fb577fdcd1167eeb2d4eabb07"
+    },
+    "documentation/VALIDATION_V14_2026-07-27.md": {
+      "bytes": 7856,
+      "sha256": "0d3b5f0e6dc3492ab17b3b020d17fbc5409431e43efc631fb6cf14741668f23d"
+    },
+    "documentation/__pycache__/build_historical_comparison_register_v33.cpython-312.pyc": {
+      "bytes": 48214,
+      "sha256": "ecc09d46b5ff246f7428828453e27ccb1c928a4eb12a340e3fea44ea2d15145f"
+    },
+    "documentation/agriculture_v24_build_manifest.json": {
+      "bytes": 4859,
+      "sha256": "1a1be4a1c10f9ac7839f83537264880b63f6482371a284d3de4bedba5710020c"
+    },
+    "documentation/agriculture_v24_deterministic_gate.json": {
+      "bytes": 8174,
+      "sha256": "41f9528b2ee28f3e6ace016293fbe93d8d1706c98d6d4c385958cbc94baafab5"
+    },
+    "documentation/agriculture_v24_four_scenario_validation.json": {
+      "bytes": 38241,
+      "sha256": "db9fa5d21e09c8b60f43f93068a1d758dad989e176190aaebdfd9edd1f41093b"
+    },
+    "documentation/agriculture_v24_generic_gate_base.json": {
+      "bytes": 2423197,
+      "sha256": "9c0bb3db1e27d689c7d2f4d8134435d335f66747564f85cf3157b9b930fcc323"
+    },
+    "documentation/agriculture_v24_generic_gate_coal_phaseout.json": {
+      "bytes": 2423200,
+      "sha256": "be8503389441aa7f9fd335ac8686516dd7fff17ba9fe37096510c6a4b312964d"
+    },
+    "documentation/agriculture_v24_generic_gate_ev.json": {
+      "bytes": 2506047,
+      "sha256": "79abdf69e65646e8c4a4c9d07e76f57b8b4ed53da6d4b581d2e3ba2cb352d790"
+    },
+    "documentation/agriculture_v24_generic_gate_re.json": {
+      "bytes": 2423639,
+      "sha256": "d1bf2c702413e33e8550135e910ddfe43e7f3ada831ebc8d908feb5415d86d10"
+    },
+    "documentation/biomass_generic_gate_base.json": {
+      "bytes": 2423193,
+      "sha256": "89872988c186f140d92a9c5a107c12136e1f58aa9628759d9fded645fe5fff53"
+    },
+    "documentation/biomass_generic_gate_coal_phaseout.json": {
+      "bytes": 2423196,
+      "sha256": "f4b4ce059a6db294a87d6eff6f3017b8894f02173f1339b12d7ab4bf045f4e97"
+    },
+    "documentation/biomass_generic_gate_ev.json": {
+      "bytes": 2506043,
+      "sha256": "72735b55ee67940ba3bbe61d244516eed7d12b5c686d3f1459cec15395386fd2"
+    },
+    "documentation/biomass_generic_gate_re.json": {
+      "bytes": 2423635,
+      "sha256": "4c9fd4c874f499251bba0b691c6f04fea7f2af279bced5db9747f7f6131216e8"
+    },
+    "documentation/biomass_specific_gate.json": {
+      "bytes": 4049,
+      "sha256": "ce1b839b0941823a5c22de900ecae6046bdf56f115afe9a2680d2e910c52a404"
+    },
+    "documentation/biomass_v23_four_scenario_validation.json": {
+      "bytes": 3693,
+      "sha256": "c84cd0c277b77c55402a6b13d338b003b890b5ba2866a6fb74bad37f29245aaf"
+    },
+    "documentation/build_historical_comparison_register_v33.py": {
+      "bytes": 52773,
+      "sha256": "9ffb7a8392a695fb489a6a3bee9235a237cfc1bc90cdbbb3daac52022aca5d5f"
+    },
+    "documentation/calibration_generation.json": {
+      "bytes": 14196,
+      "sha256": "5e85ab92b7f5bda6453ee12b1ba96e0de784e71c019cc27104ce2829cd109b9b"
+    },
+    "documentation/cluster_node_area_crosswalk_vIS11.csv": {
+      "bytes": 2646,
+      "sha256": "cd1bb646abbd8fb80a3c7e92a41b3f5d8a2a942196264e4682da36a91b0ea3fa"
+    },
+    "documentation/crop_land_migration_v28_to_v29.csv": {
+      "bytes": 2637,
+      "sha256": "dd9fcda63ed426512a2dca174a891dc02e14b999f65461dcbdfc5eaccee7a88e"
+    },
+    "documentation/crop_mode_costs_v29.csv": {
+      "bytes": 18392,
+      "sha256": "67c3ecd6ecbafdf23d261c054189fd44f07096fb71e6a958354d23947601ee37"
+    },
+    "documentation/crop_yield_live_validation.json": {
+      "bytes": 4142,
+      "sha256": "424df4910754e87b95a6b8d2ddc720e799865869e1b2b3f946e9f1558ef61993"
+    },
+    "documentation/deep_matrix_audit_v31.json": {
+      "bytes": 13880,
+      "sha256": "3ed6f991981dbf1a33ca34f6db6b88eaaf803adcc321fafeea6697c2c9250394"
+    },
+    "documentation/deployment_envelope_build_manifest.json": {
+      "bytes": 4713,
+      "sha256": "0e020d6d1bf4fdf11667c7b13d06f4fcd17aa4e0f06bc1cb76a9c66282220329"
+    },
+    "documentation/deployment_envelope_static_validation.json": {
+      "bytes": 1872,
+      "sha256": "618fd09cddf0b603622ad7c8dc527f1832e18e9e0011a04150a4e59932436322"
+    },
+    "documentation/deployment_envelope_validation.json": {
+      "bytes": 86260,
+      "sha256": "5fb019a369612cbb164938ce5fefbee6124fd0ef9f7aeb35440e8eb6ff5bbfe5"
+    },
+    "documentation/deployment_envelopes_v18_2026-08-13.json": {
+      "bytes": 257641,
+      "sha256": "a0fd2e58299318622a7ca3e059889cebdf6cd07b2cf1670b2142b07234d1f14b"
+    },
+    "documentation/doe_power_capacity_2020_2024.csv": {
+      "bytes": 9099,
+      "sha256": "41c727f6e0b3e2d26a6ba37f9ba35d03e853bdffcc66f7545f50268fdc82d280"
+    },
+    "documentation/doe_power_validation_2020_2024.csv": {
+      "bytes": 6241,
+      "sha256": "403bcc1db577ff504f9fbec38cbee6ddba77982068b463895f7b3d0e7b46644b"
+    },
+    "documentation/energy_inputs_v18_2026-08-12.json": {
+      "bytes": 4805,
+      "sha256": "fd4a4502685ecf7b95472ada0883fdd9640d96a41a765cb146efd029accdd9e1"
+    },
+    "documentation/energy_inputs_v18_build_manifest.json": {
+      "bytes": 5729,
+      "sha256": "6d97a121c573b5665b84b2115c25fbe7856c8da865eb9b632a36a7d03719e1e0"
+    },
+    "documentation/energy_inputs_v18_validation.json": {
+      "bytes": 4109,
+      "sha256": "37b8a126995dd3f6715981506186a56b8bce626e3e5e9e47d29c8d766cf0cae4"
+    },
+    "documentation/environmental_water_pivot_publication.json": {
+      "bytes": 2657,
+      "sha256": "79c7d2c2388c9c7544c5619225c7b8e88b580ccccf265fa807bf4701642b12a4"
+    },
+    "documentation/ev_truck_turnover_canonical_r9_physical_gate.json": {
+      "bytes": 25937,
+      "sha256": "fd5b28e46d080d57aeb792a3d1cbcb5ef91d38d5301a0be779bbed0686b36779"
+    },
+    "documentation/ev_truck_turnover_deterministic_validation.json": {
+      "bytes": 3372,
+      "sha256": "2934b0108ec0023647eff6f97dc56fb686a8102a223ea125afd466f145798e9c"
+    },
+    "documentation/ev_truck_turnover_rejected_r2_physical_gate.json": {
+      "bytes": 37584,
+      "sha256": "58b8be52d30a59eda6e739e5d43c0a52d9c289b963a342dd93a133251af83e2c"
+    },
+    "documentation/ev_truck_turnover_result_comparison.json": {
+      "bytes": 105138,
+      "sha256": "0c440903d43866fcaadbfd9e24904345edc6ed627e124ae0ff932c596f620d4f"
+    },
+    "documentation/fit_accounting_r9_build_manifest.json": {
+      "bytes": 5235,
+      "sha256": "593287d079e8dcbce943c3992a7417df97763f00d1a21872563495da1df9bf61"
+    },
+    "documentation/fit_accounting_r9_deterministic_gate.json": {
+      "bytes": 2624,
+      "sha256": "9bb494cd7268df3b127f7a0ddb3f07056be1b03cf4627bef8f7621f9c3f17c41"
+    },
+    "documentation/fossil_border_prices_inputs_2026-08-18.json": {
+      "bytes": 10449,
+      "sha256": "a47c627157c48fbf3c52c42b45d32a5ed502e60341f1285bf08de412f75d54b2"
+    },
+    "documentation/fossil_border_prices_validation_2026-08-18.json": {
+      "bytes": 8760,
+      "sha256": "2ac8d7c91835b327c34c98304e93c9001bb634778b1e520d5dfb620bff780f29"
+    },
+    "documentation/fossil_resource_accounting_inputs_2026-08-14.json": {
+      "bytes": 5853,
+      "sha256": "4b746d4e124e65c2d0cd3582a988119050a67f1ad6eacbb9602e043752fd1b99"
+    },
+    "documentation/fossil_resource_accounting_validation_2026-08-14.json": {
+      "bytes": 5652,
+      "sha256": "37f6408cef35a5371b2fba994e6f9de75a81904ed51e0f16644e9e2d68bdeba5"
+    },
+    "documentation/gas_delivery_candidate_status_v33.json": {
+      "bytes": 1263,
+      "sha256": "187eb89585ca9671bae8acf5c8a9ffe349b5b4a1a3d19a9d8b0d654b8633c56e"
+    },
+    "documentation/gas_delivery_four_scenario_validation_v33.json": {
+      "bytes": 32466,
+      "sha256": "8c30196a5a897c1e5f11d242717d43e5b22408110c6d4b55fadbad5c84f1b5c5"
+    },
+    "documentation/gas_delivery_source_change_v33.json": {
+      "bytes": 127665,
+      "sha256": "7cd83b3263de0ba42fae12b29550b6afb021675631d4b864b0c28ae078b5eb92"
+    },
+    "documentation/generation.json": {
+      "bytes": 5374,
+      "sha256": "14ee5a24e7609b1f73c759645f19a2d1803b631b4998645a99317ce3fdba38c0"
+    },
+    "documentation/generic_physical_gate_v36_BASE.json": {
+      "bytes": 2969992,
+      "sha256": "4a4e9349b21c93769898caeb98d7bb03f890e542c5fdab6ff4decdb77647deb1"
+    },
+    "documentation/generic_physical_gate_v36_BASE_active_formulation.json": {
+      "bytes": 2540116,
+      "sha256": "05bdc11f5e5327660308cbfabfeb1d05bf5713a04f46d999c9fe847bd68590f4"
+    },
+    "documentation/generic_physical_gate_v36_COAL_PHASEOUT.json": {
+      "bytes": 2968851,
+      "sha256": "9bcdf3f88ee24586910d41fddd465030efaf82a7ca50cb23d4895be3dc6720d3"
+    },
+    "documentation/generic_physical_gate_v36_COAL_PHASEOUT_active_formulation.json": {
+      "bytes": 2540119,
+      "sha256": "306d6ebadf6340afd24357145dd4ca65c030bc729a1762573b01c6f9c0614199"
+    },
+    "documentation/generic_physical_gate_v36_EV.json": {
+      "bytes": 3040675,
+      "sha256": "00ad996029183a12737c9a382a91634843af0e49cf49c6f171b59bf9fbd369ef"
+    },
+    "documentation/generic_physical_gate_v36_EV_active_formulation.json": {
+      "bytes": 2622965,
+      "sha256": "78800a50cb27ec82a6ee5753f10f20799cd0b7bceaf30efc2bb958858701bdda"
+    },
+    "documentation/generic_physical_gate_v36_RE.json": {
+      "bytes": 2971801,
+      "sha256": "9ea0c78cb2f1aa92446668ca0b14eedd1e58130c65308fff40877a067cbdcb21"
+    },
+    "documentation/generic_physical_gate_v36_RE_active_formulation.json": {
+      "bytes": 2540559,
+      "sha256": "790c474408e62fb5290089b1fc0d15dea9205652576ec893d2b345b40a1682d7"
+    },
+    "documentation/historical_comparison_register_v33.csv": {
+      "bytes": 26897,
+      "sha256": "245e3d6e9aabca5864b382d7a83ed023143c8c75aa54874354c4600ce99efdfa"
+    },
+    "documentation/historical_comparison_register_v33_evidence.json": {
+      "bytes": 6756,
+      "sha256": "cc43b76fd4f35f8b685d4bf826d487a5292b0c3d00cdd2365297bc31cdf77e44"
+    },
+    "documentation/historical_comparison_register_v33_history.json": {
+      "bytes": 16982,
+      "sha256": "277de602ee2013ebb42102224be8ac78c7d69b19d31b3e295935a3dbd3a1727a"
+    },
+    "documentation/historical_comparison_register_v33_score_ready.csv": {
+      "bytes": 5971,
+      "sha256": "29826863f435cbcc0ce097c3fd3f922987340b3ca292d860a29bb0713417d686"
+    },
+    "documentation/historical_comparison_register_v33_sources.csv": {
+      "bytes": 6798,
+      "sha256": "163b11ba9dc8bea776c2e5730e4a532b7f0387ff974f27c2f9599d44069e6330"
+    },
+    "documentation/integrated_repair_v22_build_manifest.json": {
+      "bytes": 5026,
+      "sha256": "3182f5a8257298297afc5754a388e951a13e9e64033bc1551eb04b146b357c2d"
+    },
+    "documentation/irrigation_water_live_generation.json": {
+      "bytes": 388,
+      "sha256": "32eda3de8435141d48bb98914a2ff5e34b2d1d0d54531e35d8fb8879814e91b1"
+    },
+    "documentation/irrigation_water_live_solve.json": {
+      "bytes": 6968,
+      "sha256": "78af77e18f999f84ee186efd4f4a21ae806a13929a0ccc7aa88a2a7ed1f206b2"
+    },
+    "documentation/irrigation_water_live_validation.json": {
+      "bytes": 3047,
+      "sha256": "ae16864a02637eed46f09672f72290540c289c505777930512063d7b9dcae3a5"
+    },
+    "documentation/irrigation_water_promotion_manifest.json": {
+      "bytes": 4163,
+      "sha256": "0fc810a550584596909e1856cee90b42ba041639aa37980ab4bba8c22442d7a7"
+    },
+    "documentation/island_power_candidate_status_vIS12.json": {
+      "bytes": 2028,
+      "sha256": "da93a86b1600e36b800c4bd9d279e9fa8e866f32a2d5476e080f01eee437c342"
+    },
+    "documentation/land_account_base_v30.csv": {
+      "bytes": 7970,
+      "sha256": "85111afe20c112e06f8588b576a601b606ea4948fba450a80d273b6ed139fcf0"
+    },
+    "documentation/land_account_coal_phaseout_v30.csv": {
+      "bytes": 8484,
+      "sha256": "1fb8d5ea47a37acaf23ed86078923a16a18f847980b6701ef66ab620a333c675"
+    },
+    "documentation/land_account_ev_v30.csv": {
+      "bytes": 7856,
+      "sha256": "fab9d5aadac001251ccfc9fb15953b377953a83ed0d4251f8d0b253f0eb418f8"
+    },
+    "documentation/land_account_re_v30.csv": {
+      "bytes": 8057,
+      "sha256": "ebfb65c88e53fece71e52903f3c60b0b86b9601f78e9ef347087eacfb5588ba7"
+    },
+    "documentation/land_account_v28_base.csv": {
+      "bytes": 7966,
+      "sha256": "198e1573026adc7a6c61ca38ed182dd0c48b8957dec98618e0cf283020ca6a44"
+    },
+    "documentation/land_cover_2020.json": {
+      "bytes": 4376,
+      "sha256": "4e2f7b222a8e74f4b7a7a30d79fe00c835d325c8ac16732e2182a57d63f8eae3"
+    },
+    "documentation/land_cover_build_manifest.json": {
+      "bytes": 7689,
+      "sha256": "2d51911b2f71e4d62421cc528ce9a51085264288be4f04b2ef03b5ee9bd1901f"
+    },
+    "documentation/land_cover_validation.json": {
+      "bytes": 10056,
+      "sha256": "5b6fb520ed28896e218a5434b43b83dbb1a95692b46ebbfa5ce2f8a4fcba1587"
+    },
+    "documentation/land_transition_safeguards.json": {
+      "bytes": 8479,
+      "sha256": "545feb67e4bae48632b26c71de9dc4a85e7a395ba585e69483f2215621bb3c67"
+    },
+    "documentation/land_v27_rejected_infeasibility.json": {
+      "bytes": 957,
+      "sha256": "3289bf639e6ef03ec8559e9d747661a95b227a7cdad80f24ffaa9ff8b7db568f"
+    },
+    "documentation/land_water_closure_build_manifest.json": {
+      "bytes": 2740,
+      "sha256": "c3c2b94cc9e360636323d11a04f667cfa5cd0c95bf0303d551bd70926a4ceffa"
+    },
+    "documentation/land_water_closure_promotion_identity.json": {
+      "bytes": 1471,
+      "sha256": "a331f681642731a3b9d687fed765e30d5781e79116579782f01f8fa31e8b2f05"
+    },
+    "documentation/land_water_closure_runtime_incident.json": {
+      "bytes": 501,
+      "sha256": "6ac5d339568b71d88bfc7c5a20a36c68324fe09eecb650100dd6365db934ee18"
+    },
+    "documentation/land_water_closure_validation.json": {
+      "bytes": 4597,
+      "sha256": "da08b2044d9d654e79f06b9fcfea09e288e0c7bc6604926119d23b78a1408598"
+    },
+    "documentation/national_water_ledger.json": {
+      "bytes": 48694,
+      "sha256": "274aad558bbeeb7d0dfd7695c09cf18a3297799e3e382203991791bfe7bc0610"
+    },
+    "documentation/national_water_manifest.json": {
+      "bytes": 16950,
+      "sha256": "782eec01b88284d3a3ff322e00248bf349181941b463b07c844f66fb576c5436"
+    },
+    "documentation/national_water_validation.json": {
+      "bytes": 81882,
+      "sha256": "e5eae7ad63603b26fbef1f826142086c1aaf3c0dc3c54265beac0e91d71821ea"
+    },
+    "documentation/oil_import_floor_removal_vIS12.json": {
+      "bytes": 2259,
+      "sha256": "7e7aeb125cc3a5e96264d4d04c05e7282e6961e2fac62b0ba4c43fe4b0be6fb1"
+    },
+    "documentation/package1_v23_build_manifest.json": {
+      "bytes": 5301,
+      "sha256": "dad48a8fe43b07ce41fbcd73001db6b8452d8da2c0de500fbeece7b08c155117"
+    },
+    "documentation/package1_v23_deterministic_gate.json": {
+      "bytes": 5239,
+      "sha256": "3bdf06842a47a560ed7371345129abfdab0d0b9bd167ea8b69b3cab11d11aec9"
+    },
+    "documentation/package1_v23_four_scenario_validation.json": {
+      "bytes": 27993,
+      "sha256": "2726a16d80aae838b61d5988350a643cfb3d108174139f3385652f8526b68fe8"
+    },
+    "documentation/package1_v23_gate_retrospective_r7.json": {
+      "bytes": 467116,
+      "sha256": "1866b011f9146bc40d260e9a045fc9bed24b676ae5eaab6e01f1f4920cbe29b2"
+    },
+    "documentation/package1_v23_gate_retrospective_r7_historical_stock.json": {
+      "bytes": 938854,
+      "sha256": "d4e573b52cf0b07342591ef1330d5d528e667c8c9978a5600fb6c83f3e5845be"
+    },
+    "documentation/package1_v23_generic_gate_coal_phaseout.json": {
+      "bytes": 107573,
+      "sha256": "8c16ad8f36c8c24d55735c20fec00494f99b9ccd77d618c344bc20fc9bcb882d"
+    },
+    "documentation/package1_v23_generic_gate_ev.json": {
+      "bytes": 107675,
+      "sha256": "2b611f6fbb40efe84de20482c6ab319a72ced8657d8017f3a1641ada6f27390e"
+    },
+    "documentation/package1_v23_generic_gate_re.json": {
+      "bytes": 108012,
+      "sha256": "5d366f621bc36b8edd5033fabcaf1860a6a096a429ad54eafd67b7df1e790ece"
+    },
+    "documentation/package1_v23_generic_physical_gate.json": {
+      "bytes": 107570,
+      "sha256": "fc0e0bfea8d79c94c0fadc509155c457993869a27348ccba39b59c9042fc566c"
+    },
+    "documentation/package1_v23_policy_inheritance_repair.json": {
+      "bytes": 5579,
+      "sha256": "5d708d260e22417a7acf44a58e9bea41687d58bea1aa765feac5e8181b80cc65"
+    },
+    "documentation/package1_v23_post_promotion_deterministic_gate.json": {
+      "bytes": 5210,
+      "sha256": "885fa1b13afd2c5d3102294f13af24fcad49ce59b9bedb773e40b061452e64dc"
+    },
+    "documentation/package1_v23_promotion_staging.json": {
+      "bytes": 5585,
+      "sha256": "77ce378010ef3beedca0db4d9f14706b559df713fddb5ebf1b8dea6d1f7892f4"
+    },
+    "documentation/package1_v23_result_comparison.json": {
+      "bytes": 78248,
+      "sha256": "434992f148a74cce0976364dc3a261456a49e8c9c2f56bc6cabab606a497b232"
+    },
+    "documentation/philippines_water_precipitation_ssp245.json": {
+      "bytes": 12970,
+      "sha256": "97f024db29f4d5a2df7440c5414949cbadbefd726bea74d8f790f648948c548d"
+    },
+    "documentation/pm25_coverage_v19_2026-08-19.json": {
+      "bytes": 26695,
+      "sha256": "7a9a842d016c87c94c76db5371a88c2e83766ec5a93fa55626f41eebb69869de"
+    },
+    "documentation/pm25_coverage_v19_validation.json": {
+      "bytes": 4945,
+      "sha256": "cfa928cd91abdca6565d2441f7901478affaea17aa9f965790dececfaf05a54d"
+    },
+    "documentation/power_allocation_v21_build_manifest.json": {
+      "bytes": 8655,
+      "sha256": "4f68526a42d2828d240789be9f9cd4ed61232e1491f979b1fe093481ef33110a"
+    },
+    "documentation/power_calibration_v20_build_manifest.json": {
+      "bytes": 3649,
+      "sha256": "fde4cf2619bcd9e90b4b61a1ca2a35b0b82bdc970a9a98f521282cdc7259a531"
+    },
+    "documentation/power_calibration_v20_promotion_identity.json": {
+      "bytes": 536,
+      "sha256": "5d32af9a5c1a1fb864fdc117feeb5a59c871f9859e9a854279288469c695b8c2"
+    },
+    "documentation/power_calibration_v20_rejected_r1_solve_record.json": {
+      "bytes": 1862,
+      "sha256": "3d638e46599b6fe5f9204f8fe3eb429019bac1aa83bcbb1375463d386f944763"
+    },
+    "documentation/power_calibration_v20_solve_record.json": {
+      "bytes": 1885,
+      "sha256": "e4a528cc9054ed881894595e1cd166faf16101efd6a139d73965dc1a1321b7fd"
+    },
+    "documentation/power_calibration_v20_static_validation.json": {
+      "bytes": 12833,
+      "sha256": "bdf4f7b2386b7fec8e9095839c4e39c1b02935494142381c61b4941ef992bf31"
+    },
+    "documentation/power_calibration_v20_technology_comparison.csv": {
+      "bytes": 6065,
+      "sha256": "f356382cffe1489603db7b8e858369f4f705eaa910bd404be652171dba47d231"
+    },
+    "documentation/power_calibration_v20_validation.json": {
+      "bytes": 5480,
+      "sha256": "063dba49f596b545972cff907d4f040fbc19528dd86b188436f329518967593d"
+    },
+    "documentation/power_gas_history_base_qualification_v36.json": {
+      "bytes": 13510,
+      "sha256": "2ee95e719fac8da88b74c97d789dd8b69653bff3eb75d2d1a9ff59aa48e0c4cc"
+    },
+    "documentation/power_gas_history_candidate_status_v36.json": {
+      "bytes": 1323,
+      "sha256": "1f05f1b84dd8a71e97eb5a065d77d2ef2e77e99a6edddd68aeb20e868dbdf509"
+    },
+    "documentation/power_gas_history_four_scenario_validation_v36.json": {
+      "bytes": 10882,
+      "sha256": "f51dcc7e46a883d7a6e1f5af2e4fb0b379d929ef4903d9ee2c2bd30b160d964a"
+    },
+    "documentation/power_gas_history_source_change_v36.json": {
+      "bytes": 13916,
+      "sha256": "44c7573abbee58a7e9b7b244cd081b8e7f70115e15b8fa7f64b7c2aef265780e"
+    },
+    "documentation/power_plant_clusters_2020.csv": {
+      "bytes": 1191,
+      "sha256": "5791f2935b2b99f567f3393cb05204e9cd63dff60ee52943cf2e3e0288a0e5bc"
+    },
+    "documentation/preflight_gas_delivery_v33.json": {
+      "bytes": 3470,
+      "sha256": "e464b67f256e4edf1fb64ef7b76387e812e0a2ec8fcd7ee3e0b25a01a7a0a715"
+    },
+    "documentation/preflight_gate_adjustment_v36.json": {
+      "bytes": 1768,
+      "sha256": "bc6d3e35be23df937118eafc2e407243b6b201ce218ca4e8b32d0f5cbefb2656"
+    },
+    "documentation/preflight_island_power_vIS12.json": {
+      "bytes": 2985,
+      "sha256": "f3c4721575c7409d351a4b373f06721f08b285d792e09b492a2a078e4275beda"
+    },
+    "documentation/preflight_power_gas_history_v36.json": {
+      "bytes": 21944,
+      "sha256": "b4864b48b574c0bb0931815f8990ce4d0d7e0a7b52cd5f531dd1ad4ce4544ad9"
+    },
+    "documentation/preflight_rice_spatial_yield_v32.json": {
+      "bytes": 11907,
+      "sha256": "92399daad0f180326aeb28d2f3bb7ee6045c0b2235eb343648879a0a2cf30689"
+    },
+    "documentation/preflight_v28.json": {
+      "bytes": 4213,
+      "sha256": "3a97eb2ee7ed00a1668f995fbfa559ef9c3b488cf3eb1558ac8aff54d6477946"
+    },
+    "documentation/preflight_v29.json": {
+      "bytes": 4610,
+      "sha256": "9cb7ca424ea36ef497fb5744c87796084ab37e9de861fba136c5ca82f60bc878"
+    },
+    "documentation/preflight_v30.json": {
+      "bytes": 11689,
+      "sha256": "88745371cc7497cb0120ae2eaa7688388eecb6d6da42d1d95e0dc83f7d7afab5"
+    },
+    "documentation/preflight_v31.json": {
+      "bytes": 18166,
+      "sha256": "21ab737f7498be211f186186eb8ababa735daf14727b35ed0da623f1978b2ab3"
+    },
+    "documentation/province_node_lookup_vIS11.csv": {
+      "bytes": 4152,
+      "sha256": "a1576e7458c1568965c5936ecdb41c1e0174165565d1779164641b07dff143cf"
+    },
+    "documentation/re_nuclear_caps_promotion_identity.json": {
+      "bytes": 1922,
+      "sha256": "15ca23025c9e7199a0ceb19ee7cb741b00c6060aba94b2bcf105bc2fef12e477"
+    },
+    "documentation/re_nuclear_caps_validation.json": {
+      "bytes": 2349,
+      "sha256": "9e268e37d1942a7fd3656a76db021167167e95560741299e2e22eb5f9349f8f5"
+    },
+    "documentation/rice_spatial_yield_base_validation_v32.json": {
+      "bytes": 9715,
+      "sha256": "b8516ea2844f85ac0412becd958a4f2d7c3b736bf1fdcb8c8c9c9ed51734d926"
+    },
+    "documentation/rice_spatial_yield_candidate_status_v32.json": {
+      "bytes": 1978,
+      "sha256": "bb89c33969332ddae2c46b53bd6d08098414d68d43a22c23b00d306028d45a17"
+    },
+    "documentation/rice_spatial_yield_four_scenario_validation_v32.json": {
+      "bytes": 21542,
+      "sha256": "0f8c666e3382d02c437fad89e0dbf86bd88beabe05d958298b8fde5a7cb5e54c"
+    },
+    "documentation/rice_spatial_yield_source_change_v32.json": {
+      "bytes": 86268,
+      "sha256": "3486cadc24e8cb3fa431f28612f0a47b5d1f253a8a8d34b00d51fec4b5f001ee"
+    },
+    "documentation/spatial_cost_inputs_vIS12.json": {
+      "bytes": 5250,
+      "sha256": "096f7d2be3f571a7ed89552be7e127770a27bbee19f335a44088bdd9b14ba69e"
+    },
+    "documentation/spatial_cost_source_change_vIS12.json": {
+      "bytes": 5244,
+      "sha256": "e4d8a55d513a7a19a1e8c7eb26e063000ea9a4581d3c9912ab75a9016701414a"
+    },
+    "documentation/spatial_inputs_vIS11.json": {
+      "bytes": 5333,
+      "sha256": "0736d19c8fa05dedb555dac8bb3756b7f907de625918e2f02861b14ee817daf1"
+    },
+    "documentation/spatial_power_source_change_vIS11.json": {
+      "bytes": 7331,
+      "sha256": "e89ba0f682bfa6fd4d7be19a47c4f84ce6449447e7e67134084b14468fc6812e"
+    },
+    "documentation/stock_turnover_generation.json": {
+      "bytes": 1981412,
+      "sha256": "a051b439890891a1d433a09ae4760f55fc497023762f3972b7b92cb7410225fb"
+    },
+    "documentation/transition_scope_r8_deterministic_gate.json": {
+      "bytes": 6290,
+      "sha256": "5a6dcbef87080e9b2209c42113bc94a00e4171d7fc072a3d0b5b180777aa6332"
+    },
+    "documentation/validation_results.json": {
+      "bytes": 154496,
+      "sha256": "e3a491d88b693656f75e869747c5398168d833fa09f4eaa9e357ba17b184c5e4"
+    },
+    "documentation/validation_transport_v31.json": {
+      "bytes": 42786,
+      "sha256": "e1abad56267eb2643d462eeeb642ecfca0eb7fbf0ad4dadc61732b9746953f3e"
+    },
+    "documentation/validation_v28_base.json": {
+      "bytes": 5164,
+      "sha256": "5347f2447ddcfc4195164a490fbfa27bdb96631e75f5c63f2ace82f7f0980607"
+    },
+    "documentation/validation_v30.json": {
+      "bytes": 19242,
+      "sha256": "242c68db0291bb069fe86538476a5b4a3dffd6678ee5c615d9300d39b1f52fd3"
+    },
+    "documentation/variable_cost_v25_source_gate.json": {
+      "bytes": 11817,
+      "sha256": "be174630336b703fcf91632d4b585aaa51025ddc594469c8bdb1635b942c14ca"
+    },
+    "documentation/water_demand_calibration_validation.json": {
+      "bytes": 1186,
+      "sha256": "190937410df60f7ed262f535227a0a919aab1bee85cc98d22b0b2ec9645e3974"
+    },
+    "genData.json": {
+      "bytes": 108112,
+      "sha256": "480df7e2e92bfb243afc98eafbe7e2a3c12740cbab539c979c3ad2aff29959f3"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/cbc.log": {
+      "bytes": 15112,
+      "sha256": "3ef38c2a0a86ebce0e02d6631ccdc911419f29828cd71c0a9592cc9b4199b789"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/AccumulatedNewCapacity.csv": {
+      "bytes": 232183,
+      "sha256": "db190ad9329564112ac5f1d760748833f7cea47b2868d7313d7f81e59fe60ae8"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/AnnualFixedOperatingCost.csv": {
+      "bytes": 226239,
+      "sha256": "46b3d96f2cb063e7159021c5b7028a260f3b65057e4017e92e2345d86aa692e9"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/AnnualTechnologyEmission.csv": {
+      "bytes": 518033,
+      "sha256": "8535019b08c8f90f247ed99c2d16d63f8d7ad55173201d9e35d7e745c05a6fad"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/AnnualTechnologyEmissionByMode.csv": {
+      "bytes": 364541,
+      "sha256": "eaa832fcb51f3cf7727650fa6a209184109ac8cdb804b6fac6fdf11109aa0d6e"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/AnnualVariableOperatingCost.csv": {
+      "bytes": 230132,
+      "sha256": "1fba263927319ff2e2398b1e0a322ca456df0e145585291dc789d203178b8962"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/AnnualizedInvestmentCost.csv": {
+      "bytes": 77345,
+      "sha256": "85561c0b46ab7eb4c15d4deb78bb8c1a42dbb00809e97ab2e90eaca46784bbf3"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/CapitalInvestment.csv": {
+      "bytes": 223696,
+      "sha256": "fefc856a0af4a45347e3ad856e2a3f310f2d8a423685f9e948fe8a9ebea5ddf7"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/Demand.csv": {
+      "bytes": 1443658,
+      "sha256": "7fbc849c142d18f748589991915be83b80b169cd2934d7cbb9c2b292b8c20b75"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/E8_AnnualEmissionsLimit.csv": {
+      "bytes": 1641,
+      "sha256": "4947b67e787f0071a8d345f3495f65b744890c6f8c8f0069f13c4196327c13ac"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/EBb4_EnergyBalanceEachYear4_ICR.csv": {
+      "bytes": 100172,
+      "sha256": "a0bf5cb25059d366c0129f1ef4301fc3581ec274af807bb87df297ebac93fbc7"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/InputToTotalCapacity.csv": {
+      "bytes": 10030,
+      "sha256": "41369a82d1d65c992568016ccd39d18b4a02be217c5a21a9b2d6eed53fbd6a68"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/NewCapacity.csv": {
+      "bytes": 230144,
+      "sha256": "4203d41c41232f0ee5fb03e19e9c1a209434139f0ea1f756e4fab5822e0f4f6e"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/ObjectiveValue.csv": {
+      "bytes": 37,
+      "sha256": "57396266673d8c23e718dcf43fc44fc2c0d1892b7060d197f50b6bd0e15943c9"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/ProductionByTechnologyByMode.csv": {
+      "bytes": 3349284,
+      "sha256": "eba01c8a3aa0f334b8bdc3e77b4f4fd7075457400440a7483f5ec1daef9f8363"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/RateOfActivity.csv": {
+      "bytes": 9315066,
+      "sha256": "4cdc271e5ef60bd5f2f0575263b60ea3e7b6c70308620d782051661747aad9e6"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/RateOfProductionByTechnologyByMode.csv": {
+      "bytes": 3490626,
+      "sha256": "733b31c1afdca0ea3c910f1fc22c2f6bd9e00dcc2a1b3a0600eddee4f564f0db"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/RateOfUseByTechnologyByMode.csv": {
+      "bytes": 3616904,
+      "sha256": "33351673e2fb4caa57cbda5714779f9f4f52427de86ce82e1d03fa0435e58ea5"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/SalvageValue.csv": {
+      "bytes": 221656,
+      "sha256": "2862c266b2dd2294634b8bb5977c4a7254f6ba2d4b0dd1987b7e2f790063a6f8"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/TechnologyEmissionsPenalty.csv": {
+      "bytes": 218007,
+      "sha256": "ee48e2a47c56086ca4be07b765eea738b75a44bedc07ad7edd60bb1796c45128"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/TotalAnnualTechnologyActivityByMode.csv": {
+      "bytes": 481872,
+      "sha256": "4ed51108a8e7e198b1eb5ec4442085e143a0beeb594a8ca188cad9f4b42fab8b"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/TotalCapacityAnnual.csv": {
+      "bytes": 236925,
+      "sha256": "0d541147d47c9cdaf0aa79785fe628507fe81362c00e811c67cc5c2b97964697"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/TotalTechnologyModelPeriodActivity.csv": {
+      "bytes": 6091,
+      "sha256": "6ed535c165961a6a122120e1b06a63032f20471372284f49da043f8dc317e227"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/UDC1_UserDefinedConstraintInequality.csv": {
+      "bytes": 9196,
+      "sha256": "5e4356cc010955c79fd19bd81818e97ff30b32e74bddbe81cdaa61ab75827ec3"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/UDC2_UserDefinedConstraintEquality.csv": {
+      "bytes": 3595,
+      "sha256": "cbb67b0b6a86654150c9dd87bad48e3c856e7ce9c00c3afc87cd53fd98119f16"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/csv/UseByTechnologyByMode.csv": {
+      "bytes": 3526415,
+      "sha256": "eae356321613ce0857689e8b5817ff02181a4cd5a77463a0b6e2d39fc6de8f0e"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/data.txt": {
+      "bytes": 2133949,
+      "sha256": "f41c384ace0ba387b074faf4f4efee095cb1275b4a3614620273dae4240bffd9"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/data_processed.txt": {
+      "bytes": 2208459,
+      "sha256": "f6ca81dba733e1d3e8a3f6c6b832295746f6e97dcf1263f3a3eadf594069ce67"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/generated_island_power_gate_vis12.json": {
+      "bytes": 20098,
+      "sha256": "c813e55c2db64755a43132b4eaab61c5ccfbccfe07f65f374923318f24993fb0"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/generation_matrix_report.json": {
+      "bytes": 5550,
+      "sha256": "1e5ecbd11353541666a2d80e94d2457e8036238300db324f6379a7ed14d231a3"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/glpsol_check.log": {
+      "bytes": 4499,
+      "sha256": "6ae9be1c6c0dfc8fdfd0a52f5279e4314f6eb0e93253421d2964d8201676850c"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/lp.lp": {
+      "bytes": 592983421,
+      "sha256": "839361ac141d146bcd3998bdde93405b9139f0c420b52a3a24c26237771ebc65"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/optimization_record.json": {
+      "bytes": 9955,
+      "sha256": "85ebe44dd75a53cf46b52f3aa169495c071a52c1e7129e0e4fe39465f66fcebe"
+    },
+    "res/BASE_VIS12_DIFFERENTIATED/results.txt": {
+      "bytes": 156734900,
+      "sha256": "7b41b7087358c4440aa6533a9ed3feb02c04edf385527222b6b19321fbcbb157"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/cbc.log": {
+      "bytes": 21549,
+      "sha256": "1382f1d95389abb00371589284246c0ac9c19b78264c0c9768a9f3eba9b23ec1"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/AccumulatedNewCapacity.csv": {
+      "bytes": 232890,
+      "sha256": "ae97c0dfc819a044a95f5064497bad632ef4f96592a5124d618f46cea0ef769c"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/AnnualFixedOperatingCost.csv": {
+      "bytes": 227082,
+      "sha256": "7dd5b19b3c5633d116e4dd2e4ab5c9b80deed51595d7689d99de1a769ccd0943"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/AnnualTechnologyEmission.csv": {
+      "bytes": 518112,
+      "sha256": "796c1890ad27b03ec4d2ac97b9c0a997daa41f7bb4cea5c6e8a7d32f48e1147e"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/AnnualTechnologyEmissionByMode.csv": {
+      "bytes": 364619,
+      "sha256": "f065799290e3b5885eb8d33c63500b1ee24daa9321a83d5230bc23b084f85c8d"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/AnnualVariableOperatingCost.csv": {
+      "bytes": 230568,
+      "sha256": "88672724385ca8a9138abff7f76123fc471c48bef24a1544120803bc2cd85a7e"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/AnnualizedInvestmentCost.csv": {
+      "bytes": 88881,
+      "sha256": "1a3510e1111f2b2dd1915e7c1f42a1e3115aa8721bacc73d4b61162e37e8cb0d"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/CapitalInvestment.csv": {
+      "bytes": 224312,
+      "sha256": "8a1f4b32725a2216207b3be5ee62d3dedb1d5573f98baa8ed485fcb1d55e37bc"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/Demand.csv": {
+      "bytes": 1443658,
+      "sha256": "7fbc849c142d18f748589991915be83b80b169cd2934d7cbb9c2b292b8c20b75"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/E8_AnnualEmissionsLimit.csv": {
+      "bytes": 1641,
+      "sha256": "4947b67e787f0071a8d345f3495f65b744890c6f8c8f0069f13c4196327c13ac"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/EBb4_EnergyBalanceEachYear4_ICR.csv": {
+      "bytes": 100261,
+      "sha256": "46e8c3fd4ca938f93b4efae979ed62153d79457a0f7384a1c6e920b919907ffa"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/InputToTotalCapacity.csv": {
+      "bytes": 10116,
+      "sha256": "04201d139bd3b69216c8927823973f1b53852cfac1468ed8e042f0837bc9a1ea"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/NewCapacity.csv": {
+      "bytes": 230560,
+      "sha256": "b57d3e579207b30b97e5ac93592d1e1de7a50053fb3e62fd7659641614362c2c"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/ObjectiveValue.csv": {
+      "bytes": 36,
+      "sha256": "375244c0ba0585f06dfdf1cf32df98acac21d9847c875e5c9de70d892aeb9d83"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/ProductionByTechnologyByMode.csv": {
+      "bytes": 3463063,
+      "sha256": "e63813abf860f3e8bdbc14bb5b8f77f142ab26526cac8f209c379842f5d2e65f"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/RateOfActivity.csv": {
+      "bytes": 9322750,
+      "sha256": "7175d1a8dae52d7740a11f504a76352d9620db5a7672848bdc60a1e74fb3a2ea"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/RateOfProductionByTechnologyByMode.csv": {
+      "bytes": 3584937,
+      "sha256": "8dca58868d97d9b4a032ce6732ce10a041440ed4c5303f87e10563e21f1b34db"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/RateOfUseByTechnologyByMode.csv": {
+      "bytes": 3768932,
+      "sha256": "3ade7cdb5dd68845a00cd59ec0c645d0fff28e1b5cef6bbfa92d69cb41c24427"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/SalvageValue.csv": {
+      "bytes": 222159,
+      "sha256": "e7f1af8c68fd465d1dffd4c55c5b1bc445a8e2e386ae1b3aeadb24bc24b987d3"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/TechnologyEmissionsPenalty.csv": {
+      "bytes": 218007,
+      "sha256": "ee48e2a47c56086ca4be07b765eea738b75a44bedc07ad7edd60bb1796c45128"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/TotalAnnualTechnologyActivityByMode.csv": {
+      "bytes": 482508,
+      "sha256": "f7d2eedafc3c0aa136914512a4b6bae292c5a01c68a164484ab682591ba03cb8"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/TotalCapacityAnnual.csv": {
+      "bytes": 237367,
+      "sha256": "b30845dd3947fc7ff7f452a7134d10eb90ccd7386a3c0ebe6620437b28c62660"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/TotalTechnologyModelPeriodActivity.csv": {
+      "bytes": 6154,
+      "sha256": "fc0777631b6d1e021032b06bb9a2e2375ea4381c0e7fd2bb6a0a755239ff8d45"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/UDC1_UserDefinedConstraintInequality.csv": {
+      "bytes": 8875,
+      "sha256": "d0d95a5bb2a1de2da68ed001b5c9698b234d28ef0a727df28baefbb26aff96a4"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/UDC2_UserDefinedConstraintEquality.csv": {
+      "bytes": 3596,
+      "sha256": "17599160bf337f062fe929514ba2f2fbf24c87262f92d9f0d29b94c597c34526"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/csv/UseByTechnologyByMode.csv": {
+      "bytes": 3623953,
+      "sha256": "2e7fa7327eebe517bcaece9404345a4b394cd8ae5da4fa83286c3f7518998863"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/data.txt": {
+      "bytes": 2133491,
+      "sha256": "cf83145d7e024c5a62e434f13a329d1ed571d7f8ee39fccbf553e48f26fd81ed"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/data_processed.txt": {
+      "bytes": 2208001,
+      "sha256": "e478124e5addb2598edb007a1e52b48d1545baa7cae60deb8b5568c345574aa2"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/generated_island_power_gate_vis12.json": {
+      "bytes": 20098,
+      "sha256": "b5d6e326fe0bc1a86eecbf6e121917adc6cbae571755929cf617be66c3ce45ac"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/generation_matrix_report.json": {
+      "bytes": 5579,
+      "sha256": "21e777764f27c4984995cd55896d41d214db2b3de80884d54be7bfe47db6f381"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/glpsol_check.log": {
+      "bytes": 4544,
+      "sha256": "3567c8715ab3c4c7010a6d8e02ed14f14469760fecf4a1a95e7101d8e91d9c77"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/lp.lp": {
+      "bytes": 592982266,
+      "sha256": "d3eda1dda2c505cec1719be8ed414e8e7004827ce1fe7da18b2b677a68daf187"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/optimization_record.json": {
+      "bytes": 9974,
+      "sha256": "bbe0ecf11425c2094f0faaa2629ebbf409893006ccfa333f3528d1bf7d581c20"
+    },
+    "res/COAL_PHASEOUT_VIS12_DIFFERENTIATED/results.txt": {
+      "bytes": 156735482,
+      "sha256": "4cbb1858c812f8c5eb0aab3367fa8486781cd7a0db30a6e6d590d25e5e6ba923"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/cbc.log": {
+      "bytes": 15801,
+      "sha256": "165c91023dd0a16d7f6a2d486dab8736fce9c5585f22872d2262922b14fef2bc"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/AccumulatedNewCapacity.csv": {
+      "bytes": 232563,
+      "sha256": "a1b19e4ee42bd7b5ee3c7b7519886e1e645b8dccac39d1250617da4fd9bde381"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/AnnualFixedOperatingCost.csv": {
+      "bytes": 226620,
+      "sha256": "ccab8cf9e23d22c2291c87c43fcadb4590fd5bb5a1cec4d944e27acf559c588f"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/AnnualTechnologyEmission.csv": {
+      "bytes": 518041,
+      "sha256": "a7dbcd72a6de978254ba523f48bac9c2aa7bc5a06d56e6301fe49c2695dade4b"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/AnnualTechnologyEmissionByMode.csv": {
+      "bytes": 364549,
+      "sha256": "30d2f66f51bbc91530abb52bf9d1f85327e1b94888596c3cffc807ebf81477fc"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/AnnualVariableOperatingCost.csv": {
+      "bytes": 230029,
+      "sha256": "1b3160323005564fed4e01f6947000a989d0703d73c9f762a3db9be8e3b87394"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/AnnualizedInvestmentCost.csv": {
+      "bytes": 82330,
+      "sha256": "fc77bfaa56833b21951fb40110951916f37e9d94eca8efb2beb2b38f05485f92"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/CapitalInvestment.csv": {
+      "bytes": 223844,
+      "sha256": "f851cfe03ef23219414ba332267b66c5d8a83e7a116f2c0c82f941ee3bd46934"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/Demand.csv": {
+      "bytes": 1443658,
+      "sha256": "7fbc849c142d18f748589991915be83b80b169cd2934d7cbb9c2b292b8c20b75"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/E8_AnnualEmissionsLimit.csv": {
+      "bytes": 1641,
+      "sha256": "4947b67e787f0071a8d345f3495f65b744890c6f8c8f0069f13c4196327c13ac"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/EBb4_EnergyBalanceEachYear4_ICR.csv": {
+      "bytes": 100338,
+      "sha256": "ddae3bc581d637a0af28b630f8dddfb8d8978fcf7627e89187718193c4a0c843"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/InputToTotalCapacity.csv": {
+      "bytes": 10029,
+      "sha256": "531b1655abaa17e0b4a785ad10b25741cd0a02bb529f15697068bada56303634"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/NewCapacity.csv": {
+      "bytes": 230275,
+      "sha256": "9c4aba570cd3fb5a5e0dcf28863cf4576486e9b70b02316c0fd2927d8fd33308"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/ObjectiveValue.csv": {
+      "bytes": 37,
+      "sha256": "a938826e44757f7391b653474d6b9a8835807e86738afdb4dc59c2df93c398d3"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/ProductionByTechnologyByMode.csv": {
+      "bytes": 3360098,
+      "sha256": "72dc75fcb6ceb27bb8b223a08923b1bd75b756740f0a7392ec4141c5875a3ac3"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/RateOfActivity.csv": {
+      "bytes": 9318066,
+      "sha256": "f55e50d14c04c596e014f5a15eea36af79d405d6bf88f3861ee5134c72cdc1a6"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/RateOfProductionByTechnologyByMode.csv": {
+      "bytes": 3510070,
+      "sha256": "c060f6ce83ead69edaedd15214f124c07ec070ea1c6bfa13bad49f7ca2bf0f55"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/RateOfUseByTechnologyByMode.csv": {
+      "bytes": 3599327,
+      "sha256": "1d08bbdcfeab423fb894998de6ba7693f7fd9b793f15bac8099ed046bada37dc"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/SalvageValue.csv": {
+      "bytes": 221762,
+      "sha256": "e1337fdf90df0ac30c4210443068b45bfbdd5a21be0f43319cbdc7e2c5537dff"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/TechnologyEmissionsPenalty.csv": {
+      "bytes": 218007,
+      "sha256": "ee48e2a47c56086ca4be07b765eea738b75a44bedc07ad7edd60bb1796c45128"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/TotalAnnualTechnologyActivityByMode.csv": {
+      "bytes": 481874,
+      "sha256": "ec1aecce48c2b008082cdb66cb0c57a79315c62e06133c28468f75f451272217"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/TotalCapacityAnnual.csv": {
+      "bytes": 237249,
+      "sha256": "21af5cadf318d12ce77aaf494766260bd4bca0141a3236bfdc37a9012d178cff"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/TotalTechnologyModelPeriodActivity.csv": {
+      "bytes": 6105,
+      "sha256": "f1c938d78115abd9c815d2a520accba74a83aedf60f26f2e0ddb11e15c4831a0"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/UDC1_UserDefinedConstraintInequality.csv": {
+      "bytes": 9210,
+      "sha256": "8b456f71b77fe3b996de471c58fef2c7c9998236a267aeee1bdc199284542bfc"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/UDC2_UserDefinedConstraintEquality.csv": {
+      "bytes": 4029,
+      "sha256": "fda9f5cb59b2a94b2b9d0518e97830c244a61f97b86fd38ef1e9c6aa39341924"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/csv/UseByTechnologyByMode.csv": {
+      "bytes": 3511097,
+      "sha256": "3c58c6572af2b9618db7d1e6541349d2e930933c49d925601f9be41240e45122"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/data.txt": {
+      "bytes": 2141635,
+      "sha256": "8254f7b2a29bbf596dfa0b6218c5335ee64869336f14cb122eb89c4bcd12a0b3"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/data_processed.txt": {
+      "bytes": 2216145,
+      "sha256": "58db94b20f75321c6dc9b87f89ab0e98c3b68e9103c9857db0085dc4c9632995"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/generated_island_power_gate_vis12.json": {
+      "bytes": 20098,
+      "sha256": "4f6ef6400b6c76c11fbc8686cd045b6a6b1620fdea3188ff3dda2ae2b88f7c61"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/generation_matrix_report.json": {
+      "bytes": 5557,
+      "sha256": "18e07d7c87be048efa2a44306aa77b5171c490ec680985873f71ad02473dd6fb"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/glpsol_check.log": {
+      "bytes": 4489,
+      "sha256": "f2f24edfed6a2fe9b46fdd0ff13de64eb71021ea469a9e315953325351724a90"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/lp.lp": {
+      "bytes": 593005505,
+      "sha256": "83f023391dcf20ad0747f955c938c0b8cc603c8bc32413d2dfcef4a6d0ad180d"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/optimization_record.json": {
+      "bytes": 9948,
+      "sha256": "e1bb08042caf26b8520c7db2c69c0845f6a456f2c89c71aaa2252c08168ed00d"
+    },
+    "res/EV_VIS12_DIFFERENTIATED/results.txt": {
+      "bytes": 156735584,
+      "sha256": "c117ea8b4f924707d4c70e2afddd585d4948de33c77313ae93675de8db23928a"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/cbc.log": {
+      "bytes": 25109,
+      "sha256": "4729ff6f7197e09f2b7959ec2aa168385930fc783a411d99680c6e560d127923"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/AccumulatedNewCapacity.csv": {
+      "bytes": 233096,
+      "sha256": "ec75dd500d6b2bb18f54e00797a8ed419b260cc697a3c29173e972b8d4cdc53c"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/AnnualFixedOperatingCost.csv": {
+      "bytes": 227023,
+      "sha256": "2ff86c47492f048210d972d8812adf5f27e5356f3d64672c64fa68c5fe8dfb39"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/AnnualTechnologyEmission.csv": {
+      "bytes": 518379,
+      "sha256": "7b512595b2fd7bdb4f7a820be26fadc22109a4176e33a558b16a3072adfb8885"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/AnnualTechnologyEmissionByMode.csv": {
+      "bytes": 364893,
+      "sha256": "bbf7af6574707cc793bddaed25ad3acf27cdc09909aaa5415ee7c744b1671c2b"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/AnnualVariableOperatingCost.csv": {
+      "bytes": 230918,
+      "sha256": "2161793ab0562f3b144eb9323a6e8cbe2ebe0bf933e2c9c855856d95f5eead31"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/AnnualizedInvestmentCost.csv": {
+      "bytes": 91540,
+      "sha256": "72033ef3a1b3199c5f655d257d8028c0893ed8d30f4502a54d334819569b525a"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/CapitalInvestment.csv": {
+      "bytes": 224264,
+      "sha256": "0235df4fca0ad593363ed4910abd45b16ff8cae9d126eb0f2db85fdc8c56649e"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/Demand.csv": {
+      "bytes": 1443658,
+      "sha256": "7fbc849c142d18f748589991915be83b80b169cd2934d7cbb9c2b292b8c20b75"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/E8_AnnualEmissionsLimit.csv": {
+      "bytes": 1641,
+      "sha256": "4947b67e787f0071a8d345f3495f65b744890c6f8c8f0069f13c4196327c13ac"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/EBb4_EnergyBalanceEachYear4_ICR.csv": {
+      "bytes": 100766,
+      "sha256": "6941c07a8f383108192d744ed3028b21b3c3caa21c1844b641f70fbdfc58c31b"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/InputToTotalCapacity.csv": {
+      "bytes": 10114,
+      "sha256": "9ec4374e754a8c8776a858cc432340833261acf93302fd3187a441ea929004e3"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/NewCapacity.csv": {
+      "bytes": 230571,
+      "sha256": "2d77f9eef225d28f8932e654673e0104c4c99f984e48a4885611be047fc07534"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/ObjectiveValue.csv": {
+      "bytes": 36,
+      "sha256": "003c67296c84ab4333df5b873e4a30065e5f153bff284e578f9562b40420afcf"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/ProductionByTechnologyByMode.csv": {
+      "bytes": 3612464,
+      "sha256": "c3f6f05e2d9260a10bee31d00ef89ba4452f75e68b0c4ad9763d55df09baa1b2"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/RateOfActivity.csv": {
+      "bytes": 9327929,
+      "sha256": "c9e982973b816f4ee269fd1a0a5e06445bc4e90d4706127bc6c684d569c1f955"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/RateOfProductionByTechnologyByMode.csv": {
+      "bytes": 3735468,
+      "sha256": "fe896528ac43ca0295bc132661326bb12b9904ff30571de2fa22c809f62ba217"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/RateOfUseByTechnologyByMode.csv": {
+      "bytes": 3962241,
+      "sha256": "4e342c0aabb9d36893f2ed04182453dc806238a344593ef49d7bc6df147e6540"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/SalvageValue.csv": {
+      "bytes": 222194,
+      "sha256": "eb2dc0ad174d6ed29f3af9d3f7de30bc154ef6912aae94194276fd62d3c40917"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/TechnologyEmissionsPenalty.csv": {
+      "bytes": 218007,
+      "sha256": "ee48e2a47c56086ca4be07b765eea738b75a44bedc07ad7edd60bb1796c45128"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/TotalAnnualTechnologyActivityByMode.csv": {
+      "bytes": 482979,
+      "sha256": "d22dcf96ef4319410ae4fdcb43e6c8b6f013761caba638f86795d9930eaf00aa"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/TotalCapacityAnnual.csv": {
+      "bytes": 237353,
+      "sha256": "568e9191ac71988b7fc73d73949e030e48749d3526e6b06a374702e0ab6e153e"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/TotalTechnologyModelPeriodActivity.csv": {
+      "bytes": 6148,
+      "sha256": "ade28e7d111eecdd1729dbe1de4eeb856e044107c97252ffaf85926d1727c6c1"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/UDC1_UserDefinedConstraintInequality.csv": {
+      "bytes": 9700,
+      "sha256": "07f3c602a243cf14fc5a9390fdb4986e1b4fdfa1b58fccfd06371c2ff21ac87d"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/UDC2_UserDefinedConstraintEquality.csv": {
+      "bytes": 3638,
+      "sha256": "4d5ed6bb25bbf380e65d8e3c269ec899095fbb4c2856de19bf7c66dc9827848c"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/csv/UseByTechnologyByMode.csv": {
+      "bytes": 3804481,
+      "sha256": "0936a451db92e5cbf761381e4a4108d19268afad0b599095ee68e4e9d238d96a"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/data.txt": {
+      "bytes": 2155541,
+      "sha256": "e884d7f5f5d3908ff292bcb7935d4d0ee91dd55a71bb8ddb15d2bffc31471c4a"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/data_processed.txt": {
+      "bytes": 2230051,
+      "sha256": "5223e35aaf08e6a42d292063f87c4aaa351329a4afc042cd50eedfd5429bf640"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/generated_island_power_gate_vis12.json": {
+      "bytes": 20098,
+      "sha256": "894a769bc915ef028f920773c46698b462e2a4df51abb2842cc20867cb5b5527"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/generation_matrix_report.json": {
+      "bytes": 5558,
+      "sha256": "e716a30ddc4d4480681c6753ed756c09a56254bcac5ef20b88bc65c272bcaa5a"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/glpsol_check.log": {
+      "bytes": 4489,
+      "sha256": "fc1a46ac5781a1ee2a290dd9f30b87ffb53e4cb35b5d2f84c38936b4b9f527de"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/lp.lp": {
+      "bytes": 593077587,
+      "sha256": "b07b94cf90dd8e3ffa7e1eec9b8ca4ac9f5436d5f1e4ee21eeec3b1a09737b8d"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/optimization_record.json": {
+      "bytes": 9932,
+      "sha256": "b2fe881da396a9b2a17c97bd9d6495b250e2159dc1738f6d2df1a49af489c75d"
+    },
+    "res/RE_VIS12_DIFFERENTIATED/results.txt": {
+      "bytes": 156734504,
+      "sha256": "7aa4e08eb4ae8ecfd43e580c5076e4caefad066de639e87c87fa39a602363b5f"
+    },
+    "water_demand_validation_summary.json": {
+      "bytes": 970,
+      "sha256": "e08590df662725c882057ee39f43992b9d9bd6eefc8c1c2acf2c9a1730b3415c"
+    }
+  },
+  "final_case_name": "Philippines_vIS1.2",
+  "promotion_contract": {
+    "generation_runs_during_promotion": 0,
+    "glpsol_runs_during_promotion": 0,
+    "method": "verified recoverable filesystem rename",
+    "optimizer_runs_during_promotion": 0,
+    "preprocess_runs_during_promotion": 0
+  },
+  "qualification": "documentation/island_power_candidate_status_vIS12.json",
+  "qualification_sha256": "da93a86b1600e36b800c4bd9d279e9fa8e866f32a2d5476e080f01eee437c342",
+  "required_runs": [
+    "BASE_VIS12_DIFFERENTIATED",
+    "COAL_PHASEOUT_VIS12_DIFFERENTIATED",
+    "RE_VIS12_DIFFERENTIATED",
+    "EV_VIS12_DIFFERENTIATED"
+  ],
+  "run_records": {
+    "BASE_VIS12_DIFFERENTIATED": {
+      "lp_sha256": "839361ac141d146bcd3998bdde93405b9139f0c420b52a3a24c26237771ebc65",
+      "objective": 892605.95176822,
+      "results_sha256": "7b41b7087358c4440aa6533a9ed3feb02c04edf385527222b6b19321fbcbb157",
+      "scenario": "BASE",
+      "status": "Optimal - objective value 892605.95176822"
+    },
+    "COAL_PHASEOUT_VIS12_DIFFERENTIATED": {
+      "lp_sha256": "d3eda1dda2c505cec1719be8ed414e8e7004827ce1fe7da18b2b677a68daf187",
+      "objective": 910058.7913185,
+      "results_sha256": "4cbb1858c812f8c5eb0aab3367fa8486781cd7a0db30a6e6d590d25e5e6ba923",
+      "scenario": "COAL_PHASEOUT",
+      "status": "Optimal - objective value 910058.79131850"
+    },
+    "EV_VIS12_DIFFERENTIATED": {
+      "lp_sha256": "83f023391dcf20ad0747f955c938c0b8cc603c8bc32413d2dfcef4a6d0ad180d",
+      "objective": 874394.31311479,
+      "results_sha256": "c117ea8b4f924707d4c70e2afddd585d4948de33c77313ae93675de8db23928a",
+      "scenario": "EV",
+      "status": "Optimal - objective value 874394.31311479"
+    },
+    "RE_VIS12_DIFFERENTIATED": {
+      "lp_sha256": "b07b94cf90dd8e3ffa7e1eec9b8ca4ac9f5436d5f1e4ee21eeec3b1a09737b8d",
+      "objective": 907891.6669207,
+      "results_sha256": "7aa4e08eb4ae8ecfd43e580c5076e4caefad066de639e87c87fa39a602363b5f",
+      "scenario": "RE",
+      "status": "Optimal - objective value 907891.66692070"
+    }
+  },
+  "schema": "muio-sealed-candidate-v1"
+}

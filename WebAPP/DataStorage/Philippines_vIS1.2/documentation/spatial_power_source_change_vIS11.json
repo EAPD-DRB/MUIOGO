@@ -1,0 +1,208 @@
+{
+  "case": "Philippines_vIS1.1",
+  "parent": "Philippines_v36",
+  "non_forcing": true,
+  "observed_generation_role": "benchmark_only",
+  "nodes": [
+    "LUZ",
+    "VIS",
+    "MIN",
+    "OFF"
+  ],
+  "off_grid_technologies_unchanged": [
+    "PHL_POW_CHP_OIL_OFFGRID",
+    "PHL_POW_RE_OFFGRID"
+  ],
+  "generation_clones": {
+    "PHL_POW_CHP_NG_OLD": {
+      "LUZ": "TEC_is1001",
+      "VIS": "TEC_is1002",
+      "MIN": "TEC_is1003"
+    },
+    "PHL_POW_CHP_OIL_OLD": {
+      "LUZ": "TEC_is1004",
+      "VIS": "TEC_is1005",
+      "MIN": "TEC_is1006"
+    },
+    "PHL_POW_PP_WON": {
+      "LUZ": "TEC_is1007",
+      "VIS": "TEC_is1008",
+      "MIN": "TEC_is1009"
+    },
+    "PHL_POW_PP_WOF": {
+      "LUZ": "TEC_is1010",
+      "VIS": "TEC_is1011",
+      "MIN": "TEC_is1012"
+    },
+    "PHL_POW_PP_SPV": {
+      "LUZ": "TEC_is1013",
+      "VIS": "TEC_is1014",
+      "MIN": "TEC_is1015"
+    },
+    "PHL_POW_PP_NUSMR": {
+      "LUZ": "TEC_is1016",
+      "VIS": "TEC_is1017",
+      "MIN": "TEC_is1018"
+    },
+    "PHL_POW_PP_NU": {
+      "LUZ": "TEC_is1019",
+      "VIS": "TEC_is1020",
+      "MIN": "TEC_is1021"
+    },
+    "PHL_POW_PP_NGCC_CCS": {
+      "LUZ": "TEC_is1022",
+      "VIS": "TEC_is1023",
+      "MIN": "TEC_is1024"
+    },
+    "PHL_POW_PP_NGCC": {
+      "LUZ": "TEC_is1025",
+      "VIS": "TEC_is1026",
+      "MIN": "TEC_is1027"
+    },
+    "PHL_POW_PP_HY_LA": {
+      "LUZ": "TEC_is1028",
+      "VIS": "TEC_is1029",
+      "MIN": "TEC_is1030"
+    },
+    "PHL_POW_PP_H2": {
+      "LUZ": "TEC_is1031",
+      "VIS": "TEC_is1032",
+      "MIN": "TEC_is1033"
+    },
+    "PHL_POW_PP_COAL_CCS": {
+      "LUZ": "TEC_is1034",
+      "VIS": "TEC_is1035",
+      "MIN": "TEC_is1036"
+    },
+    "PHL_POW_PP_COAL": {
+      "LUZ": "TEC_is1037",
+      "VIS": "TEC_is1038",
+      "MIN": "TEC_is1039"
+    },
+    "PHL_POW_PP_BIOM_CCS": {
+      "LUZ": "TEC_is1040",
+      "VIS": "TEC_is1041",
+      "MIN": "TEC_is1042"
+    },
+    "PHL_POW_GEO_OLD": {
+      "LUZ": "TEC_is1043",
+      "VIS": "TEC_is1044",
+      "MIN": "TEC_is1045"
+    },
+    "PHL_POW_CHP_COAL_OLD": {
+      "LUZ": "TEC_is1046",
+      "VIS": "TEC_is1047",
+      "MIN": "TEC_is1048"
+    },
+    "PHL_POW_CHP_BIOM_OLD": {
+      "LUZ": "TEC_is1049",
+      "VIS": "TEC_is1050",
+      "MIN": "TEC_is1051"
+    },
+    "PHL_POW_CHP_BIOM_FIT_OLD": {
+      "LUZ": "TEC_is1052",
+      "VIS": "TEC_is1053",
+      "MIN": "TEC_is1054"
+    },
+    "PHL_POW_TD": {
+      "LUZ": "TEC_is1055",
+      "VIS": "TEC_is1056",
+      "MIN": "TEC_is1057"
+    },
+    "PHL_POW_DAC": {
+      "LUZ": "TEC_is1058",
+      "VIS": "TEC_is1059",
+      "MIN": "TEC_is1060"
+    },
+    "PHL_POW_ELEC": {
+      "LUZ": "TEC_is1061",
+      "VIS": "TEC_is1062",
+      "MIN": "TEC_is1063"
+    },
+    "PHL_POW_TECH_AMMO": {
+      "LUZ": "TEC_is1064",
+      "VIS": "TEC_is1065",
+      "MIN": "TEC_is1066"
+    },
+    "PHL_DEM_PWR_GWT_WAT": {
+      "LUZ": "TEC_is1067",
+      "VIS": "TEC_is1068",
+      "MIN": "TEC_is1069"
+    },
+    "PHL_DEM_PWR_SUR_WAT": {
+      "LUZ": "TEC_is1070",
+      "VIS": "TEC_is1071",
+      "MIN": "TEC_is1072"
+    }
+  },
+  "interconnectors": {
+    "LV": {
+      "from": "LUZ",
+      "to": "VIS",
+      "residual_gw": {
+        "2020": 0.44
+      },
+      "loss_fraction": 0.03,
+      "capital_cost_musd_per_gw": 887.8,
+      "additional_limit_gw": 0.44,
+      "additional_from_year": 2034
+    },
+    "VM": {
+      "from": "VIS",
+      "to": "MIN",
+      "residual_gw": {
+        "2020": 0.0,
+        "2023": 0.45
+      },
+      "loss_fraction": 0.03,
+      "capital_cost_musd_per_gw": 1982.4,
+      "additional_limit_gw": 0.45,
+      "additional_from_year": 2036
+    }
+  },
+  "load_share_method": "six fixed-proportion node-electricity bundle technologies; total sector electricity and fuel choice remain endogenous",
+  "bundle_capacity_bound": 8285.684800000003,
+  "fuel_delivery_method": "applicable node generators consume national fuels directly; gas build envelopes remain Luzon-only",
+  "timeslice_profile": "inherit the national v36 normalized profile at every main-grid node pending sourced hourly grid profiles",
+  "national_land_water_status": "retain national model balances in vIS1; preserve crosswalk evidence for a later source-gated spatial stage",
+  "parent_hashes": {
+    "genData.json": "97a6c0323405561b0948fcbd0d5572c33a077c662b0345bb395e539cdf4a3b87",
+    "RT.json": "16d6471f541240f0389156592467753bcf8cb91f1f423c269bbb0e819b3571c6",
+    "RYT.json": "df5895ba82085933b698c7a5aee68932076472878356197c6f0ae79cc88727b9",
+    "RYTTs.json": "91483a1af2b32531e14a8fcd878079b6db6f3b480010ce12d1b1197029cc89b9",
+    "RYTCM.json": "05c247fc8beaa23f2ea3dd9c5d6ca2138e37474b45effdd0d0b463fdfdea0376",
+    "RYTM.json": "71e751f76a53396bee2484354eaaeaf5c575b967da384accf02eb3bf17422fa0",
+    "RYTEM.json": "231e10dd130840a4faee42912bb7cdd2e087421e40f9508d5f40085ca6dffb47",
+    "RYTC.json": "632145fa503927aeee025e27c4364ed4bfe011228708198d250bd7c3ce4acece",
+    "RYTCn.json": "68fe4f274506cbe8b04851e4335ca4599ecb028e36e4fa7503b4b13a0848ef9b",
+    "RYTs.json": "e2c7ab12d3e298f4558e3782af9a6855f2fdd74d2358fbe743cc28bb2146a271",
+    "RTSM.json": "b5f05d6916f988e122fa368636e8f6841e2b89bb35f551bea3fd0f171c28609b",
+    "RYC.json": "4dcd819cf0dacd2451068d6261fdaa3b899ff44827a18f5c5d581e69893242d9",
+    "RYCTs.json": "559909ec7e84187416fc2a0c26aa83837d7af77621f8595d7f67402536fac094",
+    "RYCn.json": "b974d38dc59d9b3d5583373ce501601288ddc3b1f8ef578b4050ab7b9a708a91"
+  },
+  "candidate_hashes": {
+    "RYSeDt.json": "02be62970eeacca14942e16c534323bc4f5c0b4ac14b74255a21fb36c8f3c484",
+    "RYTC.json": "be1ea39655c5fdfb80959045b00b3ec24a8b4df15f62cfb06c85b8163c7fec27",
+    "RS.json": "a954bbe1c640eabaa9b247534bf7caaf6e924de043ca22563b2515f0413e255e",
+    "RYTCM.json": "d4f788f25c98510f19ebe5f8022df122cb7b644ba08f3ede77058692fe8b3801",
+    "RTSM.json": "b5f05d6916f988e122fa368636e8f6841e2b89bb35f551bea3fd0f171c28609b",
+    "genData.json": "5c1c092bfa3d980afb6ce7e5af9524439f7cf0d0c57a68b70f4c20f53d13ca5f",
+    "water_demand_validation_summary.json": "e08590df662725c882057ee39f43992b9d9bd6eefc8c1c2acf2c9a1730b3415c",
+    "RYC.json": "ade10eee333d1d9c82ab9a0c537b43e36547291f40a509e47489d9efb6b244fc",
+    "RYCTs.json": "5a6484a10e6395b898911560775651337f861b34daa1a014fad0d4b89932cd0a",
+    "RYTEM.json": "facb8aeffc17da3f35a87fdbab1a9b0438693996b7a2de1b53c484e3c67af921",
+    "R.json": "8e352ff8017301cb6fb2857b399a2d66f534e5691b03fd2c0ffbfe1b51994e84",
+    "RYE.json": "025be0c838019c347dda8310cd326f5e65c414f49f83086db5b0763b96ba4e78",
+    "RYDtb.json": "5441dd7e9ac61fc9498c85ec20a8935a2870280035fecbe89a89e72b611826af",
+    "RT.json": "b3932fc269784a600d8bbee5d200e0bf669dc62ddb640905bea68fddeef1216f",
+    "RYTTs.json": "aa10b41495fb58eab635293dde513b92b97b5f5169d398bc4a841a71dbc009b4",
+    "RYS.json": "a224467bc0afb311731cf9b588b04599d71529289e9660ce88a99eb11592a5e2",
+    "RYTs.json": "e2c7ab12d3e298f4558e3782af9a6855f2fdd74d2358fbe743cc28bb2146a271",
+    "RYCn.json": "882a2d9d4d2ee642450735f5d0308e4ed96fdd37feafb936b954534993ba3d99",
+    "RYTM.json": "6ff4ec0e66a02ac68bdc6c5f90ed186e2a9114617062e63f16131bdee2afa6d1",
+    "RE.json": "85e0ea73dfd7ce398e0638ed23b8c8cd7b7ec7e0f0b4119d2963ce94625aba15",
+    "RYTCn.json": "5753abf43c959a667fb982fc2758a84c4e8c264dee81b4ac92b57888b93ef739",
+    "RYT.json": "58fd2ee1475cab25e0c535cdb207a0898ac0fd5249344e4d0fdc9d96b95ea5d5"
+  }
+}

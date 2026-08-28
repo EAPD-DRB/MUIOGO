@@ -1,0 +1,56 @@
+{
+  "case": "Philippines_vIS1.2",
+  "candidate": ".Philippines_vIS12-finalfix-candidate-20260828",
+  "date": "2026-08-28",
+  "promotion_allowed": true,
+  "source_preflight": {
+    "path": "documentation/preflight_island_power_vIS12.json",
+    "failure_count": 0,
+    "optimizer_runs": 0
+  },
+  "required_runs": {
+    "BASE_VIS12_DIFFERENTIATED": {
+      "scenario": "BASE",
+      "status": "Optimal - objective value 892605.95176822",
+      "objective": 892605.95176822,
+      "solve_seconds": 118.28208058299788,
+      "timeout_seconds": 360,
+      "optimizer_runs": 1
+    },
+    "COAL_PHASEOUT_VIS12_DIFFERENTIATED": {
+      "scenario": "COAL_PHASEOUT",
+      "status": "Optimal - objective value 910058.79131850",
+      "objective": 910058.7913185,
+      "solve_seconds": 292.88894858300046,
+      "timeout_seconds": 360,
+      "optimizer_runs": 1
+    },
+    "RE_VIS12_DIFFERENTIATED": {
+      "scenario": "RE",
+      "status": "Optimal - objective value 907891.66692070",
+      "objective": 907891.6669207,
+      "solve_seconds": 322.9764642079972,
+      "timeout_seconds": 360,
+      "optimizer_runs": 1
+    },
+    "EV_VIS12_DIFFERENTIATED": {
+      "scenario": "EV",
+      "status": "Optimal - objective value 874394.31311479",
+      "objective": 874394.31311479,
+      "solve_seconds": 206.50926791600068,
+      "timeout_seconds": 360,
+      "optimizer_runs": 1
+    }
+  },
+  "validation": {
+    "application_generation_and_preprocessing": "passed",
+    "generated_semantic_gate": "passed",
+    "glpsol_check": "passed",
+    "ev_nuclear_carry_bug": "fixed",
+    "re_sparse_nuclear_milestones": "preserved",
+    "coal_phaseout_oil_import_floor": "removed_as_unsupported",
+    "coal_phaseout_definition": "legacy coal activity reaches zero in 2040; candidate coal investment stops after 2030; surviving pre-2031 candidate plants remain operable"
+  },
+  "optimizer_run_inventory": 4,
+  "promotion_contract": "Seal and promote this exact candidate without regeneration, preprocessing, matrix construction, or optimization."
+}

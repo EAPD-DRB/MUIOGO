@@ -1,0 +1,91 @@
+{
+  "case": "Philippines_vIS1.2",
+  "parent": "Philippines_vIS1.1",
+  "non_forcing": true,
+  "observed_generation_role": "benchmark_only",
+  "removed_technologies": {
+    "PHL_POW_CHP_NG_OLD_VIS": "TEC_is1002",
+    "PHL_POW_CHP_NG_OLD_MIN": "TEC_is1003",
+    "PHL_POW_PP_NGCC_VIS": "TEC_is1026",
+    "PHL_POW_PP_NGCC_MIN": "TEC_is1027",
+    "PHL_POW_PP_NGCC_CCS_VIS": "TEC_is1023",
+    "PHL_POW_PP_NGCC_CCS_MIN": "TEC_is1024"
+  },
+  "parameter_formulation": {
+    "php_per_kwh_to_musd_per_pj": 5.362940195494187,
+    "td_variable_cost_musd_per_pj": {
+      "LUZ": 1.1262174410537793,
+      "VIS": 0.0,
+      "MIN": 1.3407350488735468
+    },
+    "interconnector_variable_cost_musd_per_pj": 2.091546676242733,
+    "cost_scale_ratios": {
+      "solar": {
+        "CC_LUZ": 1.7701252129967073,
+        "FC_LUZ": 1.2601166649779565,
+        "CC_VIS": 1.7701252129967073,
+        "FC_VIS": 1.2601166649779565,
+        "CC_MIN": 1.7701252129967073,
+        "FC_MIN": 1.2601166649779565
+      },
+      "onshore_wind": {
+        "CC_LUZ": 1.8587771470160026,
+        "FC_LUZ": 0.6168778774268592,
+        "CC_VIS": 1.8587771470160026,
+        "FC_VIS": 0.6168778774268592,
+        "CC_MIN": 1.8587771470160026,
+        "FC_MIN": 0.6168778774268592
+      }
+    }
+  },
+  "source_extract_sha256": "096f7d2be3f571a7ed89552be7e127770a27bbee19f335a44088bdd9b14ba69e",
+  "parent_source_json_hashes": {
+    "RYSeDt.json": "02be62970eeacca14942e16c534323bc4f5c0b4ac14b74255a21fb36c8f3c484",
+    "RYTC.json": "be1ea39655c5fdfb80959045b00b3ec24a8b4df15f62cfb06c85b8163c7fec27",
+    "RS.json": "a954bbe1c640eabaa9b247534bf7caaf6e924de043ca22563b2515f0413e255e",
+    "RYTCM.json": "d4f788f25c98510f19ebe5f8022df122cb7b644ba08f3ede77058692fe8b3801",
+    "RTSM.json": "b5f05d6916f988e122fa368636e8f6841e2b89bb35f551bea3fd0f171c28609b",
+    "genData.json": "5c1c092bfa3d980afb6ce7e5af9524439f7cf0d0c57a68b70f4c20f53d13ca5f",
+    "water_demand_validation_summary.json": "e08590df662725c882057ee39f43992b9d9bd6eefc8c1c2acf2c9a1730b3415c",
+    "RYC.json": "ade10eee333d1d9c82ab9a0c537b43e36547291f40a509e47489d9efb6b244fc",
+    "RYCTs.json": "5a6484a10e6395b898911560775651337f861b34daa1a014fad0d4b89932cd0a",
+    "RYTEM.json": "facb8aeffc17da3f35a87fdbab1a9b0438693996b7a2de1b53c484e3c67af921",
+    "R.json": "8e352ff8017301cb6fb2857b399a2d66f534e5691b03fd2c0ffbfe1b51994e84",
+    "RYE.json": "025be0c838019c347dda8310cd326f5e65c414f49f83086db5b0763b96ba4e78",
+    "RYDtb.json": "5441dd7e9ac61fc9498c85ec20a8935a2870280035fecbe89a89e72b611826af",
+    "RT.json": "b3932fc269784a600d8bbee5d200e0bf669dc62ddb640905bea68fddeef1216f",
+    "RYTTs.json": "aa10b41495fb58eab635293dde513b92b97b5f5169d398bc4a841a71dbc009b4",
+    "RYS.json": "a224467bc0afb311731cf9b588b04599d71529289e9660ce88a99eb11592a5e2",
+    "RYTs.json": "e2c7ab12d3e298f4558e3782af9a6855f2fdd74d2358fbe743cc28bb2146a271",
+    "RYCn.json": "882a2d9d4d2ee642450735f5d0308e4ed96fdd37feafb936b954534993ba3d99",
+    "RYTM.json": "6ff4ec0e66a02ac68bdc6c5f90ed186e2a9114617062e63f16131bdee2afa6d1",
+    "RE.json": "85e0ea73dfd7ce398e0638ed23b8c8cd7b7ec7e0f0b4119d2963ce94625aba15",
+    "RYTCn.json": "5753abf43c959a667fb982fc2758a84c4e8c264dee81b4ac92b57888b93ef739",
+    "RYT.json": "58fd2ee1475cab25e0c535cdb207a0898ac0fd5249344e4d0fdc9d96b95ea5d5"
+  },
+  "candidate_source_json_hashes": {
+    "RYSeDt.json": "02be62970eeacca14942e16c534323bc4f5c0b4ac14b74255a21fb36c8f3c484",
+    "RYTC.json": "be1ea39655c5fdfb80959045b00b3ec24a8b4df15f62cfb06c85b8163c7fec27",
+    "RS.json": "a954bbe1c640eabaa9b247534bf7caaf6e924de043ca22563b2515f0413e255e",
+    "RYTCM.json": "870a5888b7d5e7ff3dab7c69e20dabe7d3a91cd31363ed04538143812af9b5ff",
+    "RTSM.json": "b5f05d6916f988e122fa368636e8f6841e2b89bb35f551bea3fd0f171c28609b",
+    "genData.json": "480df7e2e92bfb243afc98eafbe7e2a3c12740cbab539c979c3ad2aff29959f3",
+    "water_demand_validation_summary.json": "e08590df662725c882057ee39f43992b9d9bd6eefc8c1c2acf2c9a1730b3415c",
+    "RYC.json": "ade10eee333d1d9c82ab9a0c537b43e36547291f40a509e47489d9efb6b244fc",
+    "RYCTs.json": "5a6484a10e6395b898911560775651337f861b34daa1a014fad0d4b89932cd0a",
+    "RYTEM.json": "4a18334a8f80ecd8e586275d56adbdf08633a92dd3b7a003e1576709b38a9c6b",
+    "R.json": "8e352ff8017301cb6fb2857b399a2d66f534e5691b03fd2c0ffbfe1b51994e84",
+    "RYE.json": "025be0c838019c347dda8310cd326f5e65c414f49f83086db5b0763b96ba4e78",
+    "RYDtb.json": "5441dd7e9ac61fc9498c85ec20a8935a2870280035fecbe89a89e72b611826af",
+    "RT.json": "80dd0d2de33b3d1501a3ccea8a7f81ad2715171cc8748f2790f289e2639574f0",
+    "RYTTs.json": "4a5ad245220d855132ce2137f9df1abfe4e701f289700935bbe02dc34a5add3e",
+    "RYS.json": "a224467bc0afb311731cf9b588b04599d71529289e9660ce88a99eb11592a5e2",
+    "RYTs.json": "e2c7ab12d3e298f4558e3782af9a6855f2fdd74d2358fbe743cc28bb2146a271",
+    "RYCn.json": "75c635ed174e0c80c4f6826872bf6377ddf5a82e89a5699c8437f4dfbdca4552",
+    "RYTM.json": "2505d6f25372f8fe981c1fce7ced8bf2b4158f00a61fddd04fd7a771b39a03a5",
+    "RE.json": "85e0ea73dfd7ce398e0638ed23b8c8cd7b7ec7e0f0b4119d2963ce94625aba15",
+    "RYTCn.json": "f77e9c92215b419d0921b5b605b00e54d42750a94e00acf76284f4082e8e3fcb",
+    "RYT.json": "9531681c93ed91bf20daad39efa568ba4a52d68c38d20e433192beaf7bb960e4"
+  },
+  "optimizer_runs": 0
+}

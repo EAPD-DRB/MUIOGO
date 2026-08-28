@@ -1,0 +1,907 @@
+{
+  "status": "pass_generated_zero_solve",
+  "failure_count": 0,
+  "optimizer_runs": 0,
+  "matrix_dimensions": {
+    "rows": 570115,
+    "columns": 608330,
+    "matrix_nonzeros": 9339449
+  },
+  "matrix_deltas": {
+    "rows": 102904,
+    "columns": 89806,
+    "matrix_nonzeros": 1137106
+  },
+  "checks": [
+    {
+      "name": "source_preflight_still_clean",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "case_identity_generated",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "td_loss_series_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "node_output_mapping_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "td_loss_series_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "node_output_mapping_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "td_loss_series_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "node_output_mapping_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "interconnector_capacity_LV",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "interconnector_two_modes_LV",
+      "status": "pass",
+      "detail": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "name": "LV_InputActivityRatio_PHL_POW_ELE_LUZ_m1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "LV_OutputActivityRatio_PHL_POW_ELE_VIS_m1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "LV_InputActivityRatio_PHL_POW_ELE_VIS_m2",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "LV_OutputActivityRatio_PHL_POW_ELE_LUZ_m2",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "interconnector_capacity_VM",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "interconnector_two_modes_VM",
+      "status": "pass",
+      "detail": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "name": "VM_InputActivityRatio_PHL_POW_ELE_VIS_m1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "VM_OutputActivityRatio_PHL_POW_ELE_MIN_m1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "VM_InputActivityRatio_PHL_POW_ELE_MIN_m2",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "VM_OutputActivityRatio_PHL_POW_ELE_VIS_m2",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_HOU_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_HOU_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_HOU_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_SER_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_SER_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_SER_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_INDU_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_INDU_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_INDU_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_AGR_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_AGR_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_AGR_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_TRA_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_TRA_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_TRA_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_FSH_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_FSH_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "bundle_PHL_POW_TD_FSH_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "no_generated_delivery_pass_throughs",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "removed_structural_technology_PHL_POW_CHP_NG_OLD_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "removed_structural_technology_PHL_POW_CHP_NG_OLD_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "removed_structural_technology_PHL_POW_PP_NGCC_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "removed_structural_technology_PHL_POW_PP_NGCC_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "removed_structural_technology_PHL_POW_PP_NGCC_CCS_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "removed_structural_technology_PHL_POW_PP_NGCC_CCS_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_td_variable_cost_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_td_variable_cost_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_td_variable_cost_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_interconnector_cost_LV_m1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_interconnector_cost_LV_m2",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_interconnector_cost_VM_m1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_interconnector_cost_VM_m2",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capital_cost_PHL_POW_PP_SPV_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capacity_ceiling_PHL_POW_PP_SPV_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_0",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_p366u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_6ecgy",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_fke98",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_xnk8a",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_5r05k",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_bmens",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_mi8mf",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_taggv",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_g2mzr",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_a6gq1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_udfi1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_oqzs1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_ejp3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_9hx99",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_hrld6",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_iwy3j",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_LUZ_TS_xsi3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capital_cost_PHL_POW_PP_SPV_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capacity_ceiling_PHL_POW_PP_SPV_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_0",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_p366u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_6ecgy",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_fke98",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_xnk8a",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_5r05k",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_bmens",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_mi8mf",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_taggv",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_g2mzr",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_a6gq1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_udfi1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_oqzs1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_ejp3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_9hx99",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_hrld6",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_iwy3j",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_VIS_TS_xsi3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capital_cost_PHL_POW_PP_SPV_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capacity_ceiling_PHL_POW_PP_SPV_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_0",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_p366u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_6ecgy",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_fke98",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_xnk8a",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_5r05k",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_bmens",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_mi8mf",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_taggv",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_g2mzr",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_a6gq1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_udfi1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_oqzs1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_ejp3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_9hx99",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_hrld6",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_iwy3j",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_SPV_MIN_TS_xsi3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capital_cost_PHL_POW_PP_WON_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capacity_ceiling_PHL_POW_PP_WON_LUZ",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_0",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_p366u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_6ecgy",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_fke98",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_xnk8a",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_5r05k",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_bmens",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_mi8mf",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_taggv",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_g2mzr",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_a6gq1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_udfi1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_oqzs1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_ejp3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_9hx99",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_hrld6",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_iwy3j",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_LUZ_TS_xsi3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capital_cost_PHL_POW_PP_WON_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capacity_ceiling_PHL_POW_PP_WON_VIS",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_0",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_p366u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_6ecgy",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_fke98",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_xnk8a",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_5r05k",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_bmens",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_mi8mf",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_taggv",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_g2mzr",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_a6gq1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_udfi1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_oqzs1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_ejp3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_9hx99",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_hrld6",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_iwy3j",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_VIS_TS_xsi3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capital_cost_PHL_POW_PP_WON_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_capacity_ceiling_PHL_POW_PP_WON_MIN",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_0",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_p366u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_6ecgy",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_fke98",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_xnk8a",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_5r05k",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_bmens",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_mi8mf",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_taggv",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_g2mzr",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_a6gq1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_udfi1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_oqzs1",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_ejp3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_9hx99",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_hrld6",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_iwy3j",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "generated_cf_PHL_POW_PP_WON_MIN_TS_xsi3u",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "no_generated_national_grid_pool",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "generated_udc_constants_match_active_source_cells",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "no_empty_lhs_nonzero_rhs_udc_equalities",
+      "status": "pass",
+      "detail": []
+    },
+    {
+      "name": "generated_artifacts_unchanged_after_matrix_check",
+      "status": "pass",
+      "detail": {
+        "data.txt": true,
+        "data_processed.txt": true,
+        "lp.lp": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "phase": "generate_preprocess_matrix_check",
+  "status": "passed",
+  "case": "/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_vIS12-finalfix-candidate-20260828",
+  "run": "/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_vIS12-finalfix-candidate-20260828/res/BASE_VIS12_DIFFERENTIATED",
+  "active_scenarios": [
+    "BASE"
+  ],
+  "source_gate_hashes": {
+    "source_preflight": "f3c4721575c7409d351a4b373f06721f08b285d792e09b492a2a078e4275beda"
+  },
+  "timings_seconds": {
+    "generate_datafile": 2.2653174579900224,
+    "preprocess_data": 0.010094500001287088,
+    "glpsol_check_and_lp": 47.326406209002016
+  },
+  "hashes": {
+    "data.txt": "f41c384ace0ba387b074faf4f4efee095cb1275b4a3614620273dae4240bffd9",
+    "data_processed.txt": "f6ca81dba733e1d3e8a3f6c6b832295746f6e97dcf1263f3a3eadf594069ce67",
+    "lp.lp": "839361ac141d146bcd3998bdde93405b9139f0c420b52a3a24c26237771ebc65"
+  },
+  "optimizer_runs": 0,
+  "matrix_dimensions": {
+    "rows": 570115,
+    "columns": 608330,
+    "matrix_nonzeros": 9338087
+  },
+  "baseline_matrix_dimensions": {
+    "rows": 467211,
+    "columns": 518524,
+    "matrix_nonzeros": 8201833
+  },
+  "matrix_deltas": {
+    "rows": 102904,
+    "columns": 89806,
+    "matrix_nonzeros": 1136254
+  },
+  "matrix_ratios": {
+    "rows": 1.2202516635952492,
+    "columns": 1.1731954547909065,
+    "matrix_nonzeros": 1.138536592978667
+  },
+  "maximum_allowed_matrix_ratio": 2.0,
+  "glpsol_tail": "nts/GitHub/MUIOGO/WebAPP/SOLVERs/model.v.5.4.txt...\n/Users/sato/Documents/GitHub/MUIOGO/WebAPP/SOLVERs/model.v.5.4.txt:359: warning: final NL missing before end of file\n359 lines were read\nReading data section from /Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_vIS12-finalfix-candidate-20260828/res/BASE_VIS12_DIFFERENTIATED/data_processed.txt...\n/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_vIS12-finalfix-candidate-20260828/res/BASE_VIS12_DIFFERENTIATED/data_processed.txt:6814: warning: final NL missing before end of file\n6814 lines were read\nGenerating cost...\nGenerating Acc3_AverageAnnualRateOfActivity...\nGenerating CAa1_TotalNewCapacity...\nGenerating CAa2_TotalAnnualCapacity...\nGenerating CAa5_TotalNewCapacity...\nGenerating CC1_UndiscountedCapitalInvestment...\nGenerating E2_AnnualEmissionProduction...\nGenerating EBa10_EnergyBalanceEachTS4...\nGenerating NCC1_TotalAnnualMaxNewCapacityConstraint...\nGenerating NCC2_TotalAnnualMinNewCapacityConstraint...\nGenerating OC1_OperatingCostsVariable...\nGenerating OC2_OperatingCostsFixedAnnual...\nGenerating SV3_SalvageValueAtEndOfPeriod3...\nGenerating SV4_SalvageValueDiscountedToStartYear...\nGenerating TAC1_TotalModelHorizonTechnologyActivity...\nGenerating EBb4_EnergyBalanceEachYear4_ICR...\nGenerating INC1_InputToNewCapacity...\nGenerating ITC1_InputToTotalCapacity...\nGenerating AAC1_TotalAnnualTechnologyActivity...\nGenerating CAa3_TotalActivityOfEachTechnology...\nGenerating E1_AnnualEmissionProductionByMode...\nGenerating LU1_TechnologyActivityByModeUL...\nGenerating LU2_TechnologyActivityByModeLL...\nGenerating LU3_TechnologyActivityIncreaseByMode...\nGenerating LU4_TechnologyActivityDecreaseByMode...\nGenerating AAC2_TotalAnnualTechnologyActivityUpperLimit...\nGenerating AAC3_TotalAnnualTechnologyActivityLowerLimit...\nGenerating CAa4_Constraint_Capacity...\nGenerating CAb1_PlannedMaintenance...\nGenerating E5_EmissionsPenaltyByTechnology...\nGenerating E8_AnnualEmissionsLimit...\nGenerating E9_ModelPeriodEmissionsLimit...\nGenerating EBa11_EnergyBalanceEachTS5...\nGenerating EBa9_EnergyBalanceEachTS3...\nGenerating EBb4_EnergyBalanceEachYear4...\nGenerating SV1_SalvageValueAtEndOfPeriod1...\nGenerating SV2_SalvageValueAtEndOfPeriod2...\nGenerating TAC2_TotalModelHorizonTechnologyActivityUpperLimit...\nGenerating TAC3_TotalModelHorizonTechnologyActivityLowerLimit...\nGenerating TCC1_TotalAnnualMaxCapacityConstraint...\nGenerating TCC2_TotalAnnualMinCapacityConstraint...\nGenerating E10_InterYearActivityEmissionChange...\nGenerating E11_InterYearActivityEmissionChange...\nGenerating S14_RateOfNetStorageActivity...\nGenerating S3_NetChargeWithinYear...\nGenerating S4_NetChargeWithinDay...\nGenerating S9_and_S10_StorageLevelSeasonStart...\nGenerating S11_and_S12_StorageLevelDayTypeStart...\nGenerating S30_StorageLevelYearStart2...\nGenerating S39_StorageIntraday...\nGenerating S39_StorageIntrayear...\nGenerating SC1_LLBDFIFW...\nGenerating SC1_ULBDFIFW...\nGenerating SC2_LLEDLIFW...\nGenerating SC2_ULEDLIFW...\nGenerating SC3_LLEDLILW...\nGenerating SC3_ULEDLILW...\nGenerating SC4_LLBDFILW...\nGenerating SC4_ULBDFILW...\nGenerating SI6_SalvageValueStorageAtEndOfPeriod1...\nGenerating SI7_SalvageValueStorageAtEndOfPeriod2...\nGenerating SI2_StorageLowerLimit...\nGenerating SI3_TotalNewStorage...\nGenerating SI4_UndiscountedCapitalInvestmentStorage...\nGenerating SI9_SalvageValueStorageDiscountedToStartYear...\nGenerating UDC1_UserDefinedConstraintInequality...\nGenerating UDC2_UserDefinedConstraintEquality...\nModel has been successfully generated\nglp_mpl_build_prob: row cost; constant term 27237.9655678 ignored\nWriting problem data to '/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_vIS12-finalfix-candidate-20260828/res/BASE_VIS12_DIFFERENTIATED/lp.lp'...\n10054054 lines were written\n--- Problem Characteristics ---\nNumber of rows               =   570115\nNumber of columns            =   608330\nNumber of non-zeros (matrix) =  9338087\nNumber of non-zeros (objrow) =   274624\n\n"
+}
