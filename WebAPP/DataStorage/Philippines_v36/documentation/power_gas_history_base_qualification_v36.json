@@ -1,0 +1,408 @@
+{
+  "schema": "philippines-v36-power-gas-base-qualification-v1",
+  "case": "Philippines_v36",
+  "parent_case": "Philippines_v33",
+  "candidate_directory": "/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_v36-power-gas-history-candidate-20260827",
+  "status": "failed_base_calibration_qualification",
+  "promotion_allowed": false,
+  "reason": "The source, matrix, solver and non-forcing integrity checks passed, but gas generation remains outside the declared validation tolerance in 2020, 2023 and 2024; 2024 reaches only 31.9347 PJ versus 64.9692 PJ observed.",
+  "observation_role": "benchmark_only",
+  "integrity_passed": true,
+  "calibration_passed": false,
+  "integrity_checks": {
+    "optimizer_optimal": true,
+    "one_candidate_optimizer_run": true,
+    "runtime_gate_passed": true,
+    "application_generation_passed": true,
+    "generated_value_gate_passed": true,
+    "source_preflight_passed": true,
+    "gate_adjustment_passed": true,
+    "generated_hashes_current": true,
+    "results_hash_current": true
+  },
+  "calibration_checks": {
+    "gross_generation_within_5_percent_every_year": false,
+    "gas_generation_within_15_percent_every_year": false,
+    "2024_gas_generation_materially_improved": true,
+    "no_observed_dispatch_pin_or_floor": true
+  },
+  "tolerances": {
+    "gross_generation_absolute_percent": 5.0,
+    "gas_generation_absolute_percent": 15.0
+  },
+  "annual_comparison": {
+    "2020": {
+      "observed_grid_gross_generation_pj": 360.988992,
+      "v33_grid_gross_generation_pj": 331.98040000000003,
+      "v36_grid_gross_generation_pj": 361.5213999999998,
+      "v33_gross_percent_error": -8.035866090897304,
+      "v36_gross_percent_error": 0.1474859377428972,
+      "gross_absolute_error_improvement_percentage_points": 7.888380153154407,
+      "observed_gas_generation_pj": 70.1892,
+      "v33_gas_generation_pj": 73.2472,
+      "v36_gas_generation_pj": 34.4912,
+      "v36_gas_generation_by_mode_pj": {
+        "1": 34.4912,
+        "2": 0.0
+      },
+      "v33_gas_percent_error": 4.356795632376498,
+      "v36_gas_percent_error": -50.85967641745454,
+      "gas_absolute_error_improvement_percentage_points": -46.50288078507804
+    },
+    "2021": {
+      "observed_grid_gross_generation_pj": 382.0129668,
+      "v33_grid_gross_generation_pj": 336.0149000000002,
+      "v36_grid_gross_generation_pj": 365.1499,
+      "v33_gross_percent_error": -12.040970018717134,
+      "v36_gross_percent_error": -4.414265552621554,
+      "gross_absolute_error_improvement_percentage_points": 7.62670446609558,
+      "observed_gas_generation_pj": 68.616,
+      "v33_gas_generation_pj": 62.8636,
+      "v36_gas_generation_pj": 62.8636,
+      "v36_gas_generation_by_mode_pj": {
+        "1": 34.4912,
+        "2": 28.3724
+      },
+      "v33_gas_percent_error": -8.383467412848322,
+      "v36_gas_percent_error": -8.383467412848322,
+      "gas_absolute_error_improvement_percentage_points": 0.0
+    },
+    "2022": {
+      "observed_grid_gross_generation_pj": 401.4564084,
+      "v33_grid_gross_generation_pj": 351.69329999999985,
+      "v36_grid_gross_generation_pj": 379.1019999999999,
+      "v33_gross_percent_error": -12.39564429879958,
+      "v36_gross_percent_error": -5.5683277019025095,
+      "gross_absolute_error_improvement_percentage_points": 6.82731659689707,
+      "observed_gas_generation_pj": 64.3824,
+      "v33_gas_generation_pj": 55.4642,
+      "v36_gas_generation_pj": 67.5355,
+      "v36_gas_generation_by_mode_pj": {
+        "1": 39.3918,
+        "2": 28.1437
+      },
+      "v33_gas_percent_error": -13.851922264469795,
+      "v36_gas_percent_error": 4.897456447724835,
+      "gas_absolute_error_improvement_percentage_points": 8.95446581674496
+    },
+    "2023": {
+      "observed_grid_gross_generation_pj": 424.8140724,
+      "v33_grid_gross_generation_pj": 372.77700000000004,
+      "v36_grid_gross_generation_pj": 407.37489999999985,
+      "v33_gross_percent_error": -12.249375851890909,
+      "v36_gross_percent_error": -4.105130581356919,
+      "gross_absolute_error_improvement_percentage_points": 8.14424527053399,
+      "observed_gas_generation_pj": 60.0048,
+      "v33_gas_generation_pj": 38.3862,
+      "v36_gas_generation_pj": 49.528,
+      "v36_gas_generation_by_mode_pj": {
+        "1": 37.5944,
+        "2": 11.9336
+      },
+      "v33_gas_percent_error": -36.02811775057996,
+      "v36_gas_percent_error": -17.45993653841027,
+      "gas_absolute_error_improvement_percentage_points": 18.56818121216969
+    },
+    "2024": {
+      "observed_grid_gross_generation_pj": 456.9869772,
+      "v33_grid_gross_generation_pj": 395.7969,
+      "v36_grid_gross_generation_pj": 426.89599999999996,
+      "v33_gross_percent_error": -13.389895172706467,
+      "v36_gross_percent_error": -6.5846465438403,
+      "gross_absolute_error_improvement_percentage_points": 6.805248628866167,
+      "observed_gas_generation_pj": 64.9692,
+      "v33_gas_generation_pj": 1.6374,
+      "v36_gas_generation_pj": 31.9347,
+      "v36_gas_generation_by_mode_pj": {
+        "1": 31.9347,
+        "2": 0.0
+      },
+      "v33_gas_percent_error": -97.47972885613491,
+      "v36_gas_percent_error": -50.846401063888734,
+      "gas_absolute_error_improvement_percentage_points": 46.63332779224618
+    }
+  },
+  "optimization": {
+    "status": "Optimal - objective value 863976.44309006",
+    "objective": 863976.44309006,
+    "baseline_objective": 852438.33485986,
+    "objective_change_percent": 1.3535416883963647,
+    "solve_seconds": 68.15735912499076,
+    "baseline_runtime_seconds": 78.1788367909976,
+    "runtime_ratio_to_baseline": 0.8718134206473532
+  },
+  "matrix": {
+    "rows": 467211,
+    "columns": 518524,
+    "matrix_nonzeros": 8201833
+  },
+  "matrix_deltas": {
+    "rows": 136,
+    "columns": 680,
+    "matrix_nonzeros": 7192
+  },
+  "optimizer_run_inventory": {
+    "candidate_base_runs": 1,
+    "policy_runs": 0,
+    "diagnostic_optimizer_runs": 0,
+    "generation_only_diagnostics": 1
+  },
+  "policy_scenarios": {
+    "status": "not_run",
+    "reason": "BASE failed the substantive historical calibration qualification; policy solves cannot cure that failure and would spend three unnecessary optimizer runs."
+  },
+  "seal": {
+    "status": "not_created",
+    "reason": "Failed candidates are not sealed."
+  },
+  "promotion": {
+    "status": "not_attempted",
+    "reason": "BASE qualification failed."
+  },
+  "binding_diagnosis": {
+    "2024_narrative": "The discounted contract mode is below its activity cap and the market mode is unused. Domestic extraction binds while the sourced LNG option remains unused at its official 2024 landed price; residual dispatch cannot be repaired by widening the contract cap or lowering LNG price without evidence.",
+    "2024_contract_mode": {
+      "activity_pj": 31.9347,
+      "upper_tranche_pj": 35.73575158356672,
+      "upper_tranche_residual_pj": 3.801051583566718,
+      "constraint": {
+        "activity": 31.934661,
+        "dual": 0.0
+      }
+    },
+    "2024_market_mode_activity_pj": 0.0,
+    "2024_domestic_extraction": {
+      "source_cap_pj": 76.88193327412314,
+      "activity": 76.881933,
+      "dual": -5.2604324
+    },
+    "2024_lng_import": {
+      "source_cap_pj": 395.2339200002194,
+      "activity": 0.0,
+      "dual": 0.0
+    }
+  },
+  "next_equation_level_requirement": "Represent the real regional/network and plant-contract operating boundary (Luzon load, inter-island transfer limits, and disclosed plant-level PPA/GSPA/LNG scheduling terms) before another optimizer run. A national copperplate cannot explain why costly Luzon gas ran while cheaper national substitutes appeared available.",
+  "top_base_activity_changes": [
+    {
+      "technology": "PHL_PRO_IMP_COAL",
+      "absolute_change_sum_2020_2024": 361.50230000000016,
+      "annual_change_pj": {
+        "2020": 215.2572,
+        "2021": 61.6472,
+        "2022": 18.159700000000043,
+        "2023": 43.74880000000002,
+        "2024": -22.68940000000009
+      }
+    },
+    {
+      "technology": "PHL_PRO_PROC_COAL",
+      "absolute_change_sum_2020_2024": 360.0762000000001,
+      "annual_change_pj": {
+        "2020": 214.4081,
+        "2021": 61.403999999999996,
+        "2022": 18.08809999999994,
+        "2023": 43.5761,
+        "2024": -22.59990000000016
+      }
+    },
+    {
+      "technology": "PHL_PRO_EXTR_NG",
+      "absolute_change_sum_2020_2024": 119.19989999999999,
+      "annual_change_pj": {
+        "2020": -76.58989999999999,
+        "2021": 0.0,
+        "2022": 0.0,
+        "2023": 0.0,
+        "2024": 42.61
+      }
+    },
+    {
+      "technology": "PHL_POW_CHP_COAL_OLD",
+      "absolute_change_sum_2020_2024": 114.69789999999998,
+      "annual_change_pj": {
+        "2020": 68.2971,
+        "2021": 19.559500000000014,
+        "2022": 5.761799999999994,
+        "2023": 13.880599999999987,
+        "2024": -7.1988999999999805
+      }
+    },
+    {
+      "technology": "PHL_PRO_PROC_NG",
+      "absolute_change_sum_2020_2024": 112.79639999999999,
+      "annual_change_pj": {
+        "2020": -72.4754,
+        "2021": 0.0,
+        "2022": 0.0,
+        "2023": 0.0,
+        "2024": 40.321
+      }
+    },
+    {
+      "technology": "PHL_POW_CHP_NG_OLD",
+      "absolute_change_sum_2020_2024": 92.2664,
+      "annual_change_pj": {
+        "2020": -38.75600000000001,
+        "2021": 0.0,
+        "2022": 12.0713,
+        "2023": 11.141799999999996,
+        "2024": 30.2973
+      }
+    },
+    {
+      "technology": "PHL_PRO_PROC_OIL",
+      "absolute_change_sum_2020_2024": 52.762800000000084,
+      "annual_change_pj": {
+        "2020": 2.5009000000000015,
+        "2021": 1.0383000000000493,
+        "2022": 11.946100000000001,
+        "2023": 18.837300000000027,
+        "2024": 18.440200000000004
+      }
+    },
+    {
+      "technology": "PHL_PRO_IMP_OIL",
+      "absolute_change_sum_2020_2024": 51.86829999999998,
+      "annual_change_pj": {
+        "2020": 2.458499999999958,
+        "2021": 1.0207000000000335,
+        "2022": 11.743600000000015,
+        "2023": 18.51800000000003,
+        "2024": 18.12749999999994
+      }
+    },
+    {
+      "technology": "PHL_PRO_BLEND_OIL",
+      "absolute_change_sum_2020_2024": 41.94209999999998,
+      "annual_change_pj": {
+        "2020": 2.5009000000000015,
+        "2021": 0.0,
+        "2022": 6.861900000000048,
+        "2023": 18.83729999999997,
+        "2024": 13.741999999999962
+      }
+    },
+    {
+      "technology": "PHL_POW_PP_SPV",
+      "absolute_change_sum_2020_2024": 38.30199999999999,
+      "annual_change_pj": {
+        "2020": 0.0,
+        "2021": 9.575500000000002,
+        "2022": 9.575499999999998,
+        "2023": 9.575499999999998,
+        "2024": 9.575499999999998
+      }
+    },
+    {
+      "technology": "PHL_POW_TD",
+      "absolute_change_sum_2020_2024": 13.941100000000006,
+      "annual_change_pj": {
+        "2020": -1.7194000000000074,
+        "2021": 0.0,
+        "2022": -4.358000000000004,
+        "2023": -2.9721000000000117,
+        "2024": -4.891599999999983
+      }
+    },
+    {
+      "technology": "PHL_TRA_TRUL_NG",
+      "absolute_change_sum_2020_2024": 13.043500000000002,
+      "annual_change_pj": {
+        "2020": 0.0,
+        "2021": 0.0,
+        "2022": -2.7969,
+        "2023": -5.1233,
+        "2024": -5.1233
+      }
+    },
+    {
+      "technology": "PHL_TRA_TRUL_LIQ",
+      "absolute_change_sum_2020_2024": 13.043499999999998,
+      "annual_change_pj": {
+        "2020": 0.0,
+        "2021": 0.0,
+        "2022": 2.796900000000001,
+        "2023": 5.123299999999997,
+        "2024": 5.1233
+      }
+    },
+    {
+      "technology": "PHL_POW_TD_HOU",
+      "absolute_change_sum_2020_2024": 9.221000000000004,
+      "annual_change_pj": {
+        "2020": 0.0,
+        "2021": 0.0,
+        "2022": -4.358000000000004,
+        "2023": 0.0,
+        "2024": -4.8629999999999995
+      }
+    },
+    {
+      "technology": "LNDCROPTOT",
+      "absolute_change_sum_2020_2024": 7.586900000000014,
+      "annual_change_pj": {
+        "2020": 0.0,
+        "2021": -0.02009999999999934,
+        "2022": -7.526600000000002,
+        "2023": -0.02009999999999934,
+        "2024": -0.02010000000001355
+      }
+    },
+    {
+      "technology": "LNDOTHTOT",
+      "absolute_change_sum_2020_2024": 7.586799999999997,
+      "annual_change_pj": {
+        "2020": 0.0,
+        "2021": -0.02009999999999934,
+        "2022": -7.526499999999999,
+        "2023": -0.02009999999999934,
+        "2024": -0.02009999999999934
+      }
+    },
+    {
+      "technology": "LNDGRSTOT",
+      "absolute_change_sum_2020_2024": 7.506500000000003,
+      "annual_change_pj": {
+        "2020": 0.0,
+        "2021": 0.0,
+        "2022": 7.506500000000003,
+        "2023": 0.0,
+        "2024": 0.0
+      }
+    },
+    {
+      "technology": "PHL_HOU_COOK_ELE",
+      "absolute_change_sum_2020_2024": 6.4547,
+      "annual_change_pj": {
+        "2020": 0.0,
+        "2021": 0.0,
+        "2022": -3.0506,
+        "2023": 0.0,
+        "2024": -3.4040999999999997
+      }
+    },
+    {
+      "technology": "PHL_HOU_COOK_OIL",
+      "absolute_change_sum_2020_2024": 6.1325999999999965,
+      "annual_change_pj": {
+        "2020": 0.0,
+        "2021": 0.6229999999999976,
+        "2022": 3.050600000000003,
+        "2023": 0.0,
+        "2024": 2.458999999999996
+      }
+    },
+    {
+      "technology": "PHL_POW_TD_FSH",
+      "absolute_change_sum_2020_2024": 4.691399999999999,
+      "annual_change_pj": {
+        "2020": -1.7192999999999996,
+        "2021": 0.0,
+        "2022": 0.0,
+        "2023": -2.9720999999999993,
+        "2024": 0.0
+      }
+    }
+  ]
+}

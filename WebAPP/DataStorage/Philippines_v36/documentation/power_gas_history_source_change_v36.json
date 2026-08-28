@@ -1,0 +1,393 @@
+{
+  "case": "Philippines_v36",
+  "parent_case": "Philippines_v33",
+  "status": "source_candidate_built",
+  "non_forcing": true,
+  "observed_generation_role": "benchmark_only",
+  "td_iar": {
+    "2020": 1.2235072721192584,
+    "2021": 1.2138853739520623,
+    "2022": 1.2209843885740153,
+    "2023": 1.2316726166486582,
+    "2024": 1.2216639919482726
+  },
+  "td_before": {
+    "2020": 1.117030861453816,
+    "2021": 1.117030861453816,
+    "2022": 1.117030861453816,
+    "2023": 1.117030861453816,
+    "2024": 1.117030861453816,
+    "2025": 1.117030861453816,
+    "2026": 1.117030861453816,
+    "2027": 1.117030861453816,
+    "2028": 1.117030861453816,
+    "2029": 1.117030861453816,
+    "2030": 1.117030861453816,
+    "2031": 1.117030861453816,
+    "2032": 1.117030861453816,
+    "2033": 1.117030861453816,
+    "2034": 1.117030861453816,
+    "2035": 1.117030861453816,
+    "2036": 1.117030861453816,
+    "2037": 1.117030861453816,
+    "2038": 1.117030861453816,
+    "2039": 1.117030861453816,
+    "2040": 1.117030861453816,
+    "2041": 1.117030861453816,
+    "2042": 1.117030861453816,
+    "2043": 1.117030861453816,
+    "2044": 1.117030861453816,
+    "2045": 1.117030861453816,
+    "2046": 1.117030861453816,
+    "2047": 1.117030861453816,
+    "2048": 1.117030861453816,
+    "2049": 1.117030861453816,
+    "2050": 1.117030861453816,
+    "2051": 1.117030861453816,
+    "2052": 1.117030861453816,
+    "2053": 1.117030861453816
+  },
+  "grid_sales_gwh": {
+    "2020": 81956.783,
+    "2021": 87417.408,
+    "2022": 91332.592,
+    "2023": 95807.853,
+    "2024": 103908.135
+  },
+  "grid_consumption_gwh": {
+    "2020": 100274.72,
+    "2021": 106114.713,
+    "2022": 111515.669,
+    "2023": 118003.909,
+    "2024": 126940.827
+  },
+  "gas_capacity_scale": 1.080955829109341,
+  "gas_availability_factor": 0.8791532690246516,
+  "gas_plant_iar": {
+    "2022": 1.6373952695146499,
+    "2023": 1.7156831653467723,
+    "2024": 1.8049151659555605
+  },
+  "contract_modes": [
+    {
+      "year": 2020,
+      "raw_contract_pj": 64.5,
+      "plant_gas_per_power_pj_per_pj": 1.870042735,
+      "upstream_raw_per_power_pj_per_pj": 1.9762086347176167,
+      "mode1_activity_upper_pj": 34.4911903844807,
+      "variable_credit_musd_per_pj_activity": 13.16572277957841,
+      "fixed_cost_musd_per_gw_year": 153.52829860672944
+    },
+    {
+      "year": 2021,
+      "raw_contract_pj": 64.5,
+      "plant_gas_per_power_pj_per_pj": 1.870042735,
+      "upstream_raw_per_power_pj_per_pj": 1.9762086347176167,
+      "mode1_activity_upper_pj": 34.4911903844807,
+      "variable_credit_musd_per_pj_activity": 13.217031130239278,
+      "fixed_cost_musd_per_gw_year": 154.0408796613153
+    },
+    {
+      "year": 2022,
+      "raw_contract_pj": 64.5,
+      "plant_gas_per_power_pj_per_pj": 1.6373952695146499,
+      "upstream_raw_per_power_pj_per_pj": 1.7303533280273566,
+      "mode1_activity_upper_pj": 39.391832382121656,
+      "variable_credit_musd_per_pj_activity": 11.618941234861616,
+      "fixed_cost_musd_per_gw_year": 144.63970674742507
+    },
+    {
+      "year": 2023,
+      "raw_contract_pj": 64.5,
+      "plant_gas_per_power_pj_per_pj": 1.7156831653467723,
+      "upstream_raw_per_power_pj_per_pj": 1.8130857773140376,
+      "mode1_activity_upper_pj": 37.5943538426941,
+      "variable_credit_musd_per_pj_activity": 12.22288953428545,
+      "fixed_cost_musd_per_gw_year": 145.1274475166371
+    },
+    {
+      "year": 2024,
+      "raw_contract_pj": 64.5,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 35.73575158356672,
+      "variable_credit_musd_per_pj_activity": 12.909533513069725,
+      "fixed_cost_musd_per_gw_year": 145.61518828584911
+    },
+    {
+      "year": 2025,
+      "raw_contract_pj": 64.5,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 35.73575158356672,
+      "variable_credit_musd_per_pj_activity": 12.960469857487798,
+      "fixed_cost_musd_per_gw_year": 146.10292905506117
+    },
+    {
+      "year": 2026,
+      "raw_contract_pj": 21.5,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 11.911917194522239,
+      "variable_credit_musd_per_pj_activity": 13.011406201905872,
+      "fixed_cost_musd_per_gw_year": 63.530223274757724
+    },
+    {
+      "year": 2027,
+      "raw_contract_pj": 21.5,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 11.911917194522239,
+      "variable_credit_musd_per_pj_activity": 13.060927647867889,
+      "fixed_cost_musd_per_gw_year": 63.68828741292829
+    },
+    {
+      "year": 2028,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2029,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2030,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2031,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2032,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2033,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2034,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2035,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2036,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2037,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2038,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2039,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2040,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2041,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2042,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2043,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2044,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2045,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2046,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2047,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2048,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2049,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2050,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2051,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2052,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    },
+    {
+      "year": 2053,
+      "raw_contract_pj": 0.0,
+      "plant_gas_per_power_pj_per_pj": 1.8049151659555605,
+      "upstream_raw_per_power_pj_per_pj": 1.9073836491197398,
+      "mode1_activity_upper_pj": 0.0,
+      "variable_credit_musd_per_pj_activity": 0.0,
+      "fixed_cost_musd_per_gw_year": 22.0
+    }
+  ],
+  "parent_hashes": {
+    "genData.json": "c2635ccab951a3af017c9519b9da22de8d39d6d19106cbe307442569c60535fd",
+    "RYT.json": "9157afec2d91a099371d823f213c222dd83d305a58c5b71c0934d8b596ec1d21",
+    "RYTM.json": "9c38a2df0197f0ae27611a38905c643e566e486ac598edcbe534724612e44948",
+    "RYTCM.json": "1793d8b2fa009a989f903cd68c137b641f6a7442988ba8ffbe1b5fea91bb427e",
+    "RYTEM.json": "8ca0853004f43e40c132323cd33a2c4c5bc5d5fd4f0c209f810519d43f5a73a1"
+  },
+  "candidate_hashes": {
+    "genData.json": "97a6c0323405561b0948fcbd0d5572c33a077c662b0345bb395e539cdf4a3b87",
+    "RYT.json": "df5895ba82085933b698c7a5aee68932076472878356197c6f0ae79cc88727b9",
+    "RYTM.json": "71e751f76a53396bee2484354eaaeaf5c575b967da384accf02eb3bf17422fa0",
+    "RYTCM.json": "05c247fc8beaa23f2ea3dd9c5d6ca2138e37474b45effdd0d0b463fdfdea0376",
+    "RYTEM.json": "231e10dd130840a4faee42912bb7cdd2e087421e40f9508d5f40085ca6dffb47"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "philippines-v36-user-acceptance-v1",
+  "case": "Philippines_v36",
+  "date": "2026-08-28",
+  "accepted_candidate": "BASE_V36_POWER_GAS_HISTORY",
+  "decision": "accept_material_improvement_and_run_required_policy_scenarios",
+  "accepted_limitations": {
+    "gross_generation_outside_5_percent_tolerance": [
+      2022,
+      2024
+    ],
+    "gas_generation_outside_15_percent_tolerance": [
+      2020,
+      2023,
+      2024
+    ],
+    "2024_gas_generation_pj": 31.9347,
+    "2024_observed_gas_generation_pj": 64.9692
+  },
+  "non_forcing_rule_unchanged": true,
+  "authorization": "Run COAL_PHASEOUT, RE and EV and promote if all required runs are optimal and the sealed-candidate checks pass.",
+  "notes": "This acceptance overrides the candidate's historical-fit promotion threshold, not source integrity, physical feasibility, non-forcing, solver, scenario, sealing or promotion gates."
+}

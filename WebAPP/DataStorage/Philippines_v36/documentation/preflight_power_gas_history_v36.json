@@ -1,0 +1,820 @@
+{
+  "schema": "philippines-v36-power-gas-equation-first-gate-v1",
+  "case": "/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_v36-power-gas-history-candidate-20260827",
+  "baseline": "/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/Philippines_v33",
+  "status": "pass_zero_solve",
+  "failure_count": 0,
+  "optimizer_runs": 0,
+  "generation_runs": 0,
+  "observation_classification": {
+    "DOE_gross_generation": "benchmark_only",
+    "DOE_natural_gas_generation": "benchmark_only",
+    "DOE_grid_sales_own_use_and_loss": "physical_conversion_parameter",
+    "DOE_gas_nameplate_capacity": "initial_physical_stock",
+    "DOE_dependable_capacity": "continuing_physical_availability",
+    "DOE_gas_fuel_input": "physical_conversion_efficiency",
+    "Santa_Rita_and_San_Lorenzo_TOPQ": "continuing_contractual_cost_and_eligibility_upper_tranche",
+    "electricity_final_demands": "genuine_exogenous_final_demand_unchanged_pending_end_use_reconciliation"
+  },
+  "technology_classification": {
+    "PHL_POW_TD": "pass_through_conversion",
+    "PHL_POW_CHP_NG_OLD": "physical_conversion_stock_with_two_economic_modes",
+    "PHL_PRO_EXTR_NG": "resource_supply",
+    "PHL_PRO_IMP_NG": "resource_supply",
+    "PHL_PRO_PROC_NG": "fuel_processing_conversion"
+  },
+  "equation_map": {
+    "gross_to_sales": "EBa11_EnergyBalanceEachTS5 production must cover PHL_POW_TD input; IAR converts metered sales activity to gross grid electricity.",
+    "gas_capacity": "CAa4_TotalActivityPerYear1 and capacity/activity limits use RC, AF and CapacityToActivityUnit; no activity minimum is introduced.",
+    "gas_resource": "AAC2_TotalAnnualTechnologyActivityUpperLimit caps extraction/import supply; PHL_PRO_PROC_NG and plant IAR propagate fuel requirements.",
+    "contract": "TAMUL limits only discounted mode 1 eligibility; identical mode 2 keeps dispatch physically available at market cost."
+  },
+  "known_unresolved_boundary": "DOE commercial metered sales combine appliance and electric-heat uses while PHL_SER_ELEF excludes endogenous heat. Final demand was not overwritten because doing so would double count an endogenous route.",
+  "checks": [
+    {
+      "name": "identity_sets_unchanged",
+      "status": "pass",
+      "detail": {
+        "case": "Philippines_v36"
+      }
+    },
+    {
+      "name": "gen_data_diff_scope",
+      "status": "pass",
+      "detail": "identity, case description and legacy-gas description only"
+    },
+    {
+      "name": "unaffected_source_files_exact",
+      "status": "pass",
+      "detail": {
+        "R.json": true,
+        "RE.json": true,
+        "RS.json": true,
+        "RT.json": true,
+        "RTSM.json": true,
+        "RYS.json": true,
+        "RYC.json": true,
+        "RYCn.json": true,
+        "RYCTs.json": true,
+        "RYDtb.json": true,
+        "RYE.json": true,
+        "RYSeDt.json": true,
+        "RYTC.json": true,
+        "RYTCn.json": true,
+        "RYTs.json": true,
+        "RYTTs.json": true
+      }
+    },
+    {
+      "name": "final_demand_exactly_unchanged",
+      "status": "pass",
+      "detail": "No residual electricity-demand fit was introduced."
+    },
+    {
+      "name": "ryt_diff_scope",
+      "status": "pass",
+      "detail": "SC_0 legacy-gas RC, AF and FC only"
+    },
+    {
+      "name": "rytm_diff_scope",
+      "status": "pass",
+      "detail": "SC_0 legacy-gas VC and TAMUL modes 1-2 only"
+    },
+    {
+      "name": "rytcm_diff_scope",
+      "status": "pass",
+      "detail": "TD IAR and legacy-gas physical modes only"
+    },
+    {
+      "name": "rytem_diff_scope",
+      "status": "pass",
+      "detail": "legacy-gas emission ratios for duplicated physical mode only"
+    },
+    {
+      "name": "gross_to_sales_equation",
+      "status": "pass",
+      "detail": {
+        "2020": 0.0,
+        "2021": 0.0,
+        "2022": 0.0,
+        "2023": 0.0,
+        "2024": 0.0,
+        "2025": 0.0,
+        "2026": 0.0,
+        "2027": 0.0,
+        "2028": 0.0,
+        "2029": 0.0,
+        "2030": 0.0,
+        "2031": 0.0,
+        "2032": 0.0,
+        "2033": 0.0,
+        "2034": 0.0,
+        "2035": 0.0,
+        "2036": 0.0,
+        "2037": 0.0,
+        "2038": 0.0,
+        "2039": 0.0,
+        "2040": 0.0,
+        "2041": 0.0,
+        "2042": 0.0,
+        "2043": 0.0,
+        "2044": 0.0,
+        "2045": 0.0,
+        "2046": 0.0,
+        "2047": 0.0,
+        "2048": 0.0,
+        "2049": 0.0,
+        "2050": 0.0,
+        "2051": 0.0,
+        "2052": 0.0,
+        "2053": 0.0
+      }
+    },
+    {
+      "name": "gas_stock_and_availability_equations",
+      "status": "pass",
+      "detail": {
+        "capacity_errors": {
+          "2020": 0.0,
+          "2021": 0.0,
+          "2022": 0.0,
+          "2023": 0.0,
+          "2024": 0.0,
+          "2025": 0.0,
+          "2026": 0.0,
+          "2027": 0.0,
+          "2028": 0.0,
+          "2029": 0.0,
+          "2030": 0.0,
+          "2031": 0.0,
+          "2032": 0.0,
+          "2033": 0.0,
+          "2034": 0.0,
+          "2035": 0.0,
+          "2036": 0.0,
+          "2037": 0.0,
+          "2038": 0.0,
+          "2039": 0.0,
+          "2040": 0.0,
+          "2041": 0.0,
+          "2042": 0.0,
+          "2043": 0.0,
+          "2044": 0.0,
+          "2045": 0.0,
+          "2046": 0.0,
+          "2047": 0.0,
+          "2048": 0.0,
+          "2049": 0.0,
+          "2050": 0.0,
+          "2051": 0.0,
+          "2052": 0.0,
+          "2053": 0.0
+        },
+        "availability_errors": {
+          "2020": 0.0,
+          "2021": 0.0,
+          "2022": 0.0,
+          "2023": 0.0,
+          "2024": 0.0,
+          "2025": 0.0,
+          "2026": 0.0,
+          "2027": 0.0,
+          "2028": 0.0,
+          "2029": 0.0,
+          "2030": 0.0,
+          "2031": 0.0,
+          "2032": 0.0,
+          "2033": 0.0,
+          "2034": 0.0,
+          "2035": 0.0,
+          "2036": 0.0,
+          "2037": 0.0,
+          "2038": 0.0,
+          "2039": 0.0,
+          "2040": 0.0,
+          "2041": 0.0,
+          "2042": 0.0,
+          "2043": 0.0,
+          "2044": 0.0,
+          "2045": 0.0,
+          "2046": 0.0,
+          "2047": 0.0,
+          "2048": 0.0,
+          "2049": 0.0,
+          "2050": 0.0,
+          "2051": 0.0,
+          "2052": 0.0,
+          "2053": 0.0
+        }
+      }
+    },
+    {
+      "name": "retirement_years_preserved",
+      "status": "pass",
+      "detail": {
+        "zero_capacity_years": [
+          "2046",
+          "2047",
+          "2048",
+          "2049",
+          "2050",
+          "2051",
+          "2052",
+          "2053"
+        ]
+      }
+    },
+    {
+      "name": "gas_efficiency_and_market_mode",
+      "status": "pass",
+      "detail": {
+        "2020": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2021": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2022": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2023": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2024": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2025": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2026": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2027": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2028": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2029": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2030": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2031": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2032": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2033": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2034": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2035": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2036": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2037": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2038": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2039": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2040": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2041": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2042": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2043": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2044": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2045": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2046": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2047": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2048": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2049": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2050": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2051": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2052": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        },
+        "2053": {
+          "mode1": 0.0,
+          "mode2": 0.0
+        }
+      }
+    },
+    {
+      "name": "capped_contract_cost_reclassification",
+      "status": "pass",
+      "detail": {
+        "2020": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2021": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2022": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2023": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2024": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2025": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2026": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2027": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2028": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2029": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2030": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2031": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2032": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2033": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2034": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2035": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2036": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2037": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2038": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2039": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2040": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2041": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2042": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2043": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2044": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2045": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2046": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2047": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2048": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2049": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2050": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2051": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2052": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        },
+        "2053": {
+          "mode1_cap": 0.0,
+          "mode2_cap": 0.0,
+          "mode1_vc": 0.0,
+          "mode2_vc": 0.0,
+          "fixed_cost": 0.0,
+          "mode1_lower": 0.0,
+          "mode2_lower": 0.0
+        }
+      }
+    },
+    {
+      "name": "no_dispatch_floor_or_activity_pin",
+      "status": "pass",
+      "detail": "TAMLL, TAL and TAU are byte-semantically inherited; contract mode has an upper tranche only."
+    },
+    {
+      "name": "observed_gas_is_theoretically_feasible_not_forced",
+      "status": "pass",
+      "detail": {
+        "2022": {
+          "observed_gas_generation_pj_benchmark": 64.3824,
+          "plant_processed_gas_required_pj": 105.4194372,
+          "upstream_gas_required_after_processing_pj": 111.40430010638849,
+          "domestic_plus_import_envelope_pj": 124.18112468900321,
+          "upstream_margin_before_endogenous_nonpower_use_pj": 12.776824582614722,
+          "legacy_gas_capacity_envelope_pj": 103.469616,
+          "capacity_margin_pj": 39.087216
+        },
+        "2023": {
+          "observed_gas_generation_pj_benchmark": 60.0048,
+          "plant_processed_gas_required_pj": 102.94922520000001,
+          "upstream_gas_required_after_processing_pj": 108.79384945057338,
+          "domestic_plus_import_envelope_pj": 120.80910288067852,
+          "upstream_margin_before_endogenous_nonpower_use_pj": 12.015253430105147,
+          "legacy_gas_capacity_envelope_pj": 103.469616,
+          "capacity_margin_pj": 43.464816
+        },
+        "2024": {
+          "observed_gas_generation_pj_benchmark": 64.9692,
+          "plant_processed_gas_required_pj": 117.2638944,
+          "upstream_gas_required_after_processing_pj": 123.9211897763902,
+          "domestic_plus_import_envelope_pj": 472.11585327434256,
+          "upstream_margin_before_endogenous_nonpower_use_pj": 348.1946634979524,
+          "legacy_gas_capacity_envelope_pj": 103.469616,
+          "capacity_margin_pj": 38.500416
+        }
+      }
+    },
+    {
+      "name": "policy_override_rows_unchanged",
+      "status": "pass",
+      "detail": {
+        "COAL_PHASEOUT": {
+          "COTU": true,
+          "TAU": true,
+          "TAL": true,
+          "TAMinCI": true,
+          "TAMinC": true,
+          "TAMaxCI": true,
+          "TAMaxC": true,
+          "RC": true,
+          "FC": true,
+          "CC": true,
+          "AF": true
+        },
+        "RE": {
+          "COTU": true,
+          "TAU": true,
+          "TAL": true,
+          "TAMinCI": true,
+          "TAMinC": true,
+          "TAMaxCI": true,
+          "TAMaxC": true,
+          "RC": true,
+          "FC": true,
+          "CC": true,
+          "AF": true
+        },
+        "EV": {
+          "COTU": true,
+          "TAU": true,
+          "TAL": true,
+          "TAMinCI": true,
+          "TAMinC": true,
+          "TAMaxCI": true,
+          "TAMaxC": true,
+          "RC": true,
+          "FC": true,
+          "CC": true,
+          "AF": true
+        }
+      }
+    },
+    {
+      "name": "six_table_schema_ledger_complete",
+      "status": "pass",
+      "detail": {
+        "SOURCES.csv": {
+          "SRC_PHL_V36_FPH_GAS_CONTRACTS_2024": 1,
+          "SRC_PHL_V36_DOE_OFFGRID_2020": 1,
+          "SRC_PHL_V36_DOE_ELECTRICITY_BALANCE_2024": 1,
+          "SRC_PHL_V36_DOE_POWER_INPUT_2023": 1,
+          "SRC_PHL_V36_DOE_GAS_CAPACITY_2024": 1,
+          "SRC_PHL_V36_DOE_POWER_INPUT_2024": 1
+        },
+        "ASSUMPTIONS.csv": {
+          "ASM_PHL_V36_GAS_STOCK_REMEASUREMENT": 1,
+          "ASM_PHL_V36_GAS_PLANT_EFFICIENCY": 1,
+          "ASM_PHL_V36_CONTRACT_COST_RECLASSIFICATION": 1,
+          "ASM_PHL_V36_GRID_BALANCE_BOUNDARY": 1
+        },
+        "CALCULATIONS.csv": {
+          "CALC_PHL_V36_GAS_PLANT_IAR": 1,
+          "CALC_PHL_V36_TD_OWN_USE": 1,
+          "CALC_PHL_V36_GAS_STOCK": 1,
+          "CALC_PHL_V36_GAS_CONTRACT_MODES": 1
+        },
+        "MODEL_MAP.csv": {
+          "MAP_PHL_V36_TD_GROSS_TO_SALES": 1,
+          "MAP_PHL_V36_GAS_STOCK": 1,
+          "MAP_PHL_V36_GAS_CONTRACT_MODE": 1,
+          "MAP_PHL_V36_GAS_PLANT_EFFICIENCY": 1
+        },
+        "CHANGES.csv": {
+          "CHG_PHL_V36_POWER_GAS_HISTORY": 1
+        },
+        "GAPS.csv": {
+          "PHL commercial-electricity demand decomposition": 1,
+          "PHL gas dispatch regional network and LNG contract detail": 1
+        }
+      }
+    },
+    {
+      "name": "evidence_hashes_exact",
+      "status": "pass",
+      "detail": {
+        "doe_2024_electricity_consumption.pdf": "6d91e685ec3acda7b07312af4a80a2ee8f3e7dbc0de849880c2d6efb88f3f862",
+        "doe_2024_grid_capacity_summary.pdf": "cb346d9a6997556a605f8852972f14ec10edbe56b5a655cf25577faed94d8801",
+        "fph_2024_annual_report.pdf": "27f61f82c473e3c4cc4eba471c6352a8c6551faa5b24b797c88fd3931314e79e",
+        "doe_2023_energy_situationer.pdf": "c9778141887e4e419530b96ed604700f43ae253db300649fcb8e675bea877655",
+        "doe_2024_energy_situationer.pdf": "441593caebef4ac55679eb248a1fca1c4273e12a7e882b877fc7781c6e179493"
+      }
+    },
+    {
+      "name": "clean_staging_before_generation",
+      "status": "pass",
+      "detail": []
+    }
+  ]
+}

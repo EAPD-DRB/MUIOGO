@@ -34,6 +34,8 @@ BASELINE_RUNS = {
 }
 MAX_MATRIX_RATIO = 1.05
 MAX_RUNTIME_RATIO: float | None = None
+OPTIMIZATION_PURPOSE = "Establish exact coupled feasibility and optimality after all zero-solve gates passed."
+WHY_DETERMINISTIC_CHECKS_INSUFFICIENT = "The analytic gate is deliberately optimistic and cannot prove storage chronology, trade coupling, or simultaneous shared-resource feasibility."
 CBC_INFEASIBLE_MARKERS = (
     "presolve determined that the problem was infeasible",
     "analysis indicates model infeasible or unbounded",
@@ -259,8 +261,8 @@ def solve_export(case_name: str, run_name: str, timeout: int, scenario: str) -> 
                 if presolve_infeasible else "timed_out_without_optimal_solution"
             ),
             "case": str(case), "run": str(run), "optimizer_runs": 1,
-            "purpose": "Establish exact coupled feasibility and optimality after all zero-solve gates passed.",
-            "why_deterministic_checks_were_insufficient": "The analytic gate is deliberately optimistic and cannot prove storage chronology, trade coupling, or simultaneous shared-resource feasibility.",
+            "purpose": OPTIMIZATION_PURPOSE,
+            "why_deterministic_checks_were_insufficient": WHY_DETERMINISTIC_CHECKS_INSUFFICIENT,
             "scenario": scenario, "baseline_runtime_seconds": baseline_runtime, "timeout_seconds": timeout,
             "solve_seconds": elapsed, "promotion_allowed": False,
             "lp_sha256": sha256(run / "lp.lp"),
@@ -288,8 +290,8 @@ def solve_export(case_name: str, run_name: str, timeout: int, scenario: str) -> 
         "phase": "single_candidate_optimization",
         "status": status_line,
         "case": str(case), "run": str(run), "optimizer_runs": 1,
-        "purpose": "Establish exact coupled feasibility and optimality after all zero-solve gates passed.",
-        "why_deterministic_checks_were_insufficient": "The analytic gate is deliberately optimistic and cannot prove storage chronology, trade coupling, or simultaneous shared-resource feasibility.",
+        "purpose": OPTIMIZATION_PURPOSE,
+        "why_deterministic_checks_were_insufficient": WHY_DETERMINISTIC_CHECKS_INSUFFICIENT,
         "scenario": scenario,
         "baseline_case": str(BASELINE_CASE), "baseline_run": str(baseline_run),
         "baseline_objective": baseline_objective, "baseline_runtime_seconds": baseline_runtime,

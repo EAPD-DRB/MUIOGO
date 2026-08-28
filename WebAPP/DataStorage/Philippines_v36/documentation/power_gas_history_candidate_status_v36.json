@@ -1,0 +1,45 @@
+{
+  "schema": "philippines-v36-power-gas-candidate-status-v1",
+  "case": "Philippines_v36",
+  "status": "pass",
+  "promotion_allowed": true,
+  "required_runs": [
+    "BASE_V36_POWER_GAS_HISTORY",
+    "COAL_PHASEOUT_V36_POWER_GAS_HISTORY",
+    "EV_V36_POWER_GAS_HISTORY",
+    "RE_V36_POWER_GAS_HISTORY"
+  ],
+  "actual_run_inventory": [
+    "BASE_V36_POWER_GAS_HISTORY",
+    "COAL_PHASEOUT_V36_POWER_GAS_HISTORY",
+    "EV_V36_POWER_GAS_HISTORY",
+    "RE_V36_POWER_GAS_HISTORY"
+  ],
+  "clean_run_inventory": true,
+  "all_scenarios_optimal": true,
+  "all_runtime_gates_passed": true,
+  "all_hash_and_identity_gates_passed": true,
+  "source_gate": "documentation/preflight_power_gas_history_v36.json",
+  "validation": "documentation/power_gas_history_four_scenario_validation_v36.json",
+  "user_acceptance": "documentation/USER_ACCEPTANCE_V36_2026-08-28.json",
+  "accepted_calibration_limitation": {
+    "gross_generation_outside_5_percent_tolerance": [
+      2022,
+      2024
+    ],
+    "gas_generation_outside_15_percent_tolerance": [
+      2020,
+      2023,
+      2024
+    ],
+    "2024_gas_generation_pj": 31.9347,
+    "2024_observed_gas_generation_pj": 64.9692
+  },
+  "non_forcing": true,
+  "policy_scenarios_required_and_completed": [
+    "COAL_PHASEOUT",
+    "RE",
+    "EV"
+  ],
+  "seal_required_before_promotion": true
+}

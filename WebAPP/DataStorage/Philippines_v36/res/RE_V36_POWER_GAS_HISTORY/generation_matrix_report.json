@@ -1,0 +1,48 @@
+{
+  "phase": "generate_preprocess_matrix_check",
+  "status": "passed",
+  "case": "/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_v36-power-gas-history-candidate-20260827",
+  "run": "/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_v36-power-gas-history-candidate-20260827/res/RE_V36_POWER_GAS_HISTORY",
+  "active_scenarios": [
+    "BASE",
+    "RE"
+  ],
+  "source_gate_hashes": {
+    "equation_first": "b4864b48b574c0bb0931815f8990ce4d0d7e0a7b52cd5f531dd1ad4ce4544ad9",
+    "gate_adjustment": "bc6d3e35be23df937118eafc2e407243b6b201ce218ca4e8b32d0f5cbefb2656",
+    "generic_active": "790c474408e62fb5290089b1fc0d15dea9205652576ec893d2b345b40a1682d7"
+  },
+  "timings_seconds": {
+    "generate_datafile": 2.3802456670091487,
+    "preprocess_data": 0.012063292000675574,
+    "glpsol_check_and_lp": 50.05434908300231
+  },
+  "hashes": {
+    "data.txt": "a681e7c956d997ed1e14b76614cb09cc88d802c149b9a6026c8ea36c84b48584",
+    "data_processed.txt": "7aa82bbd6d73334bc715bbbc16eee524d18af79764f50a73e450fd6d59b4746e",
+    "lp.lp": "a4ca2ffc141fd1e7cf7a018709375e0d3e19da99a9b5f0a1efd372d548153652"
+  },
+  "optimizer_runs": 0,
+  "matrix_dimensions": {
+    "rows": 467211,
+    "columns": 518524,
+    "matrix_nonzeros": 8202343
+  },
+  "baseline_matrix_dimensions": {
+    "rows": 467075,
+    "columns": 517844,
+    "matrix_nonzeros": 8195151
+  },
+  "matrix_deltas": {
+    "rows": 136,
+    "columns": 680,
+    "matrix_nonzeros": 7192
+  },
+  "matrix_ratios": {
+    "rows": 1.0002911737943585,
+    "columns": 1.0013131367747816,
+    "matrix_nonzeros": 1.0008775921273445
+  },
+  "maximum_allowed_matrix_ratio": 1.002,
+  "glpsol_tail": "/WebAPP/SOLVERs/model.v.5.4.txt...\n/Users/sato/Documents/GitHub/MUIOGO/WebAPP/SOLVERs/model.v.5.4.txt:359: warning: final NL missing before end of file\n359 lines were read\nReading data section from /Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_v36-power-gas-history-candidate-20260827/res/RE_V36_POWER_GAS_HISTORY/data_processed.txt...\n/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_v36-power-gas-history-candidate-20260827/res/RE_V36_POWER_GAS_HISTORY/data_processed.txt:5632: warning: final NL missing before end of file\n5632 lines were read\nGenerating cost...\nGenerating Acc3_AverageAnnualRateOfActivity...\nGenerating CAa1_TotalNewCapacity...\nGenerating CAa2_TotalAnnualCapacity...\nGenerating CAa5_TotalNewCapacity...\nGenerating CC1_UndiscountedCapitalInvestment...\nGenerating E2_AnnualEmissionProduction...\nGenerating EBa10_EnergyBalanceEachTS4...\nGenerating NCC1_TotalAnnualMaxNewCapacityConstraint...\nGenerating NCC2_TotalAnnualMinNewCapacityConstraint...\nGenerating OC1_OperatingCostsVariable...\nGenerating OC2_OperatingCostsFixedAnnual...\nGenerating SV3_SalvageValueAtEndOfPeriod3...\nGenerating SV4_SalvageValueDiscountedToStartYear...\nGenerating TAC1_TotalModelHorizonTechnologyActivity...\nGenerating EBb4_EnergyBalanceEachYear4_ICR...\nGenerating INC1_InputToNewCapacity...\nGenerating ITC1_InputToTotalCapacity...\nGenerating AAC1_TotalAnnualTechnologyActivity...\nGenerating CAa3_TotalActivityOfEachTechnology...\nGenerating E1_AnnualEmissionProductionByMode...\nGenerating LU1_TechnologyActivityByModeUL...\nGenerating LU2_TechnologyActivityByModeLL...\nGenerating LU3_TechnologyActivityIncreaseByMode...\nGenerating LU4_TechnologyActivityDecreaseByMode...\nGenerating AAC2_TotalAnnualTechnologyActivityUpperLimit...\nGenerating AAC3_TotalAnnualTechnologyActivityLowerLimit...\nGenerating CAa4_Constraint_Capacity...\nGenerating CAb1_PlannedMaintenance...\nGenerating E5_EmissionsPenaltyByTechnology...\nGenerating E8_AnnualEmissionsLimit...\nGenerating E9_ModelPeriodEmissionsLimit...\nGenerating EBa11_EnergyBalanceEachTS5...\nGenerating EBa9_EnergyBalanceEachTS3...\nGenerating EBb4_EnergyBalanceEachYear4...\nGenerating SV1_SalvageValueAtEndOfPeriod1...\nGenerating SV2_SalvageValueAtEndOfPeriod2...\nGenerating TAC2_TotalModelHorizonTechnologyActivityUpperLimit...\nGenerating TAC3_TotalModelHorizonTechnologyActivityLowerLimit...\nGenerating TCC1_TotalAnnualMaxCapacityConstraint...\nGenerating TCC2_TotalAnnualMinCapacityConstraint...\nGenerating E10_InterYearActivityEmissionChange...\nGenerating E11_InterYearActivityEmissionChange...\nGenerating S14_RateOfNetStorageActivity...\nGenerating S3_NetChargeWithinYear...\nGenerating S4_NetChargeWithinDay...\nGenerating S9_and_S10_StorageLevelSeasonStart...\nGenerating S11_and_S12_StorageLevelDayTypeStart...\nGenerating S30_StorageLevelYearStart2...\nGenerating S39_StorageIntraday...\nGenerating S39_StorageIntrayear...\nGenerating SC1_LLBDFIFW...\nGenerating SC1_ULBDFIFW...\nGenerating SC2_LLEDLIFW...\nGenerating SC2_ULEDLIFW...\nGenerating SC3_LLEDLILW...\nGenerating SC3_ULEDLILW...\nGenerating SC4_LLBDFILW...\nGenerating SC4_ULBDFILW...\nGenerating SI6_SalvageValueStorageAtEndOfPeriod1...\nGenerating SI7_SalvageValueStorageAtEndOfPeriod2...\nGenerating SI2_StorageLowerLimit...\nGenerating SI3_TotalNewStorage...\nGenerating SI4_UndiscountedCapitalInvestmentStorage...\nGenerating SI9_SalvageValueStorageDiscountedToStartYear...\nGenerating UDC1_UserDefinedConstraintInequality...\nGenerating UDC2_UserDefinedConstraintEquality...\nModel has been successfully generated\nglp_mpl_build_prob: row cost; constant term 27277.6017868 ignored\nWriting problem data to '/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_v36-power-gas-history-candidate-20260827/res/RE_V36_POWER_GAS_HISTORY/lp.lp'...\n8776788 lines were written\n--- Problem Characteristics ---\nNumber of rows               =   467211\nNumber of columns            =   518524\nNumber of non-zeros (matrix) =  8202343\nNumber of non-zeros (objrow) =   245996\n\n"
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "philippines-v36-generated-power-gas-gate-v1",
+  "status": "pass",
+  "failure_count": 0,
+  "optimizer_runs": 0,
+  "case_identity": "Philippines_v36",
+  "run": "/Users/sato/Documents/GitHub/MUIOGO/WebAPP/DataStorage/.Philippines_v36-power-gas-history-candidate-20260827/res/RE_V36_POWER_GAS_HISTORY",
+  "checks": [
+    {
+      "name": "ResidualCapacity_legacy_gas",
+      "passed": true
+    },
+    {
+      "name": "AvailabilityFactor_legacy_gas",
+      "passed": true
+    },
+    {
+      "name": "FixedCost_legacy_gas",
+      "passed": true
+    },
+    {
+      "name": "VariableCost_legacy_gas_mode_1",
+      "passed": true
+    },
+    {
+      "name": "VariableCost_legacy_gas_mode_2",
+      "passed": true
+    },
+    {
+      "name": "TechnologyActivityByModeUpperLimit_legacy_gas_mode_1",
+      "passed": true
+    },
+    {
+      "name": "TechnologyActivityByModeUpperLimit_legacy_gas_mode_2",
+      "passed": true
+    },
+    {
+      "name": "TechnologyActivityByModeLowerLimit_legacy_gas_mode_1",
+      "passed": true
+    },
+    {
+      "name": "TechnologyActivityByModeLowerLimit_legacy_gas_mode_2",
+      "passed": true
+    },
+    {
+      "name": "InputActivityRatio_PHL_POW_TD_PHL_POW_ELE_mode_1",
+      "passed": true
+    },
+    {
+      "name": "InputActivityRatio_PHL_POW_CHP_NG_OLD_PHL_PRO_NG_mode_1",
+      "passed": true
+    },
+    {
+      "name": "InputActivityRatio_PHL_POW_CHP_NG_OLD_PHL_PRO_NG_mode_2",
+      "passed": true
+    },
+    {
+      "name": "OutputActivityRatio_PHL_POW_CHP_NG_OLD_PHL_POW_ELE_mode_1",
+      "passed": true
+    },
+    {
+      "name": "OutputActivityRatio_PHL_POW_CHP_NG_OLD_PHL_POW_ELE_mode_2",
+      "passed": true
+    }
+  ],
+  "derived_mode_checks": {
+    "technology_modes": true,
+    "electricity_output_modes": true,
+    "gas_input_modes": true,
+    "emission_modes": true
+  },
+  "generated_hashes_current": {
+    "data.txt": true,
+    "data_processed.txt": true,
+    "lp.lp": true
+  },
+  "matrix_dimensions": {
+    "rows": 467211,
+    "columns": 518524,
+    "matrix_nonzeros": 8202343
+  },
+  "matrix_deltas": {
+    "rows": 136,
+    "columns": 680,
+    "matrix_nonzeros": 7192
+  }
+}

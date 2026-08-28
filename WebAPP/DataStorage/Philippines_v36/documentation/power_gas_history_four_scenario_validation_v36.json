@@ -1,0 +1,294 @@
+{
+  "schema": "philippines-v36-power-gas-four-scenario-validation-v1",
+  "case": "Philippines_v36",
+  "parent_case": "Philippines_v33",
+  "status": "pass",
+  "candidate_optimizer_runs": 4,
+  "diagnostic_optimizer_runs": 0,
+  "generation_only_rejected_threshold_attempts_outside_candidate": 1,
+  "scenarios": {
+    "BASE": {
+      "run": "BASE_V36_POWER_GAS_HISTORY",
+      "baseline_run": "BASE_V33_GAS_DELIVERY",
+      "optimization": {
+        "status": "Optimal - objective value 863976.44309006",
+        "objective": 863976.44309006,
+        "baseline_objective": 852438.33485986,
+        "objective_change_percent": 1.3535416883963647,
+        "solve_seconds": 68.15735912499076,
+        "baseline_runtime_seconds": 78.1788367909976,
+        "runtime_ratio_to_baseline": 0.8718134206473532,
+        "runtime_acceptance_passed": true
+      },
+      "matrix_dimensions": {
+        "rows": 467211,
+        "columns": 518524,
+        "matrix_nonzeros": 8201833
+      },
+      "matrix_deltas": {
+        "rows": 136,
+        "columns": 680,
+        "matrix_nonzeros": 7192
+      },
+      "historical_output": {
+        "2020": {
+          "gross_grid_generation_pj": 361.5213999999998,
+          "legacy_gas_generation_pj": 34.4912
+        },
+        "2021": {
+          "gross_grid_generation_pj": 365.1499,
+          "legacy_gas_generation_pj": 62.8636
+        },
+        "2022": {
+          "gross_grid_generation_pj": 379.1019999999999,
+          "legacy_gas_generation_pj": 67.5355
+        },
+        "2023": {
+          "gross_grid_generation_pj": 407.37489999999985,
+          "legacy_gas_generation_pj": 49.528
+        },
+        "2024": {
+          "gross_grid_generation_pj": 426.89599999999996,
+          "legacy_gas_generation_pj": 31.9347
+        }
+      },
+      "checks": {
+        "optimal": true,
+        "one_optimizer_run": true,
+        "runtime_gate_passed": true,
+        "generation_matrix_gate_passed": true,
+        "generated_value_gate_passed": true,
+        "lp_hash_current": true,
+        "results_hash_current": true,
+        "generation_hashes_current": true,
+        "source_gate_hashes_current": true,
+        "scenario_identity_current": true
+      },
+      "hashes": {
+        "generation_matrix_report": "81e78c6254edac94bc0e3c1208bb8d99205194837d9411559d107f58d104ff3e",
+        "generated_power_gas_gate": "6f67bc64ca698eba27bd7ced9ecbb97eb2954b075460bdfa9a1372888afe1ec1",
+        "optimization_record": "3bb0d04ea5b4b8a4f49a5dcd85f757bf40ac437f365f420652aa3bea88d88c5d",
+        "lp": "0b1404aae73f02460d9070dcb3cf5b3302c99b4ee419300b27d8f49511393413",
+        "results": "fe05d46fd02f845f3180afb1ed5ba459ee9342338ecff2f463bec71bc1c68dc0"
+      }
+    },
+    "COAL_PHASEOUT": {
+      "run": "COAL_PHASEOUT_V36_POWER_GAS_HISTORY",
+      "baseline_run": "COAL_PHASEOUT_V33_GAS_DELIVERY",
+      "optimization": {
+        "status": "Optimal - objective value 887217.82426329",
+        "objective": 887217.82426329,
+        "baseline_objective": 873334.54788478,
+        "objective_change_percent": 1.5896859241553374,
+        "solve_seconds": 122.25675666700408,
+        "baseline_runtime_seconds": 124.49181858299562,
+        "runtime_ratio_to_baseline": 0.9820465156551514,
+        "runtime_acceptance_passed": true
+      },
+      "matrix_dimensions": {
+        "rows": 467226,
+        "columns": 518524,
+        "matrix_nonzeros": 8202103
+      },
+      "matrix_deltas": {
+        "rows": 136,
+        "columns": 680,
+        "matrix_nonzeros": 7192
+      },
+      "historical_output": {
+        "2020": {
+          "gross_grid_generation_pj": 361.52129999999977,
+          "legacy_gas_generation_pj": 34.4912
+        },
+        "2021": {
+          "gross_grid_generation_pj": 365.1496999999999,
+          "legacy_gas_generation_pj": 62.8636
+        },
+        "2022": {
+          "gross_grid_generation_pj": 380.18839999999983,
+          "legacy_gas_generation_pj": 63.3449
+        },
+        "2023": {
+          "gross_grid_generation_pj": 408.2497999999997,
+          "legacy_gas_generation_pj": 42.1149
+        },
+        "2024": {
+          "gross_grid_generation_pj": 448.46879999999993,
+          "legacy_gas_generation_pj": 25.7957
+        }
+      },
+      "checks": {
+        "optimal": true,
+        "one_optimizer_run": true,
+        "runtime_gate_passed": true,
+        "generation_matrix_gate_passed": true,
+        "generated_value_gate_passed": true,
+        "lp_hash_current": true,
+        "results_hash_current": true,
+        "generation_hashes_current": true,
+        "source_gate_hashes_current": true,
+        "scenario_identity_current": true
+      },
+      "hashes": {
+        "generation_matrix_report": "d758be364591fdb02f36b80c9c07fe70303629e16f64e037f37909a677878ad8",
+        "generated_power_gas_gate": "f8ece66a5ff3efb4fb8d788dd405309ca0db712a0e1f5e3189d07b58bcb100cb",
+        "optimization_record": "09be183cc7605640dab83e2631e95dc3be0bf7a0eb04da9528033d43affa0037",
+        "lp": "ee8d38d081f8475e1081ad4328d2d9bb1f7701d29df01f974c3e70edf87c5735",
+        "results": "dc8f3b77010fa5892cf9ac1d0f9e1fe580e9bd29d6ea2e4c8a27461d0a292925"
+      }
+    },
+    "RE": {
+      "run": "RE_V36_POWER_GAS_HISTORY",
+      "baseline_run": "RE_V33_GAS_DELIVERY",
+      "optimization": {
+        "status": "Optimal - objective value 874666.81369337",
+        "objective": 874666.81369337,
+        "baseline_objective": 862660.13060768,
+        "objective_change_percent": 1.3918207947354988,
+        "solve_seconds": 136.2588765410037,
+        "baseline_runtime_seconds": 132.50547754199943,
+        "runtime_ratio_to_baseline": 1.0283263686047588,
+        "runtime_acceptance_passed": true
+      },
+      "matrix_dimensions": {
+        "rows": 467211,
+        "columns": 518524,
+        "matrix_nonzeros": 8202343
+      },
+      "matrix_deltas": {
+        "rows": 136,
+        "columns": 680,
+        "matrix_nonzeros": 7192
+      },
+      "historical_output": {
+        "2020": {
+          "gross_grid_generation_pj": 361.52119999999985,
+          "legacy_gas_generation_pj": 34.4912
+        },
+        "2021": {
+          "gross_grid_generation_pj": 365.1496,
+          "legacy_gas_generation_pj": 62.8636
+        },
+        "2022": {
+          "gross_grid_generation_pj": 376.35749999999996,
+          "legacy_gas_generation_pj": 67.5355
+        },
+        "2023": {
+          "gross_grid_generation_pj": 407.37529999999947,
+          "legacy_gas_generation_pj": 50.190200000000004
+        },
+        "2024": {
+          "gross_grid_generation_pj": 427.46529999999956,
+          "legacy_gas_generation_pj": 32.8619
+        }
+      },
+      "checks": {
+        "optimal": true,
+        "one_optimizer_run": true,
+        "runtime_gate_passed": true,
+        "generation_matrix_gate_passed": true,
+        "generated_value_gate_passed": true,
+        "lp_hash_current": true,
+        "results_hash_current": true,
+        "generation_hashes_current": true,
+        "source_gate_hashes_current": true,
+        "scenario_identity_current": true
+      },
+      "hashes": {
+        "generation_matrix_report": "7eb5b0a2c7a89e8826a0e159b665c00cdfb27069ef0e0f4f63019aa0f79bb406",
+        "generated_power_gas_gate": "1cfee1ee152d211ddd3ce33727802d56e2f3e0487425cec58a24838c871b0db9",
+        "optimization_record": "3c988bcaa9b2c84a9ee5aefaffea973fbbc976e0da5de85d966ef799a35d6062",
+        "lp": "a4ca2ffc141fd1e7cf7a018709375e0d3e19da99a9b5f0a1efd372d548153652",
+        "results": "bd08f61a539d2bcd7e79898f263027046b0e6c9779e47b8e7c352599eef4ec48"
+      }
+    },
+    "EV": {
+      "run": "EV_V36_POWER_GAS_HISTORY",
+      "baseline_run": "EV_V33_GAS_DELIVERY",
+      "optimization": {
+        "status": "Optimal - objective value 840539.25824178",
+        "objective": 840539.25824178,
+        "baseline_objective": 828191.95783998,
+        "objective_change_percent": 1.4908742212376813,
+        "solve_seconds": 160.31351324998832,
+        "baseline_runtime_seconds": 148.53312570899288,
+        "runtime_ratio_to_baseline": 1.0793115171094942,
+        "runtime_acceptance_passed": true
+      },
+      "matrix_dimensions": {
+        "rows": 467211,
+        "columns": 518524,
+        "matrix_nonzeros": 8202141
+      },
+      "matrix_deltas": {
+        "rows": 136,
+        "columns": 680,
+        "matrix_nonzeros": 7192
+      },
+      "historical_output": {
+        "2020": {
+          "gross_grid_generation_pj": 361.52119999999985,
+          "legacy_gas_generation_pj": 34.4912
+        },
+        "2021": {
+          "gross_grid_generation_pj": 366.6357,
+          "legacy_gas_generation_pj": 62.8636
+        },
+        "2022": {
+          "gross_grid_generation_pj": 380.8975999999995,
+          "legacy_gas_generation_pj": 67.5355
+        },
+        "2023": {
+          "gross_grid_generation_pj": 417.0553999999998,
+          "legacy_gas_generation_pj": 46.252
+        },
+        "2024": {
+          "gross_grid_generation_pj": 441.9239999999999,
+          "legacy_gas_generation_pj": 34.5812
+        }
+      },
+      "checks": {
+        "optimal": true,
+        "one_optimizer_run": true,
+        "runtime_gate_passed": true,
+        "generation_matrix_gate_passed": true,
+        "generated_value_gate_passed": true,
+        "lp_hash_current": true,
+        "results_hash_current": true,
+        "generation_hashes_current": true,
+        "source_gate_hashes_current": true,
+        "scenario_identity_current": true
+      },
+      "hashes": {
+        "generation_matrix_report": "555d46144820c7e936fb41e81d80f966ea64d613a42d60896b6e6a19b17a40bb",
+        "generated_power_gas_gate": "61ebc99d61b77a41988cba463e7b20617c82c73fe592521bab3c0bfcdfa67cbc",
+        "optimization_record": "98e7a8306490226d1641c150dfd6c0cdeec614f4c9f3e12fae35ba8b300386f0",
+        "lp": "742cd10cdf0db358760496cb5f32652d55c6bc0e8a1a5c30e9b57295c38d6a30",
+        "results": "91b62b4b128c7586703c7cb061308722d7ba8f5f0409ccee5441465b5e0d1ec2"
+      }
+    }
+  },
+  "run_inventory": {
+    "expected": [
+      "BASE_V36_POWER_GAS_HISTORY",
+      "COAL_PHASEOUT_V36_POWER_GAS_HISTORY",
+      "EV_V36_POWER_GAS_HISTORY",
+      "RE_V36_POWER_GAS_HISTORY"
+    ],
+    "actual": [
+      "BASE_V36_POWER_GAS_HISTORY",
+      "COAL_PHASEOUT_V36_POWER_GAS_HISTORY",
+      "EV_V36_POWER_GAS_HISTORY",
+      "RE_V36_POWER_GAS_HISTORY"
+    ],
+    "clean": true
+  },
+  "source_gates_valid": true,
+  "user_acceptance": {
+    "path": "documentation/USER_ACCEPTANCE_V36_2026-08-28.json",
+    "sha256": "0f1b12de25e44260ab8dc2c53be71742454e3e871d0f3a3142091ec7375b4468",
+    "valid": true,
+    "scope": "historical-fit threshold only; non-forcing and all integrity gates remain mandatory"
+  },
+  "known_accepted_limitation": "BASE materially improves gross generation and 2022-2024 gas dispatch but remains outside historical tolerances in specified years. Regional grid/transfer and plant-contract operating boundaries remain the required next correction."
+}
