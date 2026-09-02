@@ -2039,9 +2039,8 @@ class DataFile(Osemosys):
         """Physical performance cores: what concurrent solves actually contend for.
 
         Logical CPUs overcount by 2x under hyper-threading, and efficiency cores do
-        not help a single-threaded simplex solve. Measured on a 4-P-core Apple M5
-        with an 829 MB LP: 1-3 concurrent solves each ran ~1.3x slower than solo,
-        4 concurrent ran 2.6x slower - the cliff sits at the P-core count.
+        not help a single-threaded simplex solve. See _batch_workers for the
+        measurement this count is used against.
         macOS: hw.perflevel0.physicalcpu (P-cores; all cores on Intel Macs).
         Linux: distinct physical cores in /proc/cpuinfo. Windows: NumberOfCores.
         If detection fails, half the logical count (conservative), at least 1."""
@@ -2080,16 +2079,18 @@ class DataFile(Osemosys):
         """How many scenarios to solve at once.
 
             workers = min( scenarios,
-                           performance_cores - 1,   one fast core stays free for the app and OS
+                           performance_cores - 1,
                            (total_GB - 8) // 4 )    8 GB reserved; 4 GB per solve
 
         No fixed upper cap: a machine with more performance cores and memory
-        solves more at once. The two terms are the two measured limits. 4 GB is
-        the worst case observed for a country-scale solve (Philippines vIS2
-        COAL_PHASEOUT: 3.9 GB peak; 829 MB LP). Concurrency past the
-        performance-core count costs speed, not correctness, so a wrong guess
-        here is slow, never unsafe; memory is the only hard limit and it is the
-        second term. MUIOGO_BATCH_WORKERS overrides everything (1 forces
+        solves more at once. The CPU term is empirical: on the one machine
+        measured (4 performance cores, Philippines vIS2, 829 MB LP), one to
+        three concurrent solves each ran ~1.3x slower than a solo solve and four
+        ran 2.6x slower, so performance_cores - 1 was the widest setting before
+        the slowdown jumped. Why it jumps there was not determined. 4 GB is the
+        worst case observed for a country-scale solve (COAL_PHASEOUT: 3.9 GB
+        peak). Too many workers costs speed, not correctness; memory is the only
+        hard limit and it is the second term. MUIOGO_BATCH_WORKERS overrides everything (1 forces
         sequential); values below 1 are clamped to 1."""
         override = os.environ.get("MUIOGO_BATCH_WORKERS")
         if override:
