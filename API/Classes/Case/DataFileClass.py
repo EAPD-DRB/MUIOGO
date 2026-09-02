@@ -2035,16 +2035,61 @@ class DataFile(Osemosys):
             return 8.0
 
     @staticmethod
+    def _performance_cores():
+        """Physical performance cores: what concurrent solves actually contend for.
+
+        Logical CPUs overcount by 2x under hyper-threading, and efficiency cores do
+        not help a single-threaded simplex solve. Measured on a 4-P-core Apple M5
+        with an 829 MB LP: 1-3 concurrent solves each ran ~1.3x slower than solo,
+        4 concurrent ran 2.6x slower - the cliff sits at the P-core count.
+        macOS: hw.perflevel0.physicalcpu (P-cores; all cores on Intel Macs).
+        Linux: distinct physical cores in /proc/cpuinfo. Windows: NumberOfCores.
+        If detection fails, half the logical count (conservative), at least 1."""
+        logical = os.cpu_count() or 4
+        try:
+            if Config.SYSTEM == "Darwin":
+                for key in ("hw.perflevel0.physicalcpu", "hw.physicalcpu"):
+                    out = subprocess.run(["sysctl", "-n", key], capture_output=True,
+                                         text=True, timeout=5)
+                    if out.returncode == 0 and out.stdout.strip().isdigit():
+                        return max(1, int(out.stdout.strip()))
+            elif Config.SYSTEM == "Linux":
+                cores = set(); phys = core = None
+                for line in Path("/proc/cpuinfo").read_text().splitlines():
+                    if line.startswith("physical id"):
+                        phys = line.split(":")[1].strip()
+                    elif line.startswith("core id"):
+                        core = line.split(":")[1].strip()
+                    elif not line.strip() and core is not None:
+                        cores.add((phys, core)); phys = core = None
+                if cores:
+                    return max(1, len(cores))
+            elif Config.SYSTEM == "Windows":
+                out = subprocess.run(
+                    ["powershell", "-NoProfile", "-Command",
+                     "(Get-CimInstance Win32_Processor | Measure-Object NumberOfCores -Sum).Sum"],
+                    capture_output=True, text=True, timeout=20)
+                if out.returncode == 0 and out.stdout.strip().isdigit():
+                    return max(1, int(out.stdout.strip()))
+        except (OSError, ValueError, subprocess.SubprocessError):
+            pass
+        return max(1, logical // 2)
+
+    @staticmethod
     def _batch_workers(n_cases):
         """How many scenarios to solve at once.
 
             workers = min( scenarios,
-                           cpus - 2,             leave cores for the app and OS
-                           (total_GB - 8) // 3,  8 GB reserved; ~3 GB per solve
-                           4 )                   widest configuration measured
+                           performance_cores - 1,   one fast core stays free for the app and OS
+                           (total_GB - 8) // 4 )    8 GB reserved; 4 GB per solve
 
-        The 3 GB covers a country-scale solve (~1.5 GB observed) plus its
-        matrix build. MUIOGO_BATCH_WORKERS overrides everything (1 forces
+        No fixed upper cap: a machine with more performance cores and memory
+        solves more at once. The two terms are the two measured limits. 4 GB is
+        the worst case observed for a country-scale solve (Philippines vIS2
+        COAL_PHASEOUT: 3.9 GB peak; 829 MB LP). Concurrency past the
+        performance-core count costs speed, not correctness, so a wrong guess
+        here is slow, never unsafe; memory is the only hard limit and it is the
+        second term. MUIOGO_BATCH_WORKERS overrides everything (1 forces
         sequential); values below 1 are clamped to 1."""
         override = os.environ.get("MUIOGO_BATCH_WORKERS")
         if override:
@@ -2052,9 +2097,9 @@ class DataFile(Osemosys):
                 return max(1, int(override))
             except ValueError:
                 pass
-        by_cpu = max(1, (os.cpu_count() or 4) - 2)
-        by_mem = max(1, int((DataFile._total_memory_gb() - 8) // 3))
-        return max(1, min(n_cases, by_cpu, by_mem, 4))
+        by_cpu = max(1, DataFile._performance_cores() - 1)
+        by_mem = max(1, int((DataFile._total_memory_gb() - 8) // 4))
+        return max(1, min(n_cases, by_cpu, by_mem))
 
     def batchRun(self, solver, cases, parallel=True):
         try:
