@@ -2053,14 +2053,16 @@ class DataFile(Osemosys):
                     if out.returncode == 0 and out.stdout.strip().isdigit():
                         return max(1, int(out.stdout.strip()))
             elif Config.SYSTEM == "Linux":
-                cores = set(); phys = core = None
+                cores = set()
+                phys = core = None
                 for line in Path("/proc/cpuinfo").read_text().splitlines():
                     if line.startswith("physical id"):
                         phys = line.split(":")[1].strip()
                     elif line.startswith("core id"):
                         core = line.split(":")[1].strip()
                     elif not line.strip() and core is not None:
-                        cores.add((phys, core)); phys = core = None
+                        cores.add((phys, core))
+                        phys = core = None
                 if cores:
                     return max(1, len(cores))
             elif Config.SYSTEM == "Windows":
