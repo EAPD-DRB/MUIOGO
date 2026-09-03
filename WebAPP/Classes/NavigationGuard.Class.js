@@ -32,8 +32,7 @@ export class NavigationGuard {
     // Checks whether the user can leave, then continues when allowed
     static async requestLeave(onAllowed, onBlocked = () => {}) {
         if (!activeGuard) {
-            onAllowed();
-            return;
+            return await onAllowed();
         }
 
         if (leaveRequestPending) {
@@ -41,9 +40,13 @@ export class NavigationGuard {
         }
 
         if (!activeGuard.hasChanges()) {
+            const guard = activeGuard;
             NavigationGuard.deactivate();
-            onAllowed();
-            return;
+            const result = await onAllowed();
+            if (result === false) {
+                NavigationGuard.activate(guard);
+            }
+            return result;
         }
 
         leaveRequestPending = true;
@@ -53,9 +56,13 @@ export class NavigationGuard {
             const choice = await Message.confirmUnsavedModelChanges();
 
             if (choice === "Don't save") {
+                const guard = activeGuard;
                 NavigationGuard.deactivate();
-                onAllowed();
-                return;
+                const result = await onAllowed();
+                if (result === false) {
+                    NavigationGuard.activate(guard);
+                }
+                return result;
             }
 
             if (choice === "Save") {

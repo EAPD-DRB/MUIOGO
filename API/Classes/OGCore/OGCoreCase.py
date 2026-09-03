@@ -5,15 +5,18 @@ per run: a baseline and a reform are the same model with different params."""
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import os
 import shutil
 import tempfile
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 from Classes.Base import Config
 from Classes.Base.FileClass import File
+from Classes.OGCore.CalibrationRegistry import CalibrationRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +61,14 @@ def _write_run_meta(meta: dict, path: Path) -> None:
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=True, indent=4)
     os.replace(tmp, path)
+
+
+def _stable_hash(value) -> str:
+    """A deterministic fingerprint for JSON-compatible execution inputs."""
+    payload = json.dumps(
+        value, ensure_ascii=True, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 class OGCoreCase:
@@ -204,6 +215,7 @@ class OGCoreCase:
         staging_root = cases_dir.parent / "migrate_tmp"
         moved = 0
         for case_dir in flat:
+            staged = None
             try:
                 country_id = File.readFile(case_dir / "genData.json").get("country_id")
             except (OSError, ValueError, KeyError, IndexError) as exc:
@@ -230,6 +242,16 @@ class OGCoreCase:
                 logger.info("Moved case '%s' under country '%s'.",
                             case_dir.name, country_id)
             except OSError as exc:
+                if staged is not None and staged.exists() and not case_dir.exists():
+                    try:
+                        os.replace(staged, case_dir)
+                        staged.parent.rmdir()
+                    except OSError:
+                        logger.error(
+                            "Case '%s' is recoverable at '%s' after migration failed.",
+                            case_dir.name,
+                            staged,
+                        )
                 logger.warning("Could not move case '%s': %s", case_dir.name, exc)
         try:
             if staging_root.is_dir():
@@ -267,7 +289,12 @@ class OGCoreCase:
         run_dir = self.res_path / run_name
         if not run_dir.is_dir():
             return {"message": "Run not found.", "status_code": "error"}
+        previous = self.get_params(run_name)
         File.writeFile(params, self.run_params_path(run_name))
+        if previous != params:
+            self.invalidate_run(
+                run_name, "Parameters changed after the latest completed run."
+            )
         return {"message": "Parameters saved.", "status_code": "success"}
 
     def create_run(
@@ -330,6 +357,10 @@ class OGCoreCase:
             "error": None,
             "created_at": _utc_now_iso(),
             "completed_at": None,
+            "attempt_id": None,
+            "input_fingerprint": None,
+            "result_fingerprint": None,
+            "stale_reason": None,
         }
         _write_run_meta(run_meta, run_path / "run_meta.json")
 
@@ -426,11 +457,15 @@ class OGCoreCase:
                 item["time_path"] = meta.get("time_path")
                 item["completed_at"] = meta.get("completed_at")
                 item["error"] = meta.get("error")
+                item["reusable"] = self.is_run_reusable(item["RunName"])
+                item["stale_reason"] = meta.get("stale_reason")
             else:
                 item["status"] = "pending"
                 item["time_path"] = None
                 item["completed_at"] = None
                 item["error"] = None
+                item["reusable"] = False
+                item["stale_reason"] = None
             enriched.append(item)
         return enriched
 
@@ -466,6 +501,16 @@ class OGCoreCase:
         if status in ("completed", "failed"):
             meta["completed_at"] = _utc_now_iso()
             meta["pid"] = None  # the worker is gone; drop the stale pid
+        if status == "completed":
+            input_fingerprint = self.execution_input_fingerprint(
+                run_name, meta.get("time_path")
+            )
+            meta["input_fingerprint"] = input_fingerprint
+            meta["result_fingerprint"] = _stable_hash({
+                "attempt_id": meta.get("attempt_id"),
+                "input_fingerprint": input_fingerprint,
+            })
+            meta["stale_reason"] = None
         _write_run_meta(meta, path)
 
     def set_run_pid(self, run_name: str, pid) -> None:
@@ -482,13 +527,25 @@ class OGCoreCase:
         country: dict,
         status: str,
     ) -> None:
-        # Pin the time_path and country onto the meta at launch, clearing any old error.
+        # Pin execution inputs when the FIFO accepts the run. Moving a persisted
+        # queued run to running keeps the same attempt id.
         path = self.res_path / run_name / "run_meta.json"
         meta = File.readFile(path)
+        was_queued = meta.get("status") == "queued"
+        if not was_queued:
+            meta["attempt_id"] = uuid.uuid4().hex
+            meta["input_fingerprint"] = None
+            meta["result_fingerprint"] = None
+            meta["completed_at"] = None
+            if meta.get("run_type") == "baseline":
+                self.invalidate_dependents(
+                    run_name, "The baseline was run again after this reform."
+                )
         meta["time_path"] = time_path
         meta["country"] = country
         meta["status"] = status
         meta["error"] = None
+        meta["stale_reason"] = None
         meta["pid"] = None  # set once the worker is actually spawned
         # Rewrite the baseline path from its name. The stored one is absolute, so it
         # is wrong for a case restored on another machine; the worker reads this file.
@@ -505,3 +562,102 @@ class OGCoreCase:
         meta = File.readFile(path)
         meta["provenance"] = provenance
         _write_run_meta(meta, path)
+
+    def _calibration_identity(self) -> dict:
+        country_id = self.country_id
+        record = CalibrationRegistry.get(country_id) or {}
+        return {
+            "country_id": country_id,
+            "package_name": record.get("package_name"),
+            "commit_sha": record.get("commit_sha"),
+            "version": record.get("version"),
+        }
+
+    def execution_input_fingerprint(
+        self, run_name: str, time_path: bool | None
+    ) -> str:
+        """Fingerprint every backend-owned input that makes results reusable."""
+        meta = self.get_run_meta(run_name)
+        tax_path = self.res_path / run_name / "ogcTaxParams.pkl"
+        tax_hash = None
+        if tax_path.exists():
+            digest = hashlib.sha256()
+            with open(tax_path, "rb") as tax_file:
+                for chunk in iter(lambda: tax_file.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            tax_hash = digest.hexdigest()
+        baseline_result = None
+        if meta.get("run_type") == "reform":
+            baseline_dir = self.baseline_dir(run_name)
+            baseline_meta = (
+                File.readFile(baseline_dir / "run_meta.json")
+                if baseline_dir and (baseline_dir / "run_meta.json").exists()
+                else {}
+            )
+            baseline_result = baseline_meta.get("result_fingerprint")
+        return _stable_hash({
+            "params": self.get_params(run_name),
+            "tax_params_sha256": tax_hash,
+            "time_path": time_path,
+            "calibration": self._calibration_identity(),
+            "baseline_result_fingerprint": baseline_result,
+        })
+
+    def is_run_reusable(
+        self, run_name: str, time_path: bool | None = None
+    ) -> bool:
+        """True only when completed metadata proves current execution inputs."""
+        try:
+            meta = self.get_run_meta(run_name)
+        except (OSError, ValueError, KeyError, IndexError):
+            return False
+        if meta.get("status") != "completed" or not meta.get("input_fingerprint"):
+            return False
+        requested_time_path = meta.get("time_path") if time_path is None else time_path
+        try:
+            current = self.execution_input_fingerprint(run_name, requested_time_path)
+        except (OSError, ValueError, KeyError, IndexError):
+            return False
+        return current == meta.get("input_fingerprint")
+
+    def invalidate_run(self, run_name: str, reason: str) -> None:
+        """Drop reusable-result authority for a run and its dependants."""
+        path = self.res_path / run_name / "run_meta.json"
+        if not path.exists():
+            return
+        meta = File.readFile(path)
+        meta["status"] = "pending"
+        meta["error"] = None
+        meta["completed_at"] = None
+        meta["pid"] = None
+        meta["input_fingerprint"] = None
+        meta["result_fingerprint"] = None
+        meta["stale_reason"] = reason
+        _write_run_meta(meta, path)
+        if meta.get("run_type") == "baseline":
+            self.invalidate_dependents(
+                run_name, "The baseline changed after this reform was run."
+            )
+
+    def invalidate_dependents(self, baseline_run_name: str, reason: str) -> None:
+        for run in self.gen_data.get("ogc-runs", []):
+            if (
+                run.get("RunType") == "reform"
+                and run.get("baseline_run_name") == baseline_run_name
+            ):
+                path = self.res_path / run["RunName"] / "run_meta.json"
+                if not path.exists():
+                    continue
+                meta = File.readFile(path)
+                # A newly created reform is already pending and has no result to
+                # invalidate; avoid replacing its neutral state with stale copy.
+                if meta.get("result_fingerprint") is None and meta.get("status") == "pending":
+                    continue
+                meta["status"] = "pending"
+                meta["error"] = None
+                meta["completed_at"] = None
+                meta["pid"] = None
+                meta["input_fingerprint"] = None
+                meta["result_fingerprint"] = None
+                meta["stale_reason"] = reason
+                _write_run_meta(meta, path)

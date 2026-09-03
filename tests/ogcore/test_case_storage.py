@@ -87,8 +87,8 @@ def test_reform_runs_after_a_restore_with_a_stale_path(
 def test_reform_must_match_consumption_goods(make_case, calibration, stub_launch):
     # I (consumption goods) changes comparability just like S/T/J/M.
     case = make_case("c1", runs=[("base", "baseline", None)])
-    case.update_run_status("base", "completed", time_path=True)
     (case.res_path / "base" / "ogcParams.json").write_text('{"I": 1}')
+    case.update_run_status("base", "completed", time_path=True)
     case.create_run("reform1", "reform", "base", {"I": 2})
 
     result = RunJob.start("ETH", "c1", "reform1", False)

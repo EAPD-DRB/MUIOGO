@@ -30,9 +30,21 @@ BASE_DEFAULTS = {
         "value": [{"value": [[0.21]]}],
         "number_dims": 2,
     },
+    "method": {
+        "title": "Method",
+        "description": "The numerical method.",
+        "type": "str",
+        "validators": {"choice": {"choices": ["first", "second"]}},
+        "value": [{"value": "first"}],
+    },
 }
 
-COUNTRY_DEFAULTS = {"frisch": 0.5, "cit_rate": [[0.3]], "e": [[0.1] * 60] * 3}
+COUNTRY_DEFAULTS = {
+    "frisch": 0.5,
+    "cit_rate": [[0.3]],
+    "delta_tau_annual": [[0.027]] * 400,
+    "e": [[0.1] * 60] * 3,
+}
 
 
 def _write(tmp_path, name, payload):
@@ -76,6 +88,9 @@ def test_base_schema_has_full_metadata(schema_files, monkeypatch):
     assert schema["frisch"]["title"] == "Frisch elasticity of labor supply"
     assert schema["frisch"]["default"] == 0.4
     assert (schema["frisch"]["min"], schema["frisch"]["max"]) == (0.2, 0.62)
+    assert schema["method"]["datatype"] == "str"
+    assert schema["method"]["type"] == "string"
+    assert schema["method"]["choices"] == ["first", "second"]
 
 
 def test_country_overlay_keeps_metadata_and_takes_country_default(
@@ -99,7 +114,8 @@ def test_country_overlay_strips_no_base_parameter(schema_files, monkeypatch):
     documented = [name for name in BASE_DEFAULTS if name != "schema"]
     stripped = [
         name for name in documented
-        if not schema[name].get("description") or schema[name].get("min") is None
+        if not schema[name].get("description")
+        or (schema[name].get("datatype") != "str" and schema[name].get("min") is None)
     ]
     assert stripped == [], "no base parameter loses its metadata to the overlay"
 
@@ -108,6 +124,31 @@ def test_country_large_value_is_dropped_and_flagged(schema_files, monkeypatch):
     # 180 leaves: too big to ship to a form field, so it is dropped but declared.
     schema = _build(monkeypatch, "ogxyz")
     assert schema["e"]["default"] is None and schema["e"]["large"] is True
+    assert schema["e"]["dimensions"] == [3, 60]
+    assert len(schema["e"]["preview"]) == 3
+    assert len(schema["e"]["preview"][0]) == 3
+
+
+def test_repeated_column_matrix_is_a_compact_schedule(schema_files, monkeypatch):
+    schema = _build(monkeypatch, "ogxyz")
+    schedule = schema["delta_tau_annual"]
+    assert schedule["default"] == [[0.027]]
+    assert schedule["dimensions"] == [400, 1]
+    assert "large" not in schedule
+
+
+def test_large_default_can_be_loaded_on_demand(schema_files, monkeypatch):
+    monkeypatch.setattr(
+        OGSchema.CalibrationRegistry, "get",
+        staticmethod(lambda cid: {"package_name": "ogxyz", "local_path": "/x"}),
+    )
+    value, err = OGSchema.get_parameter_default(_Case("XYZ"), "e")
+    assert err is None
+    assert value == COUNTRY_DEFAULTS["e"]
+
+    value, err = OGSchema.get_parameter_default(_Case("XYZ"), "missing")
+    assert value is None
+    assert err == "Parameter not found."
 
 
 def test_country_only_parameter_is_still_projected(schema_files, monkeypatch, tmp_path):

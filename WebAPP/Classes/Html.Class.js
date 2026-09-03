@@ -1,6 +1,9 @@
 import { CURRENCY, UNITDEFINITION } from './Const.Class.js';
 import { Message } from "./Message.Class.js";
 
+export const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g,
+    ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
 export class Html {
     static renderPreformatted(target, text, emptyMessage = '') {
         const $target = $(target);

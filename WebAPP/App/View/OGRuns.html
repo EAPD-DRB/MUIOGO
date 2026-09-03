@@ -1,0 +1,36 @@
+<div class="ogc-page" id="ogcRunsPage">
+  <h1 class="ogc-title" id="ogcRunsTitle">Run</h1>
+  <div class="ogc-sub" id="ogcRunsSub">Select baselines and reforms to run.</div>
+
+  <div class="ogc-run-controls">
+    <label><input type="checkbox" id="ogcForceRun"> Re-run completed selections</label>
+    <span class="ogc-run-actions">
+      <button class="btn ogc-btn ogc-btn-danger" id="ogcCancelRun" data-act="cancel" style="display:none"><i class="fa fa-stop"></i> Cancel active runs</button>
+      <button class="btn ogc-btn ogc-btn-main" id="ogcRunSelected" data-act="run-selected"><i class="fa fa-play"></i> Run selected</button>
+    </span>
+  </div>
+
+  <div class="ogc-run-layout">
+    <section class="ogc-run-panel">
+      <h3><i class="fa fa-list"></i> Runs
+        <button class="btn ogc-btn ogc-btn-sm" id="ogcSelectAll" data-act="select-all"><i class="fa fa-check-square-o"></i> Select all</button>
+      </h3>
+      <table class="ogc-table ogc-run-table">
+        <thead><tr><th></th><th>Name</th><th>Created from</th><th>State</th></tr></thead>
+        <tbody id="ogcRunRows"></tbody>
+      </table>
+    </section>
+
+    <section class="ogc-run-panel">
+      <h3><i class="fa fa-tasks"></i> Run activity</h3>
+      <div class="ogc-queue-section">
+        <div class="ogc-queue-label">Current queue</div>
+        <div id="ogcCurrentQueue"></div>
+      </div>
+      <div class="ogc-queue-section ogc-outcomes-section">
+        <div class="ogc-queue-label">Latest outcomes</div>
+        <div id="ogcRecentOutcomes"></div>
+      </div>
+    </section>
+  </div>
+</div>
