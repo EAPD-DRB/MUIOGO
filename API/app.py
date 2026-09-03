@@ -41,9 +41,13 @@ from Routes.DataFile.DataFileRoute import datafile_api
 from Routes.OGCore.OGCoreInstallRoute import ogcore_install_api
 from Routes.OGCore.OGCoreRunRoute import ogcore_run_api
 from Routes.OGLink.OGLinkRoute import oglink_api
+from Routes.Clews.ClewsRoute import clews_api
 from Classes.OGCore.InstallJob import InstallJob
 from Classes.OGCore.OGCoreCase import OGCoreCase
 from Classes.OGCore.RunJob import RunJob
+from Classes.Case.CaseImporter import ACCEPTED_CASE_VERSIONS, CURRENT_CASE_VERSION
+from Classes.Clews.ClewsInstallJob import ClewsInstallJob
+from Classes.Clews.CountryRegistry import CountryRegistry
 
 def _configure_logging():
     if getattr(_configure_logging, "_configured", False):
@@ -115,6 +119,7 @@ app.register_blueprint(syncs3_api)
 app.register_blueprint(ogcore_install_api)
 app.register_blueprint(ogcore_run_api)
 app.register_blueprint(oglink_api)
+app.register_blueprint(clews_api)
 
 CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
 
@@ -149,6 +154,18 @@ def getSession():
     except( KeyError ):
         return jsonify('No selected parameters!'), 404
 
+@app.route("/getVersion", methods=['GET'])
+def getVersion():
+    """The case-schema version this MUIOGO writes, and every version its importer
+    accepts. Lets a client (an installer, a script) check compatibility before
+    sending an archive, instead of learning from a failed import."""
+    return jsonify({
+        "muio_version": CURRENT_CASE_VERSION,
+        "accepted_case_versions": list(ACCEPTED_CASE_VERSIONS),
+        "status_code": "success",
+    }), 200
+
+
 @app.route("/setSession", methods=['POST'])
 def setSession():
     try:
@@ -177,12 +194,15 @@ def _stop_inflight_installs():
     """
     try:
         ids = InstallJob.cancel_all()
-        if not ids:
+        clews_ids = ClewsInstallJob.cancel_all()
+        if not ids and not clews_ids:
             return
         logging.getLogger(__name__).info(
-            "Server stopping: cancelling %d in-flight OG install(s).", len(ids))
+            "Server stopping: cancelling %d in-flight install(s).",
+            len(ids) + len(clews_ids))
         deadline = time.monotonic() + 5.0
-        while InstallJob.active_count() and time.monotonic() < deadline:
+        while ((InstallJob.active_count() or ClewsInstallJob.active_count())
+               and time.monotonic() < deadline):
             time.sleep(0.1)
     except Exception:
         # Shutdown cleanup must never raise out of a signal handler or atexit.
@@ -277,6 +297,14 @@ if __name__ == '__main__':
     except Exception:
         logging.getLogger(__name__).warning(
             "Could not reconcile interrupted runs at startup.", exc_info=True)
+
+    # Same for CLEWs country installs left mid-flight by a restart.
+    ClewsInstallJob.reconcile_interrupted_jobs()
+
+    # Bring the CLEWs case registry in line with DataStorage: cases added by hand
+    # are indexed (as unmanaged unless they carry a provenance sidecar), cases
+    # removed by hand are dropped. Logs one summary line; never blocks startup.
+    CountryRegistry.reconcile_safe()
 
     # Stop any running install or solve cleanly when the server is stopped, so their
     # detached process trees are not orphaned. Same deployment assumption as above.

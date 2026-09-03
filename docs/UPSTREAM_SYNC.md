@@ -19,6 +19,9 @@ These files are the main overlap surface and should always be reviewed directly 
 - `API/Classes/Case/OsemosysClass.py`
 - `API/Routes/DataFile/DataFileRoute.py`
 - `API/Routes/Upload/UploadRoute.py`
+  (the zip-import core of `handle_full_zip` and the version-migration helpers
+  moved to `API/Classes/Case/CaseImporter.py`; port upstream changes to that
+  logic there, not back into the route)
 - `WebAPP/index.html`
 - `WebAPP/App/View/Navbar.html`
 - `WebAPP/App/View/Sidebar.html`
