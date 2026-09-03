@@ -71,8 +71,7 @@ class RunJob:
         error is None on success; otherwise country/python_path are None and error
         is the user-facing message the caller surfaces.
         """
-        gd = case.gen_data
-        country_id = gd.get("country_id")
+        country_id = case.country_id
         rec = CalibrationRegistry.get(country_id)
         if rec is None:
             return None, None, "That country calibration is not installed."
@@ -127,6 +126,79 @@ class RunJob:
             )
 
     @classmethod
+    def _dependent_reform_busy_locked(
+        cls, country_id: str, casename: str, baseline_run_name: str
+    ) -> bool:
+        """Whether live FIFO work depends on this baseline's frozen inputs."""
+        candidates = []
+        if (
+            cls._active
+            and cls._active["country_id"] == country_id
+            and cls._active["casename"] == casename
+        ):
+            candidates.append(cls._active["run_name"])
+        candidates.extend(
+            q[2] for q in cls._queue
+            if q[0] == country_id and q[1] == casename
+        )
+        case = OGCoreCase(country_id, casename)
+        for run_name in candidates:
+            meta = case.get_run_meta(run_name)
+            if (
+                meta.get("run_type") == "reform"
+                and meta.get("baseline_run_name") == baseline_run_name
+            ):
+                return True
+        return False
+
+    @classmethod
+    def save_params(
+        cls, country_id: str, casename: str, run_name: str, params: dict
+    ) -> dict:
+        """Atomically guard and persist parameters against FIFO admission."""
+        with cls._lock:
+            case = OGCoreCase(country_id, casename)
+            error = cls._parameter_write_error_locked(case, run_name)
+            if error:
+                return {"status_code": "error", "message": error}
+            return case.save_params(run_name, params)
+
+    @classmethod
+    def commit_parameter_change(
+        cls, country_id: str, casename: str, run_name: str, writer
+    ) -> dict:
+        """Publish a prepared parameter file under the same lock as admission."""
+        with cls._lock:
+            case = OGCoreCase(country_id, casename)
+            error = cls._parameter_write_error_locked(case, run_name)
+            if error:
+                return {"status_code": "error", "message": error}
+            writer()
+            case.invalidate_run(
+                run_name, "Parameters changed after the latest completed run."
+            )
+            return {"status_code": "success"}
+
+    @classmethod
+    def _parameter_write_error_locked(
+        cls, case: OGCoreCase, run_name: str
+    ) -> str | None:
+        if cls.is_busy(case.country_id, case.casename, run_name):
+            return "Parameters cannot be changed while this run is running or queued."
+        meta = case.get_run_meta(run_name)
+        if (
+            meta.get("run_type") == "baseline"
+            and cls._dependent_reform_busy_locked(
+                case.country_id, case.casename, run_name
+            )
+        ):
+            return (
+                "Baseline parameters cannot be changed while a dependent reform "
+                "is running or queued."
+            )
+        return None
+
+    @classmethod
     def is_country_running(cls, country_id: str) -> bool:
         """True if the active or any queued run uses this country's calibration.
 
@@ -163,46 +235,26 @@ class RunJob:
                     "message": "This run is already running or queued.",
                 }
 
-            # Guard 1: reform must run against a completed baseline, and a transition
-            # -path reform needs the baseline itself to have solved the full path.
-            if meta.get("run_type") == "reform":
-                # Resolved from the baseline's name, not the absolute path stored at
-                # creation, so a case restored on another machine still validates.
-                baseline_dir = case.baseline_dir(run_name)
-                baseline_meta = _read_json(
-                    baseline_dir / "run_meta.json"
-                ) if baseline_dir else None
-                if time_path:
-                    if (
-                        baseline_meta is None
-                        or baseline_meta.get("status") != "completed"
-                        or baseline_meta.get("time_path") is not True
-                    ):
-                        return {
-                            "status_code": "error",
-                            "message": (
-                                "The baseline must be run with the full transition "
-                                "path before this reform."
-                            ),
-                        }
-                if baseline_meta is None or baseline_meta.get("status") != "completed":
-                    return {
-                        "status_code": "error",
-                        "message": "The baseline must complete before running a reform.",
-                    }
+            if (
+                meta.get("run_type") == "baseline"
+                and cls._dependent_reform_busy_locked(
+                    country_id, casename, run_name
+                )
+            ):
+                return {
+                    "status_code": "error",
+                    "message": (
+                        "The baseline cannot be run again while a dependent reform "
+                        "is running or queued."
+                    ),
+                }
 
-                # Guard 2: reform must share the baseline's model dimensions.
-                reform_params = _read_json(case.run_params_path(run_name)) or {}
-                baseline_params = (
-                    _read_json(baseline_dir / "ogcParams.json") or {}
-                ) if baseline_dir else {}
-                for dim in _DIMS:
-                    in_reform = dim in reform_params
-                    in_baseline = dim in baseline_params
-                    if in_reform != in_baseline:
-                        return cls._dim_mismatch()
-                    if in_reform and reform_params[dim] != baseline_params[dim]:
-                        return cls._dim_mismatch()
+            if meta.get("run_type") == "reform":
+                validation = cls._validate_reform_locked(
+                    case, run_name, time_path, allow_preceding_baseline=True
+                )
+                if validation:
+                    return validation
 
             # Country block + interpreter.
             country, python_path, err = cls._resolve_country_env(case)
@@ -215,10 +267,96 @@ class RunJob:
                 cls._launch(country_id, casename, run_name, time_path, python_path)
                 return {"status_code": "success", "message": "Run started."}
 
+            case.stamp_execution(run_name, time_path, country, "queued")
             cls._queue.append((country_id, casename, run_name, time_path))
-            case.stamp_execution(run_name, time_path, country, "pending")
-            return {"status_code": "success", "message": "Run queued."}
+            return {
+                "status_code": "success",
+                "message": "Run queued.",
+                "queue_position": len(cls._queue),
+            }
 
+    @classmethod
+    def _preceding_baseline_time_path_locked(
+        cls, country_id: str, casename: str, baseline_run_name: str
+    ) -> bool | None:
+        act = cls._active
+        if (
+            act
+            and act["country_id"] == country_id
+            and act["casename"] == casename
+            and act["run_name"] == baseline_run_name
+        ):
+            return OGCoreCase(country_id, casename).get_run_meta(
+                baseline_run_name
+            ).get("time_path")
+        for queued_country, queued_case, queued_run, queued_time_path in cls._queue:
+            if (
+                queued_country == country_id
+                and queued_case == casename
+                and queued_run == baseline_run_name
+            ):
+                return queued_time_path
+        return None
+
+    @classmethod
+    def _validate_reform_locked(
+        cls,
+        case: OGCoreCase,
+        run_name: str,
+        time_path: bool,
+        *,
+        allow_preceding_baseline: bool,
+    ) -> dict | None:
+        """Validate reform dependencies at admission and again at launch."""
+        meta = case.get_run_meta(run_name)
+        baseline_dir = case.baseline_dir(run_name)
+        baseline_meta = (
+            _read_json(baseline_dir / "run_meta.json") if baseline_dir else None
+        )
+        baseline_name = meta.get("baseline_run_name")
+        preceding_time_path = None
+        if allow_preceding_baseline and baseline_name:
+            preceding_time_path = cls._preceding_baseline_time_path_locked(
+                case.country_id, case.casename, baseline_name
+            )
+
+        baseline_ready = bool(
+            baseline_meta
+            and baseline_meta.get("status") == "completed"
+            and baseline_name
+            and case.is_run_reusable(baseline_name)
+        )
+        baseline_precedes = preceding_time_path is not None
+
+        if time_path and not (
+            (baseline_ready and baseline_meta.get("time_path") is True)
+            or (baseline_precedes and preceding_time_path is True)
+        ):
+            return {
+                "status_code": "error",
+                "message": (
+                    "The baseline must be run with the full transition path "
+                    "before this reform."
+                ),
+            }
+        if not baseline_ready and not baseline_precedes:
+            return {
+                "status_code": "error",
+                "message": "The baseline must complete before running a reform.",
+            }
+
+        reform_params = _read_json(case.run_params_path(run_name)) or {}
+        baseline_params = (
+            _read_json(baseline_dir / "ogcParams.json") or {}
+        ) if baseline_dir else {}
+        for dim in _DIMS:
+            in_reform = dim in reform_params
+            in_baseline = dim in baseline_params
+            if in_reform != in_baseline:
+                return cls._dim_mismatch()
+            if in_reform and reform_params[dim] != baseline_params[dim]:
+                return cls._dim_mismatch()
+        return None
     @staticmethod
     def _dim_mismatch() -> dict:
         return {
@@ -329,6 +467,14 @@ class RunJob:
             country_id, casename, run_name, time_path = cls._queue.popleft()
             case = OGCoreCase(country_id, casename)
             try:
+                meta = case.get_run_meta(run_name)
+                if meta.get("run_type") == "reform":
+                    validation = cls._validate_reform_locked(
+                        case, run_name, time_path, allow_preceding_baseline=False
+                    )
+                    if validation:
+                        cls._fail_quietly(case, run_name, validation["message"])
+                        continue
                 country, python_path, err = cls._resolve_country_env(case)
                 if err:
                     cls._fail_quietly(case, run_name, err)
@@ -381,10 +527,8 @@ class RunJob:
                 if (item[0] == country_id and item[1] == casename
                         and item[2] == run_name):
                     cls._queue.remove(item)
-                    # Dropping it from the queue is not enough. Nothing revisits a
-                    # pending run later (only a running one is repaired on status
-                    # read), so it has to be written terminal here or it reads as
-                    # pending forever.
+                    # Dropping it from the queue is not enough; persist terminal
+                    # cancellation so reloads never reconstruct it as queued.
                     try:
                         OGCoreCase(country_id, casename).update_run_status(
                             run_name, "failed", error="Cancelled by user."
@@ -402,12 +546,13 @@ class RunJob:
     # ── startup housekeeping ───────────────────────────────────────────────
     @classmethod
     def reconcile_interrupted_runs(cls) -> None:
-        """Repair runs left "running" by a previous server exit.
+        """Repair runs left "running" or "queued" by a previous server exit.
 
         In-memory state is empty at startup, so a run still persisted as running has
         no supervisor behind it. Mark it failed, and kill its worker if that process
-        somehow outlived the server (the machine never rebooted). Only "running" is
-        touched: "pending" means created or queued, not interrupted. Best-effort,
+        somehow outlived the server (the machine never rebooted). A persisted queued
+        run also has no in-memory FIFO entry after restart, so fail it truthfully.
+        Created-but-never-started "pending" runs remain untouched. Best-effort,
         because startup housekeeping must never stop the app from serving.
         """
         try:
@@ -435,12 +580,21 @@ class RunJob:
             for run_dir in run_dirs:
                 try:
                     meta = case.get_run_meta(run_dir.name)
-                    if not isinstance(meta, dict) or meta.get("status") != "running":
+                    if (
+                        not isinstance(meta, dict)
+                        or meta.get("status") not in ("running", "queued")
+                    ):
                         continue
-                    kill_worker_tree(meta.get("pid"), run_dir)
+                    was_running = meta.get("status") == "running"
+                    if was_running:
+                        kill_worker_tree(meta.get("pid"), run_dir)
                     case.update_run_status(
                         run_dir.name, "failed",
-                        error="Run was interrupted by an application restart.",
+                        error=(
+                            "Run was interrupted by an application restart."
+                            if was_running
+                            else "Queued run was interrupted by an application restart before it started."
+                        ),
                     )
                 except (OSError, ValueError, KeyError, IndexError):
                     continue
@@ -478,12 +632,26 @@ class RunJob:
                     and act["run_name"] == run_name):
                 runner = act["runner"]
                 queued = False
-            elif any(q[0] == country_id and q[1] == casename and q[2] == run_name
-                     for q in cls._queue):
+            else:
+                queue_position = next(
+                    (
+                        index
+                        for index, q in enumerate(cls._queue, start=1)
+                        if (
+                            q[0] == country_id
+                            and q[1] == casename
+                            and q[2] == run_name
+                        )
+                    ),
+                    None,
+                )
+                if queue_position is None:
+                    return None
                 runner = None
                 queued = True
-            else:
-                return None
+            if not queued:
+                queue_position = None
+            queue_length = len(cls._queue)
 
         stage_label = None
         if runner is not None:
@@ -496,4 +664,37 @@ class RunJob:
             "iteration": runner.iteration if runner is not None else None,
             "log_tail": runner.log_tail() if runner is not None else [],
             "queued": queued,
+            "queue_position": queue_position,
+            "queue_length": queue_length,
         }
+
+    @classmethod
+    def get_queue_snapshot(cls, country_id: str, casename: str) -> dict:
+        """Read-only FIFO view sufficient to reconstruct the Run page."""
+        with cls._lock:
+            active = None
+            if (
+                cls._active
+                and cls._active["country_id"] == country_id
+                and cls._active["casename"] == casename
+            ):
+                active = {
+                    "country_id": country_id,
+                    "casename": casename,
+                    "run_name": cls._active["run_name"],
+                    "state": "running",
+                }
+            queued = [
+                {
+                    "country_id": queued_country,
+                    "casename": queued_case,
+                    "run_name": queued_run,
+                    "state": "queued",
+                    "queue_position": index,
+                    "time_path": time_path,
+                }
+                for index, (queued_country, queued_case, queued_run, time_path)
+                in enumerate(cls._queue, start=1)
+                if queued_country == country_id and queued_case == casename
+            ]
+        return {"active": active, "queued": queued}

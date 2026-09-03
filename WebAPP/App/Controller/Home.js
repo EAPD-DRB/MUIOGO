@@ -9,8 +9,11 @@ import { Sidebar } from "./Sidebar.js";
 import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { Routes } from "../../Routes/Routes.Class.js";
 
+let HOME_LOAD_ID = 0;
+
 export default class Home {
     static async onLoad(){
+        let loadID = ++HOME_LOAD_ID;
         if (Base.AWS_SYNC == 1 && Base.INIT_SYNC){
             $('#loadermain h4').text('Syncronizing with S3 Bucket!'); 
             $('#loadermain').show();
@@ -32,16 +35,26 @@ export default class Home {
             return Promise.all(promise);
         })
         .then(data => {
+            if (!Home.isCurrent(loadID)) return;
             let [ casename, cases] = data;
             let model = new Model(casename, cases);
-            this.initPage(model);
+            this.initPage(model, loadID);
         })
         .catch(error =>{ 
-            Message.danger(error);
+            if (Home.isCurrent(loadID)) Message.danger(error);
         });
     }
 
-    static initPage(model){
+    static isCurrent(loadID){
+        let route = (window.location.hash || '#/').split('?')[0];
+        return loadID == HOME_LOAD_ID
+            && localStorage.getItem('osy-model') == 'clews'
+            && localStorage.getItem('osy-pageId') == 'Home'
+            && (route == '#/' || route == '#');
+    }
+
+    static initPage(model, loadID){
+        if (loadID !== undefined && !Home.isCurrent(loadID)) return;
         Message.clearMessages();
         Navbar.initPage(model.casename);
         // Sidebar.Load(model.genData, model.PARAMETERS, model.VARIABLES);
