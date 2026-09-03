@@ -49,6 +49,10 @@ class ManifestError(ValueError):
     """The manifest is missing, unreadable, or does not validate."""
 
 
+class ManifestNotFound(ManifestError):
+    """A file the source was asked for does not exist (a 404, or no such file)."""
+
+
 def parse_github_url(repo_url):
     """(owner, repo) from a GitHub repo URL, or None if it is not one."""
     if not repo_url:
@@ -184,11 +188,16 @@ class CountrySource:
     source_type "local_path": reads the same layout from a directory on disk.
     """
 
-    def __init__(self, *, source_type, repo_url=None, ref=None, local_path=None):
+    def __init__(self, *, source_type, repo_url=None, ref=None, local_path=None,
+                 iso3=None, name=None):
         self.source_type = source_type
         self.repo_url = repo_url
         self.ref = ref or "main"
         self.local_path = local_path
+        # what the register says about this repository; used when the
+        # repository has no manifest and its models are discovered instead
+        self.hint_iso3 = iso3
+        self.hint_name = name
         if source_type == "repo_url":
             parsed = parse_github_url(repo_url)
             if not parsed:
@@ -208,13 +217,13 @@ class CountrySource:
         if self.source_type == "local_path":
             p = Path(self.local_path, relpath)
             if not p.is_file():
-                raise ManifestError(f"{relpath} not found under {self.local_path}.")
+                raise ManifestNotFound(f"{relpath} not found under {self.local_path}.")
             return p.read_text(encoding="utf-8-sig")
         try:
             return fetch_bytes(raw_url(self.owner, self.repo, self.ref, relpath)).decode("utf-8-sig")
         except urllib.error.HTTPError as exc:
             if exc.code == 404:
-                raise ManifestError(
+                raise ManifestNotFound(
                     f"{relpath} not found in {self.owner}/{self.repo}@{self.ref}. "
                     "If the repository is private, set GITHUB_TOKEN.") from exc
             raise ManifestError(f"Fetching {relpath} failed: HTTP {exc.code}.") from exc
@@ -255,15 +264,29 @@ class CountrySource:
 
     # ── the manifest itself ──────────────────────────────────────────────────
     def load_manifest(self):
+        """The repository's own manifest when it has one; otherwise a manifest
+        discovered from its layout (see RepoScan). Both go through the same
+        validation, so every caller sees one shape."""
         # Read first, parse second: a fetch failure is already a clean
         # ManifestError (which subclasses ValueError) and must not be rewrapped
         # as a JSON complaint.
-        text = self.read_text(MANIFEST_NAME)
+        try:
+            text = self.read_text(MANIFEST_NAME)
+        except ManifestNotFound:
+            return validate_manifest(self.discover_manifest())
         try:
             data = json.loads(text)
         except ValueError as exc:
             raise ManifestError(f"{MANIFEST_NAME} is not valid JSON: {exc}.") from exc
         return validate_manifest(data)
+
+    def discover_manifest(self):
+        # imported here: RepoScan builds on this module
+        from Classes.Clews import RepoScan
+        if self.source_type == "local_path":
+            return RepoScan.scan_local(self.local_path, iso3=self.hint_iso3, name=self.hint_name)
+        return RepoScan.scan_remote(self.owner, self.repo, self.ref,
+                                    iso3=self.hint_iso3, name=self.hint_name)
 
     def load_checksums(self, vintage):
         """{archive filename: declared sha256} for a vintage, or {} if undeclared."""

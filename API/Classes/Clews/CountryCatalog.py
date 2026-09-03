@@ -1,10 +1,10 @@
-"""Reflect a CLEWs country register, when one is configured.
+"""Reflect the CLEWs country register.
 
-MUIOGO does not maintain its own list of CLEWs country models. If a register URL
-is configured (Config.CLEWS_CATALOG_URL), it is read live on every call and the
-last good copy cached as an offline fallback -- exactly the OG CalibrationCatalog
-pattern. With no register configured (the default: no public CLEWs hub exists
-yet), the catalogue is honestly empty and installs go by Git URL or local path.
+The register (Config.CLEWS_CATALOG_URL, by default MUIOGO's own
+scripts/clews-repos.json read from the main branch) is read live on every call
+and the last good copy cached as an offline fallback -- exactly the OG
+CalibrationCatalog pattern. With the URL emptied out, the catalogue is honestly
+empty and installs go by Git URL or local path.
 
 Register shape (schema_version 1):
     { "schema_version": 1,

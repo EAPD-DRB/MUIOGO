@@ -81,6 +81,7 @@ class ClewsInstaller:
                 "dir": v["dir"],
                 "muio_min_version": v.get("muio_min_version"),
                 "version_gate": version_gate(v),
+                "last_changed": v.get("last_changed"),
                 "cases": [],
             }
             for c in v["cases"]:
@@ -98,6 +99,12 @@ class ClewsInstaller:
             "name": manifest["name"],
             "og": manifest.get("og"),
             "source": source.describe(),
+            # discovered: the repository has no clews-country.json and this
+            # menu was read from its layout; ordering says how the versions
+            # were put newest-first ("date" from the commit history, "name"
+            # when dates were not available)
+            "discovered": bool(manifest.get("discovered")),
+            "ordering": manifest.get("ordering", "manifest"),
             "muio_version": CURRENT_CASE_VERSION,
             "accepted_case_versions": list(ACCEPTED_CASE_VERSIONS),
             "vintages": vintages,

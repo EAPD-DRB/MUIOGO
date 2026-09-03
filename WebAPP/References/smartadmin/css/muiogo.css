@@ -80,6 +80,70 @@ body.osy-mode-clews.smart-style-4 nav>ul>li.active:not(.open)>a:before{border-le
 body.osy-mode-og .minifyme{background:var(--osy-og)!important;color:#fff!important}
 body.osy-mode-og .minifyme:hover{background:var(--osy-og-dark)!important}
 
+/* ===== CLEWs install page (#540): scoped under .clw-*, the CLEWs twin of the OG-Core page ===== */
+.clw-page{max-width:1400px;padding:6px 8px}
+.clw-title{font-size:26px;font-weight:400;color:#3a3f51;margin:0 0 4px}
+.clw-sub{color:#8a8f9c;font-size:13px;margin-bottom:18px;max-width:760px}
+.clw-h2{font-size:17px;font-weight:700;color:#3a3f51;margin:26px 0 8px}
+.clw-srcnote{background:#fcf3d7;border:1px solid #f0d9a8;color:#8a6d3b;font-size:12px;padding:6px 12px;border-radius:2px;margin-bottom:14px;max-width:560px}
+
+/* one block per country repository, then add-a-repository, then installed on this machine */
+.clw-block{background:#fff;border:1px solid #e4e4e4;border-radius:3px;padding:12px 16px 14px;margin-bottom:14px;border-top:3px solid #e4e4e4}
+.clw-country{border-top-color:var(--osy-clews)}
+.clw-block-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.clw-block-title{font-size:15px;font-weight:700;color:#3a3f51}
+.clw-url{font-size:15px;font-weight:700;color:#3a3f51;font-family:monospace}
+a.clw-url:hover{color:var(--osy-clews-dark);text-decoration:underline}
+.clw-block-head .clw-badge{margin-left:auto}
+.clw-latest{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0 4px}
+.clw-latest-text{flex:1 1 320px;font-size:13px;color:#3a3f51}
+.clw-latest-actions{display:flex;gap:6px;align-items:center}
+.clw-btn{font-size:12px;padding:5px 12px;border-radius:2px;border:1px solid #d5d8de;background:#fff;color:#3a3f51}
+.clw-btn .fa{margin-left:4px}
+.clw-btn:hover{background:#f6f7f9}
+.clw-btn-main{background:var(--osy-clews);border-color:var(--osy-clews-dark);color:#fff}
+.clw-btn-main .fa{margin:0 4px 0 0}
+.clw-btn-main:hover{background:var(--osy-clews-dark);color:#fff}
+.clw-btn-main[disabled]{opacity:.5}
+.clw-fine{font-size:11px;color:#8a8f9c;margin:2px 0 6px}
+.clw-status{font-size:12px;color:#6b7188;min-height:16px}
+.clw-status.clw-run{color:#31708f}
+.clw-status.clw-ok{color:#4b8a2a}
+.clw-status.clw-err{color:#a94442}
+
+/* installed on this machine: per repository, rows grouped by version, a labelled Delete per row */
+.clw-have-title{font-size:12px;font-weight:700;color:#3a3f51;margin:10px 0 4px;font-family:monospace}
+.clw-have-title .clw-muted{font-family:inherit}
+#clwInstalledBlock .clw-have-title:first-child{margin-top:2px}
+.clw-vid{font-family:monospace;font-size:13px;font-weight:700;color:#3a3f51;margin-right:6px}
+.clw-havetable td{padding-top:3px!important;padding-bottom:3px!important;border-top:1px solid #f1f2f5!important}
+.clw-havetable tr:first-child td{border-top:0!important}
+.clw-havetable .clw-case{font-weight:500}
+.clw-del{color:#6b7188}
+.clw-del:hover{color:#a94442;border-color:#e0b4b4}
+
+/* every version, newest first */
+.clw-all{margin-top:10px}
+.clw-table{margin:0}
+.clw-table td{vertical-align:middle!important}
+.clw-vcell{white-space:nowrap;width:1%}
+.clw-case{font-weight:600;color:#3a3f51}
+.clw-act{text-align:right;white-space:nowrap}
+.clw-muted{color:#8a8f9c;font-size:12px;font-weight:400}
+.clw-badge{font-size:10px;padding:2px 8px;border-radius:9px;white-space:nowrap}
+.clw-b-ok{background:#e3f3d6;color:#4b8a2a}
+.clw-b-upd{background:#fcf3d7;color:#8a6d3b}
+.clw-b-mut{background:#eceef2;color:#6b7188}
+.clw-b-warn{background:#fcf3d7;color:#8a6d3b}
+.clw-note{color:#6b7188;font-size:13px;padding:8px 0}
+.clw-note.clw-err{color:#a94442}
+
+/* add a repository */
+.clw-addblock{border-top-color:#c4c8d2}
+.clw-source{display:flex;gap:8px;max-width:820px;margin-top:6px}
+.clw-source input{flex:1 1 auto}
+#clwAdded .clw-block{margin-top:14px;margin-bottom:0}
+
 /* ===== OG-Core pages: scoped UI island, all styles under .ogc-* ===== */
 .ogc-page{max-width:1400px;padding:6px 8px}
 .ogc-title{font-size:26px;font-weight:400;color:#3a3f51;margin:0 0 4px}

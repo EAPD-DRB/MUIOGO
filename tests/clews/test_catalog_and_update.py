@@ -8,7 +8,9 @@ from Classes.Clews.CountryRegistry import CountryRegistry
 from .conftest import build_country_repo, wait_for_job
 
 
-def test_catalog_defaults_to_none(client):
+def test_catalog_is_none_without_a_register(client, monkeypatch):
+    # an empty MUIOGO_CLEWS_CATALOG_URL means "no register": nothing is fetched
+    monkeypatch.setattr(Config, "CLEWS_CATALOG_URL", "")
     resp = client.get("/clews/getCountryCatalog")
     assert resp.status_code == 200
     body = resp.get_json()
