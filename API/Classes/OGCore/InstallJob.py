@@ -395,8 +395,14 @@ class InstallJob:
     @classmethod
     def start_install(cls, *, source_type, country_id, country_name, repo_name,
                       dest_parent, catalog_key=None, repo_url=None, branch=None,
-                      package_name=None):
-        """Start a catalog or repo_url install. Returns the initial job dict."""
+                      package_name=None, record_as=None):
+        """Start a catalog or repo_url install. Returns the initial job dict.
+
+        record_as: source_type to write on the registry record when it differs from
+        the install mechanism. An update of a locally-registered clone runs through
+        the repo_url installer but must stay a local_path record, so the same
+        safety checks apply to its next update.
+        """
         def work(progress, log, cancel):
             return Installer.run_installer(
                 source_type=source_type, repo_name=repo_name,
@@ -407,7 +413,7 @@ class InstallJob:
 
         return cls._launch(
             country_id=country_id, country_name=country_name,
-            source_type=source_type, work_fn=work,
+            source_type=record_as or source_type, work_fn=work,
         )
 
     @classmethod

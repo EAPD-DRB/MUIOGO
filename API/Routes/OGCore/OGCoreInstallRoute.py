@@ -416,22 +416,33 @@ def refreshCalibration():
 
     check_only = data.get("check_only", True)
     local_path = record.get("local_path")
+    is_local = record.get("source_type") == "local_path"
 
-    # A locally-registered calibration is the user's own clone (possibly with
-    # uncommitted work). Never git pull / rebuild over it automatically; a check is
-    # fine, but applying an update must be the user's own action outside MUIOGO.
-    if not check_only and record.get("source_type") == "local_path":
+    # A locally-registered calibration is the user's own clone. MUIOGO pulls over
+    # it only when nothing of theirs can be lost: tracked files clean, branch
+    # tracking its remote, origin known (see Installer.local_clone_update_status).
+    # Anything else stays the user's own action outside MUIOGO. The verdict is
+    # stored on the record so the card can offer or withhold the Update button.
+    clone = Installer.local_clone_update_status(local_path) if is_local else None
+    if not check_only and is_local and not clone["updatable"]:
         return _err(
-            "This calibration was registered from a local folder, so MUIOGO will not "
-            "update it automatically. Update that clone yourself, then refresh."
+            "This calibration was registered from a local folder and MUIOGO will not "
+            f"update it automatically: {clone['reason']} Update that clone yourself, "
+            "then check again."
         )
 
     if check_only:
         result = Installer.check_update(local_path)
         state = "update_available" if result["update_available"] else "installed"
-        CalibrationRegistry.update_fields(
-            country_id, install_state=state, last_checked_at=_now_iso(),
-        )
+        fields = {"install_state": state, "last_checked_at": _now_iso()}
+        # The clone may have been pulled by hand since the last install; the record
+        # must say what is actually checked out, not what was installed back then.
+        if result["local_commit_sha"]:
+            fields["commit_sha"] = result["local_commit_sha"]
+        if clone is not None:
+            fields["updatable"] = clone["updatable"]
+            fields["update_blocked_reason"] = clone["reason"]
+        CalibrationRegistry.update_fields(country_id, **fields)
         message = (
             "A newer version is available."
             if result["update_available"]
@@ -443,10 +454,13 @@ def refreshCalibration():
             "install_state": state,
             "local_commit_sha": result["local_commit_sha"],
             "remote_commit_sha": result["remote_commit_sha"],
+            "updatable": clone["updatable"] if clone is not None else True,
+            "update_blocked_reason": clone["reason"] if clone is not None else None,
             "message": message,
         }), 200
 
     # Apply an update: re-run the installer over the existing clone (pull + uv sync).
+    # A local_path record keeps that source_type so its next update is checked again.
     repo_url = record.get("repo_url")
     if not repo_url:
         return _err(
@@ -467,6 +481,7 @@ def refreshCalibration():
         dest_parent=str(path.parent),
         repo_url=repo_url,
         package_name=record.get("package_name"),
+        record_as="local_path" if is_local else None,
     )
     if job is None:
         return _err("An update is already running for this country.")

@@ -180,7 +180,9 @@ export default class OGCore {
     }
 
     //register calibrations (catalog_key, no record) and repo_url customs are
-    //updatable by MUIOGO; a local_path record is not, the user owns that folder
+    //updatable by MUIOGO; a local_path record is too when the server found the
+    //clone safe to pull (record.updatable, set by Check for updates), otherwise
+    //the user owns that folder and the card says why
     static actionsHtml(c, record){
         let state = c.install_state;
         if (state == 'not_installed'){
@@ -199,8 +201,11 @@ export default class OGCore {
                     <button class="btn ogc-btn ogc-btn-ico" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i></button>`;
         }
         if (state == 'update_available'){
-            if (record && record.source_type == 'local_path'){
-                return `<div class="ogc-updatenote" title="This calibration comes from a local folder. Update the folder yourself, then check again.">Update the local folder to get this version</div>
+            if (record && record.source_type == 'local_path' && !record.updatable){
+                let why = record.update_blocked_reason
+                    ? esc(record.update_blocked_reason) + ' Update the folder yourself, then check again.'
+                    : 'This calibration comes from a local folder. Update the folder yourself, then check again.';
+                return `<div class="ogc-updatenote" title="${why}">Update the local folder to get this version</div>
                         <button class="btn ogc-btn ogc-btn-line" data-act="check"><i class="fa fa-refresh"></i> Check again</button>
                         <button class="btn ogc-btn ogc-btn-ico" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i></button>`;
             }
