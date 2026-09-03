@@ -2,6 +2,8 @@ from pathlib import Path
 import pandas as pd
 import traceback
 import json, shutil, os, time, subprocess
+import concurrent.futures
+import hashlib
 from collections import defaultdict
 from itertools import product
 
@@ -1997,18 +1999,159 @@ class DataFile(Osemosys):
             print("An error occurred:")
             traceback.print_exc()  # Prints full traceback
 
-    def batchRun(self, solver, cases):
+    def postProcess(self, caserunname):
+        """CSV extraction + results-viewer pivots for an already-solved caserun.
+
+        Split out of run() so parallel batch solves can defer this phase: it
+        rewrites view files shared between caseruns, so it must run
+        sequentially."""
+        dataFile = Path(Config.DATA_STORAGE, self.case, 'res', caserunname, 'data.txt')
+        resFile = Path(Config.DATA_STORAGE, self.case, 'res', caserunname, 'results.txt')
+        resPath = Path(Config.DATA_STORAGE, self.case, 'res', caserunname)
+        self.generateCSVfromCBC(dataFile, resFile, resPath)
+        self.generateResultsViewer(caserunname)
+
+    @staticmethod
+    def _total_memory_gb():
+        """Total machine memory in GB. Deliberately total, not free: free memory
+        changes minute to minute, and worker count should be predictable for
+        the same machine. Falls back to 8 GB (the conservative direction) when
+        detection fails."""
+        try:
+            if hasattr(os, "sysconf"):  # macOS / Linux
+                return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / 1024 ** 3
+            import ctypes  # Windows
+            class MEMORYSTATUSEX(ctypes.Structure):
+                _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                            ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                            ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                            ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                            ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+            stat = MEMORYSTATUSEX()
+            stat.dwLength = ctypes.sizeof(stat)
+            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))
+            return stat.ullTotalPhys / 1024 ** 3
+        except Exception:
+            return 8.0
+
+    @staticmethod
+    def _performance_cores():
+        """Physical performance cores: what concurrent solves actually contend for.
+
+        Logical CPUs overcount by 2x under hyper-threading, and efficiency cores do
+        not help a single-threaded simplex solve. See _batch_workers for the
+        measurement this count is used against.
+        macOS: hw.perflevel0.physicalcpu (P-cores; all cores on Intel Macs).
+        Linux: distinct physical cores in /proc/cpuinfo. Windows: NumberOfCores.
+        If detection fails, half the logical count (conservative), at least 1."""
+        logical = os.cpu_count() or 4
+        try:
+            if Config.SYSTEM == "Darwin":
+                for key in ("hw.perflevel0.physicalcpu", "hw.physicalcpu"):
+                    out = subprocess.run(["sysctl", "-n", key], capture_output=True,
+                                         text=True, timeout=5)
+                    if out.returncode == 0 and out.stdout.strip().isdigit():
+                        return max(1, int(out.stdout.strip()))
+            elif Config.SYSTEM == "Linux":
+                cores = set()
+                phys = core = None
+                for line in Path("/proc/cpuinfo").read_text().splitlines():
+                    if line.startswith("physical id"):
+                        phys = line.split(":")[1].strip()
+                    elif line.startswith("core id"):
+                        core = line.split(":")[1].strip()
+                    elif not line.strip() and core is not None:
+                        cores.add((phys, core))
+                        phys = core = None
+                if cores:
+                    return max(1, len(cores))
+            elif Config.SYSTEM == "Windows":
+                out = subprocess.run(
+                    ["powershell", "-NoProfile", "-Command",
+                     "(Get-CimInstance Win32_Processor | Measure-Object NumberOfCores -Sum).Sum"],
+                    capture_output=True, text=True, timeout=20)
+                if out.returncode == 0 and out.stdout.strip().isdigit():
+                    return max(1, int(out.stdout.strip()))
+        except (OSError, ValueError, subprocess.SubprocessError):
+            pass
+        return max(1, logical // 2)
+
+    @staticmethod
+    def _batch_workers(n_cases):
+        """How many scenarios to solve at once.
+
+            workers = min( scenarios,
+                           performance_cores - 1,
+                           (total_GB - 8) // 4 )    8 GB reserved; 4 GB per solve
+
+        No fixed upper cap: a machine with more performance cores and memory
+        solves more at once. The CPU term is empirical: on the one machine
+        measured (4 performance cores, Philippines vIS2, 829 MB LP), one to
+        three concurrent solves each ran ~1.3x slower than a solo solve and four
+        ran 2.6x slower, so performance_cores - 1 was the widest setting before
+        the slowdown jumped. Why it jumps there was not determined. 4 GB is the
+        worst case observed for a country-scale solve (COAL_PHASEOUT: 3.9 GB
+        peak). Too many workers costs speed, not correctness; memory is the only
+        hard limit and it is the second term. MUIOGO_BATCH_WORKERS overrides everything (1 forces
+        sequential); values below 1 are clamped to 1."""
+        override = os.environ.get("MUIOGO_BATCH_WORKERS")
+        if override:
+            try:
+                return max(1, int(override))
+            except ValueError:
+                pass
+        by_cpu = max(1, DataFile._performance_cores() - 1)
+        by_mem = max(1, int((DataFile._total_memory_gb() - 8) // 4))
+        return max(1, min(n_cases, by_cpu, by_mem))
+
+    def batchRun(self, solver, cases, parallel=True):
         try:
             batchlog=""
             msg=""
             status = "Success"
             results = []
 
-            ##################################Sequential code
-            for caserun in cases:
-                runout =self.run(solver, caserun)
+            # A caserun listed twice would make two workers write into the same
+            # folder; keep first occurrence, preserve order.
+            cases = list(dict.fromkeys(cases))
+            workers = self._batch_workers(len(cases))
+
+            if parallel and len(cases) > 1 and workers > 1:
+                # Solve phase in parallel: each scenario's solve is independent
+                # (own res/<caserun> folder, own subprocesses) and mostly waits
+                # on the solver binary, so threads scale. Each worker gets its
+                # OWN DataFile instance because run() stores per-caserun paths
+                # on self. The shared-view post-processing runs sequentially
+                # below — that is what broke earlier parallelization attempts.
+                case_name = self.case
+                # Sequential pre-phase: clear each caserun's old entries from the
+                # shared view files before any parallel work touches disk.
+                for caserun in cases:
+                    self.deleteCaseResultsJSON(caserun)
+                def _solve(caserun):
+                    # A failing scenario must not sink the batch: report it and
+                    # let the others finish.
+                    try:
+                        return DataFile(case_name).run(solver, caserun, postprocess=False)
+                    except Exception as ex:
+                        return {"caserun": caserun, "status_code": "error",
+                                "timer": f"Run failed: {ex}",
+                                "glpk_message": "", "glpk_stdmsg": "",
+                                "cbc_message": "", "cbc_stdmsg": str(ex)}
+                with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+                    outs = list(executor.map(_solve, cases))
+                for runout in outs:
+                    if runout["status_code"] == "success":
+                        try:
+                            self.postProcess(runout["caserun"])
+                        except Exception as ex:
+                            runout["status_code"] = "error"
+                            runout["timer"] = f"Post-processing failed: {ex}"
+            else:
+                outs = [self.run(solver, caserun) for caserun in cases]
+
+            for runout in outs:
                 msg+="Case: {0}{1}{2}".format( runout["caserun"], runout["timer"],  '\n')
-                # batchlog+="GLPK status {0}{1}{2}GLPK log {3}{4}{5}{6}CBC log {7}{8}{9}{10}{11}".format(runout["status_code"], runout["timer"],'\n',runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n\n')
                 batchlog+="{0}{1}{2}{3}{4}{5}{6}{7}{8}".format(runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n')
                 batchlog+="------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ {0}".format('\n')
                 if runout["status_code"] != 'success':
@@ -2093,7 +2236,47 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def run( self, solver, caserun, lock=None ):
+    @staticmethod
+    def _matrix_fingerprint(model_path, data_path, flavor):
+        """Identity of a built matrix: hash of the two files it is built from
+        (model equations + processed case data) plus the matrix flavor
+        ('exact' keeps whole-unit restrictions, 'relaxed' has them removed)."""
+        h = hashlib.sha256()
+        for p in (model_path, data_path):
+            with open(p, 'rb') as f:
+                for chunk in iter(lambda: f.read(1 << 20), b''):
+                    h.update(chunk)
+        h.update(str(flavor).encode())
+        return h.hexdigest()
+
+    def _ensure_lp_matrix(self, glpsol_exec, glpk_cwd, modelfile, datafile_processed, lpfile, flavor):
+        """Build lp.lp with glpsol, or reuse the previous build when nothing
+        it depends on has changed. A sidecar file next to lp.lp records the
+        fingerprint of the inputs that produced it. Returns (glpsol_result,
+        reused). A failed build removes the sidecar so a stale matrix can
+        never be picked up later."""
+        fp = self._matrix_fingerprint(modelfile, datafile_processed, flavor)
+        sidecar = Path(str(lpfile) + '.fingerprint')
+        if Path(lpfile).is_file() and sidecar.is_file() and sidecar.read_text().strip() == fp:
+            done = subprocess.CompletedProcess(args=["glpsol"], returncode=0,
+                                               stdout="matrix reused (inputs unchanged)\n", stderr="")
+            return done, True
+        out = subprocess.run(
+            [str(glpsol_exec), "--check", "-m", modelfile, "-d", datafile_processed, "--wlp", lpfile],
+            cwd=glpk_cwd,
+            capture_output=True,
+            text=True,
+        )
+        if out.returncode == 0 and Path(lpfile).is_file():
+            sidecar.write_text(fp)
+        else:
+            try:
+                sidecar.unlink()
+            except OSError:
+                pass
+        return out, False
+
+    def run( self, solver, caserun, lock=None, postprocess=True ):
         try:
             caserunname = caserun
             if lock is not None:
@@ -2140,7 +2323,10 @@ class DataFile(Osemosys):
             # respath = self.resPath.resolve()
             # resCBCPath = self.resCBCPath.resolve()
 
-            self.deleteCaseResultsJSON(caserunname)
+            # Rewrites shared view files, so parallel batch solves defer it to
+            # batchRun's sequential pre-phase (postprocess=False skips it here).
+            if postprocess:
+                self.deleteCaseResultsJSON(caserunname)
 
             if solver == 'glpk':
                 glpk_out = subprocess.run(
@@ -2167,12 +2353,7 @@ class DataFile(Osemosys):
                 txtOut = txtOut + ("Preprocessing time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
                 #return output to variable preprocessed data file
-                glpk_out = subprocess.run(
-                    [str(glpsol_exec), "--check", "-m", modelfile, "-d", datafile_processed, "--wlp", lpfile],
-                    cwd=glpk_cwd,
-                    capture_output=True,
-                    text=True,
-                )
+                glpk_out, lp_reused = self._ensure_lp_matrix(glpsol_exec, glpk_cwd, modelfile, datafile_processed, lpfile, 'exact')
             
 
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
@@ -2181,8 +2362,8 @@ class DataFile(Osemosys):
                 #original data file without preprocessing
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile_original +' -d ' + datafile +' --wlp ' + lpfile, cwd=glpfolder,  capture_output=True, text=True, shell=True)
                 
-                print("CREATINON OF LP FILE DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
-                txtOut = txtOut + ("Creation of LP file time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
+                print("CREATINON OF LP FILE DONE (%s)! --- %s seconds --- %s" % ('reused' if lp_reused else 'rebuilt', time.time() - start_time, caserunname))
+                txtOut = txtOut + ("Creation of LP file time {:0.2f}s ({});{}".format(time.time() - start_time, 'reused' if lp_reused else 'rebuilt', '\n'))
 
 
                 ####output to logfile.txt
@@ -2248,7 +2429,10 @@ class DataFile(Osemosys):
                     customMsg = customMsg + times[0]
                     statusFlag = "error"
 
-                if statusFlag == "success":
+                # postprocess=False defers CSV/pivot generation so parallel batch
+                # solves never write the shared view files concurrently; the caller
+                # runs postProcess() sequentially afterwards.
+                if statusFlag == "success" and postprocess:
                     self.generateCSVfromCBC(self.dataFile, self.resFile, self.resPath)
                     print("CSV DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                     txtOut = txtOut + ("csv files extraction time {:0.2f} s;{}".format(time.time() - start_time, '\n'))
