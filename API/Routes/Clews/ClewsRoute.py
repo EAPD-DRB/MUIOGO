@@ -68,7 +68,9 @@ def _source_from_request(data):
                 f"'{data.get('catalog_key')}' is not in the country catalogue. "
                 "Use a Git URL instead, or configure a catalogue register.")
         return CountrySource(source_type="repo_url", repo_url=entry["repo_url"],
-                             ref=data.get("ref"))
+                             ref=data.get("ref"),
+                             iso3=entry.get("iso3") or None,
+                             name=entry.get("country_name") or None)
     if source_type == "repo_url":
         return CountrySource(source_type="repo_url", repo_url=data.get("repo_url"),
                              ref=data.get("ref"))

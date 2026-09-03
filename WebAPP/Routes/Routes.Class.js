@@ -124,6 +124,17 @@ export class Routes {
                 });
             });
         });
+        crossroads.addRoute('/ClewsInstall', function() {
+            enterModel('clews');
+            $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            import('../App/Controller/ClewsInstall.js')
+            .then(ClewsInstall => {
+                $( ".osy-content" ).load( 'App/View/ClewsInstall.html', function() {
+                    localStorage.setItem("osy-pageId", "ClewsInstall");
+                    ClewsInstall.default.onLoad();
+                });
+            });
+        });
         crossroads.addRoute('/OGCore', function() {
             enterModel('og');
             $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');

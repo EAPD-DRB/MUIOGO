@@ -118,21 +118,34 @@ def test_repo_url_source_fetches_raw(monkeypatch, tmp_path):
     assert calls == ["https://raw.githubusercontent.com/EAPD-DRB/CLEWs-PHL/main/clews-country.json"]
 
 
-def test_missing_remote_manifest_reports_not_found(monkeypatch):
-    """A 404 must surface as 'not found', not be rewrapped as a JSON complaint
-    (ManifestError subclasses ValueError, which load_manifest's parse guard
-    would otherwise swallow -- caught live against the real CLEWs-PHL repo)."""
+def test_missing_remote_manifest_falls_back_to_discovery(monkeypatch):
+    """A 404 on clews-country.json is not an error any more: the repository's
+    contents are read instead. The 404 must reach that fallback as 'not found',
+    not be rewrapped as a JSON complaint (ManifestError subclasses ValueError,
+    which load_manifest's parse guard would otherwise swallow -- caught live
+    against the real CLEWs-PHL repo)."""
     import urllib.error
+
+    from Classes.Clews import RepoScan
 
     def fake_fetch(url, timeout=20):
         raise urllib.error.HTTPError(url, 404, "Not Found", None, None)
 
+    seen = {}
+
+    def fake_scan(owner, repo, ref, iso3=None, name=None, clone_url=None):
+        seen.update(owner=owner, repo=repo, ref=ref)
+        raise cm.ManifestError("No installable models found in the repository.")
+
     monkeypatch.setattr(cm, "fetch_bytes", fake_fetch)
+    monkeypatch.setattr(RepoScan, "scan_remote", fake_scan)
     src = cm.CountrySource(source_type="repo_url",
                            repo_url="https://github.com/EAPD-DRB/CLEWs-PHL")
     with pytest.raises(cm.ManifestError) as exc:
         src.load_manifest()
-    assert "not found" in str(exc.value)
+    assert seen == {"owner": "EAPD-DRB", "repo": "CLEWs-PHL", "ref": "main"}
+    assert "No installable models" in str(exc.value)
+    assert "JSON" not in str(exc.value)
     assert "not valid JSON" not in str(exc.value)
 
 
