@@ -37,7 +37,9 @@ def _free_port():
 def base_url():
     """Real server on a free port, torn down after the session."""
     port = _free_port()
-    env = dict(os.environ, PORT=str(port))
+    # no country register: the CLEWs install page would otherwise fetch it from
+    # GitHub on every load, and a slow answer stalls the tests that follow
+    env = dict(os.environ, PORT=str(port), MUIOGO_CLEWS_CATALOG_URL="")
     proc = subprocess.Popen(
         [sys.executable, str(REPO_ROOT / "API" / "app.py")],
         cwd=REPO_ROOT, env=env,
