@@ -202,6 +202,33 @@ class Installer:
             ),
         }
 
+    @classmethod
+    def local_clone_update_status(cls, local_path):
+        """Say whether MUIOGO may pull over a locally-registered clone.
+
+        A local folder is someone's checkout, so an automatic update is only safe
+        when nothing of theirs can be lost: every tracked file is unmodified, the
+        checked-out branch tracks a remote branch, and origin is known. Untracked
+        files are fine, a fast-forward pull never touches them. Returns
+        {updatable, reason}; reason is a short user-facing sentence when blocked.
+        """
+        try:
+            if cls._git(["rev-parse", "--git-dir"], local_path).returncode != 0:
+                return {"updatable": False, "reason": "The folder is not a git clone."}
+            if not cls.git_remote_url(local_path):
+                return {"updatable": False,
+                        "reason": "The clone has no origin remote to pull from."}
+            dirty = cls._git(["status", "--porcelain", "--untracked-files=no"], local_path)
+            if dirty.returncode != 0 or dirty.stdout.strip():
+                return {"updatable": False,
+                        "reason": "The folder has local changes to tracked files."}
+            if cls._git(["rev-parse", "--abbrev-ref", "@{u}"], local_path).returncode != 0:
+                return {"updatable": False,
+                        "reason": "The checked-out branch does not track a remote branch."}
+        except (OSError, subprocess.SubprocessError) as exc:
+            return {"updatable": False, "reason": f"Could not inspect the clone: {exc}"}
+        return {"updatable": True, "reason": None}
+
     # ── import verification ──────────────────────────────────────────────────
     @staticmethod
     def verify_import(python_path, package_name):

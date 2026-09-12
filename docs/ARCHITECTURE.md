@@ -36,7 +36,9 @@ drives per-model navigation through a body class
 (`WebAPP/Classes/MuiogoShell.Class.js`, `muiogo.css`). Model-specific routes set
 that state explicitly; `localStorage` remembers the default used by `/`.
 OG-Core pages are scoped UI islands (`.ogc-*` styles) and call the `/ogc` API
-through `WebAPP/Classes/Ogc.Class.js`.
+through `WebAPP/Classes/Ogc.Class.js`. The CLEWs install page (`#/ClewsInstall`,
+reached from the Home page) follows the same pattern: `.clw-*` styles, and the
+`/clews` API through `WebAPP/Classes/Clews.Class.js`.
 
 ### Runtime data and outputs
 

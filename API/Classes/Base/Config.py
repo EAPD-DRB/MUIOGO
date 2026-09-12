@@ -6,6 +6,12 @@ import platform
 
 # Central path validation utility (prevents path traversal).
 def validate_path(base_dir, user_input):
+    """Resolve user_input under base_dir, or raise PermissionError.
+
+    Containment is decided lexically on the requested string, not on where the
+    path resolves to, so that a case reached through an operator-placed symlink
+    in DataStorage still works. See the stage comments below.
+    """
     base_raw = os.fspath(base_dir)
     user_raw = "" if user_input is None else os.fspath(user_input)
 
@@ -17,20 +23,61 @@ def validate_path(base_dir, user_input):
     if "\x00" in base_raw or "\x00" in user_raw:
         raise PermissionError("Path Traversal Attempt Detected")
 
-    base_abs = os.path.realpath(os.path.abspath(os.path.normpath(base_raw)))
-    target_abs = os.path.realpath(
-        os.path.abspath(os.path.normpath(os.path.join(base_abs, user_raw)))
-    )
+    # ---- Stage 1: judge the caller's string, before resolving anything. ----
+    # This is the containment decision, and it is made lexically so that it
+    # cannot be changed by what happens to exist on disk. A request must be a
+    # relative path, of at least one component, that never climbs above base.
+    if os.path.isabs(user_raw) or os.path.splitdrive(user_raw)[0]:
+        raise PermissionError("Path Traversal Attempt Detected")
 
+    flat = user_raw.replace(os.altsep, os.sep) if os.altsep else user_raw
+    parts = [p for p in flat.split(os.sep) if p not in ("", ".")]
+    depth = 0
+    for part in parts:
+        depth += -1 if part == ".." else 1
+        if depth < 0:
+            raise PermissionError("Path Traversal Attempt Detected")
+    if depth == 0:
+        # Empty, None, or something like "case/.." - the base itself.
+        raise PermissionError("Path Traversal Attempt Detected")
+
+    base_abs = os.path.realpath(os.path.abspath(os.path.normpath(base_raw)))
+    target_abs = os.path.abspath(os.path.normpath(os.path.join(base_abs, user_raw)))
+    resolved = os.path.realpath(target_abs)
+
+    # ---- Stage 2: the ordinary case - a real path inside base. ----
     try:
-        common = os.path.commonpath([base_abs, target_abs])
+        if os.path.commonpath([base_abs, resolved]) == base_abs and resolved != base_abs:
+            return resolved
     except ValueError:
         raise PermissionError("Path Traversal Attempt Detected")
 
-    if common != base_abs or target_abs == base_abs:
+    # ---- Stage 3: the operator symlink. ----
+    # Resolution left base. That is legitimate in exactly one shape: an operator
+    # has made <base>/<case> a symlink to a case living in its own country
+    # repository (the CLEWs-FJI / CLEWs-PHL handoff, where the case is tracked
+    # in its own repo and DataStorage only points at it). Allow it only when the
+    # FIRST component under base is that symlink, and the resolved path is still
+    # inside what the symlink points at - so a second symlink planted deeper in
+    # the linked case cannot redirect the read anywhere it likes.
+    #
+    # This does mean any symlink an operator plants directly in DataStorage is
+    # followed. That is safe only for as long as no request can create one:
+    # UploadRoute._extract_case_zip writes regular files only, and nothing in
+    # API/ calls os.symlink or ZipFile.extractall. If that changes, so must this.
+    entry = os.path.join(base_abs, parts[0])
+    if not os.path.islink(entry):
+        raise PermissionError("Path Traversal Attempt Detected")
+    root = os.path.realpath(entry)
+    if not os.path.isdir(root):
+        raise PermissionError("Path Traversal Attempt Detected")
+    try:
+        if os.path.commonpath([root, resolved]) != root:
+            raise PermissionError("Path Traversal Attempt Detected")
+    except ValueError:
         raise PermissionError("Path Traversal Attempt Detected")
 
-    return target_abs
+    return resolved
 
 #load environment variables
 load_dotenv()
@@ -120,6 +167,43 @@ OGLINK_RUNS_DIR = Path(
 # this after the OGCLEWS_LINK_* env overrides and before the dev-layout
 # ../ogclews-link sibling.
 OGLINK_HOME_DIR = Path.home() / ".muiogo" / "ogclews-link"
+
+# -------------------------
+# CLEWs country install + registry layer
+# -------------------------
+# A CLEWs country install is DATA, not code: verified case archives extracted into
+# DataStorage through the same importer the browser upload uses. Two kinds of state:
+#
+# - The installed-case index describes ONE DataStorage, so it lives inside it, as
+#   the dot-file .clews_registry.json (resolved at call time in CountryRegistry so
+#   it always tracks the active DATA_STORAGE). A file is safe under the #500 rule:
+#   the case picker and the reconcile scan list DIRECTORIES, and DataStorage's root
+#   already carries app-level files (Parameters.json etc.). Keeping it per-storage
+#   is what lets several MUIOGO checkouts on one machine not fight over one index.
+#
+# - Transient machine-level state (install-job status, download staging) lives at
+#   the user level like the OG state above. Archives download and verify THERE,
+#   never into DataStorage, so a partial download can never appear as a case.
+CLEWS_DATA_STORAGE = Path(
+    os.environ.get("MUIOGO_CLEWS_DATA_DIR", "").strip()
+    or (Path.home() / ".muiogo" / "clews-state")
+)
+CLEWS_INSTALL_JOBS_DIR = CLEWS_DATA_STORAGE / "install_jobs"
+CLEWS_DOWNLOADS_DIR = CLEWS_DATA_STORAGE / "downloads"
+CLEWS_REGISTRY_BASENAME = ".clews_registry.json"
+
+# The CLEWs country register: the CLEWs mirror of the OG installer's repos.json,
+# listing country repos that ship portable MUIO cases. MUIOGO ships it as
+# scripts/clews-repos.json and reads it from the main branch, so adding a country
+# there is enough for every installation to offer it (the same way OG-Core's
+# register is read from its repository). The env override points tests and
+# offline runs at another URL, a file:// one included; an empty override is
+# honoured as "no register" and the catalogue reports source "none".
+CLEWS_CATALOG_URL = os.environ.get(
+    "MUIOGO_CLEWS_CATALOG_URL",
+    "https://raw.githubusercontent.com/EAPD-DRB/MUIOGO/main/scripts/clews-repos.json",
+).strip()
+CLEWS_CATALOG_CACHE = CLEWS_DATA_STORAGE / "catalog_cache.json"
 
 # Where the installer's machine-readable catalogue and scripts are fetched from.
 # Env overrides let tests/offline runs point at a local mirror.
