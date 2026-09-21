@@ -16,7 +16,7 @@
     <span class="ogc-summary-stat"><b id="ogcBaselineCount">0</b> <span id="ogcBaselineLabel">baselines</span></span>
     <span class="ogc-summary-stat"><b id="ogcReformCount">0</b> <span id="ogcReformLabel">reforms</span></span>
     <span class="ogc-bar-right">
-      <button class="btn ogc-btn ogc-btn-main" data-act="new-case" title="Create a baseline or reform for this country"><i class="fa fa-plus"></i> Add case</button>
+      <button class="btn ogc-btn ogc-btn-main" data-act="new-case" title="Create a baseline from this country's calibration defaults"><i class="fa fa-plus"></i> Create baseline</button>
     </span>
   </div>
 
@@ -24,7 +24,11 @@
     <span class="ogc-bar-h"><i class="fa fa-list-alt"></i> Cases</span>
     <span class="ogc-bar-right">
       <span class="ogc-search"><i class="fa fa-search"></i><input id="ogcCaseSearch" type="search" placeholder="Search cases..."></span>
-      <button class="btn ogc-btn ogc-btn-main" data-act="layout" title="Switch between grouping reforms with their baseline and splitting them by type"><i class="fa fa-columns"></i> <span id="ogcLayoutLabel">Split baselines and reforms</span></button>
+      <div class="ogc-view-switch" role="group" aria-label="Cases view">
+        <span>View</span>
+        <button class="btn ogc-btn" data-act="layout" data-layout="grouped" aria-pressed="true" title="Group reforms with their baseline">Grouped</button>
+        <button class="btn ogc-btn" data-act="layout" data-layout="separate" aria-pressed="false" title="Separate baselines and reforms into two tables">Separate</button>
+      </div>
     </span>
   </div>
 

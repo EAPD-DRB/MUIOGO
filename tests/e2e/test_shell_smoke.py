@@ -711,7 +711,7 @@ def test_workspace_exit_is_serialized_and_back_cannot_reenter(page, base_url):
     assert page.evaluate("window.__serializedSessionCalls") == [None]
 
 
-def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
+def test_create_baseline_dialog_has_one_clear_entry_point(page, base_url):
     page.goto(base_url)
     expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
@@ -728,24 +728,20 @@ def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
             {'Baseline 1': [{run_name: 'baseline', run_type: 'baseline'}]},
             [{country_id: 'ETH'}], 'ETH'
         );
+        Cases.render(Cases.model, Cases.pageID);
         Cases.initEvents();
-        Cases.openNewCase();
     }""")
 
-    expect(page.locator("#ogcCasesModalHead")).to_have_text("Add a case")
-    expect(page.locator("[data-act='case-type'][data-type='baseline']")).to_have_class("active")
+    expect(page.locator("[data-act='new-case']")).to_have_count(1)
+    page.locator("[data-act='new-case']").click()
+    expect(page.locator("#ogcCasesModalHead")).to_have_text("Create baseline")
+    expect(page.locator("[data-act='case-type']")).to_have_count(0)
     expect(page.locator("#ogcCaseName")).to_have_value("Baseline 2")
-    expect(page.locator("#ogcCaseBaseWrap")).to_be_hidden()
+    expect(page.locator("#ogcCaseBaseline")).to_have_text("Calibration defaults")
     expect(page.locator("[data-act='new-case-confirm']")).to_have_text("Create and edit")
 
-    page.locator("[data-act='case-type'][data-type='reform']").click()
-    expect(page.locator("#ogcCaseName")).to_have_value("New reform")
-    expect(page.locator("#ogcCaseBaseWrap")).to_be_visible()
-    expect(page.locator("#ogcCaseBaseline option")).to_have_text("Baseline 1")
-    expect(page.locator("#ogcCaseNote")).to_contain_text("inherits this baseline's values")
 
-
-def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
+def test_baseline_row_exposes_add_reform_in_both_views(page, base_url):
     page.goto(base_url)
     expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
@@ -769,21 +765,28 @@ def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
         Cases.initEvents();
     }""")
 
-    baseline_menu = page.locator(
-        "[data-act='run-menu'][data-case='Policy baseline'][data-run='baseline']"
-    )
-    baseline_menu.click()
-    baseline_actions = baseline_menu.locator("xpath=..//span[@role='menu']")
-    expect(baseline_actions).to_be_visible()
-    expect(baseline_actions.get_by_text("Add reform", exact=True)).to_be_visible()
-    expect(baseline_actions.get_by_text("Delete case", exact=True)).to_be_visible()
+    for layout in ("separate", "grouped"):
+        view_button = page.locator(f"[data-layout='{layout}']")
+        view_button.click()
+        expect(view_button).to_be_focused()
+        expect(view_button).to_have_attribute("aria-pressed", "true")
+        expect(view_button).to_have_css("color", "rgb(255, 255, 255)")
+        page.keyboard.press("Tab")
+        page.keyboard.press("Shift+Tab")
+        expect(view_button).to_be_focused()
+        expect(view_button).to_have_css("outline-style", "solid")
+        page.keyboard.press("Space")
+        expect(view_button).to_have_attribute("aria-pressed", "true")
+        expect(page.locator(".ogc-case-split")).to_have_count(1 if layout == "separate" else 0)
+        expect(page.locator("[data-act='new-run']")).to_have_count(1)
+        page.locator("[data-act='new-run']").click()
+        expect(page.locator("#ogcCasesModalHead")).to_have_text("Add reform to Policy baseline")
+        expect(page.locator("[data-act='case-type']")).to_have_count(0)
+        expect(page.locator("#ogcCaseName")).to_have_value("New reform")
+        expect(page.locator("#ogcCaseBaseline")).to_have_text("Policy baseline")
+        expect(page.locator("#ogcCaseNote")).to_contain_text("inherits this baseline's values")
+        page.locator("[data-act='close']").click()
 
-    baseline_actions.get_by_text("Add reform", exact=True).click()
-    expect(page.locator("#ogcCasesModalHead")).to_have_text("Add a case")
-    expect(page.locator("[data-act='case-type'][data-type='reform']")).to_have_class("active")
-    expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Policy baseline")
-
-    page.locator("[data-act='close']").click()
     reform_menu = page.locator(
         "[data-act='run-menu'][data-case='Policy baseline'][data-run='Tax reform']"
     )
@@ -819,8 +822,9 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.openNewCase('reform');
+        Cases.renderCases(Cases.entries(Cases.model));
     }""")
+    page.locator("[data-act='new-run']").click()
     page.locator("#ogcCaseName").fill("Corporate tax cut")
     page.locator("#ogcCaseDesc").fill("Reduce the corporate income tax rate")
     page.locator("[data-act='new-case-confirm']").click()
@@ -1015,7 +1019,7 @@ def test_calibration_defaults_are_reference_only(page, base_url):
     assert 'Calibration defaults' in result['row']
     assert 'reference only' in result['row']
     assert 'not runnable' in result['row']
-    assert 'Create baseline' in result['row']
+    assert 'Create baseline' not in result['row']
     assert 'Baselines <span>(0)</span>' in result['panel']
     assert result['choices'] == []
     assert 'Default baseline' not in result['row']
@@ -1039,6 +1043,7 @@ def test_parameters_page_token_also_requires_the_current_page(page, base_url):
 
 def test_og_run_clears_clews_messages_and_late_home_is_scoped(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""async () => {
         const { Message } = await import(new URL('Classes/Message.Class.js', location.href).href);
         Message.info('Please select existing or create new model to proceed!');
