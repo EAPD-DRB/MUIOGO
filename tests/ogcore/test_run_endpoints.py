@@ -115,8 +115,8 @@ def test_transition_path_reform_needs_a_transition_baseline(
 
 def test_reform_must_match_baseline_dimensions(make_case, calibration, stub_launch):
     case = make_case("c1", runs=[("base", "baseline", None)])
-    case.update_run_status("base", "completed", time_path=True)
     (case.res_path / "base" / "ogcParams.json").write_text('{"S": 80}')
+    case.update_run_status("base", "completed", time_path=True)
     case.create_run("reform1", "reform", "base", {"S": 40})
 
     result = RunJob.start("ETH", "c1", "reform1", False)
@@ -198,7 +198,8 @@ def test_queued_run_reports_queued_stage(client, make_case, calibration, stub_la
                        json={"country_id": "ETH", "casename": "c2", "run_name": "base"})
 
     body = resp.get_json()
-    assert body["run_state"] == "pending" and body["run_stage"] == "Queued"
+    assert body["run_state"] == "queued" and body["run_stage"] == "Queued"
+    assert body["queue_position"] == 1
 
 
 def test_run_status_reports_the_failure_reason(client, make_case, calibration):

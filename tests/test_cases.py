@@ -6,6 +6,8 @@ Focuses on what the routes do when things go wrong -- missing cases,
 empty inputs, wrong HTTP methods.
 """
 
+from Classes.Base import Config
+
 
 def test_get_cases_returns_200(client):
     resp = client.get("/getCases")
@@ -16,6 +18,19 @@ def test_get_cases_returns_list(client):
     """Should always return a list -- empty is fine, but not null and not an error."""
     resp = client.get("/getCases")
     assert isinstance(resp.get_json(), list)
+
+
+def test_get_cases_ignores_non_case_directories(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(Config, "DATA_STORAGE", tmp_path)
+    case_dir = tmp_path / "CLEWS model"
+    case_dir.mkdir()
+    (case_dir / "genData.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "OGCore").mkdir()
+
+    resp = client.get("/getCases")
+
+    assert resp.status_code == 200
+    assert resp.get_json() == ["CLEWS model"]
 
 
 def test_get_cases_wrong_method_returns_405(client):

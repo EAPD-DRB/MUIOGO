@@ -79,12 +79,78 @@ def _unsafe_name(*names):
     return None
 
 
+def _active_country_guard():
+    """Keep every case-addressed route inside the backend workspace country.
+
+    The frontend may activate a country before selecting an individual case. Once
+    active, the guard is blueprint-wide so a forgotten check on a new read/write
+    route cannot expose another country's case by casename.
+    """
+    active_country = session.get("ogccountry")
+    data = request.get_json(silent=True)
+    casename = None
+    requested_country = None
+    if isinstance(data, dict):
+        casename = data.get("casename")
+        requested_country = data.get("country_id")
+        nested = data.get("data")
+        if isinstance(nested, dict):
+            casename = casename or nested.get("ogc-casename")
+            requested_country = requested_country or nested.get("country_id")
+    casename = casename or request.args.get("casename") or request.form.get("casename")
+    requested_country = (
+        requested_country
+        or request.args.get("country_id")
+        or request.form.get("country_id")
+    )
+    endpoint = (request.endpoint or "").rsplit(".", 1)[-1]
+    if endpoint == "setSession":
+        return None
+    if not active_country:
+        # Discovery and the explicit activation route work outside a workspace.
+        # New case names may also proceed to saveCase, which validates and records
+        # their country. Existing case data is fail-closed until setSession activates
+        # its country, so losing/clearing the session cannot expose a known case.
+        if not casename or not is_safe_name(casename):
+            return None
+        if not requested_country or not is_safe_name(requested_country):
+            return None
+        if not OGCoreCase(requested_country, casename).case_path.is_dir():
+            return None
+        return _err("Open that country workspace before accessing this case.", http=403)
+    if requested_country and requested_country != active_country:
+        return _err(
+            "Unauthorised: case country does not match the active workspace.",
+            http=403,
+        )
+    if not casename or not is_safe_name(casename):
+        return None
+    case = OGCoreCase(active_country, casename)
+    if not case.case_path.is_dir():
+        return None
+    try:
+        case_country = case.country_id
+    except (OSError, ValueError, KeyError, IndexError):
+        return None
+    if case_country != active_country:
+        return _err(
+            "Unauthorised: case country does not match the active workspace.",
+            http=403,
+        )
+    return None
+
+
+@ogcore_run_api.before_request
+def guard_active_country():
+    return _active_country_guard()
+
+
 def _utc_now_z():
     """ISO-8601 UTC timestamp with a trailing Z, seconds precision."""
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-# ── active case (a country and a name, never one without the other) ───────────
+# ── active workspace country and optional active case ─────────────────────────
 def _set_active_case(country_id, casename):
     session["ogccase"] = casename
     session["ogccountry"] = country_id
@@ -92,11 +158,10 @@ def _set_active_case(country_id, casename):
 
 def _clear_active_case():
     session["ogccase"] = None
-    session["ogccountry"] = None
 
 
 def _active_case():
-    """(country_id, casename) of the active case; either both set or both None."""
+    """The active workspace country and its optional selected case."""
     return session.get("ogccountry") or None, session.get("ogccase") or None
 
 
@@ -131,8 +196,10 @@ _MAX_BACKUP_UNPACKED_BYTES = 2 * 1024 * 1024 * 1024
 # ── 1. read active-case session ──────────────────────────────────────────────
 @ogcore_run_api.route("/getSession", methods=["GET"])
 def getSession():
-    country_id, casename = _active_case()
-    return jsonify({"ogccase": casename, "country_id": country_id}), 200
+    return jsonify({
+        "ogccase": session.get("ogccase") or None,
+        "ogccountry": session.get("ogccountry") or None,
+    }), 200
 
 
 # ── 2. set active-case session ───────────────────────────────────────────────
@@ -148,30 +215,46 @@ def setSession():
         return _err("Missing required field: casename")
     casename = data["casename"]
     if casename is None:
-        # Clearing needs no country: both halves go together.
         session.pop("ogccase", None)
-        session.pop("ogccountry", None)
-        return jsonify({"ogccase": None, "country_id": None}), 200
+        country_id = data.get("country_id")
+        if country_id is None:
+            session.pop("ogccountry", None)
+            return jsonify({"ogccase": None, "ogccountry": None}), 200
+        if not is_safe_name(country_id):
+            return _err("Invalid country id.")
+        if CalibrationRegistry.get(country_id) is None:
+            return _err("That country calibration is not installed.")
+        active_country = session.get("ogccountry")
+        if active_country and active_country != country_id:
+            return _err(
+                "Exit the active country workspace before opening another.", http=409
+            )
+        session["ogccountry"] = country_id
+        return jsonify({"ogccase": None, "ogccountry": country_id}), 200
     if "country_id" not in data:
         return _err("Missing required field: country_id")
     country_id = data["country_id"]
     if not is_safe_name(casename) or not is_safe_name(country_id):
         return _err("Invalid case name.")
+    active_country = session.get("ogccountry")
+    if active_country and active_country != country_id:
+        return _err(
+            "Exit the active country workspace before opening another.", http=409
+        )
     if not OGCoreCase(country_id, casename).case_path.is_dir():
         return _err("Case not found.", http=404)
     _set_active_case(country_id, casename)
-    return jsonify({"ogccase": casename, "country_id": country_id}), 200
+    return jsonify({"ogccase": casename, "ogccountry": country_id}), 200
 
 
 # ── 3. list cases ────────────────────────────────────────────────────────────
 @ogcore_run_api.route("/getCases", methods=["GET"])
 def getCases():
-    # Unfiltered returns every country's cases, each tagged with the one it is
-    # stored under.
+    active_country = session.get("ogccountry")
     country_id = request.args.get("country_id")
     if country_id is not None and not is_safe_name(country_id):
         return _err("Invalid country id.")
-    return jsonify(OGCoreCase.list_cases(country_id=country_id)), 200
+    return jsonify(OGCoreCase.list_cases(country_id=active_country or country_id)), 200
 
 
 # ── 4. create or edit a case ─────────────────────────────────────────────────
@@ -290,7 +373,19 @@ def getRuns():
         return err
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
-    return jsonify(case.get_runs_shaped()), 200
+    shaped = case.get_runs_shaped()
+    snapshot = RunJob.get_queue_snapshot(data["country_id"], data["casename"])
+    live_runs = {item["run_name"]: item for item in snapshot["queued"]}
+    if snapshot["active"]:
+        live_runs[snapshot["active"]["run_name"]] = snapshot["active"]
+    for item in ([shaped.get("baseline")] + shaped.get("reforms", [])):
+        if not item:
+            continue
+        live = live_runs.get(item["RunName"])
+        item["queue_position"] = live.get("queue_position") if live else None
+        if live:
+            item["status"] = live["state"]
+    return jsonify(shaped), 200
 
 
 # ── 8. delete a run ──────────────────────────────────────────────────────────
@@ -376,9 +471,11 @@ def saveParams():
     run_dir = case.res_path / data["run_name"]
     if not run_dir.is_dir():
         return _err("Run not found.", http=404)
-    if RunJob.is_busy(data["country_id"], data["casename"], data["run_name"]):
-        return _err(_BUSY_PARAMS_MESSAGE)
-    case.save_params(data["run_name"], params)
+    result = RunJob.save_params(
+        data["country_id"], data["casename"], data["run_name"], params
+    )
+    if result.get("status_code") == "error":
+        return _err(result.get("message") or _BUSY_PARAMS_MESSAGE)
     return jsonify({"message": "Parameters saved.", "status_code": "success"}), 200
 
 
@@ -453,34 +550,27 @@ def getRunStatus():
 
     live = RunJob.get_live(country_id, casename, run_name)
     run_state = meta.get("status")
-    # A run marked running with no live supervisor was orphaned by a restart; repair
-    # its meta to a terminal failed state so it does not appear stuck forever.
-    if run_state == "running" and live is None:
-        # Re-read first: the run may have finished between the read above and the
-        # live check, and marking a completed run failed would lose it.
+    if run_state in ("running", "queued") and live is None:
+        RunJob.repair_orphan(country_id, casename, run_name)
         meta = case.get_run_meta(run_name)
         run_state = meta.get("status")
-        if run_state == "running":
-            # This is also the only repair path under a WSGI loader, which never runs
-            # the startup reconcile, so kill the orphan before its pid is cleared.
-            kill_worker_tree(meta.get("pid"), case.res_path / run_name)
-            case.update_run_status(
-                run_name, "failed",
-                error="Run was interrupted by an application restart.",
-            )
-            meta = case.get_run_meta(run_name)
-            run_state = meta.get("status")
+        live = RunJob.get_live(country_id, casename, run_name)
 
     if live:
+        run_state = "queued" if live.get("queued") else "running"
         run_stage = live.get("stage_label") or (
             "Queued" if live.get("queued") else None
         )
         run_iteration = live.get("iteration") or None
         run_log = live.get("log_tail")
+        queue_position = live.get("queue_position")
+        queue_length = live.get("queue_length")
     else:
         run_stage = None
         run_iteration = None
         run_log = _run_log_tail(case, run_name)
+        queue_position = None
+        queue_length = 0
 
     return jsonify({
         "status_code": "success",
@@ -488,10 +578,31 @@ def getRunStatus():
         "run_stage": run_stage,
         "run_iteration": run_iteration,
         "run_log": run_log,
+        "queue_position": queue_position,
+        "queue_length": queue_length,
+        "reusable": case.is_run_reusable(run_name),
+        "stale_reason": meta.get("stale_reason"),
+        "completed_at": meta.get("completed_at"),
+        "time_path": meta.get("time_path"),
         # Carried here as well as on getRuns: this is the endpoint a client polls, so
         # without it a run that fails mid-poll reads as failed with no reason given.
         "error": meta.get("error"),
     }), 200
+
+
+@ogcore_run_api.route("/getRunQueue", methods=["POST"])
+def getRunQueue():
+    """Current in-process FIFO ownership for Run-page reconstruction."""
+    data = request.get_json(silent=True)
+    if data is None:
+        return _err("Request body must be valid JSON.")
+    case, err = _resolve_case(data)
+    if err:
+        return err
+    if not case.case_path.is_dir():
+        return _err("Case not found.", http=404)
+    snapshot = RunJob.get_queue_snapshot(data["country_id"], data["casename"])
+    return jsonify({"status_code": "success", **snapshot}), 200
 
 
 # ── 13. cancel a running or queued run ───────────────────────────────────────
@@ -553,7 +664,7 @@ def getSSVars():
     meta = case.get_run_meta(run_name)
     if not meta:
         return _err("Run not found.", http=404)
-    if meta.get("status") != "completed":
+    if meta.get("status") != "completed" or not case.is_run_reusable(run_name):
         return _err("No results - run it first", http=404)
     ss = OGResults.load_ss(case.res_path / run_name)
     if ss is None:
@@ -584,7 +695,7 @@ def getTPIVars():
     meta = case.get_run_meta(run_name)
     if not meta:
         return _err("Run not found.", http=404)
-    if meta.get("status") != "completed":
+    if meta.get("status") != "completed" or not case.is_run_reusable(run_name):
         return _err("No results - run it first", http=404)
     tpi = OGResults.load_tpi(case.res_path / run_name)
     if tpi is None:
@@ -612,11 +723,12 @@ def _results_gate(case, run_name):
             "casename": case.casename,
             "message": "Solve in progress",
         }), 200
-    if status != "completed":
+    if status != "completed" or not case.is_run_reusable(run_name):
         return jsonify({
             "status_code": "error",
             "casename": case.casename,
-            "message": "No results - run it first",
+            "message": (meta.get("stale_reason") or "Results no longer match the current inputs; run again.")
+            if status == "completed" else "No results - run it first",
         }), 404
     return None
 
@@ -864,19 +976,26 @@ def uploadTaxParams():
             }), 400
 
         tax_func_type = payload.get("tax_func_type")
-        try:
-            os.replace(tmp_path, run_dir / "ogcTaxParams.pkl")
-        except OSError:
-            # The temp dir can sit on a different drive than DataStorage, where
-            # os.replace cannot atomically move; fall back to a copying move.
-            import shutil
+        def publish_tax_params():
+            nonlocal tmp_path
+            try:
+                os.replace(tmp_path, run_dir / "ogcTaxParams.pkl")
+            except OSError:
+                # The temp dir can sit on a different drive than DataStorage.
+                import shutil
 
-            shutil.move(tmp_path, run_dir / "ogcTaxParams.pkl")
-        tmp_path = None  # moved into place; do not delete in finally
-        File.writeFile(
-            {"tax_func_type": tax_func_type, "uploaded_at": _utc_now_z()},
-            run_dir / "ogcTaxParams.info.json",
+                shutil.move(tmp_path, run_dir / "ogcTaxParams.pkl")
+            tmp_path = None  # moved into place; do not delete in finally
+            File.writeFile(
+                {"tax_func_type": tax_func_type, "uploaded_at": _utc_now_z()},
+                run_dir / "ogcTaxParams.info.json",
+            )
+
+        result = RunJob.commit_parameter_change(
+            country_id, casename, run_name, publish_tax_params
         )
+        if result.get("status_code") == "error":
+            return _err(result.get("message") or _BUSY_PARAMS_MESSAGE)
         return jsonify({
             "message": "Tax params loaded.",
             "tax_func_type": tax_func_type,
@@ -1022,7 +1141,7 @@ def getParameterSchema():
     session_country, session_case = _active_case()
     casename = request.args.get("casename")
     country_id = request.args.get("country_id")
-    if not casename:
+    if not casename and not country_id:
         country_id, casename = session_country, session_case
     if not casename or not country_id:
         return _err("No case selected.")
@@ -1040,6 +1159,28 @@ def getParameterSchema():
         http = 404 if error == "The calibration's parameter definitions were not found." else 400
         return _err(error, http=http)
     return jsonify(schema), 200
+
+
+@ogcore_run_api.route("/getParameterDefault", methods=["GET"])
+def getParameterDefault():
+    country_id = request.args.get("country_id")
+    casename = request.args.get("casename")
+    if not country_id and not casename:
+        country_id, casename = _active_case()
+    parameter = request.args.get("parameter")
+    if not country_id or not casename or not parameter:
+        return _err("Missing case or parameter name.")
+    bad = _unsafe_name(country_id, casename)
+    if bad:
+        return bad
+    case = OGCoreCase(country_id, casename)
+    if not case.case_path.is_dir():
+        return _err("Case not found.", http=404)
+
+    value, error = OGSchema.get_parameter_default(case, parameter)
+    if error is not None:
+        return _err(error, http=404 if error == "Parameter not found." else 400)
+    return jsonify({"parameter": parameter, "value": value}), 200
 
 
 # ── download the whole case directory as a zip backup ────────────────────────
@@ -1203,6 +1344,11 @@ def restoreCase():
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 with zf.open(info) as src, open(dest, "wb") as out:
                     shutil.copyfileobj(src, out)
+
+            # The directory is authoritative. Legacy backups may not record a
+            # country, and imported metadata must never point at another one.
+            gen_data["country_id"] = country_id
+            File.writeFile(gen_data, staging / "genData.json")
 
             try:
                 os.replace(staging, target_dir)
