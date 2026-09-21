@@ -49,3 +49,19 @@ test('startup reconciliation keeps local identity on failure and clears only aft
     assert.equal(storage.has('osy-ogc-country'), false);
     assert.equal(storage.has('osy-ogc-selection'), false);
 });
+
+test('startup reconciles every non-workspace route and preserves workspace routes', async () => {
+    let calls = 0;
+    Ogc.setSession = async () => {calls++;};
+    for (const route of ['/OGCases', '/OGParameters', '/OGRuns']) {
+        storage.set('osy-ogc-country', JSON.stringify({country_id:'ETH'}));
+        assert.equal(OGWorkspace.reconcileEntry(route), null);
+    }
+    assert.equal(calls, 0);
+    for (const route of ['/', '/Config', '/Versions', '/OGCore']) {
+        storage.set('osy-ogc-country', JSON.stringify({country_id:'ETH'}));
+        assert.equal(await OGWorkspace.reconcileEntry(route), true);
+        assert.equal(storage.has('osy-ogc-country'), false);
+    }
+    assert.equal(calls, 4);
+});

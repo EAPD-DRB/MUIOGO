@@ -353,6 +353,7 @@ export function decorate(name, entry) {
         }
     }
     let large = entry.large === true || entry.default === null;
+    if (large && storageShape == 'column_matrix') dimension = 'matrix';
     let tableEditable = dimension == 'by_age' || dimension == 'matrix';
     let access = 'edit';
     if (ro){

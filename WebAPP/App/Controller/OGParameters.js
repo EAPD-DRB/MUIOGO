@@ -363,8 +363,10 @@ export default class OGParameters {
 
     static openTable(name){
         let model = OGParameters.model;
+        let pageID = PAGE_ID;
         let f = model.fields[name];
         let open = function () {
+            if (!OGParameters.isCurrent(pageID) || OGParameters.model !== model) return;
             try {
                 OGTableEditor.open({
                     name: name,
@@ -397,12 +399,14 @@ export default class OGParameters {
             model.selection.country_id, model.selection.casename, name
         )
             .then(function (response) {
+                if (!OGParameters.isCurrent(pageID) || OGParameters.model !== model) return;
                 model.hydrateDefault(name, response.value);
                 OGParameters.fieldEl(name).replaceWith(OGParameters.fieldHtml(model, name));
                 OGParameters.refreshField(name);
                 open();
             })
             .catch(function (error) {
+                if (!OGParameters.isCurrent(pageID) || OGParameters.model !== model) return;
                 button.prop('disabled', false).text('Edit table');
                 Message.danger(error);
             });
@@ -908,6 +912,7 @@ export default class OGParameters {
 
     static save(){
         let model = OGParameters.model;
+        if (model.saving) return;
         let changedNames = model.changedNames();
         let bad = OGParameters.invalidChangedNames(model);
         if (bad.length){
@@ -933,15 +938,20 @@ export default class OGParameters {
 
         let pageID = PAGE_ID;
         let payload = model.savePayload();
+        let savedValues = Model.clone(model.cur);
         let count = changedNames.length;
-        Ogc.saveParams(
+        model.saving = true;
+        $('#ogcParamsEditbar [data-act="save"]').prop('disabled', true);
+        return Ogc.saveParams(
             model.selection.country_id,
             model.selection.casename,
             model.selection.run_name,
             payload
         )
         .then(response => {
-            dirty = false;
+            if (!OGParameters.isCurrent(pageID) || OGParameters.model !== model) return;
+            model.params = Model.clone(payload);
+            dirty = Object.keys(savedValues).some(name => !Model.equal(model.cur[name], savedValues[name]));
             Message.smallBoxInfo('OG-Core',
                 count ? (count + ' change' + (count == 1 ? '' : 's') + ' saved.') : 'Saved with no changes.',
                 3500);
@@ -959,7 +969,13 @@ export default class OGParameters {
             }
             OGParameters.refreshAll();
         })
-        .catch(error => Message.danger(error));
+        .catch(error => {
+            if (OGParameters.isCurrent(pageID)) Message.danger(error);
+        })
+        .finally(() => {
+            model.saving = false;
+            if (OGParameters.isCurrent(pageID)) $('#ogcParamsEditbar [data-act="save"]').prop('disabled', false);
+        });
     }
 
     static initEvents(){

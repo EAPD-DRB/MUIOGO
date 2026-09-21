@@ -94,7 +94,7 @@ def test_new_execution_does_not_reuse_old_outcome_log(runs_page):
     expect(page.locator('.ogc-history-log')).not_to_contain_text('Previous execution')
 
 
-def test_idle_monitor_discovers_external_job_without_collapsing_log(runs_page):
+def test_idle_monitor_stops_and_refresh_discovers_external_job(runs_page):
     page = runs_page
     page.evaluate(SEED)
     page.evaluate("Ogc.getRunStatus = async () => ({run_log: ['Saved log']})")
@@ -102,21 +102,42 @@ def test_idle_monitor_discovers_external_job_without_collapsing_log(runs_page):
     expect(page.locator('.ogc-history-log')).to_contain_text('Saved log')
     result = page.evaluate('''async () => {
         const timer = window.setTimeout;
-        let wake;
-        window.setTimeout = (fn, ms) => ms === 2000 ? (wake = fn, 0) : timer(fn, ms);
+        let timers = 0;
+        window.setTimeout = (fn, ms) => ms === 2000 ? (++timers, 0) : timer(fn, ms);
+        Ogc.getCases = async () => [{country_id:'ETH', casename:'policy'}];
+        Ogc.getRuns = async () => Runs.entries.map(entry => entry.run);
         Ogc.getRunQueue = async () => ({active: {country_id: 'ETH', casename: 'policy', run_name: 'reform', state: 'running'}});
-        Ogc.getRunStatus = async () => ({run_state: 'running', run_log: ['External job running']});
         Runs.startMonitor(1);
-        wake();
-        for (let i = 0; i < 20; i++) await Promise.resolve();
+        const idleTimers = timers;
+        document.querySelector('#ogcRefreshRuns').click();
+        for (let i = 0; i < 40; i++) await Promise.resolve();
         Runs.monitorID++;
         window.setTimeout = timer;
-        return Runs.entries[1].state;
+        return {state: Runs.entries[1].state, idleTimers, timers};
     }''')
-    assert result == 'running'
-    expect(page.locator('#ogcCurrentQueue')).to_contain_text('External job running')
+    assert result == {'state': 'running', 'idleTimers': 0, 'timers': 1}
     expect(page.locator('.ogc-history-log')).to_be_visible()
     expect(page.locator('.ogc-history-log')).to_contain_text('Saved log')
+
+
+def test_monitor_stops_after_active_run_completes(runs_page):
+    page = runs_page
+    page.evaluate(SEED)
+    result = page.evaluate('''async () => {
+        const timer = window.setTimeout;
+        let wake, timers = 0, statusCalls = 0;
+        window.setTimeout = (fn, ms) => ms === 2000 ? (++timers, wake = fn, 0) : timer(fn, ms);
+        Runs.entries[1].state = 'running';
+        Ogc.getRunQueue = async () => ({active: null, queued: []});
+        Ogc.getRunStatus = async () => {statusCalls++; return {run_state:'completed', reusable:true}};
+        Runs.startMonitor(1);
+        wake();
+        for (let i = 0; i < 40; i++) await Promise.resolve();
+        Runs.monitorID++;
+        window.setTimeout = timer;
+        return {state:Runs.entries[1].state, timers, statusCalls};
+    }''')
+    assert result == {'state': 'completed', 'timers': 1, 'statusCalls': 1}
 
 
 @pytest.mark.parametrize('mode,baseline_mode,expected', [

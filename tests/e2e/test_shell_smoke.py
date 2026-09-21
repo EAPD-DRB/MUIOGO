@@ -98,6 +98,7 @@ def test_switch_to_og(page, base_url):
 
 def test_sidebar_active_item_tracks_og_workspace_route(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-model', 'og');
         localStorage.setItem('osy-ogc-country', JSON.stringify({country_id:'ETH', country_name:'Ethiopia'}));""")
     page.goto(f"{base_url}/#/OGCases")
@@ -325,6 +326,7 @@ def test_polling_stops_when_leaving_og_page(page, base_url):
     assert len(calls) == settled, f"polling outlived the page: {calls[settled:]}"
 def test_og_workspace_routes_assert_og_mode(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -657,6 +659,7 @@ def test_non_workspace_entry_reconciles_a_stranded_country_session(page, base_ur
 
 def test_clews_switch_waits_for_workspace_exit_confirmation(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -681,6 +684,7 @@ def test_clews_switch_waits_for_workspace_exit_confirmation(page, base_url):
 
 def test_workspace_exit_is_serialized_and_back_cannot_reenter(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -709,6 +713,7 @@ def test_workspace_exit_is_serialized_and_back_cannot_reenter(page, base_url):
 
 def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -742,6 +747,7 @@ def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
 
 def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -790,6 +796,7 @@ def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
 
 def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -844,6 +851,7 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
 
 def test_create_baseline_creates_its_container_and_opens_parameters(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -908,6 +916,7 @@ def test_create_baseline_creates_its_container_and_opens_parameters(page, base_u
 
 def test_failed_baseline_run_creation_rolls_back_the_case(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1095,6 +1104,7 @@ def test_run_selection_defaults_and_explicit_handoff(page, base_url):
 
 def test_navigation_stops_unsent_run_plan(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1142,6 +1152,7 @@ def test_navigation_stops_unsent_run_plan(page, base_url):
 
 def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1200,8 +1211,9 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
     assert result['queueCases'] == ['case-one']
 
 
-def test_idle_run_monitor_keeps_checking_queue_without_status_fanout(page, base_url):
+def test_idle_run_monitor_stops_without_status_fanout(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1226,14 +1238,11 @@ def test_idle_run_monitor_keeps_checking_queue_without_status_fanout(page, base_
             return {run_state: 'pending'};
         };
         Runs.onLoad('OGCases');
-        let deadline = Date.now() + 5000;
-        while (queueCalls < 2 && Date.now() < deadline){
-            await new Promise(resolve => setTimeout(resolve, 25));
-        }
+        await new Promise(resolve => setTimeout(resolve, 2300));
         history.replaceState(null, '', '#/OGCases');
         return {queueCalls, statusCalls};
     }""")
-    assert result['queueCalls'] >= 2
+    assert result['queueCalls'] == 1
     assert result['statusCalls'] == 0
 
 
@@ -1356,6 +1365,7 @@ def test_single_job_cancel_does_not_stop_remaining_plan(page, base_url):
 
 def test_cached_status_error_always_reenables_run_controls(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1479,6 +1489,7 @@ def test_suffix_families_are_grouped_without_being_locked(page, base_url):
 def test_parameters_page_without_a_selection_is_empty(page, base_url):
     """No run selected: the page must say so rather than call the backend."""
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
