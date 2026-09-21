@@ -5,11 +5,14 @@ one. These test the storage layer directly, without the route layer, so a failur
 points at the on-disk shape rather than at an endpoint.
 """
 import json
+import os
 
 import pytest
 
 from Classes.Base import Config
 from Classes.OGCore.OGCoreCase import OGCoreCase
+from Classes.OGCore.CalibrationRegistry import CalibrationRegistry
+from Classes.OGCore.RunJob import RunJob
 
 
 def _make(country_id, casename, description=""):
@@ -256,6 +259,53 @@ def test_migration_leaves_no_staging_directory_behind(client):
 
     staging = Config.OGC_CASES_DIR.parent / "migrate_tmp"
     assert not staging.exists() or list(staging.iterdir()) == []
+
+
+def test_failed_migration_publish_rolls_the_case_back(client, monkeypatch):
+    source = _flat_case("Baseline", "ETH")
+    real_replace = os.replace
+    calls = 0
+
+    def fail_second_replace(src, dst):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("publish failed")
+        return real_replace(src, dst)
+
+    monkeypatch.setattr("Classes.OGCore.OGCoreCase.os.replace", fail_second_replace)
+
+    assert OGCoreCase.migrate_flat_cases() == 0
+    assert source.is_dir()
+    assert not (Config.OGC_CASES_DIR / "ETH" / "Baseline").exists()
+
+
+def test_run_environment_uses_the_directory_country(
+    client, calibration, monkeypatch
+):
+    case = _make("ETH", "Baseline")
+    data = case.gen_data
+    data["country_id"] = "USA"
+    case._write_gen_data(data)
+    requested = []
+
+    def lookup(country_id):
+        requested.append(country_id)
+        return {
+            "package_name": "ogcore",
+            "commit_sha": None,
+            "python_path": str(calibration),
+            "install_state": "installed",
+        }
+
+    monkeypatch.setattr(CalibrationRegistry, "get", staticmethod(lookup))
+
+    country, python_path, error = RunJob._resolve_country_env(case)
+
+    assert error is None
+    assert country["package_name"] == "ogcore"
+    assert python_path == str(calibration)
+    assert requested == ["ETH"]
 
 
 # ── runs live under the nested case ─────────────────────────────────────────

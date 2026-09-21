@@ -35,7 +35,10 @@ def initSyncS3():
 @case_api.route("/getCases", methods=['GET'])
 def getCases():
     try:
-        cases = [ f.name for f in os.scandir(Config.DATA_STORAGE) if f.is_dir() ]
+        cases = [
+            f.name for f in os.scandir(Config.DATA_STORAGE)
+            if f.is_dir() and Path(f.path, "genData.json").is_file()
+        ]
         return jsonify(cases), 200
     except(IOError):
         return jsonify('No existing cases!'), 404

@@ -28,7 +28,24 @@ def two_countries(tmp_path):
     return python_path
 
 
+def _activate(client, country_id):
+    current = client.get("/ogc/getSession").get_json().get("ogccountry")
+    if current == country_id:
+        return
+    if current:
+        client.post("/ogc/setSession", json={"casename": None})
+    response = client.post(
+        "/ogc/setSession", json={"casename": None, "country_id": country_id}
+    )
+    assert response.status_code == 200
+
+
+def _clear(client):
+    client.post("/ogc/setSession", json={"casename": None})
+
+
 def _save(client, country_id, casename, description=""):
+    _activate(client, country_id)
     return client.post("/ogc/saveCase", json={"data": {
         "ogc-casename": casename,
         "country_id": country_id,
@@ -37,6 +54,7 @@ def _save(client, country_id, casename, description=""):
 
 
 def _pairs(client, **params):
+    _clear(client)
     query = "&".join(f"{k}={v}" for k, v in params.items())
     url = "/ogc/getCases" + (f"?{query}" if query else "")
     return [(c["country_id"], c["casename"]) for c in client.get(url).get_json()]
@@ -61,6 +79,7 @@ def test_editing_one_country_leaves_the_other_untouched(client, two_countries):
 
     _save(client, "ETH", "Baseline", "edited")
 
+    _clear(client)
     by_country = {c["country_id"]: c for c in client.get("/ogc/getCases").get_json()}
     assert by_country["ETH"]["description"] == "edited"
     assert by_country["USA"]["description"] == "the US one"
@@ -91,12 +110,14 @@ def test_the_listing_can_be_narrowed_to_one_country(client, two_countries):
 def test_runs_of_same_named_cases_do_not_mix(client, two_countries):
     for country in ("USA", "ETH"):
         _save(client, country, "Baseline")
+    _activate(client, "USA")
     client.post("/ogc/createRun", json={
         "country_id": "USA", "casename": "Baseline",
         "run_name": "us_only", "run_type": "baseline"})
 
     usa = client.post("/ogc/getRuns", json={
         "country_id": "USA", "casename": "Baseline"}).get_json()
+    _activate(client, "ETH")
     eth = client.post("/ogc/getRuns", json={
         "country_id": "ETH", "casename": "Baseline"}).get_json()
 
@@ -115,6 +136,7 @@ def test_params_of_same_named_runs_stay_apart(client, two_countries):
             "run_name": "base", "params": {"frisch": frisch}})
 
     def read(country):
+        _activate(client, country)
         return client.post("/ogc/getParams", json={
             "country_id": country, "casename": "Baseline",
             "run_name": "base"}).get_json()
@@ -130,15 +152,17 @@ def test_the_session_records_the_country_with_the_case(client, two_countries):
     resp = client.post("/ogc/setSession", json={
         "country_id": "ETH", "casename": "Baseline"})
 
-    assert resp.get_json() == {"ogccase": "Baseline", "country_id": "ETH"}
+    assert resp.get_json() == {"ogccase": "Baseline", "ogccountry": "ETH"}
     assert client.get("/ogc/getSession").get_json() == {
-        "ogccase": "Baseline", "country_id": "ETH"}
+        "ogccase": "Baseline", "ogccountry": "ETH"}
 
 
 def test_the_session_will_not_point_at_a_case_the_country_does_not_have(
     client, two_countries
 ):
     _save(client, "ETH", "Baseline")
+    _clear(client)
+    _activate(client, "USA")
 
     resp = client.post("/ogc/setSession", json={
         "country_id": "USA", "casename": "Baseline"})
@@ -153,7 +177,7 @@ def test_clearing_the_session_clears_both_halves(client, two_countries):
     client.post("/ogc/setSession", json={"casename": None})
 
     assert client.get("/ogc/getSession").get_json() == {
-        "ogccase": None, "country_id": None}
+        "ogccase": None, "ogccountry": None}
 
 
 def test_deleting_needs_the_session_to_match_both_halves(client, two_countries):
@@ -211,6 +235,7 @@ def test_a_restore_does_not_collide_with_the_same_name_elsewhere(client, two_cou
 
     assert _restore(client, blob).get_json()["status_code"] == "success"
 
+    _clear(client)
     by_country = {c["country_id"]: c for c in client.get("/ogc/getCases").get_json()}
     assert by_country["ETH"]["description"] == "the ETH one"
     assert by_country["USA"]["description"] == "the US one"
@@ -246,6 +271,8 @@ def test_a_backup_with_no_country_restores_into_the_one_supplied(client, two_cou
 
     assert resp.get_json()["status_code"] == "success"
     assert _pairs(client) == [("ETH", "Legacy")]
+    restored = Config.OGC_CASES_DIR / "ETH" / "Legacy" / "genData.json"
+    assert json.loads(restored.read_text())["country_id"] == "ETH"
 
 
 def test_restoring_over_an_existing_case_still_refuses(client, two_countries):
@@ -272,6 +299,8 @@ def test_a_country_id_that_escapes_the_cases_directory_is_refused(
 
 def test_naming_a_country_that_does_not_hold_the_case_is_a_404(client, two_countries):
     _save(client, "ETH", "Baseline")
+    _clear(client)
+    _activate(client, "USA")
 
     resp = client.post("/ogc/getRuns", json={
         "country_id": "USA", "casename": "Baseline"})
