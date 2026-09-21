@@ -114,6 +114,7 @@ export class Model {
     }
 
     normalise(f, v){
+        if (v === null || v === undefined) return v;
         if (f.storageShape == 'singleton_tensor' || f.storageShape == 'column_matrix'){
             return this.unwrap(v, f);
         }

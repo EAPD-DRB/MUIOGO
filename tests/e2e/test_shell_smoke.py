@@ -98,6 +98,7 @@ def test_switch_to_og(page, base_url):
 
 def test_sidebar_active_item_tracks_og_workspace_route(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-model', 'og');
         localStorage.setItem('osy-ogc-country', JSON.stringify({country_id:'ETH', country_name:'Ethiopia'}));""")
     page.goto(f"{base_url}/#/OGCases")
@@ -835,6 +836,7 @@ def test_polling_stops_when_leaving_og_page(page, base_url):
     assert len(calls) == settled, f"polling outlived the page: {calls[settled:]}"
 def test_og_workspace_routes_assert_og_mode(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1177,6 +1179,7 @@ def test_non_workspace_entry_reconciles_a_stranded_country_session(page, base_ur
 
 def test_clews_switch_waits_for_workspace_exit_confirmation(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1201,6 +1204,7 @@ def test_clews_switch_waits_for_workspace_exit_confirmation(page, base_url):
 
 def test_workspace_exit_is_serialized_and_back_cannot_reenter(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1227,8 +1231,9 @@ def test_workspace_exit_is_serialized_and_back_cannot_reenter(page, base_url):
     assert page.evaluate("window.__serializedSessionCalls") == [None]
 
 
-def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
+def test_create_case_dialog_switches_types(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1243,25 +1248,29 @@ def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
             {'Baseline 1': [{run_name: 'baseline', run_type: 'baseline'}]},
             [{country_id: 'ETH'}], 'ETH'
         );
+        Cases.render(Cases.model, Cases.pageID);
         Cases.initEvents();
-        Cases.openNewCase();
     }""")
 
-    expect(page.locator("#ogcCasesModalHead")).to_have_text("Add a case")
-    expect(page.locator("[data-act='case-type'][data-type='baseline']")).to_have_class("active")
+    expect(page.locator("[data-act='create-case']")).to_have_count(1)
+    page.locator("[data-act='create-case']").click()
+    expect(page.locator("#ogcCasesModalHead")).to_have_text("Create case")
+    expect(page.locator("[data-act='case-type'][data-type='baseline']")).to_have_attribute("aria-pressed", "true")
     expect(page.locator("#ogcCaseName")).to_have_value("Baseline 2")
     expect(page.locator("#ogcCaseBaseWrap")).to_be_hidden()
-    expect(page.locator("[data-act='new-case-confirm']")).to_have_text("Create and edit")
-
+    page.locator("#ogcCaseName").fill("My baseline")
     page.locator("[data-act='case-type'][data-type='reform']").click()
+    expect(page.locator("#ogcCaseBaseline")).to_be_visible()
+    expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Baseline 1")
     expect(page.locator("#ogcCaseName")).to_have_value("New reform")
-    expect(page.locator("#ogcCaseBaseWrap")).to_be_visible()
-    expect(page.locator("#ogcCaseBaseline option")).to_have_text("Baseline 1")
-    expect(page.locator("#ogcCaseNote")).to_contain_text("inherits this baseline's values")
+    page.locator("[data-act='case-type'][data-type='baseline']").click()
+    expect(page.locator("#ogcCaseName")).to_have_value("My baseline")
+    expect(page.locator("[data-act='create-confirm']")).to_have_text("Create and edit")
 
 
-def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
+def test_baseline_row_exposes_add_reform_in_both_views(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1283,21 +1292,28 @@ def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
         Cases.initEvents();
     }""")
 
-    baseline_menu = page.locator(
-        "[data-act='run-menu'][data-case='Policy baseline'][data-run='baseline']"
-    )
-    baseline_menu.click()
-    baseline_actions = baseline_menu.locator("xpath=..//span[@role='menu']")
-    expect(baseline_actions).to_be_visible()
-    expect(baseline_actions.get_by_text("Add reform", exact=True)).to_be_visible()
-    expect(baseline_actions.get_by_text("Delete case", exact=True)).to_be_visible()
+    for layout in ("separate", "grouped"):
+        view_button = page.locator(f"[data-layout='{layout}']")
+        view_button.click()
+        expect(view_button).to_be_focused()
+        expect(view_button).to_have_attribute("aria-pressed", "true")
+        expect(view_button).to_have_css("color", "rgb(255, 255, 255)")
+        page.keyboard.press("Tab")
+        page.keyboard.press("Shift+Tab")
+        expect(view_button).to_be_focused()
+        expect(view_button).to_have_css("outline-style", "solid")
+        page.keyboard.press("Space")
+        expect(view_button).to_have_attribute("aria-pressed", "true")
+        expect(page.locator(".ogc-case-split")).to_have_count(1 if layout == "separate" else 0)
+        expect(page.locator("[data-act='add-reform']")).to_have_count(1)
+        page.locator("[data-act='add-reform']").click()
+        expect(page.locator("#ogcCasesModalHead")).to_have_text("Create case")
+        expect(page.locator("[data-act='case-type'][data-type='reform']")).to_have_attribute("aria-pressed", "true")
+        expect(page.locator("#ogcCaseName")).to_have_value("New reform")
+        expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Policy baseline")
+        expect(page.locator("#ogcCaseNote")).to_contain_text("inherits this baseline's values")
+        page.locator("[data-act='close']").click()
 
-    baseline_actions.get_by_text("Add reform", exact=True).click()
-    expect(page.locator("#ogcCasesModalHead")).to_have_text("Add a case")
-    expect(page.locator("[data-act='case-type'][data-type='reform']")).to_have_class("active")
-    expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Policy baseline")
-
-    page.locator("[data-act='close']").click()
     reform_menu = page.locator(
         "[data-act='run-menu'][data-case='Policy baseline'][data-run='Tax reform']"
     )
@@ -1306,10 +1322,22 @@ def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
     expect(reform_actions).to_be_visible()
     expect(reform_actions.get_by_text("Delete reform", exact=True)).to_be_visible()
     expect(reform_actions.get_by_text("Add reform", exact=True)).to_have_count(0)
+    reform_actions.get_by_text("Delete reform", exact=True).click()
+    expect(page.locator("#ogcCasesModalBody")).to_contain_text("Delete the reform Tax reform and its results?")
+    expect(page.locator("[data-act='del-run-confirm']")).to_have_text("Delete reform")
+    page.locator("[data-act='close']").click()
+
+    page.locator("[data-act='run-menu'][data-run='baseline']").click()
+    page.get_by_role("menuitem", name="Delete baseline").click()
+    expect(page.locator("#ogcCasesModalBody")).to_contain_text("Delete the baseline Policy baseline and its results?")
+    expect(page.locator("#ogcCasesModalBody")).to_contain_text("This also deletes 1 reform and all of their results.")
+    expect(page.locator("[data-act='del-run-confirm']")).to_have_text("Delete baseline")
 
 
-def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url):
+@pytest.mark.parametrize("entry_point", ["shortcut", "create_case"])
+def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url, entry_point):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1321,8 +1349,9 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
         Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
         Cases.model = new Model(
-            [{casename: 'Policy baseline', country_id: 'ETH'}],
-            {'Policy baseline': [{run_name: 'baseline', run_type: 'baseline'}]},
+            [{casename: 'Other baseline', country_id: 'ETH'}, {casename: 'Policy baseline', country_id: 'ETH'}],
+            {'Other baseline': [{run_name: 'baseline', run_type: 'baseline'}],
+             'Policy baseline': [{run_name: 'baseline', run_type: 'baseline'}]},
             [{country_id: 'ETH'}], 'ETH'
         );
         window.__newCaseCalls = [];
@@ -1332,11 +1361,17 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.openNewCase('reform');
+        Cases.render(Cases.model, Cases.pageID);
     }""")
+    if entry_point == "shortcut":
+        page.locator("[data-act='add-reform'][data-case='Policy baseline']").click()
+    else:
+        page.locator("[data-act='create-case']").click()
+        page.locator("[data-act='case-type'][data-type='reform']").click()
+        page.locator("#ogcCaseBaseline").select_option(label="Policy baseline")
     page.locator("#ogcCaseName").fill("Corporate tax cut")
     page.locator("#ogcCaseDesc").fill("Reduce the corporate income tax rate")
-    page.locator("[data-act='new-case-confirm']").click()
+    page.locator("[data-act='create-confirm']").click()
     page.wait_for_url("**/#/OGParameters")
 
     result = page.evaluate("""({
@@ -1364,6 +1399,7 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
 
 def test_create_baseline_creates_its_container_and_opens_parameters(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1385,11 +1421,12 @@ def test_create_baseline_creates_its_container_and_opens_parameters(page, base_u
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.openNewCase();
+        Cases.openCreateDialog();
     }""")
+    expect(page.locator("[data-act='case-type'][data-type='reform']")).to_be_disabled()
     page.locator("#ogcCaseName").fill("Alternative baseline")
     page.locator("#ogcCaseDesc").fill("A second policy starting point")
-    page.locator("[data-act='new-case-confirm']").click()
+    page.locator("[data-act='create-confirm']").click()
     page.wait_for_url("**/#/OGParameters")
 
     result = page.evaluate("""({
@@ -1428,6 +1465,7 @@ def test_create_baseline_creates_its_container_and_opens_parameters(page, base_u
 
 def test_failed_baseline_run_creation_rolls_back_the_case(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1447,10 +1485,10 @@ def test_failed_baseline_run_creation_rolls_back_the_case(page, base_url):
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.openNewCase();
+        Cases.openCreateDialog();
     }""")
     page.locator("#ogcCaseName").fill("Incomplete baseline")
-    page.locator("[data-act='new-case-confirm']").click()
+    page.locator("[data-act='create-confirm']").click()
     expect(page.locator("#ogcCaseErr")).to_contain_text("run creation failed")
     assert page.evaluate("window.__rollbackCalls") == [['ETH', 'Incomplete baseline']]
 
@@ -1471,7 +1509,7 @@ def test_runless_case_is_visible_and_recoverable(page, base_url):
     assert result['count'] == 1
     assert 'Incomplete baseline' in result['html']
     assert 'Retry setup' in result['html']
-    assert 'Delete case' in result['html']
+    assert 'Delete baseline' in result['html']
 
 
 def test_run_queue_orders_dependencies_and_marks_cache(page, base_url):
@@ -1526,7 +1564,7 @@ def test_calibration_defaults_are_reference_only(page, base_url):
     assert 'Calibration defaults' in result['row']
     assert 'reference only' in result['row']
     assert 'not runnable' in result['row']
-    assert 'Create baseline' in result['row']
+    assert 'Create baseline' not in result['row']
     assert 'Baselines <span>(0)</span>' in result['panel']
     assert result['choices'] == []
     assert 'Default baseline' not in result['row']
@@ -1550,6 +1588,7 @@ def test_parameters_page_token_also_requires_the_current_page(page, base_url):
 
 def test_og_run_clears_clews_messages_and_late_home_is_scoped(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""async () => {
         const { Message } = await import(new URL('Classes/Message.Class.js', location.href).href);
         Message.info('Please select existing or create new model to proceed!');
@@ -1615,6 +1654,7 @@ def test_run_selection_defaults_and_explicit_handoff(page, base_url):
 
 def test_navigation_stops_unsent_run_plan(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1662,6 +1702,7 @@ def test_navigation_stops_unsent_run_plan(page, base_url):
 
 def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1720,8 +1761,9 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
     assert result['queueCases'] == ['case-one']
 
 
-def test_idle_run_monitor_keeps_checking_queue_without_status_fanout(page, base_url):
+def test_idle_run_monitor_stops_without_status_fanout(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1746,14 +1788,11 @@ def test_idle_run_monitor_keeps_checking_queue_without_status_fanout(page, base_
             return {run_state: 'pending'};
         };
         Runs.onLoad('OGCases');
-        let deadline = Date.now() + 5000;
-        while (queueCalls < 2 && Date.now() < deadline){
-            await new Promise(resolve => setTimeout(resolve, 25));
-        }
+        await new Promise(resolve => setTimeout(resolve, 2300));
         history.replaceState(null, '', '#/OGCases');
         return {queueCalls, statusCalls};
     }""")
-    assert result['queueCalls'] >= 2
+    assert result['queueCalls'] == 1
     assert result['statusCalls'] == 0
 
 
@@ -1876,6 +1915,7 @@ def test_single_job_cancel_does_not_stop_remaining_plan(page, base_url):
 
 def test_cached_status_error_always_reenables_run_controls(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1999,6 +2039,7 @@ def test_suffix_families_are_grouped_without_being_locked(page, base_url):
 def test_parameters_page_without_a_selection_is_empty(page, base_url):
     """No run selected: the page must say so rather than call the backend."""
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")

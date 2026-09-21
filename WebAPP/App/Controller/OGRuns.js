@@ -185,6 +185,7 @@ export default class OGRuns {
             entry.error = entry.error || entry.run.error || '';
         }
         if (owns('run_log')) entry.log = $.isArray(status.run_log) ? status.run_log : [];
+        if (owns('time_path')) entry.run.time_path = status.time_path;
         if (status.run_state) entry.run.status = status.run_state;
         return entry;
     }
@@ -444,7 +445,7 @@ export default class OGRuns {
         $('#ogcSelectAll').html(`<i class="fa fa-${allSelected ? 'square-o' : 'check-square-o'}"></i> ${allSelected ? 'Clear selection' : 'Select all'}`);
         let active = $.grep(OGRuns.entries || [], entry => ACTIVE_STATES.indexOf(entry.state) >= 0).length;
         $('#ogcCancelRun').toggle(!!active || OGRuns.running).prop('disabled', !active && !OGRuns.running);
-        $('#ogcForceRun, #ogcSelectAll, #ogcAnalysis').prop('disabled', OGRuns.running);
+        $('#ogcForceRun, #ogcSelectAll, #ogcAnalysis, #ogcRefreshRuns').prop('disabled', OGRuns.running);
     }
 
     static timePath(){
@@ -510,7 +511,7 @@ export default class OGRuns {
         OGRuns.render();
         let detached = false;
         try {
-            // Status polling omits time_path; refresh it before planning dependencies.
+            // Refresh backend metadata before planning dependencies or reusing results.
             let caseNames = [...new Set(chosen.map(entry => entry.case.casename))];
             let snapshots = await Promise.all(caseNames.map(async casename => {
                 let response = await Ogc.getRuns(OGRuns.workspace.country_id, casename);
@@ -697,8 +698,10 @@ export default class OGRuns {
         let monitor = async function () {
             while (OGRuns.isCurrent(pageToken) && window.location.hash.split('?')[0] == '#/OGRuns'
                 && monitorID == OGRuns.monitorID && !OGRuns.running){
+                if (!OGRuns.entries.some(entry => ACTIVE_STATES.includes(entry.state))) return;
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                if (!OGRuns.isCurrent(pageToken) || monitorID != OGRuns.monitorID) return;
+                if (!OGRuns.isCurrent(pageToken) || monitorID != OGRuns.monitorID || OGRuns.running
+                    || window.location.hash.split('?')[0] != '#/OGRuns') return;
                 await OGRuns.hydrateBackendState(pageToken);
                 if (!OGRuns.isCurrent(pageToken) || monitorID != OGRuns.monitorID) return;
                 let active = $.grep(OGRuns.entries || [], entry => ACTIVE_STATES.indexOf(entry.state) >= 0);
@@ -728,6 +731,7 @@ export default class OGRuns {
         .on('click.ogruns', '[data-act]', async function (event) {
             event.preventDefault();
             let act = $(this).attr('data-act');
+            if (act == 'refresh' && !OGRuns.running) OGRuns.load(OGRuns.pageToken, null, true);
             if (act == 'run-selected') OGRuns.runSelected();
             if (act == 'cancel') OGRuns.cancelActive();
             if (act == 'select-all'){

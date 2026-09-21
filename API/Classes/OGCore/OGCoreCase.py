@@ -12,6 +12,7 @@ import shutil
 import tempfile
 import uuid
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 
 from Classes.Base import Config
@@ -19,6 +20,15 @@ from Classes.Base.FileClass import File
 from Classes.OGCore.CalibrationRegistry import CalibrationRegistry
 
 logger = logging.getLogger(__name__)
+
+
+@lru_cache(maxsize=128)
+def _tax_params_sha256(path: Path, size: int, mtime_ns: int, ctime_ns: int, inode: int) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as tax_file:
+        for chunk in iter(lambda: tax_file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 # A case/run name becomes a directory, so it has to be a safe path component.
 # Otherwise mkdir throws an opaque error, or on Windows makes a reserved device path.
@@ -237,10 +247,13 @@ class OGCoreCase:
                 os.replace(case_dir, staged)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 os.replace(staged, target)
-                staged.parent.rmdir()
                 moved += 1
                 logger.info("Moved case '%s' under country '%s'.",
                             case_dir.name, country_id)
+                try:
+                    staged.parent.rmdir()
+                except OSError:
+                    pass
             except OSError as exc:
                 if staged is not None and staged.exists() and not case_dir.exists():
                     try:
@@ -441,6 +454,7 @@ class OGCoreCase:
         if not self.gen_data_path.exists():
             return []
         enriched = []
+        calibration = self._calibration_identity()
         for run in self.gen_data.get("ogc-runs", []):
             item = dict(run)  # copy so we don't mutate cached gen_data
             meta_path = self.res_path / item["RunName"] / "run_meta.json"
@@ -457,7 +471,7 @@ class OGCoreCase:
                 item["time_path"] = meta.get("time_path")
                 item["completed_at"] = meta.get("completed_at")
                 item["error"] = meta.get("error")
-                item["reusable"] = self.is_run_reusable(item["RunName"])
+                item["reusable"] = self.is_run_reusable(item["RunName"], calibration=calibration)
                 item["stale_reason"] = meta.get("stale_reason")
             else:
                 item["status"] = "pending"
@@ -574,18 +588,17 @@ class OGCoreCase:
         }
 
     def execution_input_fingerprint(
-        self, run_name: str, time_path: bool | None
+        self, run_name: str, time_path: bool | None, *, calibration: dict | None = None
     ) -> str:
         """Fingerprint every backend-owned input that makes results reusable."""
         meta = self.get_run_meta(run_name)
         tax_path = self.res_path / run_name / "ogcTaxParams.pkl"
         tax_hash = None
         if tax_path.exists():
-            digest = hashlib.sha256()
-            with open(tax_path, "rb") as tax_file:
-                for chunk in iter(lambda: tax_file.read(1024 * 1024), b""):
-                    digest.update(chunk)
-            tax_hash = digest.hexdigest()
+            stat = tax_path.stat()
+            tax_hash = _tax_params_sha256(
+                tax_path, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns, stat.st_ino
+            )
         baseline_result = None
         if meta.get("run_type") == "reform":
             baseline_dir = self.baseline_dir(run_name)
@@ -599,12 +612,12 @@ class OGCoreCase:
             "params": self.get_params(run_name),
             "tax_params_sha256": tax_hash,
             "time_path": time_path,
-            "calibration": self._calibration_identity(),
+            "calibration": self._calibration_identity() if calibration is None else calibration,
             "baseline_result_fingerprint": baseline_result,
         })
 
     def is_run_reusable(
-        self, run_name: str, time_path: bool | None = None
+        self, run_name: str, time_path: bool | None = None, *, calibration: dict | None = None
     ) -> bool:
         """True only when completed metadata proves current execution inputs."""
         try:
@@ -615,7 +628,7 @@ class OGCoreCase:
             return False
         requested_time_path = meta.get("time_path") if time_path is None else time_path
         try:
-            current = self.execution_input_fingerprint(run_name, requested_time_path)
+            current = self.execution_input_fingerprint(run_name, requested_time_path, calibration=calibration)
         except (OSError, ValueError, KeyError, IndexError):
             return False
         return current == meta.get("input_fingerprint")
@@ -626,9 +639,7 @@ class OGCoreCase:
         if not path.exists():
             return
         meta = File.readFile(path)
-        meta["status"] = "pending"
         meta["error"] = None
-        meta["completed_at"] = None
         meta["pid"] = None
         meta["input_fingerprint"] = None
         meta["result_fingerprint"] = None
@@ -653,9 +664,7 @@ class OGCoreCase:
                 # invalidate; avoid replacing its neutral state with stale copy.
                 if meta.get("result_fingerprint") is None and meta.get("status") == "pending":
                     continue
-                meta["status"] = "pending"
                 meta["error"] = None
-                meta["completed_at"] = None
                 meta["pid"] = None
                 meta["input_fingerprint"] = None
                 meta["result_fingerprint"] = None

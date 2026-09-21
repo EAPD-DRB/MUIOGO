@@ -91,3 +91,17 @@ test('table highlights and status count only cells with usable references', () =
     }
     OGTableEditor.close();
 });
+
+test('large column schedules remain unloaded until requested and keep their storage shape', () => {
+    const model = new Model({cit_rate: {
+        shape: 'time_x_industry', default: null, large: true,
+        dimensions: [400, 1], preview: [[0.1], [0.2]]
+    }}, {});
+    assert.equal(model.cur.cit_rate, null);
+    assert.equal(model.fields.cit_rate.tableEditable, true);
+    assert.deepEqual(model.savePayload(), {});
+    model.hydrateDefault('cit_rate', [[0.1], [0.2], [0.3]]);
+    assert.deepEqual(model.cur.cit_rate, [0.1, 0.2, 0.3]);
+    model.cur.cit_rate[1] = 0.25;
+    assert.deepEqual(model.savePayload(), {cit_rate: [[0.1], [0.25], [0.3]]});
+});

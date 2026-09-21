@@ -51,4 +51,6 @@ def test_parameter_controls(page):
 
     page.goto("http://og-ui.test/App/View/OGCases.html")
     expect(page.get_by_role("link", name="Exit workspace")).to_have_count(0)
-    expect(page.locator("[data-act='layout']")).to_have_class("btn ogc-btn ogc-btn-main")
+    expect(page.get_by_role("group", name="Cases view")).to_be_visible()
+    expect(page.get_by_role("button", name="Grouped", exact=True)).to_be_visible()
+    expect(page.get_by_role("button", name="Separate", exact=True)).to_be_visible()
