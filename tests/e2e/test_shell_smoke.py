@@ -711,7 +711,7 @@ def test_workspace_exit_is_serialized_and_back_cannot_reenter(page, base_url):
     assert page.evaluate("window.__serializedSessionCalls") == [None]
 
 
-def test_create_baseline_dialog_has_one_clear_entry_point(page, base_url):
+def test_create_case_dialog_switches_types(page, base_url):
     page.goto(base_url)
     expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
@@ -732,12 +732,19 @@ def test_create_baseline_dialog_has_one_clear_entry_point(page, base_url):
         Cases.initEvents();
     }""")
 
-    expect(page.locator("[data-act='create-baseline']")).to_have_count(1)
-    page.locator("[data-act='create-baseline']").click()
-    expect(page.locator("#ogcCasesModalHead")).to_have_text("Create baseline")
-    expect(page.locator("[data-act='case-type']")).to_have_count(0)
+    expect(page.locator("[data-act='create-case']")).to_have_count(1)
+    page.locator("[data-act='create-case']").click()
+    expect(page.locator("#ogcCasesModalHead")).to_have_text("Create case")
+    expect(page.locator("[data-act='case-type'][data-type='baseline']")).to_have_attribute("aria-pressed", "true")
     expect(page.locator("#ogcCaseName")).to_have_value("Baseline 2")
-    expect(page.locator("#ogcCaseBaseline")).to_have_text("Calibration defaults")
+    expect(page.locator("#ogcCaseBaseWrap")).to_be_hidden()
+    page.locator("#ogcCaseName").fill("My baseline")
+    page.locator("[data-act='case-type'][data-type='reform']").click()
+    expect(page.locator("#ogcCaseBaseline")).to_be_visible()
+    expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Baseline 1")
+    expect(page.locator("#ogcCaseName")).to_have_value("New reform")
+    page.locator("[data-act='case-type'][data-type='baseline']").click()
+    expect(page.locator("#ogcCaseName")).to_have_value("My baseline")
     expect(page.locator("[data-act='create-confirm']")).to_have_text("Create and edit")
 
 
@@ -780,10 +787,10 @@ def test_baseline_row_exposes_add_reform_in_both_views(page, base_url):
         expect(page.locator(".ogc-case-split")).to_have_count(1 if layout == "separate" else 0)
         expect(page.locator("[data-act='add-reform']")).to_have_count(1)
         page.locator("[data-act='add-reform']").click()
-        expect(page.locator("#ogcCasesModalHead")).to_have_text("Add reform to Policy baseline")
-        expect(page.locator("[data-act='case-type']")).to_have_count(0)
+        expect(page.locator("#ogcCasesModalHead")).to_have_text("Create case")
+        expect(page.locator("[data-act='case-type'][data-type='reform']")).to_have_attribute("aria-pressed", "true")
         expect(page.locator("#ogcCaseName")).to_have_value("New reform")
-        expect(page.locator("#ogcCaseBaseline")).to_have_text("Policy baseline")
+        expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Policy baseline")
         expect(page.locator("#ogcCaseNote")).to_contain_text("inherits this baseline's values")
         page.locator("[data-act='close']").click()
 
@@ -807,7 +814,8 @@ def test_baseline_row_exposes_add_reform_in_both_views(page, base_url):
     expect(page.locator("[data-act='del-run-confirm']")).to_have_text("Delete baseline")
 
 
-def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url):
+@pytest.mark.parametrize("entry_point", ["shortcut", "create_case"])
+def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url, entry_point):
     page.goto(base_url)
     expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
@@ -821,8 +829,9 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
         Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
         Cases.model = new Model(
-            [{casename: 'Policy baseline', country_id: 'ETH'}],
-            {'Policy baseline': [{run_name: 'baseline', run_type: 'baseline'}]},
+            [{casename: 'Other baseline', country_id: 'ETH'}, {casename: 'Policy baseline', country_id: 'ETH'}],
+            {'Other baseline': [{run_name: 'baseline', run_type: 'baseline'}],
+             'Policy baseline': [{run_name: 'baseline', run_type: 'baseline'}]},
             [{country_id: 'ETH'}], 'ETH'
         );
         window.__newCaseCalls = [];
@@ -832,9 +841,14 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.renderCases(Cases.entries(Cases.model));
+        Cases.render(Cases.model, Cases.pageID);
     }""")
-    page.locator("[data-act='add-reform']").click()
+    if entry_point == "shortcut":
+        page.locator("[data-act='add-reform'][data-case='Policy baseline']").click()
+    else:
+        page.locator("[data-act='create-case']").click()
+        page.locator("[data-act='case-type'][data-type='reform']").click()
+        page.locator("#ogcCaseBaseline").select_option(label="Policy baseline")
     page.locator("#ogcCaseName").fill("Corporate tax cut")
     page.locator("#ogcCaseDesc").fill("Reduce the corporate income tax rate")
     page.locator("[data-act='create-confirm']").click()
@@ -889,6 +903,7 @@ def test_create_baseline_creates_its_container_and_opens_parameters(page, base_u
         Cases.initEvents();
         Cases.openCreateDialog();
     }""")
+    expect(page.locator("[data-act='case-type'][data-type='reform']")).to_be_disabled()
     page.locator("#ogcCaseName").fill("Alternative baseline")
     page.locator("#ogcCaseDesc").fill("A second policy starting point")
     page.locator("[data-act='create-confirm']").click()

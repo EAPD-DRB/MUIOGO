@@ -146,7 +146,7 @@ export default class OGCases {
         OGCases.renderCases(entries);
         //a case needs an installed calibration to be created at all
         let installed = !!model.records[OGCases.workspace.country_id];
-        $('[data-act="create-baseline"]').prop('disabled', !installed);
+        $('[data-act="create-case"]').prop('disabled', !installed);
         if (!installed){
             $('#ogcCasesNote').show();
         }else{
@@ -306,18 +306,29 @@ export default class OGCases {
 
     static openCreateDialog(type = 'baseline', preferredCase, preferredRun){
         let reform = type == 'reform';
-        let baseline = reform ? OGCases.baselineChoices().find(choice =>
+        let choices = OGCases.baselineChoices();
+        let baseline = reform ? choices.find(choice =>
             choice.casename == preferredCase && choice.run_name == preferredRun
         ) : null;
         if (reform && !baseline){
             Message.warning('This baseline is no longer available. Refresh the cases and try again.');
             return;
         }
-        OGCases.creationBaseline = baseline;
+        OGCases.creationBaselines = choices;
+        let options = choices.map((choice, index) =>
+            `<option value="${index}"${choice === baseline ? ' selected' : ''}>${esc(choice.label)}</option>`
+        ).join('');
         let body = `
             <div class="ogc-formrow">
-                <label>Based on</label>
-                <p id="ogcCaseBaseline">${reform ? esc(baseline.label) : 'Calibration defaults'}</p>
+                <label>Type</label>
+                <div class="ogc-view-switch" role="group" aria-label="Case type">
+                    <button class="btn ogc-btn" data-act="case-type" data-type="baseline">Baseline</button>
+                    <button class="btn ogc-btn" data-act="case-type" data-type="reform"${choices.length ? '' : ' disabled title="Create a baseline before adding a reform"'}>Reform</button>
+                </div>
+            </div>
+            <div class="ogc-formrow" id="ogcCaseBaseWrap">
+                <label for="ogcCaseBaseline">Based on</label>
+                <select id="ogcCaseBaseline" class="ogc-select">${options}</select>
             </div>
             <div class="ogc-formrow">
                 <label for="ogcCaseName">Name</label>
@@ -331,14 +342,29 @@ export default class OGCases {
             <div id="ogcCaseErr"></div>`;
         let foot = `<button class="btn ogc-btn ogc-btn-line" data-act="close">Cancel</button>
                     <button class="btn ogc-btn ogc-btn-main" data-act="create-confirm">Create and edit</button>`;
-        let title = reform ? 'Add reform to ' + esc(baseline.label) : 'Create baseline';
-        OGCases.openModal(`<i class="fa fa-plus"></i> ${title}`, body, foot, '');
-        $('#ogcCasesModal').attr('data-type', type);
-        $('#ogcCaseName').val(reform ? 'New reform' : OGCases.nextBaselineName());
+        OGCases.openModal('<i class="fa fa-plus"></i> Create case', body, foot, '');
+        $('#ogcCasesModal').attr('data-baseline-name', OGCases.nextBaselineName()).attr('data-reform-name', 'New reform');
+        OGCases.setCreationType(type);
+    }
+
+    static setCreationType(type){
+        if (type == 'reform' && !OGCases.creationBaselines.length) return;
+        let modal = $('#ogcCasesModal');
+        let previous = modal.attr('data-type');
+        if (previous) modal.attr('data-' + previous + '-name', $('#ogcCaseName').val());
+        modal.attr('data-type', type);
+        let reform = type == 'reform';
+        $('#ogcCasesModal [data-act="case-type"]').each(function () {
+            let selected = $(this).attr('data-type') == type;
+            $(this).toggleClass('ogc-btn-main', selected).attr('aria-pressed', selected ? 'true' : 'false');
+        });
+        $('#ogcCaseBaseWrap').toggle(reform);
+        $('#ogcCaseName').val(modal.attr('data-' + type + '-name'));
         $('#ogcCaseDesc').attr('placeholder', reform ? 'What does this reform change?' : 'What is this baseline for?');
         $('#ogcCaseNote').html(reform
             ? `<i class="fa fa-info-circle"></i> The reform inherits this baseline's values and is compared against it.`
             : '<i class="fa fa-info-circle"></i> Starts from the calibration defaults.');
+        $('#ogcCaseErr').empty();
         $('#ogcCaseName').focus().select();
     }
 
@@ -379,9 +405,9 @@ export default class OGCases {
                 baseline_run: null, country_id: countryId, display_name: name
             };
         }else{
-            let choice = OGCases.creationBaseline;
+            let choice = OGCases.creationBaselines[Number($('#ogcCaseBaseline').val())];
             if (!choice){
-                $('#ogcCaseErr').html('<div class="ogc-checknote ogc-checknote-warn">Close this dialog and choose a baseline to add a reform.</div>');
+                $('#ogcCaseErr').html('<div class="ogc-checknote ogc-checknote-warn">Choose the baseline this reform is built on.</div>');
                 return;
             }
             let parent = OGCases.findCase(choice.casename);
@@ -619,7 +645,7 @@ export default class OGCases {
                 return;
             }
             OGCases.closeActionMenus(false);
-            if (act == 'create-baseline') OGCases.openCreateDialog();
+            if (act == 'create-case') OGCases.openCreateDialog();
             if (act == 'add-reform') OGCases.openCreateDialog('reform', casename, runName);
             if (act == 'retry-baseline') OGCases.retryBaseline(casename);
             if (act == 'run') OGCases.openRun(casename, runName);
@@ -650,6 +676,7 @@ export default class OGCases {
             let casename = $('#ogcCasesModal').attr('data-case');
             let runName = $('#ogcCasesModal').attr('data-run');
             if (act == 'close') OGCases.closeModal();
+            if (act == 'case-type') OGCases.setCreationType($(this).attr('data-type'));
             if (act == 'create-confirm') OGCases.createConfirm();
             if (act == 'del-case-confirm') OGCases.deleteCaseConfirm(casename);
             if (act == 'del-run-confirm') OGCases.deleteRunConfirm(casename, runName);
