@@ -732,13 +732,13 @@ def test_create_baseline_dialog_has_one_clear_entry_point(page, base_url):
         Cases.initEvents();
     }""")
 
-    expect(page.locator("[data-act='new-case']")).to_have_count(1)
-    page.locator("[data-act='new-case']").click()
+    expect(page.locator("[data-act='create-baseline']")).to_have_count(1)
+    page.locator("[data-act='create-baseline']").click()
     expect(page.locator("#ogcCasesModalHead")).to_have_text("Create baseline")
     expect(page.locator("[data-act='case-type']")).to_have_count(0)
     expect(page.locator("#ogcCaseName")).to_have_value("Baseline 2")
     expect(page.locator("#ogcCaseBaseline")).to_have_text("Calibration defaults")
-    expect(page.locator("[data-act='new-case-confirm']")).to_have_text("Create and edit")
+    expect(page.locator("[data-act='create-confirm']")).to_have_text("Create and edit")
 
 
 def test_baseline_row_exposes_add_reform_in_both_views(page, base_url):
@@ -778,8 +778,8 @@ def test_baseline_row_exposes_add_reform_in_both_views(page, base_url):
         page.keyboard.press("Space")
         expect(view_button).to_have_attribute("aria-pressed", "true")
         expect(page.locator(".ogc-case-split")).to_have_count(1 if layout == "separate" else 0)
-        expect(page.locator("[data-act='new-run']")).to_have_count(1)
-        page.locator("[data-act='new-run']").click()
+        expect(page.locator("[data-act='add-reform']")).to_have_count(1)
+        page.locator("[data-act='add-reform']").click()
         expect(page.locator("#ogcCasesModalHead")).to_have_text("Add reform to Policy baseline")
         expect(page.locator("[data-act='case-type']")).to_have_count(0)
         expect(page.locator("#ogcCaseName")).to_have_value("New reform")
@@ -795,6 +795,16 @@ def test_baseline_row_exposes_add_reform_in_both_views(page, base_url):
     expect(reform_actions).to_be_visible()
     expect(reform_actions.get_by_text("Delete reform", exact=True)).to_be_visible()
     expect(reform_actions.get_by_text("Add reform", exact=True)).to_have_count(0)
+    reform_actions.get_by_text("Delete reform", exact=True).click()
+    expect(page.locator("#ogcCasesModalBody")).to_contain_text("Delete the reform Tax reform and its results?")
+    expect(page.locator("[data-act='del-run-confirm']")).to_have_text("Delete reform")
+    page.locator("[data-act='close']").click()
+
+    page.locator("[data-act='run-menu'][data-run='baseline']").click()
+    page.get_by_role("menuitem", name="Delete baseline").click()
+    expect(page.locator("#ogcCasesModalBody")).to_contain_text("Delete the baseline Policy baseline and its results?")
+    expect(page.locator("#ogcCasesModalBody")).to_contain_text("This also deletes 1 reform and all of their results.")
+    expect(page.locator("[data-act='del-run-confirm']")).to_have_text("Delete baseline")
 
 
 def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url):
@@ -824,10 +834,10 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
         Cases.initEvents();
         Cases.renderCases(Cases.entries(Cases.model));
     }""")
-    page.locator("[data-act='new-run']").click()
+    page.locator("[data-act='add-reform']").click()
     page.locator("#ogcCaseName").fill("Corporate tax cut")
     page.locator("#ogcCaseDesc").fill("Reduce the corporate income tax rate")
-    page.locator("[data-act='new-case-confirm']").click()
+    page.locator("[data-act='create-confirm']").click()
     page.wait_for_url("**/#/OGParameters")
 
     result = page.evaluate("""({
@@ -877,11 +887,11 @@ def test_create_baseline_creates_its_container_and_opens_parameters(page, base_u
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.openNewCase();
+        Cases.openCreateDialog();
     }""")
     page.locator("#ogcCaseName").fill("Alternative baseline")
     page.locator("#ogcCaseDesc").fill("A second policy starting point")
-    page.locator("[data-act='new-case-confirm']").click()
+    page.locator("[data-act='create-confirm']").click()
     page.wait_for_url("**/#/OGParameters")
 
     result = page.evaluate("""({
@@ -940,10 +950,10 @@ def test_failed_baseline_run_creation_rolls_back_the_case(page, base_url):
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.openNewCase();
+        Cases.openCreateDialog();
     }""")
     page.locator("#ogcCaseName").fill("Incomplete baseline")
-    page.locator("[data-act='new-case-confirm']").click()
+    page.locator("[data-act='create-confirm']").click()
     expect(page.locator("#ogcCaseErr")).to_contain_text("run creation failed")
     assert page.evaluate("window.__rollbackCalls") == [['ETH', 'Incomplete baseline']]
 
@@ -964,7 +974,7 @@ def test_runless_case_is_visible_and_recoverable(page, base_url):
     assert result['count'] == 1
     assert 'Incomplete baseline' in result['html']
     assert 'Retry setup' in result['html']
-    assert 'Delete case' in result['html']
+    assert 'Delete baseline' in result['html']
 
 
 def test_run_queue_orders_dependencies_and_marks_cache(page, base_url):
