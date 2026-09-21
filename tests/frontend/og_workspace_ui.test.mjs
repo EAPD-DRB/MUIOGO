@@ -73,11 +73,13 @@ test('frequent controls appear once and open, while remaining groups stay reacha
 test('case action markup retains actions with the orange primary style', () => {
     OGCases.workspace = { country_id: 'ETH', country_name: 'Ethiopia' };
     OGCases.model = { records: { ETH: {} } };
-    const html = OGCases.defaultRow() + OGCases.entryRows({
+    assert.doesNotMatch(OGCases.defaultRow(), /<button/);
+    const html = OGCases.entryRows({
         case: { country_id: 'ETH', casename: 'Test' },
         run: { run_name: 'baseline', run_type: 'baseline' }
     });
-    for (const action of ['new-case', 'run', 'params', 'run-menu']) {
+    assert.match(html, /data-act="add-reform" data-case="Test" data-run="baseline"/);
+    for (const action of ['run', 'params', 'run-menu']) {
         assert.match(html, new RegExp('<button class="[^"]*ogc-btn-main[^"]*" data-act="' + action + '"'));
     }
 });
