@@ -1,7 +1,8 @@
 import { Ogc } from "../../Classes/Ogc.Class.js";
 import { dimensions, rank } from "../../Classes/Array.Class.js";
 import { escapeHtml as esc } from "../../Classes/Html.Class.js";
-import { loadWorkspace } from "./OGCases.js";
+import OGCases, { loadWorkspace } from "./OGCases.js";
+import { STANDARD_CHARTS, buildStandardChart, resultRun, hasProfileWeights, hasPopulationWeights, timeSeriesRuns, addConsumptionPath } from "../Model/OGStandardCharts.js";
 
 const ECHARTS_URL = 'References/echarts/echarts-6.1.0.min.js';
 const VIEW_KEY = 'osy-ogc-result-view';
@@ -75,6 +76,22 @@ function info(name){
     return { label: humanize(name), category: category };
 }
 
+function scalarValue(value){
+    while (Array.isArray(value) && value.length == 1) value = value[0];
+    return value;
+}
+
+function scalarNumber(value){
+    value = scalarValue(value);
+    return typeof value == 'number' && Number.isFinite(value) ? value : null;
+}
+
+function tableNumber(value){
+    if (value === null || value === undefined || typeof value == 'boolean' || String(value).trim() === '') return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+}
+
 function firstNumber(value){
     if (typeof value == 'number' && isFinite(value)) return value;
     if ($.isArray(value)){
@@ -108,8 +125,8 @@ function validWeights(value, count){
     if (!weights || !weights.length || (count && weights.length != count)) return null;
     let total = 0;
     for (let index = 0; index < weights.length; index++){
-        let weight = Number(weights[index]);
-        if (!isFinite(weight) || weight < 0) return null;
+        let weight = scalarNumber(weights[index]);
+        if (weight === null || weight < 0) return null;
         total += weight;
     }
     return Math.abs(total - 1) < 0.001 ? weights : null;
@@ -137,7 +154,7 @@ function ageGroupMatrix(value){
 
 function shape(value){
     let dims = dimensions(value);
-    if (!dims.length || (dims.length == 1 && dims[0] == 1)) return { kind: 'scalar', dims: [] };
+    if (!Array.isArray(scalarValue(value))) return { kind: 'scalar', dims: [] };
     let matrix = ageGroupMatrix(value);
     if (matrix && OGResults.ages && matrix.length == OGResults.ages.length){
         return { kind: 'age_group', dims: [matrix.length, matrix[0].length] };
@@ -145,6 +162,17 @@ function shape(value){
     if (dims.length == 1 && OGResults.groups && dims[0] == OGResults.groups.length) return { kind: 'group', dims: dims };
     if (dims.length == 1) return { kind: 'vector', dims: dims };
     return { kind: 'matrix', dims: dims };
+}
+
+function outputShape(name){
+    const base = OGResults.base[name], reform = OGResults.reform[name];
+    const spec = shape(base);
+    const meta = info(name);
+    if (meta.category != 'Model diagnostics' && !Array.isArray(scalarValue(base))
+        && !Array.isArray(scalarValue(reform)) && spec.kind == 'scalar') return spec;
+    if (meta.category == 'Households' && OGResults.householdsCompatible !== false && spec.kind == 'age_group'
+        && compatibleMatrices(ageGroupMatrix(base), ageGroupMatrix(reform))) return spec;
+    return {kind:'matrix', dims:dimensions(base)};
 }
 
 function pct(base, reform){
@@ -347,24 +375,28 @@ export default class OGResults {
         $(document).off('.ogresults');
         OGResults.workspace = loadWorkspace();
         OGResults.items = [];
+        OGResults.baselines = [];
         OGResults.tableCache = Object.create(null);
         OGResults.tables = Object.create(null);
         OGResults.activeTable = null;
         OGResults.charts = {};
         OGResults.requestID = 0;
         OGResults.tableRequestID = 0;
+        OGResults.standardRequestID = 0;
+        OGResults.standardData = {};
         if (!OGResults.workspace || !OGResults.workspace.country_id){
             window.location.hash = '#/OGCore';
             return;
         }
         OGResults.initEvents();
+        const pageID = OGResults.pageID;
         Promise.all([OGResults.loadECharts(), Ogc.getCases(OGResults.workspace.country_id)])
-            .then(values => OGResults.prepareCases(values[1]))
-            .catch(error => OGResults.showEmpty('Unable to load results', String(error)));
+            .then(values => { if (OGResults.isCurrent(pageID)) return OGResults.prepareCases(values[1], pageID); })
+            .catch(error => { if (OGResults.isCurrent(pageID)) OGResults.showEmpty('Unable to load results', String(error)); });
     }
 
-    static isCurrent(){
-        return OGResults.pageID == PAGE_ID && localStorage.getItem('osy-pageId') == 'OGResults' && routePath() == '/OGResults';
+    static isCurrent(pageID = OGResults.pageID){
+        return pageID == OGResults.pageID && pageID == PAGE_ID && localStorage.getItem('osy-pageId') == 'OGResults' && routePath() == '/OGResults';
     }
 
     static loadECharts(){
@@ -388,7 +420,7 @@ export default class OGResults {
         return OGResults.echartsPromise;
     }
 
-    static prepareCases(response){
+    static prepareCases(response, pageID = OGResults.pageID){
         let cases = $.isArray(response) ? response : (response.cases || []);
         cases = $.grep(cases, item => item.country_id == OGResults.workspace.country_id);
         if (!cases.length){
@@ -402,40 +434,36 @@ export default class OGResults {
         return Promise.all($.map(cases, item => Ogc.getRuns(OGResults.workspace.country_id, item.casename)
             .then(result => ({ case: item, runs: result.runs || [] }))
             .catch(() => ({ case: item, runs: [] })))).then(items => {
-                if (!OGResults.isCurrent()) return;
+                if (!OGResults.isCurrent(pageID)) return;
                 OGResults.items = items;
-                let viable = $.grep(items, item => {
-                    let complete = $.grep(item.runs, run => run.status == 'completed');
-                    let bases = $.grep(complete, run => run.run_type == 'baseline');
-                    return $.grep(bases, base => OGResults.compatibleReforms(item, base.run_name).length).length;
-                });
-                if (!viable.length){
-                    OGResults.showEmpty(
-                        'No completed comparison',
-                        'Complete a baseline and reform run.',
-                        { href: '#/OGRuns', label: 'Go to Run' }
-                    );
+                OGResults.baselines = items.flatMap(item => item.runs
+                    .filter(run => run.status == 'completed' && run.run_type == 'baseline'
+                        && OGResults.compatibleReforms(item, run.run_name).length)
+                    .map(run => ({item, run})));
+                if (!OGResults.baselines.length){
+                    OGResults.showEmpty('No completed comparison', 'Complete a baseline and reform run.',
+                        { href: '#/OGRuns', label: 'Go to Run' });
                     return;
                 }
-                $('#ogcResultCase').html($.map(viable, item => `<option value="${esc(item.case.casename)}">${esc(item.case.casename)}</option>`).join(''));
+                $('#ogcResultBaseline').html(OGResults.baselines.map(({item, run}, index) =>
+                    `<option value="${index}">${esc(OGCases.displayName(item.case, run))}</option>`).join(''));
                 let saved = OGResults.readSaved();
-                if (saved && saved.country_id == OGResults.workspace.country_id && viable.some(item => item.case.casename == saved.casename)){
-                    $('#ogcResultCase').val(saved.casename);
+                if (saved && saved.country_id == OGResults.workspace.country_id){
+                    const index = OGResults.baselines.findIndex(({item, run}) =>
+                        item.case.casename == saved.casename && run.run_name == saved.base);
+                    if (index >= 0) $('#ogcResultBaseline').val(index);
                 }
                 OGResults.renderReformOptions(saved);
             });
     }
 
     static currentItem(){
-        let name = $('#ogcResultCase').val();
-        return $.grep(OGResults.items, item => item.case.casename == name)[0] || null;
+        return OGResults.baselines[$('#ogcResultBaseline').val()]?.item || null;
     }
 
     static currentBaseline(item){
-        if (!item) return null;
-        let complete = $.grep(item.runs, run => run.status == 'completed');
-        let bases = $.grep(complete, run => run.run_type == 'baseline' && OGResults.compatibleReforms(item, run.run_name).length);
-        return bases[0] || null;
+        const selected = OGResults.baselines[$('#ogcResultBaseline').val()];
+        return selected?.item === item ? selected.run : null;
     }
 
     static compatibleReforms(item, baseName){
@@ -449,16 +477,28 @@ export default class OGResults {
         let item = OGResults.currentItem();
         let baseline = OGResults.currentBaseline(item);
         let baseName = baseline && baseline.run_name;
-        $('#ogcResultBaselineName').text(baseName ? `Baseline: ${baseName}` : '');
         let reforms = item ? OGResults.compatibleReforms(item, baseName) : [];
         $('#ogcResultReform').html($.map(reforms, run => `<option value="${esc(run.run_name)}">${esc(run.run_name)}</option>`).join(''));
         if (saved && saved.country_id == OGResults.workspace.country_id && saved.casename == (item && item.case.casename) && saved.base == baseName && $.grep(reforms, run => run.run_name == saved.reform).length){
             $('#ogcResultReform').val(saved.reform);
         }
+        OGResults.renderSelectionContext();
         OGResults.loadComparison();
     }
 
+    static renderSelectionContext(){
+        for (const field of ['Baseline', 'Reform']){
+            const select = $('#ogcResult' + field);
+            const single = select.find('option').length == 1;
+            select.toggle(!single);
+            $('#ogcResult' + field + 'Name').text(select.find('option:selected').text()).toggle(single);
+        }
+    }
+
     static loadComparison(){
+        OGResults.renderSelectionContext();
+        OGResults.standardRequestID++;
+        OGResults.standardData = {};
         let item = OGResults.currentItem();
         let casename = item && item.case.casename;
         let baseline = OGResults.currentBaseline(item);
@@ -481,20 +521,22 @@ export default class OGResults {
         $('#ogcResultTable').empty();
         $('#ogcTableStatus').text('Loading table…').show();
         let requestedAt = ++OGResults.requestID;
+        const pageID = OGResults.pageID;
         Promise.all([
             Ogc.getSSVars(OGResults.workspace.country_id, casename, baseRun),
             Ogc.getSSVars(OGResults.workspace.country_id, casename, reformRun),
-            Ogc.getParams(OGResults.workspace.country_id, casename, baseRun).catch(() => ({params:{}})),
-            Ogc.getParams(OGResults.workspace.country_id, casename, reformRun).catch(() => ({params:{}})),
+            Ogc.getParams(OGResults.workspace.country_id, casename, baseRun).catch(() => ({params:{}, unavailable:true})),
+            Ogc.getParams(OGResults.workspace.country_id, casename, reformRun).catch(() => ({params:{}, unavailable:true})),
             Ogc.getParameterSchema(OGResults.workspace.country_id, casename)
                 .then(schema => ({ schema: schema || {}, unavailable: false }))
                 .catch(() => ({ schema: {}, unavailable: true }))
         ]).then(values => {
-            if (!OGResults.isCurrent() || requestedAt != OGResults.requestID) return;
+            if (!OGResults.isCurrent(pageID) || requestedAt != OGResults.requestID) return;
             OGResults.base = values[0];
             OGResults.reform = values[1];
             OGResults.baseParams = values[2].params || {};
             OGResults.reformParams = values[3].params || {};
+            OGResults.paramsUnavailable = !!(values[2].unavailable || values[3].unavailable);
             OGResults.schema = values[4].schema;
             OGResults.schemaUnavailable = values[4].unavailable;
             OGResults.selection = { casename: casename, base: baseRun, reform: reformRun };
@@ -508,12 +550,13 @@ export default class OGResults {
                 OGResults.loadTable($('.ogc-table-pills button.active').data('table') || 'macro');
             }
         }).catch(error => {
-            if (!OGResults.isCurrent() || requestedAt != OGResults.requestID) return;
+            if (!OGResults.isCurrent(pageID) || requestedAt != OGResults.requestID) return;
             OGResults.showEmpty('Unable to load selected results', String(error));
         });
     }
 
     static loadInequalitySummary(comparisonRequestID){
+        const pageID = OGResults.pageID;
         if (Object.prototype.hasOwnProperty.call(OGResults.tables, 'ineq')){
             OGResults.renderInequality();
             return;
@@ -521,7 +564,7 @@ export default class OGResults {
         let selectionKey = JSON.stringify(OGResults.selection);
         let s = OGResults.selection;
         Ogc.getIneqTable(OGResults.workspace.country_id, s.casename, s.base, s.reform).then(rows => {
-            if (!OGResults.isCurrent() || comparisonRequestID != OGResults.requestID || selectionKey != JSON.stringify(OGResults.selection)) return;
+            if (!OGResults.isCurrent(pageID) || comparisonRequestID != OGResults.requestID || selectionKey != JSON.stringify(OGResults.selection)) return;
             OGResults.tables.ineq = rows || [];
             OGResults.renderInequality();
         }).catch(() => {});
@@ -537,10 +580,19 @@ export default class OGResults {
         let groupCount = sourceMatrix && sourceMatrix[0].length;
         let runLambdas = validWeights(baseParams.lambdas, groupCount);
         let schemaLambdas = validWeights(schema.lambdas && schema.lambdas.default, groupCount);
-        let lambdas = runLambdas || schemaLambdas;
+        let lambdas = OGResults.paramsUnavailable ? null : (runLambdas || schemaLambdas);
         if (!groupCount && lambdas) groupCount = lambdas.length;
         groupCount = groupCount || 0;
         let notes = [];
+        const effective = (params, name) => name in params ? params[name] : schema[name]?.default;
+        OGResults.householdsCompatible = !OGResults.paramsUnavailable &&
+            ['starting_age', 'ending_age', 'S', 'J', 'lambdas'].every(name =>
+                parameterEqual(effective(baseParams, name), effective(OGResults.reformParams || {}, name)));
+        for (const [name, count] of [['S', sourceMatrix?.length], ['J', groupCount]]){
+            const expected = scalarNumber(effective(baseParams, name));
+            if (expected !== null && count && expected != count) OGResults.householdsCompatible = false;
+        }
+        if (!OGResults.householdsCompatible) notes.push('Household charts require matching age and income-group definitions. Individual outputs remain available as indexed tables.');
         if (lambdas){
             let cumulative = 0;
             OGResults.groups = $.map(lambdas, (weight, index) => {
@@ -557,10 +609,12 @@ export default class OGResults {
         }
         let runStartAge = firstNumber(baseParams.starting_age);
         let schemaStartAge = firstNumber(schema.starting_age && schema.starting_age.default);
-        let startAge = runStartAge === null ? schemaStartAge : runStartAge;
+        let startAge = OGResults.paramsUnavailable ? null : (runStartAge === null ? schemaStartAge : runStartAge);
+        OGResults.ageLabel = startAge === null ? 'Model age index' : 'Age';
         let matrix = sourceMatrix || [];
-        OGResults.ages = $.map(matrix, (_, index) => startAge === null ? index + 1 : startAge + index + 1);
+        OGResults.ages = $.map(matrix, (_, index) => startAge === null ? index + 1 : startAge + index);
         if (matrix.length && startAge === null) notes.push('Starting-age metadata is unavailable, so model age indices are shown.');
+        if (OGResults.paramsUnavailable) notes.unshift('Run parameters could not be loaded.');
         if (OGResults.schemaUnavailable) notes.unshift('Parameter metadata could not be loaded.');
         $('#ogcDimensionNote').text(notes.join(' ')).prop('hidden', !notes.length);
     }
@@ -605,6 +659,10 @@ export default class OGResults {
     }
 
     static renderPolicy(){
+        if (OGResults.paramsUnavailable || OGResults.schemaUnavailable){
+            $('#ogcPolicyChange').html('<span class="ogc-mut">Parameter changes are unavailable because run parameters or calibration defaults could not be loaded.</span>');
+            return;
+        }
         let names = Object.create(null);
         $.each(OGResults.baseParams, name => { names[name] = true; });
         $.each(OGResults.reformParams, name => { names[name] = true; });
@@ -625,6 +683,8 @@ export default class OGResults {
             return;
         }
         let itemHtml = item => {
+            item.base = scalarValue(item.base);
+            item.reform = scalarValue(item.reform);
             let scalar = value => value !== null && value !== undefined && typeof value != 'object';
             let values = scalar(item.base) && scalar(item.reform)
                 ? `<span>Baseline: ${esc(String(item.base))} → Reform: ${esc(String(item.reform))}</span>` : '';
@@ -645,7 +705,7 @@ export default class OGResults {
             ['total_tax_revenue', 'Tax revenue', '%'], ['r', 'Real interest rate', 'pp']
         ];
         $('#ogcResultKpis').html($.map(specs, spec => {
-            let b = firstNumber(OGResults.base[spec[0]]), r = firstNumber(OGResults.reform[spec[0]]);
+            let b = scalarNumber(OGResults.base[spec[0]]), r = scalarNumber(OGResults.reform[spec[0]]);
             let delta = diff(b, r);
             let change = spec[2] == 'pp' ? (delta === null ? null : delta * 100) : pct(b, r);
             let baseline = spec[2] == 'pp' ? level(spec[0], b) : b;
@@ -665,11 +725,11 @@ export default class OGResults {
         let metrics = $.map(specs, spec => {
             let row = $.grep(rows, item => item['Inequality Measure'] == spec[0])[0];
             if (!row) return null;
-            let baseline = Number(row.Baseline), reform = Number(row.Reform);
+            let baseline = tableNumber(row.Baseline), reform = tableNumber(row.Reform);
             let delta = diff(baseline, reform);
             let change = spec[2] == 'pp' && delta !== null ? delta * 100 : delta;
-            let baselineLabel = spec[2] == 'pp' ? `${fmt(baseline * 100)}%` : fmt(baseline);
-            let reformLabel = spec[2] == 'pp' ? `${fmt(reform * 100)}%` : fmt(reform);
+            let baselineLabel = spec[2] == 'pp' && baseline !== null ? `${fmt(baseline * 100)}%` : fmt(baseline);
+            let reformLabel = spec[2] == 'pp' && reform !== null ? `${fmt(reform * 100)}%` : fmt(reform);
             return `<div class="ogc-inequality-metric"><span>${esc(spec[1])}</span><strong>${esc(signed(change, spec[2] == 'pp' ? ' percentage points' : ''))}</strong><small>${esc(baselineLabel)} → ${esc(reformLabel)}</small></div>`;
         });
         $('#ogcInequalityMetrics').html(metrics.join(''));
@@ -681,7 +741,7 @@ export default class OGResults {
         let labels = [], values = [];
         $.each(specs, (_, spec) => {
             labels.push(spec[1]);
-            values.push(pct(firstNumber(OGResults.base[spec[0]]), firstNumber(OGResults.reform[spec[0]])));
+            values.push(pct(scalarNumber(OGResults.base[spec[0]]), scalarNumber(OGResults.reform[spec[0]])));
         });
         OGResults.setChart('ogcMacroChart', comparisonBar(labels, values, 'Percent change in macroeconomic outcomes from the selected baseline to reform.'));
     }
@@ -689,12 +749,13 @@ export default class OGResults {
     static renderFiscal(){
         let rows = $.map(FISCAL_VARS, name => ({
             label: info(name).label,
-            value: pct(firstNumber(OGResults.base[name]), firstNumber(OGResults.reform[name]))
+            value: pct(scalarNumber(OGResults.base[name]), scalarNumber(OGResults.reform[name]))
         })).filter(row => row.value !== null);
         OGResults.setChart('ogcFiscalChart', comparisonBar($.map(rows, r => r.label), $.map(rows, r => r.value), 'Ranked percent changes in fiscal outcomes from baseline to reform.'));
     }
 
     static matrixTransform(name, measure){
+        if (OGResults.householdsCompatible === false) return null;
         let base = ageGroupMatrix(OGResults.base[name]);
         let reform = ageGroupMatrix(OGResults.reform[name]);
         if (!compatibleMatrices(base, reform)) return null;
@@ -719,9 +780,9 @@ export default class OGResults {
             grid: { left: 58, right: 26, top: 12, bottom: 68, containLabel: true },
             tooltip: {
                 position: 'top', trigger: 'item',
-                formatter: p => `<b>Age ${esc(OGResults.ages[p.value[0]] || p.value[0] + 1)}</b><br>${esc(OGResults.groups[p.value[1]] || 'Group ' + (p.value[1] + 1))}<br><b>${esc(signed(p.value[2], unit))}</b>`
+                formatter: p => `<b>${esc(OGResults.ageLabel || 'Age')} ${esc(OGResults.ages[p.value[0]] || p.value[0] + 1)}</b><br>${esc(OGResults.groups[p.value[1]] || 'Group ' + (p.value[1] + 1))}<br><b>${esc(signed(p.value[2], unit))}</b>`
             },
-            xAxis: { type: 'category', data: OGResults.ages, name: 'Age', nameLocation: 'middle', nameGap: 28, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ccd0d8' } }, axisLabel: { color: MUTED, interval: 9 } },
+            xAxis: { type: 'category', data: OGResults.ages, name: OGResults.ageLabel || 'Age', nameLocation: 'middle', nameGap: 28, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ccd0d8' } }, axisLabel: { color: MUTED, interval: 9 } },
             yAxis: { type: 'category', data: OGResults.groups, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: SLATE } },
             visualMap: { min: -bound, max: bound, calculable: false, orient: 'horizontal', left: 'center', bottom: 3, precision: 2, text: ['Higher than baseline', 'Lower than baseline'], textStyle: { color: MUTED }, inRange: { color: ['#39769f', '#d9e4ea', '#f7f7f5', '#f9d8b8', '#d9680b'] } },
             series: [{ type: 'heatmap', data: values, progressive: 1000, emphasis: { itemStyle: { borderColor: SLATE, borderWidth: 1 } }, itemStyle: { borderColor: '#fff', borderWidth: 0.35 } }]
@@ -730,7 +791,7 @@ export default class OGResults {
     }
 
     static availableProfiles(names){
-        return names.filter(name => shape(OGResults.base[name]).kind == 'age_group' &&
+        return names.filter(name => outputShape(name).kind == 'age_group' &&
             compatibleMatrices(ageGroupMatrix(OGResults.base[name]), ageGroupMatrix(OGResults.reform[name])));
     }
 
@@ -755,12 +816,12 @@ export default class OGResults {
         chart.off('click');
         chart.on('click', params => {
             if (!params.value) return;
-            OGResults.openTab('explore');
+            $('#ogcExplorePreset').val('individual');
             $('#ogcExploreVariable').val(name);
             OGResults.refreshExploreMeasures(measure);
             $('#ogcExploreGroup').val(params.value[1]);
             OGResults.refreshExploreViews('profile');
-            OGResults.renderExplore();
+            OGResults.openTab('explore');
         });
     }
 
@@ -795,7 +856,7 @@ export default class OGResults {
             legend: { data: legendItems, top: 0, right: 10, icon: measure == 'levels' ? 'roundRect' : 'line', itemWidth: 16, itemHeight: 8, textStyle: { color: MUTED } },
             grid: { left: 28, right: 28, top: 40, bottom: 40, containLabel: true },
             tooltip: { trigger: 'axis', valueFormatter: v => fmt(v) + measureSuffix(name, measure) },
-            xAxis: { type: 'category', data: OGResults.ages, name: 'Age', nameLocation: 'middle', nameGap: 28, boundaryGap: false, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ccd0d8' } }, axisLabel: { color: MUTED, interval: 9 } },
+            xAxis: { type: 'category', data: OGResults.ages, name: OGResults.ageLabel || 'Age', nameLocation: 'middle', nameGap: 28, boundaryGap: false, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ccd0d8' } }, axisLabel: { color: MUTED, interval: 9 } },
             yAxis: { type: 'value', name: measureLabel(name, measure), nameTextStyle: { color: MUTED }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: GRID } }, axisLabel: { color: MUTED, formatter: value => axisLabel(value) + measureSuffix(name, measure) } },
             series: series
         });
@@ -840,13 +901,177 @@ export default class OGResults {
         }
         OGResults.refreshExploreMeasures(saved && saved.measure);
         OGResults.refreshExploreViews(saved && saved.view);
+        OGResults.renderStandardControls(saved);
+    }
+
+    static hasTransitionResults(){
+        let item = OGResults.currentItem();
+        let selection = OGResults.selection || {};
+        return !item || !item.runs.some(run =>
+            (run.run_name == selection.base || run.run_name == selection.reform) && run.time_path === false);
+    }
+
+    static renderStandardControls(saved){
+        let preferred = $('#ogcExplorePreset').val() || (saved && saved.preset) || 'individual';
+        let transition = OGResults.hasTransitionResults();
+        const runs = OGResults.standardRuns();
+        const population = hasPopulationWeights(runs.baseline, runs.reform);
+        const overall = hasProfileWeights(runs.baseline) && hasProfileWeights(runs.reform);
+        let families = {aggregate: 'Transition paths', ability: 'Changes by income group', lifecycle: 'Lifecycle profiles'};
+        let html = '<option value="individual">Individual output</option>';
+        Object.keys(families).forEach(family => {
+            const presets = STANDARD_CHARTS.filter(preset => preset.family == family
+                && (preset.requires != 'transition' || transition) && (family != 'ability' || population));
+            if (!presets.length) return;
+            html += `<optgroup label="${esc(families[family])}">`;
+            presets.forEach(preset => {
+                html += `<option value="${esc(preset.id)}">${esc(preset.title)}</option>`;
+            });
+            html += '</optgroup>';
+        });
+        $('#ogcExplorePreset').html(html);
+        let preset = STANDARD_CHARTS.find(item => item.id == preferred);
+        $('#ogcExplorePreset').val(preset && (transition || preset.requires != 'transition') && (preset.family != 'ability' || population) ? preferred : 'individual');
+        if (saved && ['aggregate', 'baseline', 'reform', 'both'].includes(saved.profileMode)){
+            $('#ogcStandardProfileMode').val(saved.profileMode);
+        }
+        const mode = $('#ogcStandardProfileMode').val();
+        const modes = [['aggregate','Both scenarios · overall average'], ['baseline','Baseline · by income group'],
+            ['reform','Reform · by income group'], ['both','Both scenarios · by income group']];
+        $('#ogcStandardProfileMode').html(modes.filter(([value]) => overall || value != 'aggregate')
+            .map(([value,label]) => `<option value="${value}">${label}</option>`).join(''));
+        $('#ogcStandardProfileMode').val(mode && (overall || mode != 'aggregate') ? mode : 'both');
+
+    }
+
+    static standardOption(spec){
+        let colors = [SLATE, ORANGE, BLUE, '#548b68', '#9369a8', '#bf7654', '#678f9d'];
+        return $.extend(true, chartBase(spec.title), {
+            color: colors,
+            legend: {type: 'scroll', top: 0, left: 20, right: 20, textStyle: {color: SLATE}},
+            grid: {left: 28, right: 28, top: 58, bottom: 54, containLabel: true},
+            tooltip: {valueFormatter: value => value === null ? 'Unavailable' : fmt(value)},
+            xAxis: {
+                type: 'category', data: spec.labels, name: spec.xLabel,
+                nameLocation: 'middle', nameGap: 32, boundaryGap: spec.kind == 'bar',
+                axisTick: {show: false}, axisLine: {lineStyle: {color: '#ccd0d8'}},
+                axisLabel: {color: MUTED}
+            },
+            yAxis: {
+                type: 'value', name: spec.unit, nameTextStyle: {color: MUTED},
+                axisLine: {show: false}, axisTick: {show: false},
+                splitLine: {lineStyle: {color: GRID}}, axisLabel: {color: MUTED, formatter: axisLabel}
+            },
+            series: spec.series.map((series, index) => ({
+                name: series.name, type: spec.kind, data: series.data, connectNulls: false,
+                showSymbol: false,
+                lineStyle: {width: 2.5, type: series.scenario == 'reform' ? 'dashed' : 'solid'},
+                itemStyle: {color: colors[series.group !== undefined ? series.group % colors.length : index % colors.length]},
+                barMaxWidth: 32,
+                ...(index == 0 && spec.markers && spec.markers.length ? {markLine: {
+                    silent: true, symbol: 'none', label: {show: false},
+                    lineStyle: {color: '#9ba1ad', type: 'dashed'},
+                    data: spec.markers.filter(year => spec.labels.includes(year)).map(year => ({xAxis: spec.labels.indexOf(year)}))
+                }} : {})
+            }))
+        });
+    }
+
+    static standardRuns(){
+        return {
+            baseline:resultRun(OGResults.base, OGResults.paramsUnavailable ? {} : OGResults.baseParams),
+            reform:resultRun(OGResults.reform, OGResults.paramsUnavailable ? {} : OGResults.reformParams)
+        };
+    }
+
+    static loadStandardData(preset){
+        const selection = OGResults.selection;
+        const country = OGResults.workspace.country_id;
+        const runs = OGResults.standardRuns();
+        if (preset.family == 'lifecycle') return Promise.resolve(runs);
+        if (preset.family == 'ability' && !hasPopulationWeights(runs.baseline, runs.reform)){
+            return Promise.reject(new Error('Ten-year income-group averages require population and income-group weights in the saved run inputs. Use a lifecycle profile to inspect each group.'));
+        }
+        const cache = OGResults.standardData || (OGResults.standardData = {});
+        function cached(key, request){
+            if (!cache[key]) cache[key] = request().catch(error => { delete cache[key]; throw error; });
+            return cache[key];
+        }
+        const table = cached('time-series', () => Ogc.getResultTable('getTimeSeriesTable', country,
+            selection.casename, selection.base, selection.reform, {stationarized:false}).then(timeSeriesRuns));
+        const variables = preset.family == 'ability' ? [preset.variable] : preset.id == 'macro' ? ['C','Y'] : [];
+        const raw = variables.length ? cached('paths:' + variables.join(','), () => Promise.all([
+            Ogc.getTPIVars(country, selection.casename, selection.base, variables),
+            Ogc.getTPIVars(country, selection.casename, selection.reform, variables)
+        ])) : Promise.resolve(null);
+        return Promise.all([table, raw]).then(([series, paths]) => {
+            const data = {};
+            ['baseline','reform'].forEach((name,index) => {
+                const run = {...series[name], paths:{...series[name].paths}};
+                if (preset.family == 'ability'){
+                    run.params = {...runs[name].params, ...run.params};
+                    run.tpi = paths[index];
+                }else if (preset.id == 'macro') addConsumptionPath(run, paths[index]);
+                data[name] = run;
+            });
+            return data;
+        });
+    }
+
+    static showStandardUnavailable(message, retry){
+        $('#ogcStandardStatus').text(message).prop('hidden', false);
+        if (retry) $('#ogcStandardStatus').append(' <button type="button" class="btn ogc-btn" id="ogcStandardRetry">Retry</button>');
+        $('#ogcExploreChart').hide();
+        $('.ogc-explore-output .ogc-chart-export').prop('disabled', true);
+    }
+
+    static renderStandardExplore(preset){
+        $('#ogcExploreCategory').text({aggregate: 'Transition paths', ability: 'Income groups', lifecycle: 'Lifecycle profiles'}[preset.family]);
+        $('#ogcExploreTitle').text(preset.title);
+        $('#ogcStandardDescription').text(preset.description);
+        $('#ogcExploreUnit').empty();
+        $('#ogcExploreTable, #ogcExploreChart').hide();
+        $('.ogc-explore-output .ogc-chart-export').show().prop('disabled', true);
+        if (preset.requires == 'transition' && !OGResults.hasTransitionResults()){
+            OGResults.showStandardUnavailable('Complete both runs with a transition path to view this chart.', false);
+            return;
+        }
+        if ($('.ogc-result-tabs button.active').data('result-tab') != 'explore') return;
+        $('#ogcStandardStatus').text('Loading chart…').prop('hidden', false);
+        let requestID = OGResults.standardRequestID;
+        let pageID = OGResults.pageID;
+        let selectionKey = JSON.stringify(OGResults.selection);
+        let profileMode = $('#ogcStandardProfileMode').val() || 'both';
+        let current = () => OGResults.isCurrent() && pageID == OGResults.pageID
+            && requestID == OGResults.standardRequestID && selectionKey == JSON.stringify(OGResults.selection);
+        OGResults.loadStandardData(preset).then(data => {
+            if (!current()) return;
+            let spec;
+            try { spec = buildStandardChart(preset.id, data, {profileMode}); }
+            catch (error) {
+                OGResults.showStandardUnavailable(error.message || String(error), false);
+                return;
+            }
+            $('#ogcStandardStatus').prop('hidden', true).empty();
+            $('#ogcExploreUnit').text(spec.unit);
+            $('#ogcExploreChart').removeClass('ogc-explore-scalar ogc-explore-category')
+                .addClass('ogc-explore-dense').show().attr('aria-label', `${spec.title}. ${preset.description}`);
+            let option = OGResults.standardOption(spec);
+            option.aria.description = `${spec.title}. ${preset.description}`;
+            OGResults.setChart('ogcExploreChart', option);
+            $('.ogc-explore-output .ogc-chart-export').prop('disabled', false);
+        }).catch(error => {
+            if (current()) OGResults.showStandardUnavailable('Chart data could not be loaded. ' + (error.message || String(error)), true);
+        });
     }
 
     static refreshExploreMeasures(preferred){
         let name = $('#ogcExploreVariable').val();
         let meta = info(name);
         let options;
-        if (meta.rate){
+        if (outputShape(name).kind == 'matrix'){
+            options = [['levels', 'Levels']];
+        }else if (meta.rate){
             options = [['pp', 'Percentage-point difference'], ['levels', 'Rates (%)']];
         }else if (meta.differenceOnly || meta.category == 'Model diagnostics'){
             options = [['diff', 'Difference'], ['levels', 'Levels']];
@@ -860,7 +1085,7 @@ export default class OGResults {
     static refreshExploreViews(preferred){
         let name = $('#ogcExploreVariable').val();
         let measure = $('#ogcExploreMeasure').val();
-        let spec = shape(OGResults.base[name]);
+        let spec = outputShape(name);
         let views = [];
         if (spec.kind == 'scalar') views = [['comparison','Comparison bars'], ['table','Table']];
         else if (spec.kind == 'age_group'){
@@ -877,16 +1102,29 @@ export default class OGResults {
         let dimensionLabel = spec.kind == 'age_group' && spec.dims.length == 2
             ? `${spec.dims[0]} ages × ${spec.dims[1]} income groups`
             : (spec.dims.length ? spec.dims.join(' × ') : 'Single value');
+        if (spec.kind == 'matrix') dimensionLabel += ' · Indexed table; no compatible chart dimensions.';
         $('#ogcExploreShape').html(`<span>Dimensions</span><strong>${esc(shapeLabel)}</strong><small>${esc(dimensionLabel)}</small>`);
     }
 
     static renderExplore(){
+        OGResults.standardRequestID = (OGResults.standardRequestID || 0) + 1;
+        let preset = STANDARD_CHARTS.find(item => item.id == $('#ogcExplorePreset').val());
+        $('.ogc-explore-individual').toggle(!preset);
+        $('#ogcStandardProfileField').prop('hidden', !preset || preset.family != 'lifecycle')
+            .toggle(!!preset && preset.family == 'lifecycle');
+        $('#ogcStandardDescription').prop('hidden', !preset);
+        if (preset){
+            OGResults.renderStandardExplore(preset);
+            return;
+        }
+        $('#ogcStandardStatus').prop('hidden', true).empty();
+        $('.ogc-explore-output .ogc-chart-export').prop('disabled', false);
         let name = $('#ogcExploreVariable').val();
         let measure = $('#ogcExploreMeasure').val();
         let view = $('#ogcExploreView').val();
         let group = Number($('#ogcExploreGroup').val() || 0);
         let meta = info(name);
-        let spec = shape(OGResults.base[name]);
+        let spec = outputShape(name);
         $('#ogcExploreCategory').text(meta.category);
         $('#ogcExploreTitle').text(meta.label);
         $('#ogcExploreUnit').text(measureLabel(name, measure));
@@ -919,15 +1157,11 @@ export default class OGResults {
 
     static comparisonOption(name, measure){
         let base = OGResults.base[name], reform = OGResults.reform[name];
-        let spec = shape(base), labels = [], baseValues = [], reformValues = [];
+        let spec = outputShape(name), labels = [], baseValues = [], reformValues = [];
+        if (spec.kind != 'scalar') return chartBase('This output requires a table or a compatible lifecycle view.');
         if (spec.kind == 'scalar'){
             labels = [info(name).short || info(name).label];
-            baseValues = [firstNumber(base)]; reformValues = [firstNumber(reform)];
-        }else{
-            let b = rank(base) > 1 ? (ageGroupMatrix(base) || []).map(firstNumber) : base;
-            let r = rank(reform) > 1 ? (ageGroupMatrix(reform) || []).map(firstNumber) : reform;
-            baseValues = (b || []).map(firstNumber); reformValues = (r || []).map(firstNumber);
-            labels = spec.kind == 'group' ? OGResults.groups.slice(0, baseValues.length) : $.map(baseValues, (_, i) => String(i + 1));
+            baseValues = [scalarNumber(base)]; reformValues = [scalarNumber(reform)];
         }
         let series;
         if (measure == 'levels'){
@@ -964,8 +1198,12 @@ export default class OGResults {
     }
 
     static renderExploreTable(name, measure){
-        let spec = shape(OGResults.base[name]);
+        let spec = outputShape(name);
         let headers = [], rows = [];
+        if (spec.kind == 'matrix' && measure != 'levels'){
+            $('#ogcExploreTable').html('<div class="ogc-table-status">Comparable baseline and reform matrix data are unavailable.</div>').show();
+            return;
+        }
         if (spec.kind == 'age_group'){
             let b = ageGroupMatrix(OGResults.base[name]), r = ageGroupMatrix(OGResults.reform[name]);
             if (!compatibleMatrices(b, r)){
@@ -973,11 +1211,11 @@ export default class OGResults {
                 return;
             }
             if (measure == 'levels'){
-                headers = ['Age'];
+                headers = [OGResults.ageLabel || 'Age'];
                 $.each(OGResults.groups, (_, label) => headers.push('Baseline: ' + label, 'Reform: ' + label));
                 rows = b.map((row, i) => [OGResults.ages[i]].concat(...row.map((value, j) => [level(name, value), level(name, r[i][j])])));
             }else{
-                headers = ['Age'].concat(OGResults.groups);
+                headers = [OGResults.ageLabel || 'Age'].concat(OGResults.groups);
                 let transformed = OGResults.matrixTransform(name, measure);
                 rows = transformed.map((row, i) => [OGResults.ages[i]].concat(row));
             }
@@ -1041,6 +1279,7 @@ export default class OGResults {
         OGResults.activeTableKey = key;
         OGResults.activeTable = null;
         let requestedAt = ++OGResults.tableRequestID;
+        const pageID = OGResults.pageID;
         $('#ogcTableExport').prop('disabled', true);
         if (Object.prototype.hasOwnProperty.call(OGResults.tables, key)){
             OGResults.renderTableRows(OGResults.tables[key]);
@@ -1055,11 +1294,11 @@ export default class OGResults {
             : key == 'gini' ? Ogc.getGiniTable(OGResults.workspace.country_id, s.casename, s.base, s.reform)
             : Ogc.getWealthMomentsTable(OGResults.workspace.country_id, s.casename, s.base);
         request.then(rows => {
-            if (!OGResults.isCurrent() || requestedAt != OGResults.tableRequestID || selectionKey != JSON.stringify(OGResults.selection)) return;
+            if (!OGResults.isCurrent(pageID) || requestedAt != OGResults.tableRequestID || selectionKey != JSON.stringify(OGResults.selection)) return;
             OGResults.tables[key] = rows;
             OGResults.renderTableRows(rows);
         }).catch(error => {
-            if (requestedAt == OGResults.tableRequestID && selectionKey == JSON.stringify(OGResults.selection)){
+            if (OGResults.isCurrent(pageID) && requestedAt == OGResults.tableRequestID && selectionKey == JSON.stringify(OGResults.selection)){
                 $('#ogcTableStatus').text(`Unable to load table. ${String(error)}`).show();
             }
         });
@@ -1112,6 +1351,7 @@ export default class OGResults {
     }
 
     static teardown(){
+        OGResults.standardRequestID = (OGResults.standardRequestID || 0) + 1;
         OGResults.disposeCharts();
         $(window).off('.ogresults');
         $(document).off('.ogresults');
@@ -1123,6 +1363,7 @@ export default class OGResults {
         $('.ogc-result-pane').removeClass('active');
         $(`.ogc-result-pane[data-result-pane="${name}"]`).addClass('active');
         setTimeout(() => $.each(OGResults.charts, (_, chart) => { if (chart && !chart.isDisposed()) chart.resize(); }), 20);
+        if (name == 'explore') OGResults.renderExplore();
         if (name == 'tables') OGResults.loadTable($('.ogc-table-pills button.active').data('table') || 'macro');
     }
 
@@ -1142,10 +1383,16 @@ export default class OGResults {
             country_id: OGResults.workspace.country_id,
             casename: selection.casename, base: selection.base, reform: selection.reform,
             variable: $('#ogcExploreVariable').val(), measure: $('#ogcExploreMeasure').val(),
-            view: $('#ogcExploreView').val(), group: $('#ogcExploreGroup').val()
+            view: $('#ogcExploreView').val(), group: $('#ogcExploreGroup').val(),
+            preset: $('#ogcExplorePreset').val() || 'individual',
+            profileMode: $('#ogcStandardProfileMode').val() || 'aggregate'
         };
         localStorage.setItem(`${VIEW_KEY}:${OGResults.workspace.country_id}`, JSON.stringify(saved));
         $('#ogcSavedNote').text('Default view saved');
+    }
+
+    static comparisonLabel(){
+        return `Baseline: ${$('#ogcResultBaseline option:selected').text()} · Reform: ${$('#ogcResultReform option:selected').text()}`;
     }
 
     static exportChart(id){
@@ -1153,13 +1400,13 @@ export default class OGResults {
         if (!chart || chart.isDisposed()) return;
         let link = document.createElement('a');
         let chartName = String(id || 'chart').replace(/^ogc|Chart$/g, '').replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-        link.download = `ogcore-${OGResults.selection.casename}-${OGResults.selection.base}-${OGResults.selection.reform}-${chartName}.svg`;
+        link.download = `ogcore-${$('#ogcResultBaseline option:selected').text()}-${OGResults.selection.reform}-${chartName}.svg`;
         let data = chart.getDataURL({type:'svg', pixelRatio:2, backgroundColor:'#ffffff'});
         let svg = new DOMParser().parseFromString(decodeURIComponent(data.slice(data.indexOf(',') + 1)), 'image/svg+xml').documentElement;
         let width = chart.getWidth(), height = chart.getHeight();
         let heading = $(chart.getDom()).closest('article').find('h2').first().text();
         let description = chart.getOption().aria.description || '';
-        let title = [heading, description].filter(Boolean).join(' · ') || 'OG-Core results';
+        let title = [heading, OGResults.comparisonLabel(), description].filter(Boolean).join(' · ') || 'OG-Core results';
         let context = document.createElement('canvas').getContext('2d');
         context.font = '18px Arial';
         let lines = [''];
@@ -1197,7 +1444,7 @@ export default class OGResults {
             .map(row => $.map(row, quote).join(','));
         let blob = new Blob(['\ufeff' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
         let link = document.createElement('a');
-        link.download = `ogcore-${OGResults.selection.casename}-${OGResults.selection.base}-${OGResults.selection.reform}-${OGResults.activeTableKey || 'table'}.csv`;
+        link.download = `ogcore-${$('#ogcResultBaseline option:selected').text()}-${OGResults.selection.reform}-${OGResults.activeTableKey || 'table'}.csv`;
         link.href = URL.createObjectURL(blob);
         link.click();
         setTimeout(() => URL.revokeObjectURL(link.href), 1000);
@@ -1223,10 +1470,15 @@ export default class OGResults {
             OGResults.teardown();
         });
         $(document).on('click.ogresults', '.ogc-result-tabs button', function(){ OGResults.openTab($(this).data('result-tab')); });
-        $(document).on('change.ogresults', '#ogcResultCase', () => OGResults.renderReformOptions(null));
+        $(document).on('change.ogresults', '#ogcResultBaseline', () => OGResults.renderReformOptions(null));
         $(document).on('change.ogresults', '#ogcResultReform', () => OGResults.loadComparison());
         $(document).on('change.ogresults', '#ogcDistributionVariable, #ogcDistributionMeasure', () => OGResults.renderDistribution());
         $(document).on('change.ogresults', '#ogcProfileVariable, #ogcProfileGroup, #ogcProfileMeasure', () => OGResults.renderProfile());
+        $(document).on('change.ogresults', '#ogcExplorePreset, #ogcStandardProfileMode', () => OGResults.renderExplore());
+        $(document).on('click.ogresults', '#ogcStandardRetry', () => {
+            OGResults.standardData = {};
+            OGResults.renderExplore();
+        });
         $(document).on('change.ogresults', '#ogcExploreVariable', () => { OGResults.refreshExploreMeasures(); OGResults.refreshExploreViews(); OGResults.renderExplore(); });
         $(document).on('change.ogresults', '#ogcExploreMeasure', () => { OGResults.refreshExploreViews(); OGResults.renderExplore(); });
         $(document).on('change.ogresults', '#ogcExploreView', () => { OGResults.refreshExploreViews(); OGResults.renderExplore(); });
@@ -1241,7 +1493,7 @@ export default class OGResults {
         $(document).on('click.ogresults', '#ogcSaveView', () => OGResults.saveView());
         $(document).on('click.ogresults', '#ogcResetView', () => {
             localStorage.removeItem(`${VIEW_KEY}:${OGResults.workspace.country_id}`);
-            localStorage.removeItem(VIEW_KEY); $('#ogcExploreVariable').val('Y'); $('#ogcExploreMeasure').val('pct');
+            localStorage.removeItem(VIEW_KEY); $('#ogcExplorePreset').val('individual'); $('#ogcStandardProfileMode').val('aggregate'); $('#ogcExploreVariable').val('Y'); $('#ogcExploreMeasure').val('pct');
             OGResults.refreshExploreMeasures('pct'); OGResults.refreshExploreViews('comparison'); OGResults.renderExplore(); $('#ogcSavedNote').text('Defaults restored');
         });
         $(document).on('click.ogresults', '.ogc-chart-export[data-export-chart]', function(){ OGResults.exportChart($(this).data('export-chart')); });

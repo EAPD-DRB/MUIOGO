@@ -263,6 +263,7 @@ def test_results_default_view_is_country_scoped_and_dimensions_are_explicit(page
         Results.groups = ['Bottom 25%', '25–50%', '50–70%', '70–80%', '80–90%', '90–99%', 'Top 1%'];
         Results.ages = Array.from({length: 80}, (_, index) => index + 21);
         Results.base = {c: Array.from({length: 80}, () => Array(7).fill(1))};
+        Results.reform = structuredClone(Results.base);
         Results.refreshExploreViews('heatmap');
         const dimensions = [...document.querySelector('#ogcExploreShape').children]
             .map(node => node.textContent.trim());
@@ -277,6 +278,8 @@ def test_results_default_view_is_country_scoped_and_dimensions_are_explicit(page
             "measure": "pct",
             "view": "heatmap",
             "group": "2",
+            "preset": "individual",
+            "profileMode": "aggregate",
         },
         "philippines": None,
         "savedNote": "Default view saved",
@@ -480,10 +483,7 @@ def test_results_legends_cover_chart_and_measure_combinations(page, base_url):
                 series: scalarPercent.series.map(series => series.name),
                 counts: countValues(scalarPercent),
             },
-            groupDifference: {
-                legend: groupDifference.legend.data,
-                counts: countValues(groupDifference),
-            },
+            groupDifference: groupDifference.series || [],
             rateDifference: rateDifference.legend.data,
             profileLevels: {
                 legend: profileLevels.legend.data,
@@ -516,10 +516,7 @@ def test_results_legends_cover_chart_and_measure_combinations(page, base_url):
             "series": ["Increase", "Decrease"],
             "counts": [1, 0],
         },
-        "groupDifference": {
-            "legend": ["Increase", "Decrease"],
-            "counts": [1, 1],
-        },
+        "groupDifference": [],
         "rateDifference": ["Increase", "Decrease"],
         "profileLevels": {
             "legend": ["Baseline", "Reform"],
@@ -544,6 +541,7 @@ def test_results_dimensions_prefer_run_metadata_and_explain_fallback(page, base_
 
         Results.base = {c: [[1, 2, 3], [4, 5, 6]]};
         Results.baseParams = {lambdas: [[0.2, 0.3, 0.5]], starting_age: [30]};
+        Results.reformParams = structuredClone(Results.baseParams);
         Results.schema = {
             lambdas: {default: [0.5, 0.5]},
             starting_age: {default: 20},
@@ -558,6 +556,7 @@ def test_results_dimensions_prefer_run_metadata_and_explain_fallback(page, base_
 
         Results.base = {c: [[1, 2, 3, 4], [5, 6, 7, 8]]};
         Results.baseParams = {};
+        Results.reformParams = {};
         Results.schema = {};
         Results.schemaUnavailable = true;
         Results.setDimensions();
@@ -575,7 +574,7 @@ def test_results_dimensions_prefer_run_metadata_and_explain_fallback(page, base_
     assert result == {
         "fromRun": {
             "groups": ["Bottom 20%", "20–50%", "Top 50%"],
-            "ages": [31, 32],
+            "ages": [30, 31],
             "hidden": True,
         },
         "fallback": {
@@ -1263,6 +1262,7 @@ def test_create_case_dialog_switches_types(page, base_url):
     expect(page.locator("#ogcCaseBaseline")).to_be_visible()
     expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Baseline 1")
     expect(page.locator("#ogcCaseName")).to_have_value("New reform")
+    expect(page.locator("#ogcCaseNote")).to_contain_text("compared against this baseline")
     page.locator("[data-act='case-type'][data-type='baseline']").click()
     expect(page.locator("#ogcCaseName")).to_have_value("My baseline")
     expect(page.locator("[data-act='create-confirm']")).to_have_text("Create and edit")

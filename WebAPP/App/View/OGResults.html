@@ -5,14 +5,15 @@
 
   <section class="ogc-result-context" aria-label="Result selection">
     <div class="ogc-result-select">
-      <label for="ogcResultCase">Case</label>
-      <select id="ogcResultCase"></select>
-      <span id="ogcResultBaselineName"></span>
+      <label for="ogcResultBaseline">Baseline</label>
+      <select id="ogcResultBaseline"></select>
+      <span class="ogc-result-value" id="ogcResultBaselineName"></span>
     </div>
-    <div class="ogc-result-compare" aria-hidden="true"><span class="fa fa-long-arrow-right"></span></div>
+    <div class="ogc-result-compare" aria-hidden="true">vs.</div>
     <div class="ogc-result-select">
       <label for="ogcResultReform">Reform</label>
       <select id="ogcResultReform"></select>
+      <span class="ogc-result-value" id="ogcResultReformName"></span>
     </div>
     <div class="ogc-result-meta" id="ogcResultMeta"></div>
   </section>
@@ -107,26 +108,36 @@
     <section class="ogc-result-pane" id="ogcExplorePanel" role="tabpanel" aria-labelledby="ogcExploreTab" data-result-pane="explore">
       <div class="ogc-explore-layout">
         <section class="ogc-explore-controls" aria-label="Explore controls">
-          <h2>View settings</h2>
+
+          <label class="ogc-explore-field"><span>Chart</span><select id="ogcExplorePreset"></select></label>
+          <label class="ogc-explore-field" id="ogcStandardProfileField" hidden style="display:none"><span>Scenario breakdown</span><select id="ogcStandardProfileMode">
+            <option value="aggregate">Both scenarios · overall average</option>
+            <option value="baseline">Baseline · by income group</option>
+            <option value="reform">Reform · by income group</option>
+            <option value="both">Both scenarios · by income group</option>
+          </select></label>
+          <div class="ogc-explore-individual">
           <label class="ogc-explore-field"><span>Outcome</span><select id="ogcExploreVariable"></select></label>
           <div class="ogc-explore-shape" id="ogcExploreShape"></div>
           <label class="ogc-explore-field"><span>Measure</span><select id="ogcExploreMeasure"></select></label>
           <label class="ogc-explore-field"><span>View</span><select id="ogcExploreView"></select></label>
           <label class="ogc-explore-field ogc-explore-group"><span>Lifetime-income group</span><select id="ogcExploreGroup"></select></label>
+          </div>
           <div class="ogc-explore-buttons">
-            <button class="btn ogc-btn ogc-btn-main" id="ogcSaveView"><i class="fa fa-bookmark-o"></i> Set as default</button>
-            <button class="btn ogc-btn" id="ogcResetView">Restore defaults</button>
+            <button class="btn ogc-btn" id="ogcSaveView" title="Save these chart settings as the default view on this browser"><i class="fa fa-bookmark-o"></i> Save view</button>
+            <button class="btn ogc-btn" id="ogcResetView">Reset view</button>
           </div>
           <div class="ogc-saved-note" id="ogcSavedNote" aria-live="polite"></div>
         </section>
         <article class="ogc-result-card ogc-explore-output">
           <header>
-            <div><div class="ogc-card-context" id="ogcExploreCategory"></div><h2 id="ogcExploreTitle"></h2></div>
+            <div><div class="ogc-card-context" id="ogcExploreCategory"></div><h2 id="ogcExploreTitle"></h2><p class="ogc-card-context" id="ogcStandardDescription" hidden></p></div>
             <div class="ogc-card-tools">
               <span class="ogc-card-unit" id="ogcExploreUnit"></span>
               <button class="ogc-chart-export" data-export-chart="ogcExploreChart" title="Download current chart as SVG"><i class="fa fa-download"></i> Export SVG</button>
             </div>
           </header>
+          <div class="ogc-table-status" id="ogcStandardStatus" role="status" aria-live="polite" hidden></div>
           <div class="ogc-chart ogc-explore-chart" id="ogcExploreChart" role="img" aria-label="Configured OG-Core result view"></div>
           <div class="ogc-result-table-wrap" id="ogcExploreTable" style="display:none"></div>
         </article>

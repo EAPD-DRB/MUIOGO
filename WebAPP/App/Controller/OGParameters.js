@@ -127,7 +127,7 @@ export default class OGParameters {
     static refOptions(model){
         let sel = model.selection;
         let own = model.isReform
-            ? `<option value="auto">${esc(sel.baseline_run || 'its baseline')} (its baseline)</option>`
+            ? `<option value="auto">${esc(sel.baseline_display_name || sel.baseline_run || 'its baseline')} (its baseline)</option>`
             : `<option value="auto">Calibration default</option>`;
         let others = '';
         $.each(OGParameters.runs || [], function (id, r) {
@@ -832,7 +832,7 @@ export default class OGParameters {
     static refLabel(){
         let model = OGParameters.model;
         if (previewRef == 'auto'){
-            return model.isReform ? (model.selection.baseline_run || 'its baseline') : 'calibration default';
+            return model.isReform ? (model.selection.baseline_display_name || model.selection.baseline_run || 'its baseline') : 'calibration default';
         }
         if (previewRef == 'def'){
             return 'calibration default';

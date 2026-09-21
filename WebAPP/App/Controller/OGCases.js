@@ -362,7 +362,7 @@ export default class OGCases {
         $('#ogcCaseName').val(modal.attr('data-' + type + '-name'));
         $('#ogcCaseDesc').attr('placeholder', reform ? 'What does this reform change?' : 'What is this baseline for?');
         $('#ogcCaseNote').html(reform
-            ? `<i class="fa fa-info-circle"></i> The reform inherits this baseline's values and is compared against it.`
+            ? `<i class="fa fa-info-circle"></i> The reform is compared against this baseline. Configure its parameter changes before running.`
             : '<i class="fa fa-info-circle"></i> Starts from the calibration defaults.');
         $('#ogcCaseErr').empty();
         $('#ogcCaseName').focus().select();

@@ -183,6 +183,12 @@ export class Ogc {
         return Ogc._request('POST', 'ogc/getSSVars', payload);
     }
 
+    static getTPIVars(countryId, casename, runName, vars) {
+        let payload = { country_id: countryId, casename: casename, run_name: runName };
+        if ($.isArray(vars)) payload.vars = vars;
+        return Ogc._request('POST', 'ogc/getTPIVars', payload);
+    }
+
     static getResultTable(path, countryId, casename, baseRun, reformRun, options) {
         let payload = $.extend({}, options || {}, {
             country_id: countryId,
