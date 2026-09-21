@@ -624,3 +624,78 @@ body.ogc-table-open{overflow:hidden}
   #ogWorkspaceConfirmBody{padding:17px}
   .og-workspace-life-content{padding:22px 16px}
 }
+
+/* Shared OG-Core dropdowns, including dynamically rendered parameter fields. */
+body.osy-mode-og select:not([multiple]):not([size]){
+  appearance:none;
+  box-sizing:border-box;
+  min-height:34px;
+  max-width:100%;
+  padding:6px 32px 6px 10px;
+  border:1px solid #c5cbd5;
+  border-radius:5px;
+  background-color:#fff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%235b6575' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 9px center;
+  color:var(--osy-slate);
+  font-family:inherit;
+  font-size:12px;
+  font-weight:600;
+  line-height:1.4;
+  text-align:start;
+  cursor:pointer;
+}
+body.osy-mode-og select:not([multiple]):not([size]):hover:not(:disabled){border-color:#929cac}
+body.osy-mode-og select:not([multiple]):not([size]):focus-visible{
+  border-color:#b6530b;
+  outline:2px solid #b6530b;
+  outline-offset:2px;
+}
+body.osy-mode-og select:not([multiple]):not([size]):disabled{
+  background-color:#f1f3f6;
+  border-color:#d9dee5;
+  color:#78818f;
+  cursor:not-allowed;
+}
+body.osy-mode-og .ogc-jcell select:not([multiple]):not([size]){
+  min-height:30px;
+  padding:4px 24px 4px 6px;
+  background-position:right 5px center;
+}
+/* Older browsers retain their native picker and the styled closed control. */
+@supports (appearance:base-select){
+  body.osy-mode-og select:not([multiple]):not([size]),
+  body.osy-mode-og select:not([multiple]):not([size])::picker(select){appearance:base-select}
+  body.osy-mode-og select:not([multiple]):not([size])::picker-icon{display:none}
+  body.osy-mode-og select:not([multiple]):not([size]):open{border-color:#b6530b}
+  body.osy-mode-og select:not([multiple]):not([size])::picker(select){
+    margin-block:5px;
+    padding:4px;
+    border:1px solid #c5cbd5;
+    border-radius:7px;
+    background:#fff;
+    color:var(--osy-slate);
+    box-shadow:0 6px 20px rgba(34,43,60,.14);
+    max-block-size:min(320px,60vh);
+    max-inline-size:calc(100vw - 24px);
+    overflow:auto;
+  }
+  body.osy-mode-og select:not([multiple]):not([size]) option{
+    min-height:34px;
+    padding:7px 10px;
+    border-radius:3px;
+    font:inherit;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  body.osy-mode-og select:not([multiple]):not([size]) option:checked{background:#fff0e2;color:#803800;font-weight:700}
+  body.osy-mode-og select:not([multiple]):not([size]) option:hover:not(:disabled),
+  body.osy-mode-og select:not([multiple]):not([size]) option:focus-visible{background:#edf0f5;color:#30394a;outline:2px solid #929cac;outline-offset:-2px}
+  body.osy-mode-og select:not([multiple]):not([size]) option:disabled{color:#78818f;cursor:not-allowed}
+  body.osy-mode-og select:not([multiple]):not([size]) option::checkmark{color:#a34708}
+}
+@media (forced-colors:active){
+  body.osy-mode-og select:not([multiple]):not([size]){appearance:auto;background-image:none;border-color:ButtonText;color:ButtonText}
+  body.osy-mode-og select:not([multiple]):not([size])::picker(select){appearance:auto}
+}
