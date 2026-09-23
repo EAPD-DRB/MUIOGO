@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, session, send_file
 import os
+import stat
 from pathlib import Path
 import shutil
 import pandas as pd
@@ -13,6 +14,15 @@ from Classes.Clews.Provenance import Provenance
 from utils import validate_json_fields
 
 case_api = Blueprint('CaseRoute', __name__)
+
+# Helper to detect hidden directories using platform-specific flags and naming rules
+def _is_hidden_directory(entry):
+    metadata = entry.stat()
+    if os.name == 'nt':
+        return bool(metadata.st_file_attributes & stat.FILE_ATTRIBUTE_HIDDEN)
+    return entry.name.startswith('.') or bool(
+        getattr(metadata, 'st_flags', 0) & getattr(stat, 'UF_HIDDEN', 0)
+    )
 
 @case_api.route("/initSyncS3", methods=['GET'])
 def initSyncS3():
@@ -35,7 +45,9 @@ def initSyncS3():
 @case_api.route("/getCases", methods=['GET'])
 def getCases():
     try:
-        cases = [ f.name for f in os.scandir(Config.DATA_STORAGE) if f.is_dir() ]
+        with os.scandir(Config.DATA_STORAGE) as entries:
+            cases = [entry.name for entry in entries if entry.is_dir() and not _is_hidden_directory(entry)]
+        cases.sort(key=lambda name: (name.casefold(), name))
         return jsonify(cases), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
