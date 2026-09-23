@@ -132,14 +132,21 @@ MUIOGO_HOME_ENV = "OGLINK_MUIOGO_HOME"
 
 
 def _muiogo_home() -> str | None:
-    """The MUIOGO install dir: $OGLINK_MUIOGO_HOME, else a sibling ``../MUIOGO``. Mirrors
-    country._muiogo_home so registry + CLEWS-scenario resolution agree on where MUIOGO lives."""
+    """The MUIOGO checkout this package belongs to: $OGLINK_MUIOGO_HOME, else the MUIOGO checkout that
+    contains this package (the first parent holding both API/ and WebAPP/DataStorage/). None when the
+    package is used outside a MUIOGO checkout and the variable is unset. country._muiogo_home uses this
+    too, so model-registry and CLEWS-case resolution always agree on where MUIOGO is."""
     env = os.environ.get(MUIOGO_HOME_ENV)
     if env:
         return env
-    sibling = os.path.normpath(os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), os.pardir, "MUIOGO"))
-    return sibling if os.path.isdir(sibling) else None
+    cur = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    while True:
+        if os.path.isdir(os.path.join(cur, "API")) and os.path.isdir(os.path.join(cur, "WebAPP", "DataStorage")):
+            return cur
+        parent = os.path.dirname(cur)
+        if parent == cur:
+            return None
+        cur = parent
 
 
 MUIOGO_OG_STATE_ENV = "MUIOGO_OG_DATA_DIR"

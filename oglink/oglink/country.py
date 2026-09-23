@@ -89,24 +89,20 @@ class CountryConfig:
 # Each scenario side ('base'/'reform') resolves by first match:
 #   1. an explicit dir -- $OGLINK_CLEWS_BASE / $OGLINK_CLEWS_REFORM (or CLI --clews-base/--clews-reform)
 #   2. the MUIOGO install -- <MUIOGO>/WebAPP/DataStorage/<case>/res/<run>/csv, where
-#        MUIOGO = $OGLINK_MUIOGO_HOME (or a sibling ../MUIOGO next to this repo),
+#        MUIOGO = $OGLINK_MUIOGO_HOME, else the MUIOGO checkout that contains this package,
 #        case   = $OGLINK_CLEWS_CASE,  run = $OGLINK_CLEWS_BASE_RUN / $OGLINK_CLEWS_REFORM_RUN
 #   3. "" -- unresolved; the CLEWS-reading channels then fail with CLEWS_SCENARIO_HELP. No machine default.
 CLEWS_SCENARIO_HELP = (
     "CLEWS scenario directory is unset. Point the link at your MUIOGO installation: set "
-    "$OGLINK_MUIOGO_HOME (or place MUIOGO at ../MUIOGO), $OGLINK_CLEWS_CASE, and "
+    "$OGLINK_MUIOGO_HOME (if this package is not inside it), $OGLINK_CLEWS_CASE, and "
     "$OGLINK_CLEWS_BASE_RUN/$OGLINK_CLEWS_REFORM_RUN; or give explicit dirs via "
     "$OGLINK_CLEWS_BASE/$OGLINK_CLEWS_REFORM, or `oglink run ... --clews-base <dir> --clews-reform <dir>`.")
 
 
 def _muiogo_home():
-    """The MUIOGO installation dir: $OGLINK_MUIOGO_HOME, else a sibling ../MUIOGO next to this repo."""
-    env = os.environ.get("OGLINK_MUIOGO_HOME")
-    if env:
-        return env
-    sibling = os.path.normpath(os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), os.pardir, "MUIOGO"))
-    return sibling if os.path.isdir(sibling) else None
+    """The MUIOGO checkout: $OGLINK_MUIOGO_HOME, else the checkout that contains this package."""
+    from .registry import _muiogo_home as _home
+    return _home()
 
 
 def clews_scenario_dir(which):

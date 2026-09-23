@@ -2,9 +2,9 @@
 results are registered in the case's view/resData.json for the UI.
 
 Called by ``DataFile.run`` after a successful solve. The link runs in ITS OWN
-venv as a subprocess (``python -m ogclews_link run ...``); this module never
-imports ogclews_link or ogcore -- that is the design boundary, in both
-directions (docs: .claude/OGLINK-HANDOFF.md).
+venv (oglink/.venv) as a subprocess (``python -m oglink run ...``); this
+module never imports oglink or ogcore -- that is the design boundary, in both
+directions.
 
 The hook is opt-in per case and silent by default:
   * no ``<case>/oglink/hook.json`` -> no-op (a CLEWs-only user is unaffected);
@@ -45,34 +45,24 @@ class PostRunHook:
     # ── environment resolution (explicit, no PATH guessing) ──────────────────
     @staticmethod
     def link_python():
-        """The link's own interpreter, probed in order: $OGCLEWS_LINK_PYTHON >
-        $OGCLEWS_LINK_HOME's venv > the installer location
-        (~/.muiogo/ogclews-link, like og-models) > the ../ogclews-link sibling
-        of this MUIOGO checkout (dev layout). None if the link is not
-        installed (the hook then no-ops)."""
-        explicit = os.environ.get("OGCLEWS_LINK_PYTHON")
+        """The linker's own interpreter: $OGLINK_PYTHON, else the venv under
+        $OGLINK_HOME, else this checkout's oglink/.venv. None if that
+        environment has not been built (the hook then no-ops)."""
+        explicit = os.environ.get("OGLINK_PYTHON")
         if explicit:
             return explicit if Path(explicit).is_file() else None
-        homes = []
-        if os.environ.get("OGCLEWS_LINK_HOME"):
-            homes.append(Path(os.environ["OGCLEWS_LINK_HOME"]))
-        homes.append(Config.OGLINK_HOME_DIR)
-        muiogo_root = Path(Config.DATA_STORAGE).resolve().parent.parent
-        homes.append(muiogo_root.parent / "ogclews-link")
-        for home in homes:
-            candidate = Config.venv_python_path(home / ".venv")
-            if candidate.is_file():
-                return str(candidate)
-        return None
+        home = Path(os.environ.get("OGLINK_HOME") or Config.OGLINK_HOME_DIR)
+        candidate = Config.venv_python_path(home / ".venv")
+        return str(candidate) if candidate.is_file() else None
 
     @staticmethod
     def link_home(python_path):
         """The link checkout the interpreter belongs to (the subprocess cwd, so
         the link's own ./og_model_registry.json and countries JSON resolve):
-        $OGCLEWS_LINK_HOME, else the dir holding the interpreter's .venv. None
+        $OGLINK_HOME, else the dir holding the interpreter's .venv. None
         when underivable (an interpreter outside a .venv needs the env var)."""
-        if os.environ.get("OGCLEWS_LINK_HOME"):
-            return os.environ["OGCLEWS_LINK_HOME"]
+        if os.environ.get("OGLINK_HOME"):
+            return os.environ["OGLINK_HOME"]
         # abspath, NOT resolve(): a uv venv's python is a symlink into the uv
         # python store; following it would walk the store, never the .venv.
         for parent in Path(os.path.abspath(python_path)).parents:
@@ -88,14 +78,14 @@ class PostRunHook:
         python = cls.link_python()
         if python is None:
             return {"installed": False, "python": None, "home": None,
-                    "reason": "ogclews-link not found: no $OGCLEWS_LINK_PYTHON "
-                              "or $OGCLEWS_LINK_HOME, and no venv at "
-                              f"{Config.OGLINK_HOME_DIR} or ../ogclews-link"}
+                    "reason": "the OG-CLEWS linker environment is not built: no "
+                              f"venv at {Config.OGLINK_HOME_DIR / '.venv'} (and no "
+                              "$OGLINK_PYTHON / $OGLINK_HOME override)"}
         home = cls.link_home(python)
         if home is None:
             return {"installed": False, "python": python, "home": None,
                     "reason": "interpreter is not inside a .venv; set "
-                              "$OGCLEWS_LINK_HOME to the link checkout"}
+                              "$OGLINK_HOME to the linker folder"}
         return {"installed": True, "python": python, "home": home, "reason": None}
 
     @classmethod
@@ -104,7 +94,7 @@ class PostRunHook:
         second half of the capability check (a link with no registered model
         cannot run a coupled experiment)."""
         try:
-            out = subprocess.run([python, "-m", "ogclews_link", "models", "list"],
+            out = subprocess.run([python, "-m", "oglink", "models", "list"],
                                  cwd=home, capture_output=True, text=True,
                                  timeout=60)
         except (OSError, subprocess.TimeoutExpired) as exc:
@@ -157,20 +147,19 @@ class PostRunHook:
                         f"{base_caserun!r} first")
         python = cls.link_python()
         if python is None:
-            return skip("ogclews-link is not installed (no $OGCLEWS_LINK_PYTHON "
-                        f"or $OGCLEWS_LINK_HOME, and no venv at "
-                        f"{Config.OGLINK_HOME_DIR} or ../ogclews-link)")
+            return skip("the OG-CLEWS linker environment is not built (no venv "
+                        f"at {Config.OGLINK_HOME_DIR / '.venv'})")
         home = cls.link_home(python)
         if home is None:
             return skip("cannot derive the link checkout from the interpreter; "
-                        "set $OGCLEWS_LINK_HOME")
+                        "set $OGLINK_HOME")
 
         # Out of the DataStorage tree (Config's own rule): run outputs are big,
         # and the link's OG-baseline cache lives under --out, so a stable
         # per-case root shares that cache across this case's caseruns.
         out_dir = cfg.get("out") or str(Config.OGLINK_RUNS_DIR / case)
         os.makedirs(out_dir, exist_ok=True)
-        cmd = [python, "-m", "ogclews_link", "run", experiment,
+        cmd = [python, "-m", "oglink", "run", experiment,
                "--clews-base", str(base_csv), "--clews-reform", str(reform_csv),
                "--clews-run", str(case_dir / "res" / caserun),
                "--out", out_dir, "--workers", str(cfg.get("workers", 7)),
@@ -203,8 +192,8 @@ class PostRunHook:
         match = re.search(r"Wrote run manifest: (.+)", out or "")
         if match:
             manifest = match.group(1).strip()
-        elif (run_dir / "ogclews_manifest.json").is_file():
-            manifest = str(run_dir / "ogclews_manifest.json")
+        elif (run_dir / "oglink_manifest.json").is_file():
+            manifest = str(run_dir / "oglink_manifest.json")
 
         entry = {
             "case": case, "caserun": caserun, "experiment": experiment,
