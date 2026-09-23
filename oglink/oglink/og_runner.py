@@ -107,17 +107,10 @@ def _load_calibration(p, og_package, params_resource, calibration):
     if calibration:
         with importlib.resources.open_text(og_package, calibration) as f:
             p.update_specifications(json.load(f))
-    # The 2026-08-12 house rule forced SS_root_method="anderson" here. REVERTED 2026-08-14:
-    # scipy's anderson path (_nonlin_line_search -> norm -> asarray_chkfinite) RAISES whenever
-    # a trial point returns NaN residuals -- which the M=8 PHL anchor SS does routinely and the
-    # calibration's own explicit choice (hybr, MINPACK) tolerates by stepping back. The forced
-    # override crashed the first GOLD baseline (2026-08-14 solve.log, ValueError inf/NaN in the
-    # flat-gamma anchor). Anderson stays where it is proven: the TPI outer loop, which the PHL
-    # calibrations pin themselves (TPI_outer_method="anderson", nu=0.2). Opt back in explicitly
-    # with $OGLINK_SS_ROOT_METHOD if an SS-side experiment needs it.
-    _ss_root = os.environ.get("OGLINK_SS_ROOT_METHOD", "").strip()
-    if _ss_root:
-        p.update_specifications({"SS_root_method": _ss_root})
+    # Solver settings come from the country calibration and are never overridden here: the steady
+    # state uses the calibration's root method (OG-Core's standard hybr), and Anderson, where the
+    # calibration sets it, applies to the transition-path outer loop only. A forced steady-state
+    # Anderson crashed the 8-industry Philippines baseline on 2026-08-14 (NaN trial points).
 
 
 def _update_demographics(p, un_code, cache_dir):

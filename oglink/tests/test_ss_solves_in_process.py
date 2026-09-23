@@ -53,3 +53,15 @@ def test_at_least_three_ss_call_sites_guarded():
     assert len(ss_calls) >= 3, (
         f"expected >=3 SS-only runner() call sites, found {len(ss_calls)} — "
         "if the runner was restructured, update this guard rather than deleting it.")
+
+
+def test_runner_never_overrides_the_steady_state_root_method():
+    """The steady state uses the calibration's own root method (OG-Core's standard hybr). A forced
+    steady-state Anderson crashed the 8-industry Philippines baseline on 2026-08-14, so the runner
+    must not set SS_root_method anywhere; Anderson belongs to the transition path, set by the
+    calibration."""
+    with open(RUNNER, encoding="utf-8") as f:
+        tree = ast.parse(f.read())
+    hits = [node.lineno for node in ast.walk(tree)
+            if isinstance(node, ast.Constant) and node.value == "SS_root_method"]
+    assert not hits, f"og_runner.py line(s) {hits} set SS_root_method; leave it to the calibration"
