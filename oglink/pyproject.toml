@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oglink"
+version = "0.1.0"
+description = "MUIOGO's OG-CLEWS linker: couples a solved CLEWS case into an OG-Core country model, each in its own environment"
+readme = "README.md"
+requires-python = ">=3.11, <3.14"
+# The link environment needs only these. ogcore and the country package are never imported here:
+# the OG model runs in its own interpreter, which reads this package's source for oglink.og_runner.
+dependencies = [
+    "numpy",
+    "pandas>=1.2.5",
+    "scipy>=1.7.1",
+    "openpyxl>=3.1.2",   # CLEWS cost-of-electricity workbooks
+    "matplotlib",        # figure deck (python -m oglink.viz), built in the OG model's environment
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff>=0.16,<0.17"]
+
+[project.scripts]
+oglink = "oglink.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["oglink*"]
+
+[tool.setuptools.package-data]
+oglink = ["data/*.json", "data/*.csv"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: end-to-end solve against a real OG model and CLEWS run (opt-in)",
+]
