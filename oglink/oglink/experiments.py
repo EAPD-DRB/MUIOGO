@@ -27,18 +27,30 @@ def _electricity_intensity(ctx):
     """The M-vector phi_j (electricity's input-cost share per industry) for the Option-A' cost-push,
     read LINK-SIDE from the country package's SAM + PROD_DICT (no package import). None if the registry,
     SAM, or PROD_DICT is unavailable, or the vector does not align to the model's M -> the cost_push
-    channel then skips. Best-effort: any failure degrades to None rather than breaking the run."""
+    channel then skips. Degrades to None rather than breaking the run -- but an UNEXPECTED failure (as
+    opposed to a plain absence) is recorded to provenance first: the intermediate cost-push carries ~73%
+    of the electricity-price transmission, so a silent loss of it (e.g. a registry/SAM path that broke on
+    the port) must show up in the manifest, not quietly understate the result."""
+    from . import aggregation, discovery, registry
     try:
-        from . import aggregation, discovery, registry
         src = registry.package_source_dir(registry.lookup(ctx.country, require_env=False))
         sam = discovery._read_sam(src)
         prod, _cons = discovery.read_package_dicts(src)
-        if sam is None or not prod:
-            return None
-        phi = aggregation.input_intensity(sam, prod)
-        return phi if phi.shape == (int(ctx.og_reform.M),) else None
-    except Exception:  # noqa: BLE001 -- a missing/odd SAM or registry must not break the run
+    except Exception as e:  # noqa: BLE001 -- resolution broke; keep the run alive, but SAY the leg was lost
+        ctx.log("electricity_intensity_unavailable", provenance_only=True,
+                reason=f"{type(e).__name__}: {e}",
+                note="cost-push phi source failed to resolve -- intermediate leg SKIPPED (result understated)")
         return None
+    if sam is None or not prod:                  # genuine absence (no SAM / no PROD_DICT): expected clean skip
+        return None
+    try:
+        phi = aggregation.input_intensity(sam, prod)
+    except Exception as e:  # noqa: BLE001 -- an odd SAM must not break the run, but must not vanish silently
+        ctx.log("electricity_intensity_unavailable", provenance_only=True,
+                reason=f"{type(e).__name__}: {e}",
+                note="cost-push phi could not be computed from the SAM -- intermediate leg SKIPPED")
+        return None
+    return phi if phi.shape == (int(ctx.og_reform.M),) else None
 
 
 def _activity(ctx, driver="Y_m"):

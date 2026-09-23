@@ -16,6 +16,7 @@ see energy_price_ratio.
 from __future__ import annotations
 
 import glob
+import re
 import os
 
 import numpy as np
@@ -48,16 +49,22 @@ __all__ = [
 
 
 def _find(scenario_dir: str, metric: str, exclude: str = "") -> str:
-    hits = sorted(glob.glob(os.path.join(scenario_dir, f"*{metric}*.csv")))
+    """Path to the CLEWS CSV for the EXACT stem ``metric``, tolerating only a leading ``<REGION>_`` and a
+    trailing ``_<year>`` around it -- so a longer sibling that merely CONTAINS the stem is never silently
+    read instead: ``DiscountedCapitalInvestment`` / ``CapitalInvestmentStorage`` for ``CapitalInvestment``,
+    ``RateOfProductionByTechnologyByMode`` for ``ProductionByTechnologyByMode``,
+    ``AnnualTechnologyEmissionByMode`` for ``AnnualTechnologyEmission``. Mirrors lcoe._find's anchored
+    matcher (callers that WANT the ByMode variant ask for that exact stem). ``exclude`` still drops
+    basenames containing that substring (kept for back-compat; the anchor makes it rarely needed).
+    Raises FileNotFoundError if absent."""
+    pat = re.compile(rf"^(?:[A-Za-z0-9]+_)?{re.escape(metric)}(?:_\d{{4}})?\.csv$", re.IGNORECASE)
+    hits = sorted(h for h in glob.glob(os.path.join(scenario_dir, f"*{metric}*.csv"))
+                  if pat.match(os.path.basename(h)))
     if exclude:
         hits = [h for h in hits if exclude.lower() not in os.path.basename(h).lower()] or hits
-    # prefer the exact-suffix match (".../<...>Metric.csv")
-    exact = [h for h in hits if os.path.basename(h).replace(" ", "").lower().endswith(metric.lower() + ".csv")]
-    if exact:
-        return exact[0]
     if hits:
         return hits[0]
-    raise FileNotFoundError(f"no '*{metric}*.csv' in {scenario_dir}")
+    raise FileNotFoundError(f"no '{metric}(.csv)' (anchored: <region>_{metric}_<year>.csv) in {scenario_dir}")
 
 
 def read_clews_matrix(path: str) -> pd.DataFrame:
@@ -527,7 +534,9 @@ def commodity_shadow_price(source, *, fuel=None, undiscount=True, start_year=Non
     between Base/PEP, so the dual is near-flat there -- the curated cost-of-electricity workbook stays
     the meaningful PHL source; the dual is the fallback for runs that ship no workbook.)
     """
-    path = source if os.path.isfile(source) else _find(source, constraint.split("_", 1)[0])
+    # MUIOGO names the dual file after the constraint's full row name, so look it up by that exact name
+    # (the exact matcher rejects a bare code followed by the constraint's descriptive suffix).
+    path = source if os.path.isfile(source) else _find(source, constraint)
     df = pd.read_csv(path)
     df.columns = [c.strip() for c in df.columns]
     low = {c.lower(): c for c in df.columns}
