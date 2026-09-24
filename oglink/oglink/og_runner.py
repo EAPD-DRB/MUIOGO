@@ -484,7 +484,7 @@ def _apply_health(p, health):
 # --- in-process framework callables (OG env only) --------------------------------
 # Same contract as runtime.export_baseline / solve_reform, but solving IN THIS PROCESS (no subprocess).
 # For scripts that already run under the OG model's interpreter and want OG-Core's native plotting too
-# (e.g. run_across_steps' full deck). framework.run works with either pair injected.
+# framework.run works with either pair injected.
 
 def inprocess_callables(og_package, params_resource, og_start_year, *,
                         num_workers=7, show_progress=False, ss=False, calibration=None):

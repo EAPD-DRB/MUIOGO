@@ -407,10 +407,3 @@ def test_manifest_excludes_provenance_only_records(tmp_path):
     m = json.load(open(path))
     assert {c["id"] for c in m["channels"]} == {"investment"}
     assert any(p.get("channel") == "energy_price_source" for p in m["provenance"])
-
-
-def test_viz_resolver_sees_json_countries(tmp_path):
-    build = pytest.importorskip("oglink.viz.build")
-    f = tmp_path / "c.json"
-    f.write_text(json.dumps({"countries": [ENTRY]}))
-    assert build._resolve_country("og-tst", config_file=str(f)).name == "Testland"

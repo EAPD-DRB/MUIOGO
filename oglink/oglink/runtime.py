@@ -72,44 +72,6 @@ def _run(entry, args, label, log_path=None):
     return rc
 
 
-def build_deck(entry, coupled_dir, *, country_selector, countries_file=None, out_dir=None,
-               log_path=None) -> bool:
-    """Build the default figure/table deck for a COMPLETED run, in the OG model's OWN env. The deck reads
-    OG-Core pickles (needs ogcore + matplotlib, which the link env lacks), so it runs where the solve ran
-    -- subprocess ``entry.env_python -m oglink.viz --coupled-run``. BEST-EFFORT: returns True on
-    success, False otherwise; a deck-build failure must NEVER fail a solve whose results are already
-    written. No new solve -- it reads the run's cached baseline + reform."""
-    env = dict(os.environ)
-    env["PYTHONPATH"] = _LINK_ROOT + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
-    env["PYTHONIOENCODING"] = "utf-8"
-    args = ["-m", "oglink.viz", "--coupled-run", coupled_dir, "--country", str(country_selector)]
-    if countries_file:
-        args += ["--countries", countries_file]
-    if out_dir:
-        args += ["--out-dir", out_dir]
-    try:
-        proc = subprocess.run([entry.env_python, *args], env=env, stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
-                              check=False)
-    except OSError as e:
-        print(f"[deck] could not launch the figure build: {e}", file=sys.stderr)
-        return False
-    if log_path:
-        try:
-            os.makedirs(os.path.dirname(log_path), exist_ok=True)
-            with open(log_path, "w", encoding="utf-8") as f:
-                f.write(proc.stdout or "")
-        except OSError:
-            pass
-    if proc.returncode != 0:
-        tail = "\n".join((proc.stdout or "").splitlines()[-8:])
-        print(f"[deck] figure build failed (exit {proc.returncode}); the run's results are complete. "
-              f"Rebuild later with: {entry.env_python} -m oglink.viz --coupled-run {coupled_dir}\n"
-              f"{tail}", file=sys.stderr)
-        return False
-    return True
-
-
 def _cache_dir(out_root, entry, country, cfg):
     # the baseline is per-OG-model + scenario-independent; key the cache by the model + version + the
     # CHOSEN calibration, so switching calibrations (e.g. single-industry <-> multisector) never reuses

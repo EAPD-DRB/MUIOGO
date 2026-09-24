@@ -16,8 +16,8 @@ see energy_price_ratio.
 from __future__ import annotations
 
 import glob
-import re
 import os
+import re
 
 import numpy as np
 import pandas as pd

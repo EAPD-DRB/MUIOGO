@@ -29,9 +29,6 @@ def main(argv=None):
     rp.add_argument("--workers", type=int, default=7, help="OG-Core J-loop worker processes (use multiprocess; avoid 1)")
     rp.add_argument("--out", default="./oglink_runs")
     rp.add_argument("--no-progress", action="store_true")
-    rp.add_argument("--no-figures", action="store_true",
-                    help="skip auto-building the results figure deck after the solve (built by default "
-                         "in the OG model's env; build later with `-m oglink.viz --coupled-run`)")
     rp.add_argument("--rebuild-baseline", action="store_true",
                     help="force a fresh baseline solve, ignoring any cached one (e.g. to pick up newer "
                          "UN demographics or a re-baked calibration)")
@@ -217,26 +214,6 @@ def main(argv=None):
                                       clews_run=args.clews_run, og_model=og_model,
                                       baseline_dir=baseline_dir, gbd_csv=country.gbd_burden_csv)
         print("Wrote run manifest:", manifest)
-        run_dir = os.path.join(args.out, args.experiment)
-        # Stage the CLEWS export slices the deck reads next to the run, so its figures can be rebuilt
-        # without the original MUIOGO case (self-contained; the deck falls back to the external dirs).
-        try:
-            from .muiogo_run import stage_clews_source
-            n = stage_clews_source(country.scenario.base_dir, country.scenario.reform_dir,
-                                   os.path.join(run_dir, "clews_source"))
-            if n:
-                print(f"Staged {n} CLEWS source file(s) -> {args.experiment}/clews_source/")
-        except Exception as e:  # noqa: BLE001 -- staging is a convenience; never fail the run for it
-            print(f"(clews_source staging skipped: {type(e).__name__})")
-        # Auto-build the default results deck (in the OG model's env, which has ogcore+matplotlib) for any
-        # solved run -- the standard output of a completed coupled run. --no-figures opts out. Non-fatal:
-        # the run's results (above) are already written; a deck failure only warns.
-        if not args.no_figures and ctx.base_tpi is not None and ctx.reform_tpi is not None:
-            print("Building results deck ...")
-            if runtime.build_deck(entry, run_dir, country_selector=(args.country or country.og_repo),
-                                  countries_file=args.countries,
-                                  log_path=os.path.join(run_dir, "deck_build.log")):
-                print(f"Deck: {os.path.join(run_dir, 'index.html')}")
         return
 
     ap.print_help()

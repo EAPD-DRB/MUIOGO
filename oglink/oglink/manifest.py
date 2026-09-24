@@ -41,8 +41,8 @@ def write_run_manifest(out_dir, experiment, country, ctx, clews_run=None, og_mod
     actual solver version comes from the registry, not a local import.
 
     ``baseline_dir`` (the OG baseline pickle cache, separate from the CLEWS scenario dirs) and
-    ``gbd_csv`` (the burden CSV the health channel used) are recorded so a downstream reader (the viz
-    deck) can resolve EVERY input from the manifest alone -- no external flags. Both optional and
+    ``gbd_csv`` (the burden CSV the health channel used) are recorded so a downstream reader (a results
+    viewer) can resolve EVERY input from the manifest alone -- no external flags. Both optional and
     additive: absent -> the key is null and readers fall back to discovery, so this never breaks an
     existing manifest consumer.
     """

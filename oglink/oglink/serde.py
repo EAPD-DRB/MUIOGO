@@ -37,8 +37,8 @@ MUTABLE_PARAM_KEYS = ("tau_c", "c_min", "alpha_T", "alpha_I", "alpha_bs_I", "gam
                       "inv_tax_credit", "delta_tau", "tau_b", "e", "Z")
 
 # The solution variables read downstream -- the consumed subset of an OG SS/TPI dict. The first row is
-# read by channels + report + golden (the battery's correctness gate); the second is read only by the viz
-# lifecycle/savings plots (carried so a deck can be built straight off the cross-env solution npz).
+# read by channels + report + golden (the battery's correctness gate); the second is not read by the linker
+# itself; it is carried for lifecycle and savings charts built from the cross-env solution npz.
 SOLUTION_KEYS = ("C_i", "c_i", "c", "p_i", "Y_m", "Y", "C", "K", "L", "r", "r_p", "r_gov", "w",
                  "cons_tax_revenue", "resource_constraint_error",
                  "n", "b_s", "factor")

@@ -110,34 +110,3 @@ def preflight(scenario_dir: str, *, label: str = "", out=print) -> dict:
             out(f"    - {s}  [{PREFLIGHT_STEMS[s]}]")
         out("    channels that need a missing export will skip or fail loudly at that point.")
     return found
-
-
-# CLEWS export stems the figure DECK reads (emissions, capex, cost, the dual). Staged into a run's
-# clews_source/ so a rebuilt deck is self-contained -- glob '*<stem>*' catches region/year-prefixed
-# OSeMOSYS names and the .xlsx cost workbook.
-_DECK_CLEWS_STEMS = ("AnnualTechnologyEmission", "CapitalInvestment", "AnnualizedInvestmentCost",
-                     "AnnualFixedOperatingCost", "AnnualVariableOperatingCost", _EBB4,
-                     "Cost of electricity")
-
-
-def stage_clews_source(base_dir, reform_dir, dest_root) -> int:
-    """Copy the CLEWS export files the deck reads from the base/reform scenario dirs into
-    ``dest_root/{base,reform}/``, so a run's figure deck can be rebuilt WITHOUT the original MUIOGO case
-    (self-contained; the deck falls back to the external dirs when this is absent). Best-effort per file;
-    returns the number copied. A source dir that is unset/missing is skipped (no error)."""
-    import shutil
-    copied = 0
-    for side, src in (("base", base_dir), ("reform", reform_dir)):
-        if not (src and os.path.isdir(src)):
-            continue
-        dst = os.path.join(dest_root, side)
-        os.makedirs(dst, exist_ok=True)
-        for stem in _DECK_CLEWS_STEMS:
-            for hit in glob.glob(os.path.join(src, f"*{stem}*")):
-                if os.path.isfile(hit) and not os.path.basename(hit).startswith("~$"):
-                    try:
-                        shutil.copy2(hit, os.path.join(dst, os.path.basename(hit)))
-                        copied += 1
-                    except OSError:
-                        pass
-    return copied

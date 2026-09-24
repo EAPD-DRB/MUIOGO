@@ -80,29 +80,6 @@ def fiscal_check(base_tpi, reform_tpi, n=10):
     return out
 
 
-def layered_entry(label, base_tpi, reform_tpi, *, energy_good_index=None, channels=None):
-    """Build one entry of the ``layered_results`` list the viz deck consumes, from a solved
-    ``(base_tpi, reform_tpi)`` pair. Model-agnostic: every number comes from the report.* path
-    math on the TPI dicts, so it works for any country/model. The energy-good rows are added
-    only when an energy good is isolated (``energy_good_index`` is not None); ``channels`` is the
-    list of applied channel ids. Used by the across-steps driver AND the coupled-run viz bridge."""
-    macro = macro_pct_diff(base_tpi, reform_tpi)
-    fc = fiscal_check(base_tpi, reform_tpi)
-    row = {
-        "step": label,
-        "macro": {k: round(float(np.nanmean(v)), 3) for k, v in macro.items()},
-        "fiscal": {k: round(float(v), 4) for k, v in fc.items()},
-        "channels": list(channels or []),
-    }
-    if energy_good_index is not None:
-        inc = incidence(base_tpi, reform_tpi, energy_good_index)
-        dC = demand_response(base_tpi, reform_tpi, energy_good_index)
-        row["energy_demand_pct"] = round(float(np.nanmean(dC[:10])), 2)
-        row["consumption_by_J"] = [round(float(x), 2) for x in inc["consumption_by_J"]]
-        row["energy_by_J"] = [round(float(x), 2) for x in inc["energy_by_J"]]
-    return row
-
-
 def print_report(ctx):
     """Human-readable summary of a finished run."""
     con = ctx.concordance
