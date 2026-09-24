@@ -1,36 +1,30 @@
 # oglink — MUIOGO's OG-CLEWS linker
 
 Couples a solved CLEWS case into an OG-Core country model: it reads the CLEWS results, turns the
-electricity price and related signals into OG-Core inputs, runs the country model, and reports the
-macroeconomic result with a run manifest.
+electricity price and related signals into OG-Core inputs, runs the country model, and writes the
+macroeconomic result as data (a macro table, a results file and a run record).
 
-The linker runs in **its own environment**. MUIOGO never imports it; it launches it as a separate
-process. The linker in turn launches each OG country model in that model's own environment, and gives
-it this package's source folder for the length of the run. Nothing is installed into the country
-model's environment.
+## How it runs
 
-This package was brought in from the research repository ogclews-link (branch
-`experiment/v18-gold-coupled`, commit `ee92c9b`). New work on the linker happens here.
+The linker is part of MUIOGO and needs no separate installation. It runs with MUIOGO's own Python, as
+a separate process: MUIOGO's web app never imports it. The linker in turn launches each OG country
+model in that model's own environment and gives it this folder's source for the length of the run.
+Nothing is installed into the country model's environment.
 
-## Set up
-
-```bash
-cd oglink
-uv sync --extra dev        # builds oglink/.venv, the linker's own environment
-```
-
-MUIOGO finds this environment by itself. Check with `GET /oglink/status?deep=1`, which also lists the
-OG country models the linker can see. It reads them from MUIOGO's installed-model register, so a
-model installed from MUIOGO's OG tab appears without extra steps.
+`GET /oglink/status?deep=1` reports whether the linker can run and lists the OG country models it can
+see. It reads them from MUIOGO's installed-model register, so a model installed from MUIOGO's OG tab
+appears without extra steps.
 
 ## Use
 
 - **From MUIOGO:** a case with `<case>/oglink/hook.json` runs the linker after each CLEWS solve and
   records the OG result with the case.
-- **By hand:** `.venv/bin/oglink run coupled --country phl --clews-base <base csv dir> --clews-reform <reform csv dir> --out <dir>`
+- **By hand**, from this folder with MUIOGO's Python:
+  `python -m oglink run coupled --country phl --clews-base <base csv dir> --clews-reform <reform csv dir> --out <dir>`
 
 ## Tests
 
-```bash
-cd oglink && .venv/bin/pytest
-```
+From this folder, with MUIOGO's Python: `python -m pytest`
+
+This package came from the research repository ogclews-link (branch `experiment/v18-gold-coupled`,
+commit `ee92c9b`). New work on the linker happens here.

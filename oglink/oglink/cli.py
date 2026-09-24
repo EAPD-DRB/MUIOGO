@@ -110,7 +110,7 @@ def main(argv=None):
         elif args.models_cmd == "list":
             rows = models.list_models(args.registry)
             if not rows:
-                print("no OG models registered (run: oglink models register --path <dir>)")
+                print("no OG models registered (run: python -m oglink models register --path <dir>)")
             for key, pkg, ver, cal, cc, ok in rows:
                 coup = "" if cc is None else f" couplable={cc}"
                 print(f"  [{'x' if ok else ' '}] {key:10} {pkg:12} {ver or '?':8} "

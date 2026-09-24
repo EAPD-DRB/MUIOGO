@@ -96,7 +96,7 @@ CLEWS_SCENARIO_HELP = (
     "CLEWS scenario directory is unset. Point the link at your MUIOGO installation: set "
     "$OGLINK_MUIOGO_HOME (if this package is not inside it), $OGLINK_CLEWS_CASE, and "
     "$OGLINK_CLEWS_BASE_RUN/$OGLINK_CLEWS_REFORM_RUN; or give explicit dirs via "
-    "$OGLINK_CLEWS_BASE/$OGLINK_CLEWS_REFORM, or `oglink run ... --clews-base <dir> --clews-reform <dir>`.")
+    "$OGLINK_CLEWS_BASE/$OGLINK_CLEWS_REFORM, or `python -m oglink run ... --clews-base <dir> --clews-reform <dir>`.")
 
 
 def _muiogo_home():

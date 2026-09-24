@@ -1,10 +1,10 @@
 """Post-run hook: a finished CLEWs solve triggers the OG-CLEWS link, and the OG
 results are registered in the case's view/resData.json for the UI.
 
-Called by ``DataFile.run`` after a successful solve. The link runs in ITS OWN
-venv (oglink/.venv) as a subprocess (``python -m oglink run ...``); this
-module never imports oglink or ogcore -- that is the design boundary, in both
-directions.
+Called by ``DataFile.run`` after a successful solve. The linker runs as a
+separate process with MUIOGO's own Python (``python -m oglink run ...`` from
+the oglink folder); this module never imports oglink or ogcore -- that is the
+design boundary, in both directions.
 
 The hook is opt-in per case and silent by default:
   * no ``<case>/oglink/hook.json`` -> no-op (a CLEWs-only user is unaffected);
@@ -23,10 +23,12 @@ registered in resData.json (successes AND failures, so the UI can show both).
      "country": "phl", "workers": 7, "timeout_s": 21600,
      "out": null, "extra_args": []}
 """
+import importlib.util
 import logging
 import os
 import re
 import subprocess
+import sys
 import threading
 from datetime import datetime, timezone, UTC
 from pathlib import Path
@@ -36,56 +38,47 @@ from Classes.Base.FileClass import File
 
 logger = logging.getLogger(__name__)
 
+# What the linker needs from MUIOGO's environment beyond the web app itself.
+_LINK_DEPENDENCIES = ("numpy", "pandas", "scipy")
+
 _OFF_VALUES = {"0", "off", "false", "no"}
 _REGISTER_LOCK = threading.Lock()
 
 
 class PostRunHook:
 
-    # ── environment resolution (explicit, no PATH guessing) ──────────────────
+    # ── where the linker is and what runs it ─────────────────────────────────
     @staticmethod
     def link_python():
-        """The linker's own interpreter: $OGLINK_PYTHON, else the venv under
-        $OGLINK_HOME, else this checkout's oglink/.venv. None if that
-        environment has not been built (the hook then no-ops)."""
-        explicit = os.environ.get("OGLINK_PYTHON")
-        if explicit:
-            return explicit if Path(explicit).is_file() else None
-        home = Path(os.environ.get("OGLINK_HOME") or Config.OGLINK_HOME_DIR)
-        candidate = Config.venv_python_path(home / ".venv")
-        return str(candidate) if candidate.is_file() else None
+        """The interpreter that runs the linker: MUIOGO's own. The linker lives
+        in this repository and needs nothing beyond MUIOGO's environment."""
+        return sys.executable
 
     @staticmethod
-    def link_home(python_path):
-        """The link checkout the interpreter belongs to (the subprocess cwd, so
-        the link's own ./og_model_registry.json and countries JSON resolve):
-        $OGLINK_HOME, else the dir holding the interpreter's .venv. None
-        when underivable (an interpreter outside a .venv needs the env var)."""
-        if os.environ.get("OGLINK_HOME"):
-            return os.environ["OGLINK_HOME"]
-        # abspath, NOT resolve(): a uv venv's python is a symlink into the uv
-        # python store; following it would walk the store, never the .venv.
-        for parent in Path(os.path.abspath(python_path)).parents:
-            if parent.name == ".venv":
-                return str(parent.parent)
-        return None
+    def link_home():
+        """The linker folder (the subprocess cwd, so `python -m oglink` finds
+        the package and the linker's ./og_model_registry.json resolves there),
+        or None if this checkout has no linker."""
+        home = Config.OGLINK_HOME_DIR
+        return str(home) if (home / "oglink" / "__init__.py").is_file() else None
 
     @classmethod
     def status(cls):
-        """Is the link usable from here? {installed, python, home, reason} --
+        """Is the linker usable from here? {installed, python, home, reason} --
         the capability check the UI (and MUIOGO-AI) reads before offering a
-        coupled run."""
-        python = cls.link_python()
-        if python is None:
-            return {"installed": False, "python": None, "home": None,
-                    "reason": "the OG-CLEWS linker environment is not built: no "
-                              f"venv at {Config.OGLINK_HOME_DIR / '.venv'} (and no "
-                              "$OGLINK_PYTHON / $OGLINK_HOME override)"}
-        home = cls.link_home(python)
+        coupled run. The linker is never imported here; this only checks that
+        its folder exists and that MUIOGO's environment has what it needs."""
+        python, home = cls.link_python(), cls.link_home()
         if home is None:
             return {"installed": False, "python": python, "home": None,
-                    "reason": "interpreter is not inside a .venv; set "
-                              "$OGLINK_HOME to the linker folder"}
+                    "reason": f"no linker folder at {Config.OGLINK_HOME_DIR}"}
+        missing = [name for name in _LINK_DEPENDENCIES
+                   if importlib.util.find_spec(name) is None]
+        if missing:
+            return {"installed": False, "python": python, "home": home,
+                    "reason": "MUIOGO's environment is missing "
+                              f"{', '.join(missing)}; re-run MUIOGO's setup "
+                              "to update it"}
         return {"installed": True, "python": python, "home": home, "reason": None}
 
     @classmethod
@@ -145,14 +138,10 @@ class PostRunHook:
         if not base_csv.is_dir():
             return skip(f"base caserun csv missing ({base_csv}); solve "
                         f"{base_caserun!r} first")
-        python = cls.link_python()
-        if python is None:
-            return skip("the OG-CLEWS linker environment is not built (no venv "
-                        f"at {Config.OGLINK_HOME_DIR / '.venv'})")
-        home = cls.link_home(python)
-        if home is None:
-            return skip("cannot derive the link checkout from the interpreter; "
-                        "set $OGLINK_HOME")
+        info = cls.status()
+        if not info["installed"]:
+            return skip(f"linker not available: {info['reason']}")
+        python, home = info["python"], info["home"]
 
         # Out of the DataStorage tree (Config's own rule): run outputs are big,
         # and the link's OG-baseline cache lives under --out, so a stable

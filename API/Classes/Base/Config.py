@@ -162,9 +162,8 @@ OGLINK_RUNS_DIR = Path(
     or (Path.home() / ".muiogo" / "oglink-runs")
 )
 
-# The OG-CLEWS linker lives in this repository (oglink/) with its own
-# environment at oglink/.venv. The post-run hook uses it unless the
-# OGLINK_PYTHON / OGLINK_HOME overrides point elsewhere.
+# The OG-CLEWS linker lives in this repository (oglink/) and runs with
+# MUIOGO's own Python, as a separate process started by the post-run hook.
 OGLINK_HOME_DIR = BASE_DIR / "oglink"
 
 # -------------------------

@@ -25,6 +25,7 @@ dependencies = [
     "python-dotenv==1.0.1",
     "pytz==2024.1",
     "s3transfer==0.10.1",
+    "scipy==1.17.1",
     "tzdata==2024.1",
     "waitress==3.0.0",
     "Werkzeug==3.0.3",
