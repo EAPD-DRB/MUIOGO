@@ -10,7 +10,7 @@ import warnings
 from logging.handlers import TimedRotatingFileHandler
 
 # Fail fast: unsupported Python hits cryptic pandas/numpy import errors without this.
-SUPPORTED_PYTHON_MIN = (3, 10)
+SUPPORTED_PYTHON_MIN = (3, 11)
 SUPPORTED_PYTHON_MAX = (3, 13)
 
 if not (SUPPORTED_PYTHON_MIN <= sys.version_info[:2] < SUPPORTED_PYTHON_MAX):
@@ -19,7 +19,7 @@ if not (SUPPORTED_PYTHON_MIN <= sys.version_info[:2] < SUPPORTED_PYTHON_MAX):
     max_str = f"{SUPPORTED_PYTHON_MAX[0]}.{SUPPORTED_PYTHON_MAX[1] - 1}"
     print(
         f"Unsupported Python version: {detected_version}\n"
-        f"MUIOGO currently supports Python {min_str} to {max_str} (recommended: 3.11).\n"
+        f"MUIOGO currently supports Python {min_str} to {max_str} (recommended: 3.12).\n"
         "Use scripts/setup.sh or scripts\\setup.bat with a supported Python installation.",
         file=sys.stderr,
     )

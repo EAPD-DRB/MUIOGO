@@ -18,8 +18,8 @@ if not "%CONDA_DEFAULT_ENV%"=="" (
     exit /b 1
 )
 
-REM Try versioned executables first (3.12, 3.11, 3.10)
-for %%V in (3.12 3.11 3.10) do (
+REM Try versioned executables first (3.12, 3.11)
+for %%V in (3.12 3.11) do (
     where python%%V >nul 2>&1
     if !errorlevel! equ 0 (
         set "PYTHON=python%%V"
@@ -30,7 +30,7 @@ for %%V in (3.12 3.11 3.10) do (
 REM Try the Python Launcher (py.exe) with each supported version
 where py >nul 2>&1
 if %errorlevel% equ 0 (
-    for %%V in (3.12 3.11 3.10) do (
+    for %%V in (3.12 3.11) do (
         py -%%V -c "import sys" >nul 2>&1
         if !errorlevel! equ 0 (
             set "PYTHON=py -%%V"
@@ -42,14 +42,14 @@ if %errorlevel% equ 0 (
 REM Try plain `python` and let setup_dev.py validate the version
 where python >nul 2>&1
 if %errorlevel% equ 0 (
-    python -c "import sys; v=sys.version_info; exit(0 if (3,10)<=v<(3,13) else 1)" >nul 2>&1
+    python -c "import sys; v=sys.version_info; exit(0 if (3,11)<=v<(3,13) else 1)" >nul 2>&1
     if !errorlevel! equ 0 (
         set "PYTHON=python"
         goto :run
     )
 )
 
-echo ERROR: No supported Python runtime found (requires 3.10, 3.11, or 3.12^).
+echo ERROR: No supported Python runtime found (requires 3.11 or 3.12^).
 echo Install a supported version, then re-run setup.
 echo   winget: winget install -e --id Python.Python.3.12
 echo   Python.org: https://www.python.org/downloads/windows/

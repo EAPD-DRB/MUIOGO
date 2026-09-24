@@ -18,9 +18,9 @@ if [ -n "${CONDA_DEFAULT_ENV:-}" ]; then
     exit 1
 fi
 
-# Try versioned executables in order (3.12, 3.11, 3.10)
+# Try versioned executables in order (3.12, 3.11)
 PYTHON=""
-for VER in 3.12 3.11 3.10; do
+for VER in 3.12 3.11; do
     if command -v "python${VER}" &>/dev/null; then
         PYTHON="python${VER}"
         break
@@ -29,13 +29,13 @@ done
 
 # Fall back to plain python3 if it's in the supported range
 if [ -z "$PYTHON" ] && command -v python3 &>/dev/null; then
-    if python3 -c "import sys; v=sys.version_info; exit(0 if (3,10)<=v<(3,13) else 1)" 2>/dev/null; then
+    if python3 -c "import sys; v=sys.version_info; exit(0 if (3,11)<=v<(3,13) else 1)" 2>/dev/null; then
         PYTHON="python3"
     fi
 fi
 
 if [ -z "$PYTHON" ]; then
-    echo "ERROR: No supported Python runtime found (requires 3.10, 3.11, or 3.12)."
+    echo "ERROR: No supported Python runtime found (requires 3.11 or 3.12)."
     if [ "$(uname -s)" = "Darwin" ]; then
         echo "  Homebrew: brew install python@3.12"
         echo "  Python.org macOS installer: https://www.python.org/downloads/macos/"

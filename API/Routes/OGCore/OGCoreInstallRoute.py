@@ -6,7 +6,7 @@ these endpoints and the backend either wraps the OG-Core universal installer
 """
 import os
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -105,7 +105,7 @@ def _blocked_by_run(country_id):
 
 
 def _now_iso():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 # ── 1. catalogue ─────────────────────────────────────────────────────────────
