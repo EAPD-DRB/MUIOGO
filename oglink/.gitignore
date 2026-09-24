@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+# coupled-run outputs and any local validation scratch (never committed)
+ogclews_runs/
+_validation*/
+_validation*.json
+_pr1_gate_run/
+*.log
+.pytest_cache/

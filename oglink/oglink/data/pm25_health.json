@@ -1,0 +1,52 @@
+{
+  "_doc": "Country-agnostic emissions->deaths dose-response for the health channel.",
+  "_method": "deaths_change = total_ambient_pm25_deaths[country] (the country's GBD export) * M[country] * emissions_change_fraction (CLEWS sector delta); M = energy_mass_share * crf_elasticity",
+  "_full_table": "oglink/data/mcduffie2021_pm25_source_shares.csv -- verbatim mirror of McDuffie Supp Data 1 (regions + 204 countries + sub-national); energy_total_pct = energy_coal + energy_noncoal. Use it to add any future country.",
+  "_sources": {
+    "energy_mass_share": "McDuffie et al. 2021, Nature Communications 12:3594 (s41467-021-23853-y), Supplementary Data 1 (2017): per-country % of population-weighted PM2.5 MASS from the energy/power sector = 'Energy Coal' + 'Energy NonCoal'. CC-BY.",
+    "crf_elasticity": "GBD MR-BRT/IER + GEMM (Burnett et al. 2018, PNAS 115(38):9592); concave, dln(deaths)/dln(conc) ~0.78-0.86 over 15-40 ug/m3 (declining with exposure)",
+    "total_deaths": "the country's own GBD ambient-PM2.5 export (IHME-GBD_2023_DATA) -- NOT McDuffie. PHL = 43,951 (2023)."
+  },
+  "global_ambient_sector_share_of_mass_pct": {
+    "_year": 2017, "_source": "McDuffie 2021 Supp Data 1, 'Global' row",
+    "residential": 19.0, "windblown_dust": 16.1, "industry": 11.7,
+    "energy_power_generation": 10.2, "agriculture": 5.1, "transport": 7.8
+  },
+  "countries": {
+    "Philippines": {
+      "iso3": "PHL", "pm25_exposure_ugm3": 18.4,
+      "energy_share_pct": 9.8, "energy_coal_pct": 5.8, "energy_noncoal_pct": 4.0,
+      "crf_elasticity": 0.84, "multiplier_M": 0.082,
+      "share_source": "McDuffie 2021 Supp Data 1 (firm, country-specific)",
+      "note": "M ~= 0.082 -> -7.7% power emissions => ~-0.63% of total ambient deaths"
+    },
+    "Indonesia": {
+      "iso3": "IDN", "pm25_exposure_ugm3": 18.0,
+      "energy_share_pct": 9.8, "energy_coal_pct": 8.3, "energy_noncoal_pct": 1.5,
+      "crf_elasticity": 0.84, "multiplier_M": 0.082,
+      "share_source": "McDuffie 2021 Supp Data 1 (firm)",
+      "note": "energy mostly coal; residential dominates total PM2.5"
+    },
+    "South Africa": {
+      "iso3": "ZAF", "pm25_exposure_ugm3": 28.8,
+      "energy_share_pct": 22.5, "energy_coal_pct": 20.5, "energy_noncoal_pct": 2.0,
+      "crf_elasticity": 0.78, "multiplier_M": 0.176,
+      "share_source": "McDuffie 2021 Supp Data 1 (firm); energy-coal 20.5% = largest single source",
+      "note": "M ~2x the others -- coal-heavy power; the health channel matters most here"
+    },
+    "Ethiopia": {
+      "iso3": "ETH", "pm25_exposure_ugm3": 32.6,
+      "energy_share_pct": 10.1, "energy_coal_pct": 0.8, "energy_noncoal_pct": 9.3,
+      "crf_elasticity": 0.76, "multiplier_M": 0.077,
+      "share_source": "McDuffie 2021 Supp Data 1 (firm)",
+      "note": "energy almost all non-coal; higher exposure -> lower elasticity"
+    }
+  },
+  "_crf_elasticity_note": "Energy MASS shares are now firm per-country (McDuffie). The remaining approximation is the CRF elasticity: taken from the concave GBD/GEMM curve at each country's exposure (~0.84 near 18 ug/m3 down to ~0.76 near 33 ug/m3); recompute from GEMM/IER parameters when precision matters. The SHARE is the dominant, now-resolved term.",
+  "_future_household_air_pollution": {
+    "_what": "SEPARATE GBD risk factor: 'Household air pollution from solid fuels' (INDOOR exposure). DISTINCT from ambient PM2.5 above.",
+    "_for": "a future household-fuel-change channel (biomass/charcoal cooking -> clean fuels/electric)",
+    "_use": "GBD HAP rei attributable deaths (a separate IHME export; our current GBD file is AMBIENT only) + % population using solid fuels + the HAP CRF -- NOT the ambient residential share.",
+    "_why_distinct": "McDuffie 'residential' = residential combustion's contribution to OUTDOOR ambient PM2.5; HAP = INDOOR exposure. Largest burden in low-income / high-solid-fuel-use settings (Ethiopia, rural Indonesia/Philippines)."
+  }
+}
