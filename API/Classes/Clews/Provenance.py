@@ -14,7 +14,7 @@ an error -- plenty of perfectly good cases predate this file.
 """
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from pathlib import Path
 
 from Classes.Base import Config
@@ -27,7 +27,7 @@ _HASH_CHUNK = 1024 * 1024
 
 
 def _now_iso():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def sha256_of(path):

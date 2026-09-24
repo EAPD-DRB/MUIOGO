@@ -162,11 +162,9 @@ OGLINK_RUNS_DIR = Path(
     or (Path.home() / ".muiogo" / "oglink-runs")
 )
 
-# Where the ogclews-link installer is expected to place the link on an
-# end-user machine (same convention as og-models). The post-run hook probes
-# this after the OGCLEWS_LINK_* env overrides and before the dev-layout
-# ../ogclews-link sibling.
-OGLINK_HOME_DIR = Path.home() / ".muiogo" / "ogclews-link"
+# The OG-CLEWS linker lives in this repository (oglink/) and runs with
+# MUIOGO's own Python, as a separate process started by the post-run hook.
+OGLINK_HOME_DIR = BASE_DIR / "oglink"
 
 # -------------------------
 # CLEWs country install + registry layer

@@ -30,7 +30,7 @@ Rules (docs: .claude/OGLINK-HANDOFF.md):
 import json
 import random
 import shutil
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from pathlib import Path
 
 from Classes.Base import Config
@@ -256,7 +256,7 @@ class OGLinkPatch:
         (dst / "oglink").mkdir(exist_ok=True)
         File.writeFile(
             {"copied_from": src_case,
-             "created_at": datetime.now(timezone.utc).isoformat()},
+             "created_at": datetime.now(UTC).isoformat()},
             dst / "oglink" / "created.json")
         return dst
 
@@ -298,7 +298,7 @@ class OGLinkPatch:
         base_record = cls.base_caserun_record(case, base_caserun)
         active = {s["ScenarioId"] for s in base_record["Scenarios"] if s["Active"]}
 
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         copy_name = copy_name or f"{case}_oglink_{stamp}"
         caserun_name = caserun_name or f"OGLink_{base_caserun}"
         cls.validate_name(copy_name, "copy name")
@@ -318,7 +318,7 @@ class OGLinkPatch:
             "CaseId": "CS_" + "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=5)),
             "Desc": (f"OG link patch of {base_caserun!r}: {len(changes)} "
                      f"changes from {patch.get('source', 'unknown source')}"),
-            "Runtime": datetime.now(timezone.utc).strftime(
+            "Runtime": datetime.now(UTC).strftime(
                 "%a %b %d %Y %H:%M:%S GMT+0000 (UTC)"),
             "Scenarios": [dict(s) for s in base_record["Scenarios"]],
         }
@@ -360,7 +360,7 @@ class OGLinkPatch:
         File.writeFile(
             {"patch": patch, "base_caserun": base_caserun,
              "caserun": caserun_name, "applied": provenance,
-             "applied_at": datetime.now(timezone.utc).isoformat()},
+             "applied_at": datetime.now(UTC).isoformat()},
             oglink_dir / "patch_applied.json")
 
         solve = DataFile(copy_name).run(solver, caserun_name)

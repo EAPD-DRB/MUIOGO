@@ -10,7 +10,7 @@ import os
 import shutil
 import tempfile
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -81,7 +81,7 @@ def _unsafe_name(*names):
 
 def _utc_now_z():
     """ISO-8601 UTC timestamp with a trailing Z, seconds precision."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 # ── active case (a country and a name, never one without the other) ───────────
