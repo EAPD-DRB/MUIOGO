@@ -28,7 +28,7 @@ import os
 import re
 import subprocess
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from pathlib import Path
 
 from Classes.Base import Config
@@ -180,7 +180,7 @@ class PostRunHook:
         cmd += [str(a) for a in cfg.get("extra_args", [])]
 
         timeout = int(cfg.get("timeout_s", 21600))
-        started = datetime.now(timezone.utc)
+        started = datetime.now(UTC)
         logger.info("oglink hook: running %s", " ".join(cmd))
         # Own process group + kill the WHOLE TREE on timeout: the link spawns
         # the OG solver as a grandchild, which a plain timeout-kill would
@@ -216,7 +216,7 @@ class PostRunHook:
                      if (run_dir / "index.html").is_file() else None),
             "clews_base": str(base_csv), "clews_reform": str(reform_csv),
             "started_at": started.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "elapsed_s": round((datetime.now(timezone.utc) - started).total_seconds(), 1),
+            "elapsed_s": round((datetime.now(UTC) - started).total_seconds(), 1),
             "stdout_tail": (out or "")[-2000:], "stderr_tail": (err or "")[-2000:],
         }
         cls.register(case, entry)
