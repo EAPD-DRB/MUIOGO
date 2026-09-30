@@ -46,6 +46,20 @@ reached from the Home page) follows the same pattern: `.clw-*` styles, and the
 - `WebAPP/DataStorage/Variables.json`
 - `WebAPP/DataStorage/<model>/...`
 
+### OG-Core results
+
+Each finished OG-Core run writes `results_meta.json` next to its results: start
+year, `T`, `S`, `J`, the age vector, income-group shares and labels (from
+OG-Core's `lambda_labels`), and steady-state population weights. Household
+outputs are labelled and weighted only from this file. Runs solved before it
+carried these fields are rebuilt once from their `model_params.pkl` by the
+worker's `meta` mode.
+
+`API/Classes/OGCore/OGReport.py` owns the variable catalog and the comparison
+rules served by `/ogc/getResultsReport`: levels as a percent change, rates in
+percentage points, fiscal values as shares of GDP, and a negative baseline
+flagged instead of given a percent change.
+
 ## Known architectural constraints
 
 - Hardcoded or relative path assumptions exist and reduce portability.

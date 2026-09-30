@@ -19,6 +19,7 @@ from pathlib import Path
 from Classes.Base import Config
 from Classes.OGCore.CalibrationRegistry import CalibrationRegistry
 from Classes.OGCore.InstallJob import InstallJob
+from Classes.OGCore.OGReport import meta_complete
 
 # Mirrors RunJob's install gate. Replicated rather than imported, like WORKER_PATH
 # below, so the table layer and the run layer stay independent; the resolvers are
@@ -164,3 +165,56 @@ def run_worker_mode(python_path, argv_list, timeout=180):
             os.unlink(out_path)
         except OSError:
             pass
+
+
+# ── results metadata backfill ────────────────────────────────────────────────
+def _write_json_atomic(path, obj):
+    """Write JSON next to ``path`` and os.replace it into place."""
+    path = Path(path)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(obj, f)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def ensure_run_metadata(case, run_dir):
+    """Return (meta, reason) for a finished run, rebuilding old metadata once.
+
+    Runs solved before the worker wrote full results metadata only carry
+    start_year, T and S. Their group labels, ages and population weights are
+    rebuilt from the run's model_params.pkl by the worker's meta mode and merged
+    into results_meta.json, so later reads are plain file reads. When that is not
+    possible the existing (partial) meta comes back with a user-facing reason and
+    the caller degrades instead of inventing labels.
+    """
+    meta_path = Path(run_dir) / "results_meta.json"
+    try:
+        with open(meta_path, encoding="utf-8") as f:
+            meta = json.load(f)
+        if not isinstance(meta, dict):
+            meta = {}
+    except (OSError, ValueError):
+        meta = {}
+    if meta_complete(meta):
+        return meta, None
+    if not (Path(run_dir) / "model_params.pkl").is_file():
+        return meta, "The run's parameters were not saved, so its metadata cannot be rebuilt."
+    python_path, err = resolve_python(case)
+    if err:
+        return meta, err
+    rebuilt, err = run_worker_mode(python_path, ["meta", "--run-dir", str(run_dir)], timeout=120)
+    if err or not isinstance(rebuilt, dict):
+        return meta, f"The run's metadata could not be rebuilt: {err or 'no result'}"
+    merged = {**meta, **rebuilt}
+    try:
+        _write_json_atomic(meta_path, merged)
+    except OSError:
+        pass  # still usable for this response; the rebuild is retried next time
+    return merged, None
