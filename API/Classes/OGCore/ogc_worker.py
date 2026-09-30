@@ -323,16 +323,33 @@ def _build_parameters(run_dir: Path, meta: dict, override: dict, status: StatusW
 
 def _solve(p, time_path: bool) -> None:
     from distributed import Client
+    from ogcore import SS
     from ogcore.execute import runner
 
-    client = Client(n_workers=_num_workers(), threads_per_worker=1)
+    client = None
+    original_run_ss = SS.run_SS
+
+    def run_ss_serial(specs, client=None):  # noqa: ARG001 -- signature of SS.run_SS
+        # Workaround: OG-Core's steady-state solve re-broadcasts the parameters to
+        # every dask worker on each iteration, which is slower than solving it
+        # serially. Ignore any client passed in; only the time path uses dask.
+        return original_run_ss(specs, client=None)
+
     try:
+        if time_path:
+            client = Client(
+                n_workers=_num_workers(), threads_per_worker=1,
+                dashboard_address=None,
+            )
+        SS.run_SS = run_ss_serial
         runner(p, time_path=time_path, client=client)
     except Exception as exc:
         raise WorkerError(str(exc), 3)
     finally:
+        SS.run_SS = original_run_ss
         try:
-            client.close()
+            if client is not None:
+                client.close()
         except Exception:
             pass
 
