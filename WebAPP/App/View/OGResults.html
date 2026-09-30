@@ -1,0 +1,85 @@
+<div class="ogc-page ogc-rs" id="ogcResultsPage">
+  <div class="ogc-rs-layout">
+
+    <!-- run picker: completed runs, grouped by baseline with reforms nested -->
+    <aside class="ogc-rs-picker" aria-label="Choose results">
+      <div class="ogc-rs-picker-head">
+        <h2>Results</h2>
+        <span class="ogc-search"><i class="fa fa-search" aria-hidden="true"></i><input id="ogcRsSearch" type="search" placeholder="Filter runs..." aria-label="Filter runs"></span>
+      </div>
+      <div class="ogc-rs-recent" id="ogcRsRecent" style="display:none"></div>
+      <div class="ogc-rs-tree" id="ogcRsTree" role="list"></div>
+    </aside>
+
+    <section class="ogc-rs-main" aria-live="polite">
+      <div class="ogc-rs-intro" id="ogcRsIntro">
+        <i class="fa fa-line-chart" aria-hidden="true"></i>
+        <h1>Choose what to look at</h1>
+        <p><b>View</b> a completed run to see its long-run economy, or <b>Compare</b> a reform with its baseline to see what the policy changes.</p>
+      </div>
+
+      <div class="ogc-rs-status" id="ogcRsLoading" role="status" style="display:none">
+        <span class="ogc-rs-spinner" aria-hidden="true"></span> <b>Loading results…</b>
+      </div>
+
+      <div class="ogc-rs-status ogc-rs-error" id="ogcRsError" style="display:none"></div>
+
+      <div id="ogcRsView" style="display:none">
+        <header class="ogc-rs-head">
+          <div class="ogc-rs-headline">
+            <div>
+              <div class="ogc-rs-kicker" id="ogcRsKicker"></div>
+              <h1 class="ogc-rs-title" id="ogcRsTitle"></h1>
+            </div>
+            <div class="ogc-rs-facts" id="ogcRsFacts"></div>
+          </div>
+          <nav class="ogc-rs-tabs" role="tablist" aria-label="Results views">
+            <button type="button" role="tab" data-rs-tab="report" aria-selected="true">Report</button>
+            <button type="button" role="tab" data-rs-tab="explore" aria-selected="false">Explore data</button>
+          </nav>
+          <nav class="ogc-rs-sections" id="ogcRsSections" aria-label="Report sections"></nav>
+        </header>
+
+        <div class="ogc-rs-pane" data-rs-pane="report" role="tabpanel"></div>
+
+        <div class="ogc-rs-pane" data-rs-pane="explore" role="tabpanel" style="display:none">
+          <div class="ogc-rs-explore">
+            <div class="ogc-rs-vars">
+              <span class="ogc-search"><i class="fa fa-search" aria-hidden="true"></i><input id="ogcRsVarSearch" type="search" placeholder="Find a variable..." aria-label="Find a variable"></span>
+              <div class="ogc-rs-varlist" id="ogcRsVarList" role="listbox" aria-label="Variables"></div>
+            </div>
+            <div class="ogc-rs-output">
+              <div class="ogc-rs-toolbar" id="ogcRsToolbar"></div>
+              <article class="ogc-rs-card">
+                <header class="ogc-rs-card-head">
+                  <div><div class="ogc-rs-card-period" id="ogcRsExPeriod"></div><h3 id="ogcRsExTitle"></h3></div>
+                  <div class="ogc-rs-card-tools" id="ogcRsExTools"></div>
+                </header>
+                <div class="ogc-rs-note" id="ogcRsExNote" style="display:none"></div>
+                <div class="ogc-rs-chart ogc-rs-chart-lg" id="ogcRsExChart"></div>
+                <div class="ogc-rs-grid" id="ogcRsExTable" style="display:none"></div>
+              </article>
+            </div>
+          </div>
+
+          <section class="ogc-rs-section" id="rs-ogtables">
+            <div class="ogc-rs-section-head">
+              <h2>OG-Core tables</h2>
+              <p>The analysis tables OG-Core itself produces for this selection.</p>
+            </div>
+            <article class="ogc-rs-card">
+              <header class="ogc-rs-card-head">
+                <div class="ogc-seg" id="ogcRsTablePicker" role="group" aria-label="OG-Core table"></div>
+                <div class="ogc-rs-card-tools">
+                  <button type="button" class="btn ogc-btn ogc-btn-sm ogc-btn-soft" data-rs-act="table-csv" disabled><i class="fa fa-download" aria-hidden="true"></i> CSV</button>
+                </div>
+              </header>
+              <div class="ogc-rs-note" id="ogcRsTableNote" style="display:none"></div>
+              <div class="ogc-rs-grid" id="ogcRsOgTable"></div>
+            </article>
+          </section>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
