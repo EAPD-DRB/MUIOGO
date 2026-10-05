@@ -13,6 +13,7 @@ from Classes.Case.OsemosysClass import Osemosys
 from Classes.Case.HelpersClass import Helpers
 from Classes.Base.FileClass import File
 from Classes.Base.CustomThreadClass import CustomThread
+from Classes.Case import CommodityPrice
 
 logger = logging.getLogger(__name__)
 
@@ -2623,6 +2624,15 @@ class DataFile(Osemosys):
                         df_EB_d = pd.merge(df_EB, df_DR, on=['r'], how='outer')
                         df_EB_d[dual] = df_EB_d[dual] * pow((1 + df_EB_d['DiscountRate']), df_EB_d['y'] - start_year + 0.5)
                         df_EB_d.to_csv(os.path.join(base_folder, 'csv', dual+'.csv'), index=None)
+
+                # MUIOGO: one annual price per commodity, rebuilt from the balance-row
+                # shadow prices (MUIO 5.7 removed the single annual row). A failure is
+                # logged, not raised, so the rest of the results are still written.
+                try:
+                    CommodityPrice.write_csv(df, data, self.genData, start_year,
+                                             os.path.join(base_folder, 'csv'))
+                except Exception:
+                    logger.exception("Commodity marginal price could not be computed")
 
                 if 'AccumulatedNewStorageCapacity' in all_params:
                     df_ANSC = all_params['AccumulatedNewStorageCapacity'].rename(columns={'value':'AccumulatedNewStorageCapacity'})
