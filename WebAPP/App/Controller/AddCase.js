@@ -70,7 +70,7 @@ export default class AddCase {
         });
 
         return {
-            "osy-version": "5.6",
+            "osy-version": "5.7",
             "osy-casename": $("#osy-casename").val().trim(),
             "osy-desc": $("#osy-desc").val().trim(),
             "osy-date": new Date().toDateString(),
@@ -804,12 +804,13 @@ export default class AddCase {
             event.preventDefault();
             event.stopImmediatePropagation();
             let defaultComm = DefaultObj.defaultComm();
-            model.commodities.unshift(JSON.parse(JSON.stringify(defaultComm[0], ['CommId', 'Comm', 'Desc', 'UnitId'])));
+            model.commodities.unshift(JSON.parse(JSON.stringify(defaultComm[0], ['CommId', 'Comm', 'Desc', 'BalanceLevel', 'UnitId'])));
 
             //update commnames
             model.commNames[defaultComm[0]['CommId']] = defaultComm[0]['Comm'];
             //add row
             $divComm.jqxGrid('addrow', null, defaultComm, 'first');
+            $divComm.jqxGrid('updatebounddata', 'data');
             model.commCount++;
             $("#commCount").text(model.commCount);
         });
@@ -855,15 +856,26 @@ export default class AddCase {
             var args = event.args;
             var column = event.args.datafield;
             var rowBoundIndex = args.rowindex;
-            var value = args.newvalue.trim();
-            model.commodities[rowBoundIndex][column] = value;
-            if (column == 'UnitId') {
-                Message.bigBoxWarning('Unit change warning!', 'Changing commodity unit will not recalculate entered nor default values in the model.', 3000);
+            // The Balance Level column is a dropdown and hands back {value, label};
+            // every other column is plain text.
+            var value = (typeof args.newvalue === 'object' && args.newvalue !== null)
+                ? args.newvalue
+                : args.newvalue.trim();
+
+            if (column == 'BalanceLevel') {
+                model.commodities[rowBoundIndex][column] = value.value;
             }
-            if (column == 'Comm') {
-                var commId = $divComm.jqxGrid('getcellvalue', rowBoundIndex, 'CommId');
-                model.commNames[commId] = value;
+            else{
+                model.commodities[rowBoundIndex][column] = value;
+                if (column == 'UnitId') {
+                    Message.bigBoxWarning('Unit change warning!', 'Changing commodity unit will not recalculate entered nor default values in the model.', 3000);
+                }
+                if (column == 'Comm') {
+                    var commId = $divComm.jqxGrid('getcellvalue', rowBoundIndex, 'CommId');
+                    model.commNames[commId] = value;
+                }
             }
+
         });
 
         //EMISSIONS GRID AND EVENTS

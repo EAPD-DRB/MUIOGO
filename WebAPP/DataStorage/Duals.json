@@ -29,11 +29,66 @@
     ],
     "RYC": [
         {
-            "id": "EB_d",
-            "value": "Shadow price - Energy Balance",
-            "name": "EBb4_EnergyBalanceEachYear4_ICR",
+            "id": "EBA_d",
+            "value": "Shadow price - Annual energy balance",
+            "name": "EB_AnnualBalance",
             "setrelation": [
                 "r",
+                "f",
+                "y"
+            ],
+            "unitRule": {
+                "cat": [
+                    {
+                        "var": "milion"
+                    },
+                    {
+                        "var": "Currency"
+                    },
+                    {
+                        "var": "divide"
+                    },
+                    {
+                        "var": "CommUnit"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "EBR_d",
+            "value": "Shadow price - Annual roll-up balance",
+            "name": "EB_AnnualRollup",
+            "setrelation": [
+                "r",
+                "f",
+                "y"
+            ],
+            "unitRule": {
+                "cat": [
+                    {
+                        "var": "milion"
+                    },
+                    {
+                        "var": "Currency"
+                    },
+                    {
+                        "var": "divide"
+                    },
+                    {
+                        "var": "CommUnit"
+                    }
+                ]
+            }
+        }
+    ],
+    "RYCTs": [
+        {
+            "id": "EBT_d",
+            "value": "Shadow price - Timeslice energy balance",
+            "name": "EB_TimesliceBalance",
+            "setrelation": [
+                "r",
+                "l",
                 "f",
                 "y"
             ],
