@@ -100,6 +100,19 @@ export class Base {
         });
     }
 
+    // Update the model list and dropdown after copying or uploading a model
+    static refreshCaseLists() {
+        return Promise.all([Base.getCaseStudies(), Base.getSession()])
+            .then(([cases, response]) => {
+                Html.renderCasePicker(cases, response.session);
+                if ($('#cases').length) {
+                    Html.renderModels(cases, response.session);
+                    $('#CaseSearch').trigger('keyup');
+                }
+            })
+            .catch(error => Message.danger(error));
+    }
+
     static getResultCSV(casename, caserunname) {
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -235,7 +248,7 @@ export class Base {
         const handleCaseRestoreSuccess = function (result, showWarning = false) {
             let casename = result.casename;
             if (casename) {
-                Html.apendModel(casename);
+                Base.refreshCaseLists();
             }
 
             Message.bigBoxSuccess("Upload response", result.message, null);
