@@ -1,0 +1,35 @@
+{
+  "_readme": [
+    "Countries file: define YOUR country/case for oglink as data -- no source edit.",
+    "Copy to oglink_countries.json (working dir), or point $OGLINK_COUNTRIES / --countries at it.",
+    "Select an entry with --country <name|un_code|og_repo> or $OGLINK_COUNTRY.",
+    "Every field is documented in README 'Onboarding your own country'. Required fields:",
+    "name, un_code, og_repo, gdp_musd, og_start_year, power_prefix. The packaged PHL example",
+    "does not need an entry here -- it ships in code as the worked reference."
+  ],
+  "countries": [
+    {
+      "name": "Exampleland",
+      "un_code": "999",
+      "og_repo": "og-xmp",
+      "gdp_musd": 250000.0,
+      "og_start_year": 2026,
+      "power_prefix": "XMP_POW",
+      "public_power_markers": ["_TD"],
+      "electricity_fuel": "XMP_HOU_ELE",
+      "clews_region": "RE1",
+      "co2_emission": "CO2e",
+      "health_emission": "PM2_5",
+      "units": {
+        "clews_money_unit": "MUSD",
+        "clews_energy_unit": "PJ",
+        "base_year": 2020,
+        "deflator": 1.0
+      },
+      "scenario": {
+        "name": "MyReform_vs_Base",
+        "years": [2020, 2053]
+      }
+    }
+  ]
+}

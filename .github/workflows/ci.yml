@@ -64,6 +64,10 @@ jobs:
       - name: Run tests
         run: pytest --cov=API --cov-report=term-missing --cov-fail-under=5
 
+      - name: Run linker tests
+        working-directory: oglink
+        run: python -m pytest
+
   e2e:
     name: E2E smoke (Playwright)
     runs-on: ubuntu-latest
