@@ -113,6 +113,15 @@ def annual_commodity_price(levels, ts_duals, season_duals, yearly_duals,
     use_ts: r, l, f, y, use (use by timeslice-resolved technologies).
     use_season: r, ls, f, y, use (use by season-resolved technologies).
     """
+    def as_text(df, cols):
+        return df.astype({c: str for c in cols if c in df.columns})
+
+    keys = ["r", "l", "ls", "f", "y"]
+    ts_duals, season_duals, yearly_duals = (as_text(d, keys) for d in (ts_duals, season_duals, yearly_duals))
+    year_split, demand_profile, use_ts, use_season = (
+        as_text(d, keys) for d in (year_split, demand_profile, use_ts, use_season))
+    ts_season = {str(k): (None if v is None else str(v)) for k, v in ts_season.items()}
+
     ts_comms = {f for f, lv in levels.items() if lv == "Ts"}
     se_comms = {f for f, lv in levels.items() if lv == "Se"}
     an_comms = {f for f, lv in levels.items() if lv == "An"}
@@ -167,7 +176,8 @@ def _rows(results, name, columns):
         return pd.DataFrame(columns=columns + ["dual"])
     out = rows["id"].str.split(",", expand=True)
     out.columns = columns
-    out["dual"] = rows["dual"].astype(float).values
+    # the unrounded shadow price where the parser kept it (see generateCSVfromCBC)
+    out["dual"] = rows["dual_raw" if "dual_raw" in rows.columns else "dual"].astype(float).values
     return out
 
 
@@ -185,8 +195,9 @@ def write_csv(results, data, genData, start_year, csv_dir):
     """Build the price from one solve's parsed results and write it next to
     the other result CSVs. ``results`` is the table generateCSVfromCBC parses
     from results.txt (parameter, id, value, dual)."""
-    seasons = {se["SeId"]: se["Se"] for se in genData.get("osy-se", [])}
-    ts_season = {ts["Ts"]: seasons.get(ts.get("SE")) for ts in genData.get("osy-ts", [])}
+    # Names as text: a case may name its seasons 1, 2, ... while the solver output is text.
+    seasons = {se["SeId"]: str(se["Se"]) for se in genData.get("osy-se", [])}
+    ts_season = {str(ts["Ts"]): seasons.get(ts.get("SE")) for ts in genData.get("osy-ts", [])}
     levels = {c["Comm"]: (c.get("BalanceLevel") or "Ts") for c in genData.get("osy-comm", [])}
 
     year_split = pd.DataFrame(data["YearSplit"], columns=Config.PARAMETERS_C_full["YearSplit"])

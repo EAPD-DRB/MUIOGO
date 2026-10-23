@@ -2563,6 +2563,9 @@ class DataFile(Osemosys):
                 df[['parameter','id']] = df['temp'].str.split('(', expand=True)
                 df['parameter'] = df['parameter'].str.split(' ', expand=True)[1]
                 df = df.drop('temp', axis=1)
+                # MUIOGO: keep the unrounded shadow price for the commodity price; at 4
+                # decimals small prices (land, water, or any price in large money units) vanish.
+                df['dual_raw'] = df['dual'].astype(float)
                 df['value'] = df['value'].astype(float).round(4)
                 df['dual'] = df['dual'].astype(float).round(4)
 

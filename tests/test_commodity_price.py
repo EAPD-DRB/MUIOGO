@@ -104,3 +104,25 @@ def test_results_from_the_older_model_get_a_price_too():
     price = _price({"ELC": "Ts"}, ts_duals=ts.values.tolist(), yearly=yearly.values.tolist(),
                    use=[("R", "D", "ELC", "2030", 1.0), ("R", "N", "ELC", "2030", 3.0)])
     assert price["ELC"] == pytest.approx(0.25 * 40 + 0.75 * 10 + 2.0)
+
+
+def test_numbered_seasons_still_get_a_price():
+    """A case may name its seasons 1, 2, ... while the solver output names them as text."""
+    out = annual_commodity_price(
+        {"WAT": "Se"},
+        _frame(["r", "l", "f", "y", "dual"], []),
+        _frame(["r", "ls", "f", "y", "dual"], [("R", "1", "WAT", "2030", 12.0)]),
+        _frame(["r", "f", "y", "dual"], []),
+        YEAR_SPLIT, {"D": 1, "N": 1},
+        _frame(["r", "f", "y", "l", "SpecifiedDemandProfile"], []),
+        _frame(["r", "l", "f", "y", "use"], [("R", "D", "WAT", "2030", 1.0)]),
+        _frame(["r", "ls", "f", "y", "use"], [("R", 1, "WAT", "2030", 1.0)]),
+    )
+    assert dict(zip(out["f"], out["price"]))["WAT"] == pytest.approx(12.0)
+
+
+def test_unrounded_shadow_prices_are_used():
+    from Classes.Case import CommodityPrice
+    results = pd.DataFrame({"parameter": ["EBb4_EnergyBalanceEachYear4_ICR"], "id": ["R,WAT,2030"],
+                            "value": [0.0], "dual": [0.0], "dual_raw": [0.0000312]})
+    assert CommodityPrice._rows(results, "EBb4_EnergyBalanceEachYear4_ICR", ["r", "f", "y"])["dual"][0] == pytest.approx(0.0000312)
