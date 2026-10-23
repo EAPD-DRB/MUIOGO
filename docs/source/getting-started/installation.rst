@@ -5,8 +5,8 @@ Installation
 This repository currently uses a source-based setup flow for development and
 contributor onboarding.
 
-Supported Python versions are **3.10 to 3.12**. Python **3.11** is the
-recommended version.
+Supported Python versions are **3.11 and 3.12**. Python **3.12** is the
+recommended version, and the uv installer uses it automatically.
 
 Recommended setup
 =================
@@ -37,5 +37,5 @@ Manual dependency installation
 
 For advanced users, you can install Python dependencies manually with
 ``pip install -r requirements.txt``, but that path still requires a supported
-Python version (3.10 to 3.12) and does not add compatibility for newer Python
+Python version (3.11 or 3.12) and does not add compatibility for newer Python
 releases.
