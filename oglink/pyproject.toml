@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oglink"
+version = "0.1.0"
+description = "OG-CLEWS linker, Bridge A: couple a solved CLEWS case into OG-Core macro in a separate environment."
+requires-python = ">=3.11"
+# Link side is numpy/pandas only, UNPINNED on purpose: oglink is installed into BOTH the link env and each
+# OG model's env, and an unpinned floor means installing it into an OG env never perturbs that env's numpy.
+# ogcore / distributed / cloudpickle are imported LAZILY inside og_runner (OG env only) -- never link-side --
+# so they are deliberately NOT declared here.
+dependencies = ["numpy", "pandas"]
+
+[project.optional-dependencies]
+# The OG-env side additionally needs the OG model stack; declared for documentation, installed by the OG
+# model's own environment (not by the link).
+ogenv = ["ogcore", "distributed", "cloudpickle"]
+test = ["pytest"]
+
+[project.scripts]
+oglink = "oglink.cli:main"
+
+[tool.setuptools]
+packages = ["oglink"]
+
+[tool.setuptools.package-data]
+# pm25_health.json carries the per-country dose-response M; if it is not shipped, health silently falls
+# back to M=1.0 (~12x overstate). og_model_registry.json is the packaged empty default registry.
+oglink = ["data/*.json", "data/*.csv"]
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: end-to-end solve against a real OG model + CLEWS run (opt-in; needs an OG env)",
+]

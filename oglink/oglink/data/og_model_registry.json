@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "_doc": "Installed OG country models, keyed by OG repo key (og-phl, og-idn, ...), mirroring OG-Core/scripts/repos.json. Each entry is a pure install record {package, env_python, version}; the UN country code is NOT here (the OG package owns it, e.g. ogphl.UN_COUNTRY_CODE). The link READS this; it never installs. This packaged default ships EMPTY -- a machine populates it at install time (MUIOGO drives OG-Core/scripts/install.sh) or via `oglink models register --path <dir>`. Override with $OGLINK_MODEL_REGISTRY or a ./og_model_registry.json in the run dir (which takes precedence over this default).",
+  "models": {}
+}
