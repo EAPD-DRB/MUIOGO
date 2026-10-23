@@ -46,7 +46,12 @@ def initSyncS3():
 def getCases():
     try:
         with os.scandir(Config.DATA_STORAGE) as entries:
-            cases = [entry.name for entry in entries if entry.is_dir() and not _is_hidden_directory(entry)]
+            cases = [
+                entry.name for entry in entries
+                if entry.is_dir()
+                and not _is_hidden_directory(entry)
+                and Path(entry.path, "genData.json").is_file()
+            ]
         cases.sort(key=lambda name: (name.casefold(), name))
         return jsonify(cases), 200
     except(IOError):

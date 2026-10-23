@@ -30,7 +30,7 @@ def test_cancel_queued_run_reaches_terminal_state(make_case, calibration, stub_l
     case2 = make_case("c2", runs=[("base", "baseline", None)])
     RunJob.start("ETH", "c1", "base", False)   # occupies the slot
     RunJob.start("ETH", "c2", "base", False)   # queued
-    assert case2.get_run_meta("base")["status"] == "pending"
+    assert case2.get_run_meta("base")["status"] == "queued"
 
     result = RunJob.cancel("ETH", "c2", "base")
 
@@ -118,7 +118,7 @@ def test_queue_advances_for_real_when_the_active_run_finishes(
     RunJob.start("ETH", "c1", "base", False)
     assert fake_runner[0].spawned.wait(5)
     RunJob.start("ETH", "c2", "base", False)
-    assert case2.get_run_meta("base")["status"] == "pending"
+    assert case2.get_run_meta("base")["status"] == "queued"
 
     fake_runner[0].finish(rc=1)  # first run ends; the queue must drain on its own
 

@@ -70,6 +70,18 @@ def test_reconcile_fails_a_run_left_running(make_case, calibration):
     assert case.get_run_meta("later")["status"] == "pending", "untouched"
 
 
+def test_reconcile_fails_a_run_left_queued(make_case, calibration):
+    case = make_case("c1", runs=[("base", "baseline", None)])
+    case.update_run_status("base", "queued")
+
+    RunJob.reconcile_interrupted_runs()
+
+    meta = case.get_run_meta("base")
+    assert meta["status"] == "failed"
+    assert "queued" in meta["error"].lower()
+    assert "restart" in meta["error"].lower()
+
+
 def test_reconcile_is_idempotent_and_leaves_finished_runs(make_case, calibration):
     case = make_case("c1", runs=[("base", "baseline", None)])
     case.update_run_status("base", "completed", time_path=False)

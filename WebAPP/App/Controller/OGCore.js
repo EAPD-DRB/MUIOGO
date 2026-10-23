@@ -1,5 +1,7 @@
 import { Message } from "../../Classes/Message.Class.js";
 import { Ogc } from "../../Classes/Ogc.Class.js";
+import { OGWorkspace } from "../../Classes/OGWorkspace.Class.js";
+import { escapeHtml as esc } from "../../Classes/Html.Class.js";
 import { Model } from "../Model/OGCore.Model.js";
 
 //register country ids (repo name suffix) -> vendored flag files (ISO2, see
@@ -7,9 +9,6 @@ import { Model } from "../Model/OGCore.Model.js";
 const FLAG_ISO2 = { ETH: 'et', ZAF: 'za', IDN: 'id', PHL: 'ph', USA: 'us', UK: 'gb', THA: 'th', BRA: 'br' };
 
 //register values render into markup, escape them
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
-    ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-
 const BADGES = {
     'installed': ['ogc-b-ok', 'installed'],
     'update_available': ['ogc-b-upd', 'update available'],
@@ -50,7 +49,6 @@ let PAGE_ID = 0;
 
 //last known job state by country, used to keep the live dialog current
 let JOB_STATE = {};
-
 export default class OGCore {
     static onLoad(){
         OGCore.stopAllPolls();
@@ -175,7 +173,10 @@ export default class OGCore {
                     </div>
                     <span class="ogc-badge ${badge[0]}">${esc(badge[1])}</span>
                 </div>
-                <div class="ogc-card-actions">${OGCore.actionsHtml(c, record)}</div>
+                <div class="ogc-card-actions" data-state="${esc(c.install_state)}">
+                    ${active ? `<button class="btn ogc-btn ogc-btn-main" data-act="open-workspace" data-country="${esc(c.country_id)}"><i class="fa fa-folder-open-o"></i> Open workspace</button>` : ''}
+                    ${OGCore.actionsHtml(c, record)}
+                </div>
             </div>`;
     }
 
@@ -197,8 +198,8 @@ export default class OGCore {
             return `${record && record.last_error
                         ? '<button class="btn ogc-btn ogc-btn-danger" data-act="log"><i class="fa fa-exclamation-triangle"></i> View update error</button>'
                         : ''}
-                    <button class="btn ogc-btn ogc-btn-ico" data-act="check" title="Check for updates"><i class="fa fa-refresh"></i></button>
-                    <button class="btn ogc-btn ogc-btn-ico" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i></button>`;
+                    <button class="btn ogc-btn" data-act="check" title="Check for updates"><i class="fa fa-refresh"></i> Check for updates</button>
+                    <button class="btn ogc-btn" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i> Remove</button>`;
         }
         if (state == 'update_available'){
             if (record && record.source_type == 'local_path' && !record.updatable){
@@ -207,15 +208,15 @@ export default class OGCore {
                     : 'This calibration comes from a local folder. Update the folder yourself, then check again.';
                 return `<div class="ogc-updatenote" title="${why}">Update the local folder to get this version</div>
                         <button class="btn ogc-btn ogc-btn-line" data-act="check"><i class="fa fa-refresh"></i> Check again</button>
-                        <button class="btn ogc-btn ogc-btn-ico" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i></button>`;
+                        <button class="btn ogc-btn" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i> Remove</button>`;
             }
             return `<button class="btn ogc-btn ogc-btn-main" data-act="update"><i class="fa fa-arrow-circle-up"></i> Update</button>
-                    <button class="btn ogc-btn ogc-btn-ico" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i></button>`;
+                    <button class="btn ogc-btn" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i> Remove</button>`;
         }
         if (state == 'failed'){
             return `<button class="btn ogc-btn ogc-btn-line" data-act="log"><i class="fa fa-file-text-o"></i> View error</button>
                     <button class="btn ogc-btn ogc-btn-danger" data-act="retry"><i class="fa fa-refresh"></i> Retry</button>
-                    <button class="btn ogc-btn ogc-btn-ico" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i></button>`;
+                    <button class="btn ogc-btn" data-act="remove" title="Remove from MUIOGO"><i class="fa fa-times"></i> Remove</button>`;
         }
         return '';
     }
@@ -734,6 +735,7 @@ export default class OGCore {
     static initEvents(){
         //polls must not outlive the page
         $(window).off('hashchange.ogcPolls').on('hashchange.ogcPolls', function () {
+            OGWorkspace.cancelPreparation();
             OGCore.invalidatePage();
         });
 
@@ -743,6 +745,17 @@ export default class OGCore {
             let act = $(this).attr('data-act');
             if (act == 'add'){
                 OGCore.openAdd();
+                return;
+            }
+            if (act == 'open-workspace'){
+                let countryId = $(this).attr('data-country');
+                let country = OGCore.findCalibration(countryId);
+                if (country){
+                    let pageID = PAGE_ID;
+                    OGWorkspace.prepare(country, () => OGCore.isCurrent(pageID)).then(ready => {
+                        if (ready) window.location.hash = '#/OGCases';
+                    });
+                }
                 return;
             }
             let countryId = $(this).closest('.ogc-card').attr('data-country');
