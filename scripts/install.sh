@@ -331,15 +331,26 @@ if [[ $DEST_HAS_REPO -eq 1 ]]; then
     CURRENT_BRANCH="$("$GIT_BIN" -C "$DEST_ABS" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
     echo "  Existing MUIOGO clone found at ${DEST_ABS} (branch: ${CURRENT_BRANCH})."
 
-    # -- Version check against EAPD-DRB/MUIOGO:main ---------------------------
+    # -- Version check against what `git pull` would bring in ------------------
+    # The clone's own tracked branch (the branch and repository it was installed
+    # from); EAPD-DRB/MUIOGO:main only when it tracks nothing, e.g. a detached HEAD.
     LOCAL_SHA="$("$GIT_BIN" -C "$DEST_ABS" rev-parse --short HEAD 2>/dev/null || echo '?')"
-    "$GIT_BIN" -C "$DEST_ABS" fetch https://github.com/EAPD-DRB/MUIOGO.git main --quiet 2>/dev/null || true
-    REMOTE_SHA="$("$GIT_BIN" -C "$DEST_ABS" rev-parse --short FETCH_HEAD 2>/dev/null || echo '?')"
-    BEHIND="$("$GIT_BIN" -C "$DEST_ABS" rev-list --count HEAD..FETCH_HEAD 2>/dev/null || echo '?')"
-    AHEAD="$("$GIT_BIN" -C "$DEST_ABS" rev-list --count FETCH_HEAD..HEAD 2>/dev/null || echo '?')"
+    UPSTREAM="$("$GIT_BIN" -C "$DEST_ABS" rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)"
+    if [[ -n "$UPSTREAM" ]]; then
+        "$GIT_BIN" -C "$DEST_ABS" fetch --quiet 2>/dev/null || true
+        COMPARE_REF="@{u}"
+        LATEST_LABEL="${UPSTREAM}"
+    else
+        "$GIT_BIN" -C "$DEST_ABS" fetch https://github.com/EAPD-DRB/MUIOGO.git main --quiet 2>/dev/null || true
+        COMPARE_REF="FETCH_HEAD"
+        LATEST_LABEL="EAPD-DRB/MUIOGO:main"
+    fi
+    REMOTE_SHA="$("$GIT_BIN" -C "$DEST_ABS" rev-parse --short "$COMPARE_REF" 2>/dev/null || echo '?')"
+    BEHIND="$("$GIT_BIN" -C "$DEST_ABS" rev-list --count "HEAD..${COMPARE_REF}" 2>/dev/null || echo '?')"
+    AHEAD="$("$GIT_BIN" -C "$DEST_ABS" rev-list --count "${COMPARE_REF}..HEAD" 2>/dev/null || echo '?')"
 
     echo "  Local:   ${LOCAL_SHA}  (${CURRENT_BRANCH})"
-    echo "  Latest:  ${REMOTE_SHA}  (EAPD-DRB/MUIOGO:main)"
+    echo "  Latest:  ${REMOTE_SHA}  (${LATEST_LABEL})"
     echo ""
 
     if [[ "$BEHIND" == "?" ]]; then
@@ -351,8 +362,10 @@ if [[ $DEST_HAS_REPO -eq 1 ]]; then
     else
         warn "${BEHIND} behind, ${AHEAD} ahead  --  update now?"
         if prompt_yn "Update now?" y; then
-            cmd "git -C ${DEST_ABS} pull --ff-only"
-            if "$GIT_BIN" -C "$DEST_ABS" pull --ff-only; then
+            PULL_ARGS=(pull --ff-only)
+            [[ "$COMPARE_REF" == "FETCH_HEAD" ]] && PULL_ARGS+=(https://github.com/EAPD-DRB/MUIOGO.git main)
+            cmd "git -C ${DEST_ABS} ${PULL_ARGS[*]}"
+            if "$GIT_BIN" -C "$DEST_ABS" "${PULL_ARGS[@]}"; then
                 pass "Updated to $("$GIT_BIN" -C "$DEST_ABS" rev-parse --short HEAD)"
                 record_step "Clone" "PASS" "updated (was ${BEHIND} behind)"
             else

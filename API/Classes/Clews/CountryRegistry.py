@@ -28,6 +28,7 @@ from pathlib import Path
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 from Classes.Clews.Provenance import Provenance
+from datetime import UTC
 
 # Writes happen from request threads and from background install threads, so guard
 # the read-modify-write with a process-wide lock (same pattern as CalibrationRegistry).
@@ -239,4 +240,4 @@ class CountryRegistry:
 
 def _now_iso():
     from datetime import datetime, timezone
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")

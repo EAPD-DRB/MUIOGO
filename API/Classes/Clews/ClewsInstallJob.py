@@ -13,7 +13,7 @@ the case appears in the registry when it lands (the job's success path reconcile
 """
 import shutil
 import threading
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, UTC
 
 from Classes.Base import Config
 from Classes.Base.CustomThreadClass import CustomThread
@@ -36,7 +36,7 @@ _STAGE_LABELS = {
 
 
 def _now_iso():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class ClewsInstallJob:

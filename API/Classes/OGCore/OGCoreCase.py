@@ -9,7 +9,7 @@ import logging
 import os
 import shutil
 import tempfile
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from pathlib import Path
 
 from Classes.Base import Config
@@ -43,7 +43,7 @@ def is_safe_name(name) -> bool:
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _write_run_meta(meta: dict, path: Path) -> None:
@@ -161,7 +161,7 @@ class OGCoreCase:
                     logger.warning("Skipping unreadable OG-Core case dir '%s': %s",
                                    entry.name, exc)
                     continue
-                modified_at = datetime.fromtimestamp(mtime, timezone.utc).strftime(
+                modified_at = datetime.fromtimestamp(mtime, UTC).strftime(
                     "%Y-%m-%dT%H:%M:%SZ"
                 )
                 cases.append({

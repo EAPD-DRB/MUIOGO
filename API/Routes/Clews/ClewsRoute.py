@@ -27,6 +27,7 @@ from Classes.Clews.CountryManifest import (
 )
 from Classes.Clews.CountryRegistry import CountryRegistry
 from Classes.Clews.Provenance import Provenance
+from datetime import UTC
 
 clews_api = Blueprint("ClewsRoute", __name__, url_prefix="/clews")
 
@@ -243,7 +244,7 @@ def checkCountryUpdate():
 
     update_available = published != known
     from datetime import datetime, timezone
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     record = CountryRegistry.get(casename)
     if record is not None:
         record["last_checked_at"] = now
