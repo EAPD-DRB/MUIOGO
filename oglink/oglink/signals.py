@@ -452,6 +452,14 @@ def energy_price_ratio(kind, *, base_dir, reform_dir, share, og_start_year, n, f
                 "denominator and identifies the generation fleet (the producers of that commodity).")
         ratio = lcoe.lcoe_ratio(base_dir, reform_dir, busbar)
         files = {"base": lcoe.PROD_STEM, "reform": lcoe.PROD_STEM, "busbar": busbar}
+        spikes = {side: lcoe.input_price_spikes(d, busbar)
+                  for side, d in (("base", base_dir), ("reform", reform_dir))}
+        spikes = {side: s for side, s in spikes.items() if s}
+        if spikes:
+            files["input_price_warnings"] = spikes
+            print("[warning] electricity price: the plants' input cost jumps in some years, usually a "
+                  "shadow-price spike where a constraint binds. Check whether it is real scarcity: "
+                  f"{spikes}")
         if ratio.dropna().empty:
             raise ValueError(
                 f"energy_price_ratio kind='lcoe': the levelized-cost ratio for busbar={busbar!r} is empty "

@@ -22,6 +22,9 @@ prices instead of tracing supplier costs back through the system keeps the metho
     USEFUL output; a dumped byproduct (no consumers) does not dilute (elec_frac == 1).
   * Per-run discovery: generation techs are discovered independently for each scenario dir, so a
     reform's new technologies (e.g. PEP's nuclear plant) are captured, never inherited.
+  * Regions: each region's plant inputs are valued at that region's prices.
+  * Spikes: a shadow price can jump in a year where a constraint binds. input_price_spikes() reports
+    years where that moves the electricity price; it is a flag for review, not a correction.
 
 Reads (raw long CSVs): ProductionByTechnologyByMode, UseByTechnologyByMode (t, f, y, value),
 AnnualizedInvestmentCost, AnnualFixedOperatingCost, AnnualVariableOperatingCost (t, y, value),
@@ -100,15 +103,16 @@ def has_busbar_producers(csv_dir: str, busbar: str) -> bool:
         return False
 
 
-def lcoe_by_year(csv_dir: str, busbar: str) -> dict:
-    """LCOE index by int year for one scenario dir. ``busbar`` = the busbar electricity commodity
-    (generation output, pre-T&D; e.g. 'PHL_POW_ELE')."""
+def _lcoe_parts(csv_dir: str, busbar: str) -> pd.DataFrame:
+    """Per-year pieces of the LCOE: plant ``own`` cost, ``inputs`` (their use at model prices),
+    busbar ``gen``eration, ``lcoe``, and the ``top_input`` commodity by value. Indexed by int year,
+    years with generation only."""
     if _find(csv_dir, PRICE_STEM) is None:
         raise FileNotFoundError(f"lcoe: no {PRICE_STEM}.csv in {csv_dir}. {PRICE_MISSING_HELP}")
     prod = _read_long(csv_dir, PROD_STEM)
     use = _read_long(csv_dir, USE_STEM)
     costs = _load_costs(csv_dir)
-    price = _read_long(csv_dir, PRICE_STEM).groupby(["f", "y"])["v"].mean()   # one region, as above
+    price = _read_long(csv_dir, PRICE_STEM)
 
     # generation = producers of the busbar commodity (discovered per run)
     gen = set(prod.loc[prod.f == busbar, "t"].unique())
@@ -130,17 +134,67 @@ def lcoe_by_year(csv_dir: str, busbar: str) -> dict:
     own["w"] = own["cost"] * own["t"].map(elec_frac)
     own_y = own.groupby("y")["w"].sum()
 
+    # Each region's plant inputs at that region's prices. Without a region column in the use file
+    # the prices must be one region's, or there is no way to know which price applies.
     inputs = use[use.t.isin(gen)].copy()
-    inputs["p"] = [price.get((f, y), 0.0) for f, y in zip(inputs["f"], inputs["y"])]
+    keys = ["f", "y"]
+    if "r" in inputs.columns and "r" in price.columns:
+        keys = ["r", "f", "y"]
+        inputs["r"] = inputs["r"].astype(str)
+        price = price.assign(r=price["r"].astype(str))
+    elif "r" in price.columns and price["r"].nunique() > 1:
+        raise ValueError(
+            f"lcoe: {PRICE_STEM}.csv in {csv_dir} has prices for {price['r'].nunique()} regions but "
+            f"{USE_STEM}.csv has no region column, so the plants' inputs cannot be matched to their "
+            "region's prices.")
+    p = price.groupby(keys, as_index=False)["v"].mean().rename(columns={"v": "p"})
+    inputs = inputs.merge(p, on=keys, how="left")
+    inputs["p"] = inputs["p"].fillna(0.0)                 # an unpriced input is free
     inputs["w"] = inputs["v"] * inputs["p"] * inputs["t"].map(elec_frac)
     input_y = inputs.groupby("y")["w"].sum()
+    top = inputs.groupby(["y", "f"])["w"].sum().reset_index().sort_values("w").groupby("y").tail(1)
+    top_y = dict(zip(top["y"], top["f"]))
 
     gen_out = prod[prod.f == busbar].groupby("y")["v"].sum()
-    lcoe = {}
+    rows = {}
     for y, g in gen_out.items():
         if g > 0:
-            lcoe[int(y)] = (float(own_y.get(y, 0.0)) + float(input_y.get(y, 0.0))) / float(g)
-    return dict(sorted(lcoe.items()))
+            o, i = float(own_y.get(y, 0.0)), float(input_y.get(y, 0.0))
+            rows[int(y)] = {"own": o, "inputs": i, "gen": float(g), "lcoe": (o + i) / float(g),
+                            "top_input": top_y.get(y)}
+    return pd.DataFrame.from_dict(rows, orient="index").sort_index()
+
+
+def lcoe_by_year(csv_dir: str, busbar: str) -> dict:
+    """LCOE index by int year for one scenario dir. ``busbar`` = the busbar electricity commodity
+    (generation output, pre-T&D; e.g. 'PHL_POW_ELE')."""
+    parts = _lcoe_parts(csv_dir, busbar)
+    return {int(y): float(v) for y, v in parts["lcoe"].items()}
+
+
+def input_price_spikes(csv_dir: str, busbar: str, *, factor: float = 5.0,
+                       min_share: float = 0.1) -> list:
+    """Years where the plants' input cost per unit of electricity is more than ``factor`` times its
+    median over the years AND is more than ``min_share`` of that year's price -- typically a
+    shadow-price spike where a constraint binds in one year. Informational: it can be real scarcity,
+    so the price is not changed; the caller reports it."""
+    parts = _lcoe_parts(csv_dir, busbar)
+    if parts.empty:
+        return []
+    per_unit = parts["inputs"] / parts["gen"]
+    share = parts["inputs"] / (parts["own"] + parts["inputs"]).where(lambda x: x != 0)
+    med = float(per_unit.median())
+    flagged = []
+    for y in parts.index:
+        if not share.get(y, 0.0) > min_share:          # also skips NaN (no cost at all)
+            continue
+        if med > 0 and per_unit[y] > factor * med:
+            flagged.append({"year": int(y), "times_usual": round(float(per_unit[y] / med), 1),
+                            "share_of_price": round(float(share[y]), 3), "top_input": parts.at[y, "top_input"]})
+        elif med == 0 and per_unit[y] > 0:
+            flagged.append({"year": int(y), "times_usual": None,
+                            "share_of_price": round(float(share[y]), 3), "top_input": parts.at[y, "top_input"]})
+    return flagged
 
 
 def lcoe_ratio(base_dir: str, reform_dir: str, busbar: str, **kw) -> pd.Series:
