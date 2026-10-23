@@ -406,12 +406,17 @@ def energy_price_ratio(kind, *, base_dir, reform_dir, share, og_start_year, n, f
             kind, why = "cost_index", "cost-of-electricity workbook found in both scenario dirs"
         elif busbar and _has_lcoe_inputs(base_dir) and _has_lcoe_inputs(reform_dir):
             kind, why = "lcoe", "no workbook -> levelized cost from the CLEWS cost/production CSVs"
+        elif busbar and any(lcoe._find(d, lcoe.PRICE_STEM) is None for d in (base_dir, reform_dir)):
+            raise ValueError(
+                "energy_price_ratio kind='auto': the levelized price needs the commodity prices, which "
+                f"are missing from {'the base' if lcoe._find(base_dir, lcoe.PRICE_STEM) is None else 'the reform'} "
+                f"scenario dir. {lcoe.PRICE_MISSING_HELP}")
         else:
             raise ValueError(
                 "energy_price_ratio kind='auto': no levelized price source is available -- neither a "
                 "cost-of-electricity workbook (in both scenario dirs) nor the LCOE inputs (a busbar "
-                "electricity code AND the ProductionByTechnologyByMode / UseByTechnologyByMode / cost "
-                "CSVs). Set CountryConfig.busbar_electricity to enable the 'lcoe' source, ship a workbook, "
+                "electricity code AND the ProductionByTechnologyByMode / UseByTechnologyByMode / cost / "
+                "CommodityMarginalPrice CSVs). Set CountryConfig.busbar_electricity to enable the 'lcoe' source, ship a workbook, "
                 "or request kind='marginal' explicitly (the marginal/shadow-price source is degenerate and "
                 "is never selected automatically).")
         print(f"[provenance] energy price source: 'auto' resolved to '{kind}' ({why})")

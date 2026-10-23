@@ -199,6 +199,8 @@ def test_energy_price_ratio_records_resolved_source(tmp_path):
             "COAL,MINE,2026,200\nCOAL,MINE,2027,200\n")
         (d / "UseByTechnologyByMode.csv").write_text(
             "f,t,y,UseByTechnologyByMode\nCOAL,GEN,2026,200\nCOAL,GEN,2027,200\n")
+        (d / "CommodityMarginalPrice.csv").write_text(
+            "r,f,y,CommodityMarginalPrice\nRE1,COAL,2026,0.5\nRE1,COAL,2027,0.5\n")
 
     base, reform = tmp_path / "b", tmp_path / "r"
     for d in (base, reform):
@@ -209,6 +211,11 @@ def test_energy_price_ratio_records_resolved_source(tmp_path):
                                      og_start_year=2026, n=5, busbar="ELC", resolved=resolved)
     assert resolved["requested"] == "auto" and resolved["kind"] == "lcoe" and resolved["busbar"] == "ELC"
     assert np.allclose(out, 1.0)                          # identical base/reform -> flat ratio
+    # without the commodity prices 'auto' must stop and say how to get them, not pick another source
+    (base / "CommodityMarginalPrice.csv").unlink()
+    with pytest.raises(ValueError, match="CommodityMarginalPrice"):
+        signals.energy_price_ratio("auto", base_dir=str(base), reform_dir=str(reform), share=1.0,
+                                   og_start_year=2026, n=5, busbar="ELC")
 
 
 # --- health channel skip path ------------------------------------------------------

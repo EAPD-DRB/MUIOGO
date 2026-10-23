@@ -1,41 +1,31 @@
 """Levelized Cost of Electricity (LCOE) price signal from a MUIOGO/OSeMOSYS CLEWS export.
 
-Reconstructs a smooth, dense electricity-price index from the raw per-technology cost and
-activity CSVs when no curated 'Cost of electricity' workbook ships (the pure-MUIOGO/v9 case).
-Only the reform/base RATIO of this LCOE is meaningful and enters OG-Core; the absolute level is
-an index in the model's native money units, not a $/MWh price.
+A smooth, dense electricity-price index for when no curated 'Cost of electricity' workbook ships.
+Only the reform/base RATIO enters OG-Core; the level is an index in the model's money units.
 
-Numerator (per year) = generation techs' own annualized cost (Inv + FixedO&M + VarO&M)
-                       + the upstream fuel-supply chain cost, allocated to electricity by the
-                         share of each supply tech's output that FLOWS to generation.
-Denominator (per year) = busbar electricity generation (ProductionByTechnologyByMode where the
-                         output commodity is the busbar electricity code, pre-T&D).
+Per year:
+    LCOE = (generation techs' own annualized cost (Inv + FixedO&M + VarO&M)
+            + every input they use, valued at the model's own price for that commodity)
+           / busbar electricity generation (pre-T&D).
 
-Validated against PHL v9 (Base_v9 vs PEP_v9): reform/base ratio mean 1.0539, min 1.0000 (2022),
-max 1.1625 (2030). Prototype/internally-validated: the ratio is robust across defensible internal
-choices (generalized flow-allocation vs whole-chain-by-finished-fuel-share vs a namespace filter
-all agree to ~1e-4), but with no same-vintage workbook the absolute magnitude is prototype-grade.
+The input prices are MUIOGO's yearly commodity prices (CommodityMarginalPrice.csv, the marginal
+cost of each commodity from the solve's balance-row shadow prices). Valuing inputs at the model's
+prices instead of tracing supplier costs back through the system keeps the method general:
+  * any input counts at its real cost, whatever unit a country uses for it -- coal or gas in PJ,
+    biomass in tonnes, cooling water that is costly to supply;
+  * a cost-free input (surplus water, an accounting flow, a by-product) is priced at zero, so how
+    equally cheap solutions happen to split it cannot move the price. The earlier tracing method
+    split supplier costs by quantity shares and leaked land and water accounting into electricity:
+    on the Philippines GOLD case two solves with the same total cost gave 14.7 and 10.9.
 
-Design (hardened for CLEWS-generality; no country literal in the default path):
-  * Fuel allocation is a generalized downstream-FLOW share (power_share fixed point), which
-    subsumes the exact single-path allocation (identical when every intermediate is single-
-    producer/single-consumer, as in PHL v9) and stays correct if a chain branches.
-  * Net-negative-cost guard: a tech whose total cost < cost_floor is a sequestration/land credit
-    (e.g. PHL_LND_FOR = -85,076), never a fuel-supply cost, so it is excluded. This neutralizes
-    the cooling-water -> land-subsystem trap portably, WITHOUT any namespace string.
-  * CHP / co-generation guard: a gen tech's own+fuel cost is split by electricity's share of its
-    USEFUL output; a dumped byproduct (zero consumers, e.g. GEO's PHL_POW_HEAT) does not dilute
-    (elec_frac == 1). Activates only if a case co-produces a USED non-electricity output.
-  * Per-run discovery: generation techs and fuels are discovered independently for each scenario
-    dir, so the reform's new topology (PEP adds nuclear PHL_POW_PP_NUSMR + uranium PHL_PRO_UR ->
-    PHL_PRO_IMP_UR) is captured, never inherited from the baseline.
-  * Optional supply_predicate tightens the allocation base and asserts completeness (no MATERIAL
-    fuel producer silently dropped) for callers who want a namespace guard on top of the flow logic.
+  * CHP / co-generation: a gen tech's own and input cost is split by electricity's share of its
+    USEFUL output; a dumped byproduct (no consumers) does not dilute (elec_frac == 1).
+  * Per-run discovery: generation techs are discovered independently for each scenario dir, so a
+    reform's new technologies (e.g. PEP's nuclear plant) are captured, never inherited.
 
-Reads (raw long CSVs, NOT signals.read_clews_matrix which loses the fuel dim):
-  ProductionByTechnologyByMode.csv, UseByTechnologyByMode.csv (cols r_x,f,t,y,m,...,value),
-  AnnualizedInvestmentCost.csv, AnnualFixedOperatingCost.csv, AnnualVariableOperatingCost.csv
-  (cols r,t,y,value).
+Reads (raw long CSVs): ProductionByTechnologyByMode, UseByTechnologyByMode (t, f, y, value),
+AnnualizedInvestmentCost, AnnualFixedOperatingCost, AnnualVariableOperatingCost (t, y, value),
+CommodityMarginalPrice (r, f, y, value).
 """
 from __future__ import annotations
 
@@ -49,7 +39,13 @@ import pandas as pd
 COST_STEMS = ("AnnualizedInvestmentCost", "AnnualFixedOperatingCost", "AnnualVariableOperatingCost")
 PROD_STEM = "ProductionByTechnologyByMode"
 USE_STEM = "UseByTechnologyByMode"
-INPUT_STEMS = (PROD_STEM, USE_STEM) + COST_STEMS
+PRICE_STEM = "CommodityMarginalPrice"
+INPUT_STEMS = (PROD_STEM, USE_STEM, PRICE_STEM) + COST_STEMS
+
+PRICE_MISSING_HELP = (
+    "The levelized electricity price values the power plants' inputs at the model's own commodity "
+    "prices, which MUIOGO writes as CommodityMarginalPrice.csv. Solve the case with a MUIOGO version "
+    "that writes it, or regenerate the run's result files (no new solve needed).")
 
 
 def _find(csv_dir: str, stem: str) -> str | None:
@@ -104,25 +100,22 @@ def has_busbar_producers(csv_dir: str, busbar: str) -> bool:
         return False
 
 
-def lcoe_by_year(csv_dir: str, busbar: str, *, supply_predicate=None,
-                 cost_floor: float = 0.0, n_iter: int = 64, tol: float = 1e-12) -> dict:
+def lcoe_by_year(csv_dir: str, busbar: str) -> dict:
     """LCOE index by int year for one scenario dir. ``busbar`` = the busbar electricity commodity
-    (generation output, pre-T&D; e.g. 'PHL_POW_ELE'). ``supply_predicate(tech)->bool`` optionally
-    restricts which non-generation techs may carry allocated fuel cost (default: any positive-cost
-    tech whose output flows to generation). ``cost_floor``: techs with total cost below this are
-    dropped as credits (default 0.0 -> drop net-negative)."""
+    (generation output, pre-T&D; e.g. 'PHL_POW_ELE')."""
+    if _find(csv_dir, PRICE_STEM) is None:
+        raise FileNotFoundError(f"lcoe: no {PRICE_STEM}.csv in {csv_dir}. {PRICE_MISSING_HELP}")
     prod = _read_long(csv_dir, PROD_STEM)
     use = _read_long(csv_dir, USE_STEM)
     costs = _load_costs(csv_dir)
-    cost_ty = {(t, y): c for t, y, c in costs.itertuples(index=False)}
-    cost_total = costs.groupby("t")["cost"].sum().to_dict()
+    price = _read_long(csv_dir, PRICE_STEM).groupby(["f", "y"])["v"].mean()   # one region, as above
 
-    # (A) generation = producers of the busbar commodity (discovered per run)
+    # generation = producers of the busbar commodity (discovered per run)
     gen = set(prod.loc[prod.f == busbar, "t"].unique())
     if not gen:
         raise ValueError(f"lcoe_by_year: no producers of busbar {busbar!r} in {csv_dir}")
 
-    # (B) CHP / co-gen: electricity's share of each gen tech's USEFUL output (dumped byproduct -> 1)
+    # CHP / co-gen: electricity's share of each gen tech's USEFUL output (dumped byproduct -> 1)
     consumed = use.groupby("f")["v"].sum()
     used_commodities = set(consumed[consumed > 0].index)
     gen_prod = prod[prod.t.isin(gen)].groupby(["t", "f"])["v"].sum()
@@ -133,92 +126,20 @@ def lcoe_by_year(csv_dir: str, busbar: str, *, supply_predicate=None,
         tot = sum(useful.values())
         elec_frac[t] = (useful.get(busbar, 0.0) / tot) if tot > 0 else 1.0
 
-    # (C) topology, per year, for the power_share downstream-flow fixed point
-    total_use = use.groupby(["f", "y"])["v"].sum()
-    ug = use[use.t.isin(gen)].copy()
-    ug["w"] = ug["v"] * ug["t"].map(elec_frac)          # electricity-weighted gen use
-    gen_use = ug.groupby(["f", "y"])["w"].sum()
-    nongen_use = use[~use.t.isin(gen)]
-    ng_rows = nongen_use.groupby(["t", "f", "y"])["v"].sum().reset_index()
-    prod_ty = prod.groupby(["t", "y", "f"])["v"].sum()
-    prod_ty_tot = prod.groupby(["t", "y"])["v"].sum().to_dict()
-    all_commodities = set(prod.f) | set(use.f)
+    own = costs[costs.t.isin(gen)].copy()
+    own["w"] = own["cost"] * own["t"].map(elec_frac)
+    own_y = own.groupby("y")["w"].sum()
+
+    inputs = use[use.t.isin(gen)].copy()
+    inputs["p"] = [price.get((f, y), 0.0) for f, y in zip(inputs["f"], inputs["y"])]
+    inputs["w"] = inputs["v"] * inputs["p"] * inputs["t"].map(elec_frac)
+    input_y = inputs.groupby("y")["w"].sum()
+
     gen_out = prod[prod.f == busbar].groupby("y")["v"].sum()
-
-    # completeness assertion for an explicit supply_predicate: every DIRECT producer of a
-    # generation-consumed commodity that carries MATERIAL cost must satisfy the predicate, else the
-    # predicate would silently drop real fuel supply. A negligible carrier (cooling water's supplier,
-    # ~0.09 vs fuel ~3e5) is what the predicate is MEANT to drop, so it must not trip the guard.
-    if supply_predicate is not None:
-        supply_scale = sum(c for t, c in cost_total.items() if t not in gen and c > 0)
-        mat_eps = max(cost_floor, 1e-4 * supply_scale)
-        for f in set(use.loc[use.t.isin(gen), "f"].unique()):
-            for p in prod.loc[prod.f == f, "t"].unique():
-                if p in gen or cost_total.get(p, 0.0) <= mat_eps:
-                    continue
-                if not supply_predicate(p):
-                    raise AssertionError(
-                        f"lcoe_by_year: supply_predicate excludes MATERIAL fuel producer {p!r} of "
-                        f"{f!r} (cost {cost_total.get(p, 0.0):.1f}) -- it would drop real fuel cost.")
-
-    def _allowed(t):
-        return (t not in gen) and (cost_total.get(t, 0.0) >= cost_floor) and \
-               (supply_predicate is None or supply_predicate(t))
-
-    years = sorted({y for (_, y) in cost_ty})
     lcoe = {}
-    for y in years:
-        tu = {f: v for (f, yy), v in total_use.items() if yy == y}
-        gu = {f: v for (f, yy), v in gen_use.items() if yy == y}
-        ng_y = ng_rows[ng_rows.y == y]
-        ng_by_t = {t: grp[["f", "v"]].values.tolist() for t, grp in ng_y.groupby("t")}
-        outs_y, tot_out_y = {}, {}
-        for (t, yy, f), v in prod_ty.items():
-            if yy == y:
-                outs_y.setdefault(t, {})[f] = v
-        for (t, yy), v in prod_ty_tot.items():
-            if yy == y:
-                tot_out_y[t] = v
-
-        def out_frac(t, ps):
-            to = tot_out_y.get(t, 0.0)                       # noqa: B023 -- consumed within this y-iteration only
-            if to <= 0:
-                return 0.0
-            return sum((pv / to) * ps.get(g, 0.0) for g, pv in outs_y.get(t, {}).items())  # noqa: B023
-
-        # power_share fixed point: fraction of each commodity's use that flows to generation.
-        # Downstream (finished fuel) -> upstream; a DAG converges in a few passes.
-        ps = {f: 0.0 for f in all_commodities}
-        for _ in range(n_iter):
-            toward = {f: gu.get(f, 0.0) for f in all_commodities}
-            for t, rows in ng_by_t.items():
-                of = out_frac(t, ps)
-                if of == 0.0:
-                    continue
-                for f, uv in rows:
-                    toward[f] = toward.get(f, 0.0) + uv * of
-            maxd = 0.0
-            new = {}
-            for f in all_commodities:
-                d = tu.get(f, 0.0)
-                val = min(toward.get(f, 0.0) / d, 1.0) if d > 0 else 0.0
-                maxd = max(maxd, abs(val - ps[f]))
-                new[f] = val
-            ps = new
-            if maxd < tol:
-                break
-
-        own = sum(cost_ty.get((t, y), 0.0) * elec_frac[t] for t in gen)         # (1) power own cost
-        alloc = 0.0                                                             # (2) allocated fuel chain
-        for t in set(ng_by_t) | set(outs_y):
-            if not _allowed(t):
-                continue
-            c = cost_ty.get((t, y), 0.0)
-            if c:
-                alloc += c * out_frac(t, ps)
-        g = float(gen_out.get(y, 0.0))                                          # (3) busbar generation
+    for y, g in gen_out.items():
         if g > 0:
-            lcoe[int(y)] = (own + alloc) / g
+            lcoe[int(y)] = (float(own_y.get(y, 0.0)) + float(input_y.get(y, 0.0))) / float(g)
     return dict(sorted(lcoe.items()))
 
 

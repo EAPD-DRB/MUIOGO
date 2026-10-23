@@ -51,12 +51,14 @@ def test_concordance_fused_industry_is_unavailable():
 # --- LCOE reconstruction on a single-tech closed-form case --------------------
 
 def _write_lcoe_case(d, own_cost):
-    """One gen tech GEN producing busbar ELE (100 units), Inv+Fixed+Var = own_cost, no priced fuel chain
-    -> LCOE == own_cost / 100."""
+    """One gen tech GEN producing busbar ELE (100 units), Inv+Fixed+Var = own_cost, burning a fuel the
+    model prices at zero -> LCOE == own_cost / 100."""
     (d / "ProductionByTechnologyByMode.csv").write_text(
         "r,t,f,y,m,ProductionByTechnologyByMode\nRE1,GEN,ELE,2025,1,100\n")
     (d / "UseByTechnologyByMode.csv").write_text(
-        "r,t,f,y,m,UseByTechnologyByMode\nRE1,GEN,FUELX,2025,1,50\n")   # FUELX has no producer -> alloc=0
+        "r,t,f,y,m,UseByTechnologyByMode\nRE1,GEN,FUELX,2025,1,50\n")
+    (d / "CommodityMarginalPrice.csv").write_text(
+        "r,f,y,CommodityMarginalPrice\nRE1,FUELX,2025,0\n")             # a free fuel adds nothing
     (d / "AnnualizedInvestmentCost.csv").write_text(
         f"r,t,y,AnnualizedInvestmentCost\nRE1,GEN,2025,{own_cost - 500}\n")
     (d / "AnnualFixedOperatingCost.csv").write_text(
@@ -79,3 +81,38 @@ def test_lcoe_ratio_reform_over_base(tmp_path):
     _write_lcoe_case(reform, own_cost=3000)        # LCOE 30
     ratio = lcoe.lcoe_ratio(str(base), str(reform), busbar="ELE")
     assert np.isclose(float(ratio.loc[2025]), 2.0)
+
+
+def _write_plant_case(d, *, inputs, prices, own_cost=1000.0, generation=100.0):
+    """A power plant PP producing busbar ELE and using ``inputs`` {commodity: quantity}, with the
+    model's commodity ``prices`` {commodity: price}. Whatever produced those inputs, and in what unit,
+    is deliberately absent: the price must not need to know."""
+    (d / "ProductionByTechnologyByMode.csv").write_text(
+        f"r,t,f,y,m,ProductionByTechnologyByMode\nRE1,PP,ELE,2025,1,{generation}\n")
+    (d / "UseByTechnologyByMode.csv").write_text(
+        "r,t,f,y,m,UseByTechnologyByMode\n" + "".join(f"RE1,PP,{f},2025,1,{q}\n" for f, q in inputs.items()))
+    (d / "CommodityMarginalPrice.csv").write_text(
+        "r,f,y,CommodityMarginalPrice\n" + "".join(f"RE1,{f},2025,{p}\n" for f, p in prices.items()))
+    (d / "AnnualizedInvestmentCost.csv").write_text(f"r,t,y,AnnualizedInvestmentCost\nRE1,PP,2025,{own_cost}\n")
+    (d / "AnnualFixedOperatingCost.csv").write_text("r,t,y,AnnualFixedOperatingCost\nRE1,PP,2025,0\n")
+    (d / "AnnualVariableOperatingCost.csv").write_text("r,t,y,AnnualVariableOperatingCost\nRE1,PP,2025,0\n")
+    return str(d)
+
+
+def test_every_input_counts_at_its_model_price_whatever_its_unit(tmp_path):
+    """Gas in PJ, biomass in tonnes and cooling water that is costly to supply all count:
+    (1000 + 200*2 + 50*3 + 10*0.5) / 100."""
+    d = _write_plant_case(tmp_path, inputs={"GAS": 200, "BIOMASS_T": 50, "COOLWATER": 10},
+                          prices={"GAS": 2.0, "BIOMASS_T": 3.0, "COOLWATER": 0.5})
+    assert np.isclose(lcoe.lcoe_by_year(d, "ELE")[2025], 15.55)
+
+
+def test_cost_free_inputs_add_nothing(tmp_path):
+    """Surplus water or an accounting flow has a model price of zero, so it cannot move the price."""
+    d = _write_plant_case(tmp_path, inputs={"GAS": 200, "SURPLUS_WATER": 1e6}, prices={"GAS": 2.0, "SURPLUS_WATER": 0.0})
+    assert np.isclose(lcoe.lcoe_by_year(d, "ELE")[2025], 14.0)
+
+
+def test_an_input_without_a_price_is_free(tmp_path):
+    d = _write_plant_case(tmp_path, inputs={"GAS": 200, "UNPRICED": 7}, prices={"GAS": 2.0})
+    assert np.isclose(lcoe.lcoe_by_year(d, "ELE")[2025], 14.0)

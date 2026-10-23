@@ -576,8 +576,8 @@ def _write_lcoe_csvs(d, *, gen_inv, supply_vom, gen_out, busbar="ELC", fuel="COA
                      gen="GEN", mine="MINE"):
     """A minimal MUIOGO/OSeMOSYS export for the LCOE reader: one generation tech (``gen``, produces
     ``busbar`` and consumes ``fuel``) + one fuel supplier (``mine``, produces ``fuel``). Args are
-    per-year dicts. LCOE = (gen own annualized capex + supplier var-O&M ALLOCATED to power by
-    use-share) / busbar generation; with a single fuel user the share is 1, so numerator =
+    per-year dicts. LCOE = (gen own annualized capex + the fuel it burns at the model's fuel price)
+    / busbar generation; the fixture prices fuel at the supplier's unit cost, so numerator =
     gen_inv + supply_vom."""
     import pandas as pd
     ys = sorted(gen_out)
@@ -596,12 +596,14 @@ def _write_lcoe_csvs(d, *, gen_inv, supply_vom, gen_out, busbar="ELC", fuel="COA
       [{"f": fuel, "t": mine, "y": y, "ProductionByTechnologyByMode": gen_out[y]} for y in ys])
     w("UseByTechnologyByMode.csv",
       [{"f": fuel, "t": gen, "y": y, "UseByTechnologyByMode": gen_out[y]} for y in ys])
+    # the model's own fuel price: the supplier's cost per unit, so fuel value == supply_vom
+    w("CommodityMarginalPrice.csv",
+      [{"r": "RE1", "f": fuel, "y": y, "CommodityMarginalPrice": supply_vom[y] / gen_out[y]} for y in ys])
 
 
 def test_lcoe_ratio_from_csvs():
-    # The workbook-less levelized source: numerator = generation own annualized capex + the upstream
-    # fuel-supply cost ALLOCATED to power by use-share; denominator = busbar generation. This fixture
-    # has one gen tech + one fuel supplier, so the fuel-allocation share is 1. Base LCOE = (100+100)/200
+    # The workbook-less levelized source: numerator = generation own annualized capex + the fuel it
+    # burns at the model's fuel price; denominator = busbar generation. Base LCOE = (100+100)/200
     # = 1.0; the reform RAISES capex (150) but CUTS fuel (90) -> (150+90)/200 = 1.2. The fuel term is
     # exactly what credits the reform's fuel savings against its higher capex (omitting it would report
     # 1.5, overstating the premium).
@@ -617,9 +619,10 @@ def test_lcoe_ratio_from_csvs():
         assert lcoe.lcoe_by_year(b, "ELC") == {2026: 1.0, 2027: 1.0}
         ratio = lcoe.lcoe_ratio(b, r, "ELC")
         assert abs(ratio.loc[2026] - 1.2) < 1e-9 and abs(ratio.loc[2027] - 1.2) < 1e-9
-        # a supply_predicate that excludes the real fuel supplier must trip the completeness guard
-        with __import__("pytest").raises(AssertionError, match="MATERIAL fuel producer"):
-            lcoe.lcoe_by_year(r, "ELC", supply_predicate=lambda t: False)
+        # without the model's commodity prices the price cannot be built: say so, don't guess
+        os.remove(os.path.join(r, "CommodityMarginalPrice.csv"))
+        with __import__("pytest").raises(FileNotFoundError, match="CommodityMarginalPrice"):
+            lcoe.lcoe_by_year(r, "ELC")
     finally:
         for dd in (b, r):
             for f in os.listdir(dd):

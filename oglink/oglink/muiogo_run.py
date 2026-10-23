@@ -83,7 +83,8 @@ def verify_run(csv_dir: str, required=(_EBB4, "Demand")) -> dict:
 # is the opt-in 'marginal' source only (NOT used by 'auto').
 PREFLIGHT_STEMS = {
     "ProductionByTechnologyByMode": "energy price 'auto' (LCOE denominator: busbar generation)",
-    "UseByTechnologyByMode": "energy price 'auto' (LCOE fuel-chain allocation)",
+    "UseByTechnologyByMode": "energy price 'auto' (LCOE: the plants' inputs)",
+    "CommodityMarginalPrice": "energy price 'auto' (LCOE: the plants' inputs at the model's prices)",
     "AnnualizedInvestmentCost": "capital-intensity channel + LCOE 'auto' (annualized capex)",
     "AnnualFixedOperatingCost": "capital-intensity channel + LCOE 'auto' (fixed O&M)",
     "AnnualVariableOperatingCost": "capital-intensity channel + LCOE 'auto' (variable O&M / fuel)",
