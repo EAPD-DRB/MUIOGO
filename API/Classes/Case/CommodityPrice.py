@@ -242,3 +242,16 @@ def write_csv(results, data, genData, start_year, csv_dir):
     price = price[["r", "f", "y", OUTPUT_NAME]]
     price.to_csv(Path(csv_dir) / f"{OUTPUT_NAME}.csv", index=None)
     return price
+
+
+def write_csv_or_warn(results, data, genData, start_year, csv_dir):
+    """write_csv, but a failure returns a plain warning instead of raising: the solve and the
+    other result files are fine, and the run reports the warning to the user."""
+    try:
+        write_csv(results, data, genData, start_year, csv_dir)
+        return None
+    except Exception as ex:
+        logger.exception("Commodity prices could not be calculated")
+        return (f"commodity prices could not be calculated ({type(ex).__name__}: {ex}), so "
+                f"{OUTPUT_NAME}.csv is missing for this run and the OG-CLEWS link cannot price "
+                "electricity from it.")

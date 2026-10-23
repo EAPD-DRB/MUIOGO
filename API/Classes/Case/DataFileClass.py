@@ -2164,6 +2164,10 @@ class DataFile(Osemosys):
                     if runout["status_code"] == "success":
                         try:
                             self.postProcess(runout["caserun"])
+                            warnings = getattr(self, 'postprocessWarnings', [])
+                            if warnings:
+                                runout["timer"] = runout["timer"] + " -- Warning: " + " ".join(warnings)
+                                runout["warnings"] = list(warnings)
                         except Exception as ex:
                             runout["status_code"] = "error"
                             runout["timer"] = f"Post-processing failed: {ex}"
@@ -2472,6 +2476,12 @@ class DataFile(Osemosys):
                 print("MESSAGES DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                 txtOut = txtOut + ("Message preparation time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
+                # MUIOGO: a result that could not be produced (e.g. commodity prices) is
+                # shown with the run; the solve itself still succeeded.
+                warnings = (getattr(self, 'postprocessWarnings', [])
+                            if postprocess and statusFlag == "success" else [])
+                if warnings:
+                    customMsg = customMsg + " -- Warning: " + " ".join(warnings)
                 response = {
                     "cbc_message": cbc_out.stdout,
                     "cbc_stdmsg": cbc_out.stderr,
@@ -2479,7 +2489,8 @@ class DataFile(Osemosys):
                     "glpk_stdmsg": glpk_out.stderr,
                     "timer": customMsg,
                     "status_code": statusFlag,
-                    "caserun": caserunname
+                    "caserun": caserunname,
+                    "warnings": warnings
                 }
                 if oglinkInfo:
                     response["oglink"] = oglinkInfo
@@ -2500,6 +2511,7 @@ class DataFile(Osemosys):
             raise OSError
     
     def generateCSVfromCBC(self, data_file, results_file, base_folder=os.getcwd()):
+        self.postprocessWarnings = []   # MUIOGO: reported with the run, see run()/batchRun()
         try:
             #pd.options.mode.chained_assignment = None
             #pd.options.mode.chained_assignment = None
@@ -2629,13 +2641,12 @@ class DataFile(Osemosys):
                         df_EB_d.to_csv(os.path.join(base_folder, 'csv', dual+'.csv'), index=None)
 
                 # MUIOGO: one annual price per commodity, rebuilt from the balance-row
-                # shadow prices (MUIO 5.7 removed the single annual row). A failure is
-                # logged, not raised, so the rest of the results are still written.
-                try:
-                    CommodityPrice.write_csv(df, data, self.genData, start_year,
-                                             os.path.join(base_folder, 'csv'))
-                except Exception:
-                    logger.exception("Commodity marginal price could not be computed")
+                # shadow prices (MUIO 5.7 removed the single annual row). A failure does
+                # not stop the other results; it is reported with the run (see run()).
+                warning = CommodityPrice.write_csv_or_warn(df, data, self.genData, start_year,
+                                                           os.path.join(base_folder, 'csv'))
+                if warning:
+                    self.postprocessWarnings.append(warning)
 
                 if 'AccumulatedNewStorageCapacity' in all_params:
                     df_ANSC = all_params['AccumulatedNewStorageCapacity'].rename(columns={'value':'AccumulatedNewStorageCapacity'})

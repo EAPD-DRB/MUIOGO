@@ -126,3 +126,13 @@ def test_unrounded_shadow_prices_are_used():
     results = pd.DataFrame({"parameter": ["EBb4_EnergyBalanceEachYear4_ICR"], "id": ["R,WAT,2030"],
                             "value": [0.0], "dual": [0.0], "dual_raw": [0.0000312]})
     assert CommodityPrice._rows(results, "EBb4_EnergyBalanceEachYear4_ICR", ["r", "f", "y"])["dual"][0] == pytest.approx(0.0000312)
+
+
+def test_a_failed_price_becomes_a_warning_not_an_error(tmp_path):
+    """The solve and the other result files are fine, so the run must not fail; the user is told."""
+    from Classes.Case import CommodityPrice
+    results = pd.DataFrame({"parameter": ["RateOfActivity"], "id": ["R,D,T,1,2030"],
+                            "value": [1.0], "dual": [0.0]})
+    warning = CommodityPrice.write_csv_or_warn(results, {}, {"osy-comm": []}, 2020, str(tmp_path))
+    assert warning and "CommodityMarginalPrice.csv is missing" in warning
+    assert not (tmp_path / "CommodityMarginalPrice.csv").exists()
