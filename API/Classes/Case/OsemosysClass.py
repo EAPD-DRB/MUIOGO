@@ -9,7 +9,7 @@ from Classes.Case.HelpersClass import Helpers
 class Osemosys():
     # The OSeMOSYS model file every solve uses. The model-file page
     # (/readModelFile) reads the same name, so the two can never disagree.
-    MODEL_FILE_NAME = 'model.v.5.7.txt'
+    MODEL_FILE_NAME = 'model.v.5.7withStorageFixNoPerformance.txt'
 
     def __init__(self, case):
         Config.validate_path(Config.DATA_STORAGE, case)

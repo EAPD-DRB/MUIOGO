@@ -39,6 +39,23 @@ MUIO 5.5 and 5.6 were ported by hand, so git did not know about them. The 5.7
 sync records 5.6 as absorbed with a no-change merge (`git merge -s ours`), so
 from 5.7 on git knows the last release MUIOGO took.
 
+## MUIOGO owns these
+
+Parts of upstream that MUIOGO deliberately does differently. On every sync,
+read upstream's changes here as ideas to consider, not code to take as-is.
+
+- **Which model file the solver uses** (`Osemosys.MODEL_FILE_NAME`). Since
+  5.7 this is `model.v.5.7withStorageFixNoPerformance.txt`: the 5.7 features
+  without the performance rewrite that `model.v.5.7.txt` carries (its header
+  calls it a "v5.8 candidate"). That rewrite did not finish on the Philippines
+  model with CBC. Revisit when MUIO releases it as final.
+- **One yearly balance row per commodity.** MUIOGO comments out
+  `EB_TimesliceAnnualBalance` and `EB_AnnualBalance`, which duplicate
+  `EBb4_EnergyBalanceEachYear4_ICR` and split its shadow price (#530).
+  `tests/test_model_file.py` fails if they come back.
+- **The case import ladder** lives in `API/Classes/Case/CaseImporter.py`.
+- **The results page** stays on MUIOGO's version while #545 replaces Wijmo.
+
 ## Review First
 
 These files are the main overlap surface and should always be reviewed directly against upstream:
@@ -70,7 +87,7 @@ Do not take these upstream patterns without a deliberate compatibility decision:
 
 - cwd-relative path regressions
 - `WebAPP/app.log` or any other log path under the static web tree
-- dated log files such as `WebAPP/app.log.2026-07-20`, and alternative or draft model files next to the one the app uses (5.7 shipped four)
+- dated log files such as `WebAPP/app.log.2026-07-20`, and alternative or draft model files (5.7 shipped four; MUIOGO keeps only the one named under "MUIOGO owns these")
 - editor settings such as `.vscode/settings.json`
 - `THIRD_PARTY_LICENSES*.md`: it describes MUIO's own licences (an IAEA Wijmo licence), not MUIOGO's
 - deleting logs on startup

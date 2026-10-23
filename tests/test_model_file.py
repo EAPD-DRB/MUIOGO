@@ -38,6 +38,16 @@ def _constraint_names(model_text):
     return set(re.findall(r"^s\.t\.\s+(\w+)", model_text, flags=re.M))
 
 
+def test_each_commodity_has_one_yearly_balance_row():
+    """Duplicate yearly balance rows make the solver split a commodity's shadow
+    price between them arbitrarily (#530). MUIO 5.7's model files carry two such
+    duplicates of EBb4_..._ICR, which MUIOGO comments out."""
+    constraints = _constraint_names(_model_text())
+    assert "EBb4_EnergyBalanceEachYear4_ICR" in constraints
+    duplicates = {"EBb4_EnergyBalanceEachYear4", "EB_TimesliceAnnualBalance", "EB_AnnualBalance"}
+    assert not constraints & duplicates, constraints & duplicates
+
+
 def test_every_shadow_price_points_at_a_real_constraint():
     constraints = _constraint_names(_model_text())
     duals = json.loads(DUALS.read_text())

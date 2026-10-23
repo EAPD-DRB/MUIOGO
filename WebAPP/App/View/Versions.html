@@ -3,8 +3,8 @@
 <ol style="font-style: italic; font-weight: normal;">
     <li><kbd style="font-weight: bold; background-color:#c74219">Code</kbd>&nbsp;Commodity balance level: each commodity can be balanced per timeslice, per season or once a year. Cases from earlier versions keep every commodity at timeslice level, as before.</li>
     <li><kbd style="font-weight: bold; background-color:#c74219">Code</kbd>&nbsp;New Operational Profile parameter, and annual Production/Use by Technology by Mode results (the timeslice versions are now named "- Ts").</li>
-    <li><kbd style="font-weight: bold; background-color:#c74219">Code</kbd>&nbsp;Solver model updated to MUIO 5.7: a much smaller matrix for the same model, and an annual roll-up row only where a commodity needs one.</li>
-    <li><kbd style="font-weight: bold; background-color:#6FB3E0">Func</kbd>&nbsp;Results page: type-to-search parameter list, grouped into Variables, Indicators and Duals.</li>
+    <li><kbd style="font-weight: bold; background-color:#c74219">Code</kbd>&nbsp;Solver model updated to MUIO 5.7 (the release's model without the performance rewrite meant for 5.8, which did not solve large models reliably). Each commodity keeps a single yearly balance row, so its shadow price is not split between duplicates.</li>
+    <li><kbd style="font-weight: bold; background-color:#6FB3E0">Func</kbd>&nbsp;New "Shadow price - Timeslice energy balance" result.</li>
 </ol>
 
 <h3>MUIO ver.5.6.0, <small>20260601</small></h3>
