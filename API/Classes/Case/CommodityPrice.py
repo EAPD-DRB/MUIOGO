@@ -41,11 +41,15 @@ logger = logging.getLogger(__name__)
 
 OUTPUT_NAME = "CommodityMarginalPrice"
 
-_TS_BALANCE = "EB_TimesliceBalance"
+# The timeslice balance row: its 5.7 name, then the identical row of the 5.4 model, so results
+# solved before 5.7 get a price too when their result files are regenerated.
+_TS_BALANCES = ("EB_TimesliceBalance", "EBa11_EnergyBalanceEachTS5")
 _SEASON_BALANCE = "EB_SeasonalBalance"
-# Every yearly balance row any 5.x model file uses; whichever exist are added up.
+# Every yearly balance row any 5.x model file uses; whichever exist are added up. The plain
+# EBb4 row is the 5.4 model's duplicate of EBb4_..._ICR that #530 removed.
 _YEARLY_ROWS = (
     "EBb4_EnergyBalanceEachYear4_ICR",
+    "EBb4_EnergyBalanceEachYear4",
     "EB_TimesliceAnnualBalance",
     "EB_AnnualBalance",
     "EB_AnnualRollup",
@@ -213,7 +217,8 @@ def write_csv(results, data, genData, start_year, csv_dir):
 
     price = annual_commodity_price(
         levels,
-        _rows(results, _TS_BALANCE, ["r", "l", "f", "y"]),
+        _concat([_rows(results, name, ["r", "l", "f", "y"]) for name in _TS_BALANCES],
+                ["r", "l", "f", "y", "dual"]),
         _rows(results, _SEASON_BALANCE, ["r", "ls", "f", "y"]),
         yearly,
         year_split, ts_season, profile, use_ts, use_season)

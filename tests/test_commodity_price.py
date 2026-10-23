@@ -84,3 +84,23 @@ def test_duplicate_yearly_rows_are_added_back_together():
     yearly = CommodityPrice._concat(rows, ["r", "f", "y", "dual"]).groupby(
         ["r", "f", "y"], as_index=False)["dual"].sum()
     assert _price({"COA": "An"}, yearly=yearly.values.tolist())["COA"] == pytest.approx(7.5)
+
+
+def test_results_from_the_older_model_get_a_price_too():
+    """The 5.4 model names its timeslice balance EBa11_EnergyBalanceEachTS5 and carries a duplicate
+    yearly row; regenerating old results must still produce the price."""
+    from Classes.Case import CommodityPrice
+    results = pd.DataFrame({
+        "parameter": ["EBa11_EnergyBalanceEachTS5", "EBa11_EnergyBalanceEachTS5",
+                      "EBb4_EnergyBalanceEachYear4_ICR", "EBb4_EnergyBalanceEachYear4"],
+        "id": ["R,D,ELC,2030", "R,N,ELC,2030", "R,ELC,2030", "R,ELC,2030"],
+        "value": [0.0] * 4, "dual": [40.0, 10.0, 0.5, 1.5],
+    })
+    ts = CommodityPrice._concat([CommodityPrice._rows(results, n, ["r", "l", "f", "y"])
+                                 for n in CommodityPrice._TS_BALANCES], ["r", "l", "f", "y", "dual"])
+    yearly = CommodityPrice._concat([CommodityPrice._rows(results, n, ["r", "f", "y"])
+                                     for n in CommodityPrice._YEARLY_ROWS], ["r", "f", "y", "dual"])
+    yearly = yearly.groupby(["r", "f", "y"], as_index=False)["dual"].sum()
+    price = _price({"ELC": "Ts"}, ts_duals=ts.values.tolist(), yearly=yearly.values.tolist(),
+                   use=[("R", "D", "ELC", "2030", 1.0), ("R", "N", "ELC", "2030", 3.0)])
+    assert price["ELC"] == pytest.approx(0.25 * 40 + 0.75 * 10 + 2.0)
