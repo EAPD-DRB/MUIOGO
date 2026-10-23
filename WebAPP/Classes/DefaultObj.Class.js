@@ -133,6 +133,7 @@ export class DefaultObj{
                 "CommId": id,
                 "Comm":id,
                 "Desc": "Default commodity",
+                "BalanceLevel": "Ts",
                 "UnitId": "PJ"
             }
         ];

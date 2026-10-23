@@ -32,7 +32,9 @@ export class Model {
       this.seasons = genData['osy-se'];
       this.daytypes = genData['osy-dt'];
       this.dailytimebrackets = genData['osy-dtb'];
-      this.commodities = genData['osy-comm'];
+      // MUIOGO: cases saved before MUIO 5.7 have no BalanceLevel. They were
+      // balanced per timeslice, so show (and save) that instead of a blank.
+      this.commodities = genData['osy-comm'].map(c => ({ BalanceLevel: 'Ts', ...c }));
       this.emissions = genData['osy-emis'];
       this.constraints = genData['osy-constraints'];
       // MUIOGO: `|| []` guards pre-v5.6 cases that have no osy-indicators

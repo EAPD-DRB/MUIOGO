@@ -1,7 +1,34 @@
 #import ujson as json
 import json
+import os
+from contextlib import contextmanager
 
 class File:
+    @staticmethod
+    @contextmanager
+    def atomicWrite(path):
+        """
+        Context manager for writing a plain text file safely: writes go to a
+        '<path>.tmp' file first, which only replaces the real file if the
+        whole 'with' block completes without error. On failure, the original
+        file (if any) is left untouched and the partial '.tmp' file is removed.
+        Usage: with File.atomicWrite(path) as f: f.write(...) / f.writelines(...)
+        """
+        tmp_path = str(path) + '.tmp'
+        f = open(tmp_path, mode="w")
+        try:
+            yield f
+        except Exception:
+            f.close()
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+            raise
+        else:
+            f.close()
+            os.replace(tmp_path, path)
+
     @staticmethod
     def readFile(path):
         try:

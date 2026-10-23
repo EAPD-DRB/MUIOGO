@@ -599,7 +599,7 @@ export default class Pivot {
                     app.engine.valueFields.push('Value');
                 }
 
-                else if(model.group == "RYTC" || model.group == 'RYTCMTs' ){
+                else if(model.group == "RYTC" || model.group == 'RYTCMTs' || model.group == 'RYTCM' ){
                     //console.log(app.engine.columnFields)
                     app.engine.columnFields.push('Comm');
                     //console.log('com tech added')

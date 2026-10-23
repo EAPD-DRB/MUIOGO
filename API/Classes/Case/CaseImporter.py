@@ -24,13 +24,13 @@ from Classes.Case.HelpersClass import Helpers
 from Classes.Clews.Provenance import Provenance
 
 # The case-schema version this MUIOGO writes and fully understands. Matches the
-# "MUIO ver.5.6.0" the UI reports (WebAPP/App/View/Versions.html); bump together
+# "MUIO ver.5.7.0" the UI reports (WebAPP/App/View/Versions.html); bump together
 # with a new rung on the ladder in CaseImporter.import_zip.
-CURRENT_CASE_VERSION = "5.6"
+CURRENT_CASE_VERSION = "5.7"
 
 # Every osy-version import_zip accepts. Anything else is refused with the same
 # "not valid OSEMOSYS" message the upload path has always produced.
-ACCEPTED_CASE_VERSIONS = ("1.0", "2.0", "3.0", "4.0", "4.5", "4.9", "5.0", "5.6")
+ACCEPTED_CASE_VERSIONS = ("1.0", "2.0", "3.0", "4.0", "4.5", "4.9", "5.0", "5.6", "5.7")
 
 # Legacy case-backup arcname prefix. Backups created before PR #331 stored entries as
 # 'WebAPP/DataStorage/<case>/<rel>'; backups since #331 store '<case>/<rel>'. We accept
@@ -155,6 +155,23 @@ def updateViewDefintions(casename, genData):
     File.writeFile( viewData, viewDataPath)
 
 
+def updateCommodityBalanceLevel(casename):
+    """MUIO 5.7: every commodity carries a BalanceLevel (Ts, Se or An).
+
+    Cases from earlier versions have none; they are balanced per timeslice, as
+    before. Reads genData from disk (not the caller's copy) so it never undoes
+    an earlier migration step's write.
+    """
+    genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
+    genData = File.readParamFile(genDataPath)
+
+    genData["osy-version"] = CURRENT_CASE_VERSION
+    for c in genData.get("osy-comm", []):
+        if "BalanceLevel" not in c:
+            c["BalanceLevel"] = "Ts"
+
+    File.writeFile( genData, genDataPath)
+
 class CaseImporter:
     @staticmethod
     def import_zip(filepath, cleanup=True, source=None, sha256_declared=None):
@@ -223,6 +240,7 @@ class CaseImporter:
                     updateStorageSet(casename)
                     updateGenData(casename, genData)
                     updateViewDefintions(casename, genData)
+                    updateCommodityBalanceLevel(casename)
 
                     msg.append({
                         "message": "Model " + casename +" have been uploaded!",
@@ -241,6 +259,7 @@ class CaseImporter:
                     updateStorageSet(casename)
                     updateGenData(casename, genData)
                     updateViewDefintions(casename, genData)
+                    updateCommodityBalanceLevel(casename)
 
                     msg.append({
                         "message": "Model " + casename +" have been uploaded!",
@@ -255,6 +274,7 @@ class CaseImporter:
                     updateStorageSet(casename)
                     updateGenData(casename, genData)
                     updateViewDefintions(casename, genData)
+                    updateCommodityBalanceLevel(casename)
                     msg.append({
                         "message_warning": "You have restored a model created in a earlier version...",
                         "message": "Model " + casename +" have been uploaded!",
@@ -267,6 +287,7 @@ class CaseImporter:
                     genData = File.readParamFile(genDataPath)
                     updateGenData(casename, genData)
                     updateViewDefintions(casename, genData)
+                    updateCommodityBalanceLevel(casename)
 
                     msg.append({
                         "message": "Model " + casename +" have been uploaded!",
@@ -278,6 +299,14 @@ class CaseImporter:
                     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                     genData = File.readParamFile(genDataPath)
                     updateViewDefintions(casename, genData)
+                    updateCommodityBalanceLevel(casename)
+                    msg.append({
+                        "message": "Model " + casename +" have been uploaded!",
+                        "status_code": "success",
+                        "casename": casename
+                    })
+                elif name == '5.7':
+                    _extract_case_zip(zf, Config.DATA_STORAGE)
                     msg.append({
                         "message": "Model " + casename +" have been uploaded!",
                         "status_code": "success",
