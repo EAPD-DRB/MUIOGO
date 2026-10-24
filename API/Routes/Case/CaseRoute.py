@@ -285,6 +285,8 @@ def saveCase():
             return err, code
         genData = request.json['data']
         casename = genData['osy-casename']
+        # Reject names that would resolve outside DataStorage before touching the filesystem.
+        Config.validate_path(Config.DATA_STORAGE, casename)
         case = session.get('osycase', None)
 
         configPath = Path(Config.DATA_STORAGE, 'Variables.json')
@@ -433,6 +435,9 @@ def saveCase():
                 }       
 
         return jsonify(response), 200
+    # PermissionError subclasses IOError, so it has to be caught first.
+    except PermissionError:
+        return jsonify({'message': 'Invalid model name.', 'status_code': 'error'}), 400
     except(IOError):
         return jsonify('Error saving model IOError!'), 404
 

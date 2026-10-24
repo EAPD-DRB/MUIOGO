@@ -1,7 +1,7 @@
 """
 Tests for the case management routes.
 
-Covers /getCases, /getResultCSV, /resultsExists, and /deleteCaseRun.
+Covers /getCases, /getResultCSV, /resultsExists, /deleteCaseRun, and /saveCase.
 Focuses on what the routes do when things go wrong -- missing cases,
 empty inputs, wrong HTTP methods.
 """
@@ -70,3 +70,15 @@ def test_delete_case_run_nonexistent_case_returns_404(client):
         json={"casename": "__nonexistent_xyz__", "caserunname": "REF", "resultsOnly": False},
     )
     assert resp.status_code == 404
+
+
+def test_save_case_rejects_path_traversal_names(client):
+    """
+    saveCase builds Path(DATA_STORAGE, casename) for new and renamed models.
+    Names that resolve outside DataStorage must be refused with 400 before any
+    directory is created.
+    """
+    for name in ("../__escape_xyz__", "a/../../__escape_xyz__", "/tmp/__escape_xyz__", ""):
+        resp = client.post("/saveCase", json={"data": {"osy-casename": name}})
+        assert resp.status_code == 400, name
+        assert resp.get_json()["status_code"] == "error"
