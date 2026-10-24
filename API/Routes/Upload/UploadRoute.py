@@ -421,7 +421,8 @@ def uploadCase():
         # -------------------------------
         # 4) Spajanje ZIP fajla
         # -------------------------------
-        final_zip = Config.validate_path(Config.DATA_STORAGE, f"{dz_uuid}.zip")
+        final_zip_name = f"{dz_uuid}.zip"
+        final_zip = Config.validate_path(Config.DATA_STORAGE, final_zip_name)
 
         with open(final_zip, "wb") as merged:
             for i in range(dz_total_chunks):
@@ -441,7 +442,9 @@ def uploadCase():
         # 5) Pokreni TVOJ originalni ZIP handler
         # -------------------------------
         #return handle_full_zip(open(final_zip, "rb"), final_zip)
-        return handle_full_zip(None, final_zip) 
+        # Pass the name relative to DataStorage: handle_full_zip validates it again,
+        # and validate_path refuses absolute paths.
+        return handle_full_zip(None, final_zip_name)
 
     except PermissionError:
         return jsonify({"error": "Invalid path"}), 400
