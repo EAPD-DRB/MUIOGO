@@ -4,9 +4,13 @@ MUIOGO user manual
 MUIOGO helps you run economic and resource models through a browser.
 The app and your cases run on your computer.
 
-This draft covers **OG-Core**, the economic model. Start with the
-:doc:`og-core/quick-guide` to run a Philippines example. Use the detailed
-guide for more help with each screen.
+Use the instructions below to install MUIOGO for either OG-Core or CLEWs.
+Then choose the user manual for your model.
+
+.. include:: _includes/install-and-open.rst
+
+User manuals
+------------
 
 .. toctree::
    :maxdepth: 2

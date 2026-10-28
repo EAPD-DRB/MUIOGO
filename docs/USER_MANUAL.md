@@ -68,6 +68,8 @@ implementation notes here, outside the policymaker's workflow.
 Both guides include the same installation instructions from
 `source/_includes/install-git.rst` and `source/_includes/install-muiogo.rst`.
 Edit these shared files when changing commands so the guides stay aligned.
+The manual home page and Quick Guide share the complete installation section
+from `source/_includes/install-and-open.rst`.
 
 Earlier OSeMOSYS content is retained under `source/legacy-osemosys.rst`.
 Its heading underlines were repaired for strict builds; its model guidance
