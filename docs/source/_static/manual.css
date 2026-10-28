@@ -1,0 +1,21 @@
+/* Emphasise the home link while keeping room for the active-page marker. */
+.bd-sidebar-primary nav.bd-links .bd-sidenav__home-link > li > a {
+    font-weight: 700;
+}
+
+/* Emphasise the two model manuals without changing their nested links. */
+.bd-sidebar-primary nav.bd-links .bd-sidenav > .toctree-l1 > a {
+    font-weight: 700;
+}
+
+/* Keep operating-system options below their parent installation step. */
+.bd-article .installation-options.docutils.container {
+    margin-left: 3rem;
+    margin-right: 0;
+}
+
+@media (max-width: 575px) {
+    .bd-article .installation-options.docutils.container {
+        margin-left: 1.5rem;
+    }
+}

@@ -11,7 +11,7 @@ recommended version.
 Recommended setup
 =================
 
-macOS / Linux
+Mac / Linux
 -------------
 
 .. code-block:: bash

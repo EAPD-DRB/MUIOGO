@@ -25,6 +25,7 @@ test-results/
 .coverage
 .coverage.*
 htmlcov/
+docs/build/
 
 # Installer log files
 .install-*.log

@@ -48,7 +48,7 @@ unnecessary divergence from upstream when a narrower or more compatible change
 would do the job.
 
 Documentation Contributions
--------------------
+---------------------------
 
 Documentation improvements are welcome, including:
 
@@ -61,7 +61,7 @@ Any setup, workflow, or architecture change should update the relevant
 documentation in the same pull request.
 
 Examples and Use Cases
--------------------
+----------------------
 
 Examples, demo improvements, and real-world use cases can be helpful when they
 make the project easier to understand or test.

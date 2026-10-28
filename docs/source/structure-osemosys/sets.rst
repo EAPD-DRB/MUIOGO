@@ -37,7 +37,7 @@ DAYTYPE [ld]
 It provides a sequential numerical indication of the day types considered in the model (e.g., workday, weekend) and their order. This set is required when storage facilities are included in the model.
 
 DAILYTIMEBRACKET [lh]
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 It provides a sequential numerical indication of how the day is divided into parts (e.g., night, morning, afternoon, evening) and their order. This set is required when storage facilities are included in the model.
 
 TIMESLICE [l]
@@ -46,15 +46,15 @@ It defines the temporal resolution of the model by splitting each modelled year 
 While it is possible to create 8,760 time slices to represent each hour of the year, this approach is often computationally intensive. To optimize efficiency, time slices are typically grouped. The annual demand may be divided into aggregate seasons (e.g., summer, winter, intermediate), which can then be further subdivided into day types (e.g., workdays, weekends) and, if necessary, into finer time intervals (e.g., day and night) based on demand variations.
 
 MODE_OF_OPERATION [m]
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 This defines the number of operational modes a technology can have. If a technology can use various input or output commodities and choose among different combinations (i.e., any linear combination) of these inputs or outputs, each combination can be considered a separate mode of operation. For example, a combined heat and power (CHP) plant may operate in one mode to produce heat and in another mode to generate electricity.
 
 STORAGEINTRADAY [s]
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 It is a subset of STORAGE that includes storage technologies capable of charging and discharging within a single day (i.e., short-duration storage). This typically includes batteries and other fast-response storage systems.
 
 STORAGEINTRAYEAR [s]
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 It is subset of STORAGE that includes storage technologies capable of storing energy over long periods, typically across multiple days, weeks, or even seasons. This is also referred to as long-duration or seasonal storage, such as pumped hydro storage and hydrogen storage. 
 
 UDC [u]
@@ -62,31 +62,31 @@ UDC [u]
 The set UDC (User Defined Constraints) allows users to introduce custom constraints beyond the standard OSeMOSYS equations. This adds flexibility to tailor the model for specific policy, technical, or economic constraints that aren't explicitly included in the default formulation. For example, UDCs can represent a reserve margin in a power system or enforce a specific renewable energy target in a sector.
 
 MODEperTECHNOLOGY{TECHNOLOGY} within MODE_OF_OPERATION
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It defines the operational modes available for each technology. This means that not every technology will use all possible modes, but only a subset relevant to its function.
 
 MODExTECHNOLOGYperFUELout{COMMODITY} within MODE_OF_OPERATION cross TECHNOLOGY
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It defines which technologies and their modes of operation can produce specific commodities (fuels, electricity, heat, etc.) as outputs. This ensures that not every technology-mode combination produces all fuels, but only a subset relevant to the system.
 
 MODExTECHNOLOGYperFUELin{COMMODITY} within MODE_OF_OPERATION cross TECHNOLOGY
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It defines which technologies and their modes of operation require specific commodities (fuels, electricity, heat, etc.) as inputs. This ensures that only appropriate fuel inputs are assigned to each technology and mode.
 
 MODExTECHNOLOGYperSTORAGEto{STORAGE} within MODE_OF_OPERATION cross TECHNOLOGY
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It defines which technologies and their modes of operation can store/charge energy into specific storage technologies. This ensures that only relevant technologies and modes can charge energy, preventing incorrect assignments.
 
 MODExTECHNOLOGYperSTORAGEfrom{STORAGE} within MODE_OF_OPERATION cross TECHNOLOGY
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It defines which technologies and their modes of operation can extract/discharge energy from specific storage technologies. This ensures that only relevant technologies and modes can discharge energy from storage, preventing incorrect assignments.
 
 MODExTECHNOLOGYperEMISSION{e in EMISSION} within MODE_OF_OPERATION cross TECHNOLOGY
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It defines which technologies (in specific modes of operation) emit specific emissions. This ensures that only technologies that actually produce emissions are assigned them, preventing incorrect emission accounting.
 
 MODExTECHNOLOGYperEMISSIONChange{e in EMISSION} within MODE_OF_OPERATION cross TECHNOLOGY
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It defines which technologies (in specific modes of operation) can reduce or sequester specific emissions. This ensures that only relevant technologies and modes are assigned emission reduction capabilities, preventing incorrect accounting of emission reductions.
 
 
