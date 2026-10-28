@@ -1,5 +1,7 @@
 """Build the user manual without importing the application or models."""
 
+import os
+
 project = "MUIOGO"
 author = "UN DESA"
 copyright = "2026, UN DESA"
@@ -13,7 +15,7 @@ exclude_patterns = ["_build", "_includes/**", "Thumbs.db", ".DS_Store"]
 html_theme = "sphinx_book_theme"
 html_theme_options = {
     "repository_url": "https://github.com/EAPD-DRB/MUIOGO",
-    "repository_branch": "main",
+    "repository_branch": os.environ.get("MUIOGO_DOCS_BRANCH", "main"),
     "use_repository_button": True,
     "use_edit_page_button": True,
     "path_to_docs": "docs/source",

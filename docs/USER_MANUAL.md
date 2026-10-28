@@ -24,7 +24,23 @@ Open <http://127.0.0.1:8000/>. Press Ctrl+C to stop the preview server.
 The documentation build does not import MUIOGO, install country models or run
 simulations. Build packages are listed separately in `requirementsrtd.txt`.
 
-## Host on Read the Docs
+## Publish on GitHub Pages
+
+The public manual is hosted at <https://eapd-drb.github.io/MUIOGO/>.
+The `User manual` workflow builds and checks Sphinx, then deploys the HTML
+to GitHub Pages. Pushes affecting the documentation on
+`codex/og-core-user-manual` or `main` trigger publication. Pull requests
+build an artifact without publishing it. The deployment environment is
+`github-pages`.
+
+Only `docs/build/html/` is uploaded. The app, country data and solver
+environments are not part of the published site. Build packages are
+installed from `docs/requirementsrtd.txt`.
+
+The workflow sets `MUIOGO_DOCS_BRANCH` so the site's GitHub edit links
+point to the branch that produced that build.
+
+## Optional: host on Read the Docs
 
 1. Commit and push the reviewed documentation to this repository.
 2. In the organisation's Read the Docs account, import `EAPD-DRB/MUIOGO`,
@@ -89,7 +105,8 @@ Draft checks on 28 October 2026:
 - `git diff --check`: passed.
 - Browser visual check: not completed; the browser preview tools stalled.
 - Fresh app installation and OG-PHL simulation: not run.
-- GitHub Actions and hosted Read the Docs build: not run in this local session.
+- The initial draft was checked locally; publication now uses the GitHub Actions
+  workflow above. A hosted Read the Docs build has not been run.
 
 The draft is based on code and parameter-file inspection. It does not claim
 a successful simulation or include invented result values. The local retained

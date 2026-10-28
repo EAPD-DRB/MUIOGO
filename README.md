@@ -86,6 +86,8 @@ One of the core goals of MUIOGO is to become platform independent so separate pl
 
 ## User manual
 
+Read the [online user manual](https://eapd-drb.github.io/MUIOGO/).
+
 The [OG-Core user manual](docs/source/og-core/index.rst) includes a
 [Quick Guide](docs/source/og-core/quick-guide.rst) and a detailed screen guide.
 Both use an OG-PHL baseline and corporate tax reform example.
