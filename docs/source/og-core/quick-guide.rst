@@ -3,7 +3,7 @@ Quick Guide
 
 This quick guide shows you how to install MUIOGO and run a simulation.
 You will compare a baseline with a corporate tax cut from 25% to 20% in the
-Philippines. Use **Steady state** to study the long-run effect.
+Philippines.
 
 1. Install and open MUIOGO
 --------------------------
