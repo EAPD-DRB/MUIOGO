@@ -1,66 +1,38 @@
-# MUIO documentation build configuration file
+"""Build the user manual without importing the application or models."""
 
-import sys
-from pathlib import Path
+import os
 
-# Optional: insert MUIO source path to sys.path if autodoc is used
-# sys.path.insert(0, str(Path("../..")))
+project = "MUIOGO"
+author = "UN DESA"
+copyright = "2026, UN DESA"
 
-# -- Project information -----------------------------------------------------
-project = 'MUIO: Modelling User Interface for OSeMOSYS'
-author = 'MUIO Contributors'
-copyright = '2024-2025, MUIO Project'
-
-# -- General configuration ---------------------------------------------------
-extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.todo',
-    'sphinx.ext.viewcode',
-    'sphinx_book_theme',
-]
-
-html_allow_embedded_html = True
-autosummary_generate = True
-todo_include_todos = True
-source_suffix = '.rst'
-master_doc = 'index'
-language = 'en'
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
-# -- HTML output -------------------------------------------------------------
+extensions = ["sphinx.ext.mathjax", "sphinx_copybutton"]
+source_suffix = ".rst"
+root_doc = "index"
+language = "en"
+exclude_patterns = ["_build", "_includes/**", "Thumbs.db", ".DS_Store"]
 
 html_theme = "sphinx_book_theme"
-
 html_theme_options = {
-    "repository_url": "https://github.com/OSeMOSYS/MUIO",
+    "repository_url": "https://github.com/EAPD-DRB/MUIOGO",
+    "repository_branch": os.environ.get("MUIOGO_DOCS_BRANCH", "main"),
     "use_repository_button": True,
     "use_edit_page_button": True,
     "path_to_docs": "docs/source",
     "home_page_in_toc": True,
     "show_navbar_depth": 2,
+    "footer_content_items": ["copyright.html", "last-updated.html", "extra-footer.html"],
+    "extra_footer": (
+        'Licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0">'
+        'Apache License, Version 2.0</a>.'
+    ),
 }
+html_title = "MUIOGO user manual"
+html_short_title = "MUIOGO"
+html_static_path = ["_static"]
+html_css_files = ["manual.css"]
+html_logo = "_static/muiogo-logo.png"
 
-html_title = 'MUIO Documentation'
-html_short_title = 'MUIO'
-html_logo = '_static/muio-logo.png'  # Ensure this file exists
-html_favicon = '_static/favicon.ico'  # Optional
-html_static_path = ['_static']
-
-# -- Options for LaTeX output ------------------------------------------------
 latex_documents = [
-    (master_doc, 'MUIO.tex', 'MUIO Documentation', 'MUIO Contributors', 'manual'),
+    (root_doc, "MUIOGO.tex", "MUIOGO user manual", author, "manual"),
 ]
-
-# -- Options for manual page output ------------------------------------------
-man_pages = [
-    (master_doc, 'muio', 'MUIO Documentation', [author], 1)
-]
-
-# -- Options for Texinfo output ----------------------------------------------
-texinfo_documents = [
-    (master_doc, 'MUIO', 'MUIO Documentation', author, 'MUIO',
-     'An interface to build OSeMOSYS energy models.', 'Miscellaneous'),
-]
-

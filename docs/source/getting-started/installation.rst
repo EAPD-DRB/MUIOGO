@@ -11,7 +11,7 @@ recommended version, and the uv installer uses it automatically.
 Recommended setup
 =================
 
-macOS / Linux
+Mac / Linux
 -------------
 
 .. code-block:: bash
