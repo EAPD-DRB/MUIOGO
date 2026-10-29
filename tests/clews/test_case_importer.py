@@ -93,3 +93,35 @@ def test_legacy_arcname_prefix_still_imports(clews_storage, tmp_path):
 
 def test_current_version_is_accepted():
     assert CURRENT_CASE_VERSION in ACCEPTED_CASE_VERSIONS
+
+
+def _imported_gendata(clews_storage, casename):
+    import json
+    return json.loads((clews_storage / casename / "genData.json").read_text())
+
+
+def test_older_case_gets_timeslice_balance_level(clews_storage, tmp_path):
+    """MUIO 5.7: commodities from older cases are balanced per timeslice, as before,
+    and the case is stamped with the current version."""
+    gendata = minimal_gendata("OldComms", "5.6")
+    gendata["osy-comm"] = [
+        {"CommId": "COM_0", "Comm": "ELC", "Desc": "", "UnitId": "PJ"},
+        {"CommId": "COM_1", "Comm": "COA", "Desc": "", "UnitId": "PJ"},
+    ]
+    zip_path = make_case_zip(tmp_path, "OldComms", version="5.6", gendata=gendata)
+    msg = CaseImporter.import_zip(str(zip_path))
+    assert msg[0]["status_code"] == "success"
+    saved = _imported_gendata(clews_storage, "OldComms")
+    assert saved["osy-version"] == CURRENT_CASE_VERSION
+    assert [c["BalanceLevel"] for c in saved["osy-comm"]] == ["Ts", "Ts"]
+
+
+def test_current_case_keeps_its_balance_levels(clews_storage, tmp_path):
+    gendata = minimal_gendata("NewComms", "5.7")
+    gendata["osy-comm"] = [
+        {"CommId": "COM_0", "Comm": "WAT", "Desc": "", "BalanceLevel": "Se", "UnitId": "PJ"},
+    ]
+    zip_path = make_case_zip(tmp_path, "NewComms", version="5.7", gendata=gendata)
+    CaseImporter.import_zip(str(zip_path))
+    saved = _imported_gendata(clews_storage, "NewComms")
+    assert saved["osy-comm"][0]["BalanceLevel"] == "Se"

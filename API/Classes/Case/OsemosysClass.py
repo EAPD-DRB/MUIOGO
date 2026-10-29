@@ -7,6 +7,10 @@ from Classes.Base.FileClass import File
 from Classes.Case.HelpersClass import Helpers
 
 class Osemosys():
+    # The OSeMOSYS model file every solve uses. The model-file page
+    # (/readModelFile) reads the same name, so the two can never disagree.
+    MODEL_FILE_NAME = 'model.v.5.7withStorageFixNoPerformance.txt'
+
     def __init__(self, case):
         Config.validate_path(Config.DATA_STORAGE, case)
         self.case = case
@@ -57,7 +61,7 @@ class Osemosys():
         self.rytemPath = self.casePath / 'RYTEM.json'
 
 
-        self.osemosysFile = Path(Config.SOLVERs_FOLDER,'model.v.5.4.txt')
+        self.osemosysFile = Path(Config.SOLVERs_FOLDER, self.MODEL_FILE_NAME)
         self.osemosysFileOriginal = Path(Config.SOLVERs_FOLDER,'osemosys.txt')
         self._glpkFolder = None
         self._cbcFolder = None
@@ -365,6 +369,33 @@ class Osemosys():
     def getCommsMap(self):
         comms = {tech['CommId']: tech['Comm'] for tech in self.genData["osy-comm"] }
         return comms
+    
+    #23052026 - dodali smo funkciju koja vraca sve comm liste, jednu sa svim comm, a ostale po levelu Blaancing levels
+
+    def getAllCommLists(self):
+        result = {
+            "ALL": [],
+            "Ts": [],
+            "Se": [],
+            "An": []
+        }
+
+        for tech in self.genData["osy-comm"]:
+            comm = tech["Comm"]
+            # Cases saved before MUIO 5.7 have no BalanceLevel: they were balanced
+            # per timeslice, so keep that. An unknown level would leave the
+            # commodity in no balance set at all, so refuse it instead.
+            level = tech.get("BalanceLevel") or "Ts"
+            if level not in ("Ts", "Se", "An"):
+                raise ValueError(
+                    "Commodity '{}' has an unknown balance level '{}' "
+                    "(expected Ts, Se or An).".format(comm, level))
+
+            result["ALL"].append(comm)
+            result[level].append(comm)
+
+        return result
+
     
     def getConIds(self):
         conIds = [ tech['ConId'] for tech in self.genData["osy-constraints"]]

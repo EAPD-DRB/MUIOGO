@@ -1,4 +1,4 @@
-import { UNITS, TAGS, STORAGE_OPERATIONS } from './Const.Class.js';
+import { UNITS, TAGS, STORAGE_OPERATIONS, BALANCE_LEVELS } from './Const.Class.js';
 import { Message } from "./Message.Class.js";
 import { JqxSources } from "./JqxSources.Class.js";
 
@@ -337,9 +337,15 @@ export class Grid {
             UnitsArray = UNITS;
         }
          
+        let srcBalanceLevels = JqxSources.srcBalanceLevel(JSON.stringify(BALANCE_LEVELS));
+        var daBalanceLevels = new $.jqx.dataAdapter(srcBalanceLevels, {
+            autoBind: true
+        });
+
+
         this.srcTechs = JqxSources.srcTech(techs);
         this.srcTechGroups = JqxSources.srcTechGroup(techGroups);
-        this.srcComms = JqxSources.srcComm(commodities);
+        this.srcComms = JqxSources.srcComm(commodities, daBalanceLevels.records);
         this.srcEmi = JqxSources.srcEmi(emissions);
         this.srcUnits = JqxSources.srcUnit(JSON.stringify(UnitsArray));
 
@@ -622,16 +628,26 @@ export class Grid {
         else{
             UnitsArray = UNITS;
         }
-        let srcComms = JqxSources.srcComm(commodities);
-        let srcUnits = JqxSources.srcUnit(JSON.stringify(UnitsArray));
 
-        var daComms = new $.jqx.dataAdapter(srcComms);
+        let srcUnits = JqxSources.srcUnit(JSON.stringify(UnitsArray));
         var daUnits = new $.jqx.dataAdapter(srcUnits, {
             autoBind: true
         });
 
+        let srcBalanceLevels = JqxSources.srcBalanceLevel(JSON.stringify(BALANCE_LEVELS));
+        var daBalanceLevels = new $.jqx.dataAdapter(srcBalanceLevels, {
+            autoBind: true
+        });
+
+        let srcComms = JqxSources.srcComm(commodities, daBalanceLevels.records);
+        var daComms = new $.jqx.dataAdapter(srcComms);
+
         var ddlEditor = function (row, value, editor) {
             editor.jqxDropDownList({ source: daUnits, displayMember: 'name', valueMember: 'id', groupMember: 'group', filterable: true, theme: this.themeMaterial,filterHeight:30 });
+        }.bind(this);
+
+        var ddlBalanceLevels = function (row, value, editor) {
+            editor.jqxDropDownList({ source: daBalanceLevels, displayMember: 'name', valueMember: 'id', filterable: true, theme: this.themeMaterial,filterHeight:30 });
         }.bind(this);
 
         var validation_1 = function (cell, value) {
@@ -680,8 +696,9 @@ export class Grid {
             //pagesizeoptions: ['10', '25', '50', '100', '250', '500', '750', '1000'],
             columns: [
                 { text: 'Commodity name', datafield: 'Comm', width: '20%', align: 'center', cellsalign: 'left', validation: validation_1, filterable: true },
-                { text: 'Description', datafield: 'Desc', width: '50%', align: 'center', cellsalign: 'left',sortable: false,menu:false },
-                { text: 'Unit', datafield: 'UnitId', width: '20%', columntype: 'dropdownlist', createeditor: ddlEditor, align: 'center', cellsalign: 'center',sortable: false, menu:false },
+                { text: 'Description', datafield: 'Desc', width: '40%', align: 'center', cellsalign: 'left',sortable: false,menu:false },
+                { text: 'Balance Level', datafield: 'BalanceLevel', displayfield: 'BalanceLevelName', width: '15%', columntype: 'dropdownlist', createeditor: ddlBalanceLevels, align: 'center', cellsalign: 'center',sortable: false, menu:false },
+                { text: 'Unit',          datafield: 'UnitId', width: '15%', columntype: 'dropdownlist', createeditor: ddlEditor, align: 'center', cellsalign: 'center',sortable: false, menu:false },
                 { text: '<span style="padding:10px; width:100%; border:none" id="osy-addComm" class="btn btn-osy" ><i class="fa fa-plus fa-lg"></i>Add</span>', datafield: 'CommId', width: '10%', cellsrenderer: cellsrendererbutton, editable: false, sortable: false, menu:false },
             ]
         });
@@ -1073,14 +1090,17 @@ export class Grid {
     
     static indicatorGrid(techs, comms, indicators, indicatorTypes, techNames, commNames) {
 
-        // console.log('indicators ',indicators)
-        console.log('comms ',comms)
+
+        let srcBalanceLevels = JqxSources.srcBalanceLevel(JSON.stringify(BALANCE_LEVELS));
+        var daBalanceLevels = new $.jqx.dataAdapter(srcBalanceLevels, {
+            autoBind: true
+        });
 
         this.srcTechs = JqxSources.srcTech(techs);
-        this.srcComms = JqxSources.srcComm(comms);
+        this.srcComms = JqxSources.srcComm(comms, daBalanceLevels.records);
         this.srcType = JqxSources.srcIndType(indicatorTypes);
 
-        console.log('this.srcType ',this.srcType)
+
 
         this.daTech = new $.jqx.dataAdapter(this.srcTechs, {
             autoBind: true
