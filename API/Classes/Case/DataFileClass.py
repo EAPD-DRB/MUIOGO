@@ -2296,6 +2296,7 @@ class DataFile(Osemosys):
         return out, False
 
     def run( self, solver, caserun, lock=None, postprocess=True ):
+        lock_acquired = False
         try:
             caserunname = caserun
             if lock is not None:
@@ -2303,6 +2304,7 @@ class DataFile(Osemosys):
                 # lock = {}
                 # lock[caserunname] = threading.Lock() 
                 lock.acquire()
+                lock_acquired = True
                 caserunname = caserun
 
             start_time = time.time()
@@ -2373,6 +2375,19 @@ class DataFile(Osemosys):
 
                 #return output to variable preprocessed data file
                 glpk_out, lp_reused = self._ensure_lp_matrix(glpsol_exec, glpk_cwd, modelfile, datafile_processed, lpfile, 'exact')
+
+                # A failed check can leave no LP, or an older LP from another
+                # run. Neither is a matrix that CBC may optimize for these inputs.
+                if glpk_out.returncode != 0 or not Path(lpfile).is_file():
+                    return {
+                        "cbc_message": "",
+                        "cbc_stdmsg": "",
+                        "glpk_message": glpk_out.stdout,
+                        "glpk_stdmsg": glpk_out.stderr,
+                        "timer": "Matrix generation failed; CBC was not started. Check the GLPK log.",
+                        "status_code": "error",
+                        "caserun": caserunname,
+                    }
             
 
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
@@ -2484,9 +2499,6 @@ class DataFile(Osemosys):
                     response["oglink"] = oglinkInfo
 
            
-            if lock is not None:
-                lock.release()
-
             return response
             # urllib.request.urlretrieve(self.dataFile, dataFile)
 
@@ -2497,6 +2509,9 @@ class DataFile(Osemosys):
             raise IndexError
         except OSError:
             raise OSError
+        finally:
+            if lock_acquired:
+                lock.release()
     
     def generateCSVfromCBC(self, data_file, results_file, base_folder=os.getcwd()):
         try:
@@ -2646,6 +2661,26 @@ class DataFile(Osemosys):
                     df_TSC = df_TSC[df_TSC['TotalStorageCapacity']!=0]
                     df_TSC.to_csv(os.path.join(base_folder, 'csv', 'TotalStorageCapacity.csv'), index=None)
             
+                # Annual flows apply to every technology resolution. Seasonal
+                # and annual technologies need not have any RateOfActivity rows.
+                annual_activity = all_params.get('TotalAnnualTechnologyActivityByMode')
+                if annual_activity is not None:
+                    for ratio_name, result_name in (
+                        ('OutputActivityRatio', 'ProductionByTechnologyByMode'),
+                        ('InputActivityRatio', 'UseByTechnologyByMode'),
+                    ):
+                        ratios = pd.DataFrame(data[ratio_name], columns=Config.PARAMETERS_C_full[ratio_name])
+                        ratios[ratio_name] = pd.to_numeric(ratios[ratio_name])
+                        flows = ratios.merge(annual_activity, on=['r', 't', 'm', 'y'], how='inner')
+                        flows[result_name] = (
+                            flows[ratio_name] * flows['TotalAnnualTechnologyActivityByMode']
+                        ).round(4)
+                        flows = flows.loc[
+                            flows[result_name] != 0,
+                            ['r', 't', 'm', 'f', 'y', result_name],
+                        ].sort_values(['r', 't', 'f', 'm', 'y'])
+                        flows.to_csv(os.path.join(base_folder, 'csv', result_name + '.csv'), index=False)
+
                 if 'RateOfActivity' in all_params:
                     #year split data frame
                     df_yearsplit = pd.DataFrame(data['YearSplit'], columns=['r','y', 'l','YearSplit'])
@@ -2688,46 +2723,6 @@ class DataFile(Osemosys):
                         df_prod = df_prod.sort_values(by=['r','l','t','f','y'])
                         df_prod = df_prod[df_prod['ProductionByTechnologyByModeTs']!=0]
                         df_prod.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnologyByModeTs.csv'), index=None)
-
-                        ########################################ProductionByTechnologyByMode############################################
-                        # total anual activity by mode * Input/output activity ratio.
-
-                        if "TotalAnnualTechnologyActivityByMode" in all_params:
-                            df_TATAM = all_params['TotalAnnualTechnologyActivityByMode'].rename(columns={'value':'TotalAnnualTechnologyActivityByMode'})
-                            
-                            df_prod_annual = pd.merge(df_output, df_TATAM, how='left', on=['r','t','m','y'])
-
-                            df_prod_annual['ProductionByTechnologyByMode'] = df_prod_annual['OutputActivityRatio']*df_prod_annual['TotalAnnualTechnologyActivityByMode']
-                            df_prod_annual['ProductionByTechnologyByMode'] = df_prod_annual['ProductionByTechnologyByMode'].astype(float).round(4)
-                            df_prod_annual = df_prod_annual.sort_values(by=['r','t','f','y'])
-                            df_prod_annual = df_prod_annual[df_prod_annual['ProductionByTechnologyByMode']!=0]
-
-                            cols_to_drop = [
-                                'OutputActivityRatio',
-                                'TotalAnnualTechnologyActivityByMode'
-                            ]
-
-                            # df_prod_annual = (
-                            #     df_prod_annual.drop(columns=cols_to_drop)
-                            #     .groupby(
-                            #         ['r_x', 'f', 't', 'y', 'm'],
-                            #         as_index=False
-                            #     )['ProductionByTechnologyByMode']
-                            #     .sum()
-                            # )
-
-
-                            df_prod_annual = df_prod_annual.drop(columns=cols_to_drop)
-                            df_prod_annual.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnologyByMode.csv'), index=None)
-                            
-
-                        # df_prod_annual = (
-                        #     df_prod.groupby(['r','t','m','f','y'], as_index=False)['ProductionByTechnologyByModeTs']
-                        #     .sum()
-                        #     .rename(columns={'ProductionByTechnologyByModeTs': 'ProductionByTechnologyByMode'})
-                        # )
-                        # df_prod_annual = df_prod_annual[df_prod_annual['ProductionByTechnologyByMode'] != 0]
-                        # df_prod_annual.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnologyByMode.csv'), index=None)
 
                         ########################################################INDICATOR#####################################################
                         # IND_CommodityIntensity per technology, optionally filtered by user-supplied tech list.
@@ -2814,43 +2809,6 @@ class DataFile(Osemosys):
                         df_use = df_use.sort_values(by=['r','l','t','f','y'])
                         df_use = df_use[df_use['UseByTechnologyByModeTs']!=0]
                         df_use.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnologyByModeTs.csv'), index=None)
-
-                        ######################################UseByTechnologyByMode##############################################
-                        if "TotalAnnualTechnologyActivityByMode" in all_params:
-                            df_TATAM = all_params['TotalAnnualTechnologyActivityByMode'].rename(columns={'value':'TotalAnnualTechnologyActivityByMode'})
-                            df_use_annual = pd.merge(df_input, df_TATAM, how='left', on=['r','t','m','y'])
-
-                            df_use_annual['UseByTechnologyByMode'] = df_use_annual['InputActivityRatio']*df_use_annual['TotalAnnualTechnologyActivityByMode']
-                            df_use_annual['UseByTechnologyByMode'] = df_use_annual['UseByTechnologyByMode'].astype(float).round(4)
-                            df_use_annual = df_use_annual.sort_values(by=['r','t','f','y'])
-                            df_use_annual = df_use_annual[df_use_annual['UseByTechnologyByMode']!=0]
-
-                            cols_to_drop = [
-                                'InputActivityRatio',
-                                'TotalAnnualTechnologyActivityByMode'
-                            ]
-
-                            # df_use_annual = (
-                            #     df_use_annual.drop(columns=cols_to_drop)
-                            #     .groupby(
-                            #         ['r_x', 'f', 't', 'y', 'm'],
-                            #         as_index=False
-                            #     )['UseByTechnologyByMode']
-                            #     .sum()
-                            # )
-
-                            df_use_annual = df_use_annual.drop(columns=cols_to_drop)
-
-
-                            df_use_annual.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnologyByMode.csv'), index=None)
-                        
-                        # df_use_annual = (
-                        #     df_use.groupby(['r','t','m','f','y'], as_index=False)['UseByTechnologyByModeTs']
-                        #     .sum()
-                        #     .rename(columns={'UseByTechnologyByModeTs': 'UseByTechnologyByMode'})
-                        # )
-                        # df_use_annual = df_use_annual[df_use_annual['UseByTechnologyByMode'] != 0]
-                        # df_use_annual.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnologyByMode.csv'), index=None)
 
                         ######################################RateOfUseByTechnologyByMode##############################################
                         df_roubt = pd.merge(df_in_ys, df_activity, how='left', on=['t','m','l','y'])

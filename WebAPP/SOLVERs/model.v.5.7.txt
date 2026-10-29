@@ -263,6 +263,15 @@ param SpecifiedAnnualDemand{r in REGION, f in COMMODITY, y in YEAR};
 param SpecifiedDemandProfile{r in REGION, f in COMMODITY, l in TIMESLICE, y in YEAR};
 # Note: SpecifiedDemandProfile is only used for COMMODITY_TS.
 # For COMMODITY_S it is aggregated per season. For COMMODITY_AN it is not used.
+
+# MUIOGO: do not silently ignore specified demand after a balance-level change.
+for {r in REGION, f in COMMODITY_AN, y in YEAR: SpecifiedAnnualDemand[r,f,y] <> 0} {
+    printf "ERROR: Annual commodity %s (region %s, year %s) has SpecifiedAnnualDemand.\n", f, r, y;
+    printf "Use AccumulatedAnnualDemand for annual demand, or select Timeslice/Season balance.\n";
+}
+check {r in REGION, f in COMMODITY_AN, y in YEAR}:
+    SpecifiedAnnualDemand[r,f,y] = 0;
+
 param TechnologyActivityByModeLowerLimit{r in REGION, t in TECHNOLOGY, m in MODE_OF_OPERATION, y in YEAR};
 param TechnologyActivityByModeUpperLimit{r in REGION, t in TECHNOLOGY, m in MODE_OF_OPERATION, y in YEAR};
 param TechnologyActivityDecreaseByModeLimit{r in REGION, t in TECHNOLOGY, m in MODE_OF_OPERATION, y in YEAR};

@@ -164,6 +164,15 @@ param SpecifiedAnnualDemand{r in REGION, f in COMMODITY, y in YEAR};
 param SpecifiedDemandProfile{r in REGION, f in COMMODITY, l in TIMESLICE, y in YEAR};
 # Note: SpecifiedDemandProfile is only used for COMMODITY_TS.
 # For COMMODITY_S it is aggregated per season. For COMMODITY_AN it is not used.
+
+# MUIOGO: do not silently ignore specified demand after a balance-level change.
+for {r in REGION, f in COMMODITY_AN, y in YEAR: SpecifiedAnnualDemand[r,f,y] <> 0} {
+    printf "ERROR: Annual commodity %s (region %s, year %s) has SpecifiedAnnualDemand.\n", f, r, y;
+    printf "Use AccumulatedAnnualDemand for annual demand, or select Timeslice/Season balance.\n";
+}
+check {r in REGION, f in COMMODITY_AN, y in YEAR}:
+    SpecifiedAnnualDemand[r,f,y] = 0;
+
 param TechnologyActivityByModeLowerLimit{r in REGION, t in TECHNOLOGY, m in MODE_OF_OPERATION, y in YEAR};
 param TechnologyActivityByModeUpperLimit{r in REGION, t in TECHNOLOGY, m in MODE_OF_OPERATION, y in YEAR};
 param TechnologyActivityDecreaseByModeLimit{r in REGION, t in TECHNOLOGY, m in MODE_OF_OPERATION, y in YEAR};
@@ -365,8 +374,11 @@ s.t. AAC1_AN{r in REGION, t in TECHNOLOGY_AN, y in YEAR}:
         TotalAnnualTechnologyActivityByMode[r,t,m,y]
     = TotalTechnologyAnnualActivity[r,t,y];
 
+# MUIOGO: -1 disables these six upper limits, matching the default 5.7 model.
+# Zero remains a real upper bound; finite limits retain their existing equations.
 # Annual activity upper and lower limits (all technologies)
-s.t. AAC2_TotalAnnualTechnologyActivityUpperLimit{r in REGION, t in TECHNOLOGY, y in YEAR}:
+s.t. AAC2_TotalAnnualTechnologyActivityUpperLimit{r in REGION, t in TECHNOLOGY, y in YEAR:
+     TotalTechnologyAnnualActivityUpperLimit[r,t,y] <> -1}:
     TotalTechnologyAnnualActivity[r,t,y]
     <= TotalTechnologyAnnualActivityUpperLimit[r,t,y];
 
@@ -386,7 +398,8 @@ s.t. TAC1_TotalModelHorizonTechnologyActivity{r in REGION, t in TECHNOLOGY}:
     sum{y in YEAR} TotalTechnologyAnnualActivity[r,t,y]
     = TotalTechnologyModelPeriodActivity[r,t];
 
-s.t. TAC2_TotalModelHorizonTechnologyActivityUpperLimit{r in REGION, t in TECHNOLOGY}:
+s.t. TAC2_TotalModelHorizonTechnologyActivityUpperLimit{r in REGION, t in TECHNOLOGY:
+     TotalTechnologyModelPeriodActivityUpperLimit[r,t] <> -1}:
     sum{y in YEAR} TotalTechnologyAnnualActivity[r,t,y]
     <= TotalTechnologyModelPeriodActivityUpperLimit[r,t];
 
@@ -508,14 +521,16 @@ s.t. CAa4_AN_Constraint_Capacity{r in REGION, t in TECHNOLOGY_AN, y in YEAR}:
 s.t. CC1_UndiscountedCapitalInvestment{r in REGION, t in TECHNOLOGY, y in YEAR}:
     CapitalCost[r,t,y] * NewCapacity[r,t,y] = CapitalInvestment[r,t,y];
 
-s.t. NCC1_TotalAnnualMaxNewCapacityConstraint{r in REGION, t in TECHNOLOGY, y in YEAR}:
+s.t. NCC1_TotalAnnualMaxNewCapacityConstraint{r in REGION, t in TECHNOLOGY, y in YEAR:
+     TotalAnnualMaxCapacityInvestment[r,t,y] <> -1}:
     NewCapacity[r,t,y] <= TotalAnnualMaxCapacityInvestment[r,t,y];
 
 s.t. NCC2_TotalAnnualMinNewCapacityConstraint{r in REGION, t in TECHNOLOGY, y in YEAR:
      TotalAnnualMinCapacityInvestment[r,t,y] > 0}:
     NewCapacity[r,t,y] >= TotalAnnualMinCapacityInvestment[r,t,y];
 
-s.t. TCC1_TotalAnnualMaxCapacityConstraint{r in REGION, t in TECHNOLOGY, y in YEAR}:
+s.t. TCC1_TotalAnnualMaxCapacityConstraint{r in REGION, t in TECHNOLOGY, y in YEAR:
+     TotalAnnualMaxCapacity[r,t,y] <> -1}:
     (sum{yy in YEAR: y-yy < OperationalLife[r,t] && y-yy>=0} NewCapacity[r,t,yy])
     + ResidualCapacity[r,t,y]
     <= TotalAnnualMaxCapacity[r,t,y];
@@ -715,12 +730,14 @@ s.t. E5_EmissionsPenaltyByTechnology{r in REGION, t in TECHNOLOGY, y in YEAR}:
     = TechnologyEmissionsPenalty[r,t,y];
 
 # E8: Annual emission limit
-s.t. E8_AnnualEmissionsLimit{r in REGION, e in EMISSION, y in YEAR}:
+s.t. E8_AnnualEmissionsLimit{r in REGION, e in EMISSION, y in YEAR:
+     AnnualEmissionLimit[r,e,y] <> -1}:
     sum{t in TECHNOLOGY} AnnualTechnologyEmission[r,t,e,y]
     <= AnnualEmissionLimit[r,e,y];
 
 # E9: Model period emission limit
-s.t. E9_ModelPeriodEmissionsLimit{r in REGION, e in EMISSION}:
+s.t. E9_ModelPeriodEmissionsLimit{r in REGION, e in EMISSION:
+     ModelPeriodEmissionLimit[r,e] <> -1}:
     sum{t in TECHNOLOGY, y in YEAR} AnnualTechnologyEmission[r,t,e,y]
     <= ModelPeriodEmissionLimit[r,e];
 

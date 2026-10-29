@@ -61,6 +61,11 @@ jobs:
       - name: Install test tools
         run: pip install "pytest>=7" pytest-cov
 
+      - name: Install GLPK for matrix-only regression checks
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y glpk-utils
+
       - name: Run tests
         run: pytest --cov=API --cov-report=term-missing --cov-fail-under=5
 
