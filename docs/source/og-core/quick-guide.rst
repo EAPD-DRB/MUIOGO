@@ -10,51 +10,50 @@ Philippines.
 2. Open the Philippines workspace
 ---------------------------------
 
-1. Click **Open OG-Core**, or **OG-Core** in the top bar.
-2. Find **Philippines (PHL)**. Click **Install** if needed.
-3. Wait until the card says **installed**. Click **Open workspace**.
+1. Click **OG-Core** in the top bar.
+2. Find **Philippines (PHL)** and click **Install**.
+3. Wait until the card says **installed** (in green) and then click **Open workspace**.
 
-**Check:** the page title says **Philippines workspace**.
+**Check** that the page title at the top says **Philippines workspace**.
 
 3. Create the baseline
 ----------------------
 
-1. Click **Create baseline** beside **Calibration defaults**.
+1. Click **Create baseline**, beside **Calibration defaults** (in the bottom right).
 2. Leave **Type** as **Baseline**. Set **Name** to ``PHL tax example``.
 3. Click **Create and edit**. The Parameters screen opens.
 4. Keep the default values. Check **Corporate income tax rate**
    (``cit_rate``) under **Frequently Used Parameters**. For this example,
    it should be ``0.25``. Click **Save**.
 
-``0.25`` means 25%. If your installed default differs, keep it and see
-:ref:`og-tax-example` before making the reform.
+``0.25`` means 25%. If your installed default differs, keep it.
 
 4. Create the tax reform
 ------------------------
 
-1. Click **Cases** in the left menu.
-2. On the ``PHL tax example`` row, open the three-dot menu. Click
+1. Click the **Cases** icon in the left menu.
+2. On the ``PHL tax example`` row, open the three-dot menu to the right. Click
    **Add reform**.
 3. Set **Name** to ``CIT cut``. Check that **Based on** is
    ``PHL tax example``. Click **Create and edit**.
 4. Under **Frequently Used Parameters**, set **Corporate income tax rate**
-   (``cit_rate``) to ``0.20``. If there is more than one year, set each
-   displayed year to ``0.20``.
+   (``cit_rate``) to ``0.20``.
 5. Keep all other values. Click **Save**.
 
-**Check:** with **Compare against** set to its baseline, the page shows
-**1 change**. This is a cut of five percentage points.
+**Check** that **Compare against** vs baseline, the page shows
+**1 change**. This is the cut of five percentage points.
 
 5. Run the comparison
 ---------------------
 
-1. Click **Run** in the left menu.
+1. Click the **Run** icon in the left menu.
 2. Choose **Steady state** under **Analysis**.
 3. Select ``PHL tax example`` and ``CIT cut``. Clear any other selections.
 4. Leave **Re-run completed selections** unchecked. Click **Run selected**.
 5. Stay on this page until both runs say **Completed**.
 
-The baseline runs first. Run time depends on your computer and the model.
+The baseline runs first. Run time depends on your computer and the model,
+but it can take more than 10 minutes.
 If a run fails, follow :doc:`troubleshooting` before continuing.
 
 6. Read and save the results
