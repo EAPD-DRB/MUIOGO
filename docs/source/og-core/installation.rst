@@ -1,5 +1,5 @@
-1. Install, start and stop
-==========================
+1. Install, start, stop and update
+====================================
 
 MUIOGO runs on your computer and opens in a browser. The supported setup
 uses an installation script. You do not need to write model code.

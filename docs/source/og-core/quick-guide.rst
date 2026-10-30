@@ -59,25 +59,45 @@ If a run fails, follow :doc:`troubleshooting` before continuing.
 6. Read and save the results
 ----------------------------
 
-1. Click **Results**. In the run list, find ``ZAF tax example`` and its
+1. Click the **Results** icon in the left menu.
+2. In the Results list on the left, find ``ZAF tax example`` and its
    ``CIT cut`` reform. Click **Compare** on the reform row.
-2. In **Report**, open **Policy**. **Policy changes** should list only
+3. In **Report**, click on **Policy**. **Policy changes** should list only
    ``cit_rate``, with the baseline and reform values.
-3. Read **Summary**, **Macroeconomy** and **Government**. Under
-   **Households**, choose **Consumption**. Start with **Population average**,
-   then compare income groups.
-4. On a chart, open **Download** and choose **Download SVG** or
-   **Download PNG**.
-5. Open **Explore data**. In **OG-Core tables**, choose **Macro (long run)**,
-   wait for it to load, then click **CSV**.
+4. Check the simulation results **Summary**, **Macroeconomy** and **Government** impacts.
+5. Under **Households**, you can see the impacts on **Consumption** and on several other indicators
+   using the dropdown box. Start with **Population average**, then click on **All income groups**.
+6. You can save any chart by clicking on the 3 dots in the upper left corner of the chart,
+   and selecting **Download PNG** (image format) or **Download SVG** (vector format).
+7. At the open of the page, click on **Explore data**. This view allows you to explore all the outputs
+   generated.
+8. At the bottom of the page, under **OG-Core tables**, choose **Gini**,
+   wait for it to load, then click on **CSV** to download the data for use in Excel.
 
-**Check:** the Results title names both the baseline and the reform, and
-the analysis says **Long run (steady state) only**. To inspect the baseline
-alone, click its **View** button instead of the reform's **Compare** button.
+To inspect the results of the baseline alone or the reform alone. Just click its **eye** (view) button
+next to them instead of the **Compare** button.
 
 This example uses long-run results. A completed **Transition path** run
 also provides year-by-year charts. Read each chart's period and units;
 see :doc:`results` for interpretation.
 
-When finished, wait for all jobs to end. Return to the terminal and press
+When finished, to stop the app return to the Terminal or PowerShell and press
 **Ctrl+C** to stop the app.
+
+To launch the app again, open Terminal or PowerShell and go to **your MUIOGO folder**
+(``cd "path to your MUIOGO folder"``, replacing the quoted text with the
+Location saved during installation). Then run:
+
+**Mac / Linux**
+
+.. code-block:: bash
+
+   ./scripts/start.sh
+
+**Windows — PowerShell**
+
+.. code-block:: powershell
+
+   .\scripts\start.bat
+
+Open the address shown in the terminal if the browser does not open automatically.
