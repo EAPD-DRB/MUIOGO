@@ -35,6 +35,7 @@ def test_annual_flows_export_without_requiring_timeslice_activity(tmp_path, time
         "EmissionActivityRatio": [],
     }
     fake = SimpleNamespace(
+        genData={},
         getYears=lambda: ["2020"],
         getTechNames=lambda: ["T", "IDLE"],
         parseDataFile=lambda _: data,
