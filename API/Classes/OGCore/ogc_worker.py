@@ -31,7 +31,7 @@ import json
 import math
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from pathlib import Path
 
 import numpy as np
@@ -66,7 +66,7 @@ class WorkerError(Exception):
 
 def _utc_now() -> str:
     """ISO-8601 UTC timestamp with a trailing Z and seconds precision."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _atomic_write_json(path: Path, obj) -> None:

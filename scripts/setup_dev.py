@@ -18,7 +18,7 @@ Usage:
 
 Supports: macOS, Linux (apt/dnf/pacman), Windows
 
-Python support: >=3.10 and <3.13 (recommended: 3.11)
+Python support: >=3.11 and <3.13 (recommended: 3.12)
 
 Default venv location: <project root>/.venv (matches the uv installer and start scripts)
 """
@@ -51,7 +51,7 @@ ENV_FILE = PROJECT_ROOT / ".env"
 # anything not in uv.lock from the project .venv. Overridable for tests.
 CBC_PREBUILT_DIR = Path.home() / ".local" / "opt" / "cbc"
 SYSTEM = platform.system()  # 'Darwin', 'Linux', 'Windows'
-MIN_PYTHON = (3, 10)
+MIN_PYTHON = (3, 11)
 MAX_PYTHON = (3, 13)  # exclusive
 DATA_STORAGE_DIR = PROJECT_ROOT / "WebAPP" / "DataStorage"
 DEMO_DATA_ARCHIVE = PROJECT_ROOT / "assets" / "demo-data" / "CLEWs.Demo.zip"
@@ -1498,7 +1498,7 @@ def main() -> int:
         print(
             f"{RED}{BOLD}Unsupported Python version: {sys.version.split()[0]}{RESET}\n"
             f"MUIOGO setup currently supports Python >={MIN_PYTHON[0]}.{MIN_PYTHON[1]} "
-            f"and <{MAX_PYTHON[0]}.{MAX_PYTHON[1]} (recommended: 3.11).\n"
+            f"and <{MAX_PYTHON[0]}.{MAX_PYTHON[1]} (recommended: 3.12).\n"
             f"{install_hint}"
         )
         return 1

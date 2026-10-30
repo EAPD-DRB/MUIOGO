@@ -9,7 +9,7 @@ Repository with the data
 You can access all the data to set this basic model here: `OSeMOSYS example data <https://zenodo.org/records/16896196>`_
 
 Tutorial to create a basic OSeMOSYS model using MUIO
-----------------------
+----------------------------------------------------
 .. raw:: html
 
    <iframe width="700" height="400"

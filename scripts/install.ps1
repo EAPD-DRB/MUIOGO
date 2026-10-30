@@ -330,19 +330,31 @@ if ($DestHasRepo) {
     try { $branch = (& $GitBin -C $DestAbs rev-parse --abbrev-ref HEAD 2>$null).Trim() } catch {}
     Write-Host ("  Existing MUIOGO clone found at {0} (branch: {1})." -f $DestAbs, $branch)
 
-    # -- Version check against EAPD-DRB/MUIOGO:main ---------------------------
-    $localSha  = ""
-    $remoteSha = ""
-    $behind    = "?"
-    $ahead     = "?"
+    # -- Version check against what `git pull` would bring in ------------------
+    # The clone's own tracked branch (the branch and repository it was installed
+    # from); EAPD-DRB/MUIOGO:main only when it tracks nothing, e.g. a detached HEAD.
+    $localSha    = ""
+    $remoteSha   = ""
+    $behind      = "?"
+    $ahead       = "?"
+    $upstream    = ""
+    $compareRef  = "FETCH_HEAD"
+    $latestLabel = "EAPD-DRB/MUIOGO:main"
     try { $localSha = (& $GitBin -C $DestAbs rev-parse --short HEAD 2>$null).Trim() } catch {}
-    try { & $GitBin -C $DestAbs fetch https://github.com/EAPD-DRB/MUIOGO.git main --quiet 2>$null } catch {}
-    try { $remoteSha = (& $GitBin -C $DestAbs rev-parse --short FETCH_HEAD 2>$null).Trim() } catch {}
-    try { $behind    = (& $GitBin -C $DestAbs rev-list --count "HEAD..FETCH_HEAD" 2>$null).Trim() } catch {}
-    try { $ahead     = (& $GitBin -C $DestAbs rev-list --count "FETCH_HEAD..HEAD" 2>$null).Trim() } catch {}
+    try { $upstream = (& $GitBin -C $DestAbs rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>$null).Trim() } catch {}
+    if ($LASTEXITCODE -eq 0 -and $upstream) {
+        try { & $GitBin -C $DestAbs fetch --quiet 2>$null } catch {}
+        $compareRef  = "@{u}"
+        $latestLabel = $upstream
+    } else {
+        try { & $GitBin -C $DestAbs fetch https://github.com/EAPD-DRB/MUIOGO.git main --quiet 2>$null } catch {}
+    }
+    try { $remoteSha = (& $GitBin -C $DestAbs rev-parse --short $compareRef 2>$null).Trim() } catch {}
+    try { $behind    = (& $GitBin -C $DestAbs rev-list --count "HEAD..$compareRef" 2>$null).Trim() } catch {}
+    try { $ahead     = (& $GitBin -C $DestAbs rev-list --count "$compareRef..HEAD" 2>$null).Trim() } catch {}
 
     Write-Host ("  Local:   {0}  ({1})" -f $localSha, $branch)
-    Write-Host ("  Latest:  {0}  (EAPD-DRB/MUIOGO:main)" -f $remoteSha)
+    Write-Host ("  Latest:  {0}  ({1})" -f $remoteSha, $latestLabel)
     Write-Host ""
 
     if ($behind -eq "?") {
@@ -354,7 +366,9 @@ if ($DestHasRepo) {
     } else {
         Write-Warn2 "$behind behind, $ahead ahead  --  update now?"
         if (Prompt-YN "Update now?" 'y') {
-            & $GitBin -C $DestAbs pull --ff-only
+            $pullArgs = @("pull", "--ff-only")
+            if ($compareRef -eq "FETCH_HEAD") { $pullArgs += @("https://github.com/EAPD-DRB/MUIOGO.git", "main") }
+            & $GitBin -C $DestAbs @pullArgs
             if ($LASTEXITCODE -eq 0) {
                 $newSha = ""
                 try { $newSha = (& $GitBin -C $DestAbs rev-parse --short HEAD 2>$null).Trim() } catch {}

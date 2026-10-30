@@ -170,7 +170,7 @@ def readDataFile():
 
 @datafile_api.route("/readModelFile", methods=['GET'])
 def readModelFile():
-    model_path = Path(Config.SOLVERs_FOLDER, 'model.v.5.4.txt')
+    model_path = Path(Config.SOLVERs_FOLDER, DataFile.MODEL_FILE_NAME)
     if not model_path.is_file():
         return jsonify({'message': 'Model file not found.', 'status_code': 'error'}), 404
 
