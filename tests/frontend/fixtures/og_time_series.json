@@ -1,0 +1,243 @@
+{
+  "source": "OG-Core 0.20.0: output_tables.time_series_table(stationarized=False), output_plots.plot_aggregates and plot_gdp_ratio",
+  "rows": [
+    {
+      "Year": 2030,
+      "GDP ($Y_t$): Baseline": 10.0,
+      "Labor ($L_t$): Baseline": 11.0,
+      "Government Consumption Expenditures ($G_{t}$): Baseline": 12.0,
+      "Government Transfers ($TR_{t}$): Baseline": 13.0,
+      "HH Savings ($B_t$): Baseline": 14.0,
+      "Capital Stock ($K_t$): Baseline": 15.0,
+      "Domestically-owned Capital Stock ($K^d_t$): Baseline": 16.0,
+      "Foreign-owned Capital Stock ($K^f_t$): Baseline": 17.0,
+      "Government Debt ($D_t$): Baseline": 18.0,
+      "Domestically-owned Gov Debt ($D^d_t$): Baseline": 19.0,
+      "Foreign-owned Gov Debt ($D^f_t$): Baseline": 20.0,
+      "Real interest rate ($r_t$): Baseline": 0.04,
+      "Real interest rate on gov debt ($r_{gov,t}$): Baseline": 22.0,
+      "Real interest rate on HH portfolio ($r_{p,t}$): Baseline": 23.0,
+      "Wage rate ($w_{t}$): Baseline": 24.0,
+      "Total tax revenue ($REV_t$): Baseline": 25.0,
+      "Total corporate tax revenue: Baseline": 26.0,
+      "GDP ($Y_t$): Reform": 10.5,
+      "Labor ($L_t$): Reform": 11.55,
+      "Government Consumption Expenditures ($G_{t}$): Reform": 12.600000000000001,
+      "Government Transfers ($TR_{t}$): Reform": 13.65,
+      "HH Savings ($B_t$): Reform": 14.700000000000001,
+      "Capital Stock ($K_t$): Reform": 15.75,
+      "Domestically-owned Capital Stock ($K^d_t$): Reform": 16.8,
+      "Foreign-owned Capital Stock ($K^f_t$): Reform": 17.85,
+      "Government Debt ($D_t$): Reform": 18.900000000000002,
+      "Domestically-owned Gov Debt ($D^d_t$): Reform": 19.95,
+      "Foreign-owned Gov Debt ($D^f_t$): Reform": 21.0,
+      "Real interest rate ($r_t$): Reform": 0.05,
+      "Real interest rate on gov debt ($r_{gov,t}$): Reform": 23.1,
+      "Real interest rate on HH portfolio ($r_{p,t}$): Reform": 24.150000000000002,
+      "Wage rate ($w_{t}$): Reform": 25.200000000000003,
+      "Total tax revenue ($REV_t$): Reform": 26.25,
+      "Total corporate tax revenue: Reform": 27.3
+    },
+    {
+      "Year": 2031,
+      "GDP ($Y_t$): Baseline": 11.334436887697256,
+      "Labor ($L_t$): Baseline": 12.120000000000001,
+      "Government Consumption Expenditures ($G_{t}$): Baseline": 13.395243594551305,
+      "Government Transfers ($TR_{t}$): Baseline": 14.425646947978327,
+      "HH Savings ($B_t$): Baseline": 15.45605030140535,
+      "Capital Stock ($K_t$): Baseline": 16.486453654832374,
+      "Domestically-owned Capital Stock ($K^d_t$): Baseline": 17.5168570082594,
+      "Foreign-owned Capital Stock ($K^f_t$): Baseline": 18.54726036168642,
+      "Government Debt ($D_t$): Baseline": 19.577663715113445,
+      "Domestically-owned Gov Debt ($D^d_t$): Baseline": 20.608067068540468,
+      "Foreign-owned Gov Debt ($D^f_t$): Baseline": 21.63847042196749,
+      "Real interest rate ($r_t$): Baseline": 0.045,
+      "Real interest rate on gov debt ($r_{gov,t}$): Baseline": 23.0,
+      "Real interest rate on HH portfolio ($r_{p,t}$): Baseline": 24.0,
+      "Wage rate ($w_{t}$): Baseline": 25.505033500668894,
+      "Total tax revenue ($REV_t$): Baseline": 26.79048718910261,
+      "Total corporate tax revenue: Baseline": 27.82089054252963,
+      "GDP ($Y_t$): Reform": 12.717869858054309,
+      "Labor ($L_t$): Reform": 13.464000000000002,
+      "Government Consumption Expenditures ($G_{t}$): Reform": 15.030209832245998,
+      "Government Transfers ($TR_{t}$): Reform": 16.186379819341845,
+      "HH Savings ($B_t$): Reform": 17.34254980643769,
+      "Capital Stock ($K_t$): Reform": 18.49871979353354,
+      "Domestically-owned Capital Stock ($K^d_t$): Reform": 19.654889780629382,
+      "Foreign-owned Capital Stock ($K^f_t$): Reform": 20.81105976772523,
+      "Government Debt ($D_t$): Reform": 21.967229754821076,
+      "Domestically-owned Gov Debt ($D^d_t$): Reform": 23.12339974191692,
+      "Foreign-owned Gov Debt ($D^f_t$): Reform": 24.279569729012767,
+      "Real interest rate ($r_t$): Reform": 0.052,
+      "Real interest rate on gov debt ($r_{gov,t}$): Reform": 25.3,
+      "Real interest rate on HH portfolio ($r_{p,t}$): Reform": 26.400000000000002,
+      "Wage rate ($w_{t}$): Reform": 28.33749968372172,
+      "Total tax revenue ($REV_t$): Reform": 30.060419664491995,
+      "Total corporate tax revenue: Reform": 31.216589651587846
+    },
+    {
+      "Year": 2032,
+      "GDP ($Y_t$): Baseline": 12.803845981959922,
+      "Labor ($L_t$): Baseline": 13.32695,
+      "Government Consumption Expenditures ($G_{t}$): Baseline": 14.937820312286576,
+      "Government Transfers ($TR_{t}$): Baseline": 16.0048074774499,
+      "HH Savings ($B_t$): Baseline": 17.071794642613227,
+      "Capital Stock ($K_t$): Baseline": 18.138781807776557,
+      "Domestically-owned Capital Stock ($K^d_t$): Baseline": 19.205768972939882,
+      "Foreign-owned Capital Stock ($K^f_t$): Baseline": 20.272756138103208,
+      "Government Debt ($D_t$): Baseline": 21.339743303266534,
+      "Domestically-owned Gov Debt ($D^d_t$): Baseline": 22.406730468429863,
+      "Foreign-owned Gov Debt ($D^f_t$): Baseline": 23.47371763359319,
+      "Real interest rate ($r_t$): Baseline": 0.05,
+      "Real interest rate on gov debt ($r_{gov,t}$): Baseline": 24.0,
+      "Real interest rate on HH portfolio ($r_{p,t}$): Baseline": 25.0,
+      "Wage rate ($w_{t}$): Baseline": 27.061080129002093,
+      "Total tax revenue ($REV_t$): Baseline": 28.808653459409822,
+      "Total corporate tax revenue: Baseline": 29.87564062457315,
+      "GDP ($Y_t$): Reform": 15.986161575549696,
+      "Labor ($L_t$): Reform": 16.3098,
+      "Government Consumption Expenditures ($G_{t}$): Reform": 18.650521838141312,
+      "Government Transfers ($TR_{t}$): Reform": 19.982701969437123,
+      "HH Savings ($B_t$): Reform": 21.314882100732927,
+      "Capital Stock ($K_t$): Reform": 22.647062232028734,
+      "Domestically-owned Capital Stock ($K^d_t$): Reform": 23.97924236332454,
+      "Foreign-owned Capital Stock ($K^f_t$): Reform": 25.311422494620356,
+      "Government Debt ($D_t$): Reform": 26.643602625916163,
+      "Domestically-owned Gov Debt ($D^d_t$): Reform": 27.975782757211967,
+      "Foreign-owned Gov Debt ($D^f_t$): Reform": 29.307962888507774,
+      "Real interest rate ($r_t$): Reform": 0.053,
+      "Real interest rate on gov debt ($r_{gov,t}$): Reform": 28.799999999999997,
+      "Real interest rate on HH portfolio ($r_{p,t}$): Reform": 30.0,
+      "Wage rate ($w_{t}$): Reform": 33.12930025221522,
+      "Total tax revenue ($REV_t$): Reform": 35.96886354498682,
+      "Total corporate tax revenue: Reform": 37.301043676282625
+    }
+  ],
+  "raw": {
+    "baseline": {
+      "C": [
+        27.0,
+        28.0,
+        29.0
+      ],
+      "Y": [
+        10.0,
+        11.0,
+        12.0
+      ]
+    },
+    "reform": {
+      "C": [
+        28.35,
+        30.800000000000004,
+        34.8
+      ],
+      "Y": [
+        10.5,
+        12.100000000000001,
+        14.399999999999999
+      ]
+    }
+  },
+  "expected": {
+    "macro": [
+      [
+        5.0,
+        12.205573016676928,
+        24.854372647667912
+      ],
+      [
+        5.0,
+        12.205573016676912,
+        24.8543726476679
+      ],
+      [
+        5.000000000000006,
+        11.089108910891097,
+        22.38209042579134
+      ],
+      [
+        5.000000000000005,
+        12.2055730166769,
+        24.854372647667915
+      ]
+    ],
+    "fiscal": [
+      [
+        5.000000000000012,
+        12.205573016676901,
+        24.85437264766794
+      ],
+      [
+        5.000000000000003,
+        12.2055730166769,
+        24.85437264766794
+      ],
+      [
+        5.0,
+        12.205573016676883,
+        24.85437264766793
+      ]
+    ],
+    "interest": [
+      [
+        4.0,
+        4.5,
+        5.0
+      ],
+      [
+        5.0,
+        5.2,
+        5.3
+      ]
+    ],
+    "wage": [
+      [
+        24.0,
+        25.505033500668894,
+        27.061080129002093
+      ],
+      [
+        25.200000000000003,
+        28.33749968372172,
+        33.12930025221522
+      ]
+    ],
+    "spending_gdp": [
+      [
+        120.0,
+        118.18181818181819,
+        116.66666666666667
+      ],
+      [
+        120.00000000000001,
+        118.18181818181816,
+        116.66666666666667
+      ]
+    ],
+    "debt_gdp": [
+      [
+        180.0,
+        172.72727272727272,
+        166.66666666666669
+      ],
+      [
+        180.00000000000003,
+        172.72727272727272,
+        166.66666666666669
+      ]
+    ],
+    "revenue_gdp": [
+      [
+        250.0,
+        236.36363636363637,
+        225.0
+      ],
+      [
+        250.0,
+        236.36363636363632,
+        225.0
+      ]
+    ]
+  }
+}

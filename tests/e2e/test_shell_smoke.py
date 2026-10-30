@@ -102,7 +102,7 @@ def test_sidebar_active_item_tracks_og_workspace_route(page, base_url):
     page.evaluate("""localStorage.setItem('osy-model', 'og');
         localStorage.setItem('osy-ogc-country', JSON.stringify({country_id:'ETH', country_name:'Ethiopia'}));""")
     page.goto(f"{base_url}/#/OGCases")
-    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(3)
+    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(4)
     expect(page.locator('#Navi > li.nav-og-workspace').filter(
         has=page.locator('a[href="#/OGCases"]'))).to_have_class(re.compile(r'(^|\s)active(\s|$)'))
     expect(page.locator('#Navi > li.nav-home')).not_to_have_class(re.compile(r'(^|\s)active(\s|$)'))
@@ -139,7 +139,7 @@ def test_switch_to_clews(page, base_url):
     page.locator("#osy-mb-clews").click()
     expect(page.locator("body.osy-mode-clews")).to_have_count(1)
     expect(page.locator(".project-context")).to_be_visible()
-    expect(page.locator("#Navi > li.nav-og-workspace")).to_have_count(3)
+    expect(page.locator("#Navi > li.nav-og-workspace")).to_have_count(4)
     expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(0)
 
 
@@ -334,7 +334,7 @@ def test_og_workspace_routes_assert_og_mode(page, base_url):
     expect(page.locator("body.osy-mode-og")).to_have_count(1)
     expect(page.locator("body.osy-og-workspace")).to_have_count(1)
     expect(page.locator("#ogcCasesPage")).to_be_visible()
-    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(3)
+    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(4)
     expect(page.locator("#ogcCasesPage [data-act='run']")).to_have_count(0)
     page.goto(f"{base_url}/#/OGRuns")
     expect(page.locator("body.osy-mode-og.osy-og-workspace")).to_have_count(1)
@@ -398,6 +398,8 @@ def test_ogc_adapter_matches_run_backend_contract(page, base_url):
         const runs = await Ogc.getRuns('ETH', 'case-one');
         const params = await Ogc.getParams('ETH', 'case-one', 'reform');
         await Ogc.getRunQueue('ETH', 'case-one');
+        await Ogc.getSSVars('ETH', 'case-one', 'reform', ['Y']);
+        await Ogc.getIneqTable('ETH', 'case-one', 'base', 'reform');
         await Ogc.setSession(null, 'ETH');
         await Ogc.setSession(null);
         return {calls, runs, params};
@@ -416,8 +418,16 @@ def test_ogc_adapter_matches_run_backend_contract(page, base_url):
         'type': 'POST', 'path': 'ogc/getRunQueue',
         'data': {'country_id': 'ETH', 'casename': 'case-one'}
     }
-    assert result['calls'][6]['data'] == {'casename': None, 'country_id': 'ETH'}
-    assert result['calls'][7]['data'] == {'casename': None}
+    assert result['calls'][6] == {
+        'type': 'POST', 'path': 'ogc/getSSVars',
+        'data': {'country_id': 'ETH', 'casename': 'case-one', 'run_name': 'reform', 'vars': ['Y']}
+    }
+    assert result['calls'][7] == {
+        'type': 'POST', 'path': 'ogc/getIneqTable',
+        'data': {'country_id': 'ETH', 'casename': 'case-one', 'base_run': 'base', 'reform_run': 'reform'}
+    }
+    assert result['calls'][8]['data'] == {'casename': None, 'country_id': 'ETH'}
+    assert result['calls'][9]['data'] == {'casename': None}
 
 
 def test_workspace_opening_uses_real_backend_stages(page, base_url):
@@ -743,6 +753,7 @@ def test_create_case_dialog_switches_types(page, base_url):
     expect(page.locator("#ogcCaseBaseline")).to_be_visible()
     expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Baseline 1")
     expect(page.locator("#ogcCaseName")).to_have_value("New reform")
+    expect(page.locator("#ogcCaseNote")).to_contain_text("compared against this baseline")
     page.locator("[data-act='case-type'][data-type='baseline']").click()
     expect(page.locator("#ogcCaseName")).to_have_value("My baseline")
     expect(page.locator("[data-act='create-confirm']")).to_have_text("Create and edit")
@@ -1967,6 +1978,7 @@ def test_array_parameters_use_a_compact_preview_and_round_trip_table_data(page, 
         const { OGTableEditor } = await import(
             new URL('App/Controller/OGTableEditor.js', location.href).href
         );
+        const arrays = await import(new URL('Classes/Array.Class.js', location.href).href);
         const value = [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]];
         const model = new Model(
             { io_matrix: {title: 'Input-output matrix', shape: 'time_x_industry',
@@ -1990,7 +2002,12 @@ def test_array_parameters_use_a_compact_preview_and_round_trip_table_data(page, 
             fallbackChanged: fallbackModel.changedNames().includes('io_matrix'),
             nullEqualsZero: Model.equal(null, 0),
             blankInvalid: Parameters.outOfRange(model.fields.io_matrix, [[0.1, null]]),
-            removedValueCount: Parameters.countDifferences([0.1], [0.1, 0.2])
+            removedValueCount: Parameters.countDifferences([0.1], [0.1, 0.2]),
+            sharedArrays: {
+                dimensions: arrays.dimensions(value),
+                rank: arrays.rank(value),
+                flattened: arrays.flatten(value)
+            }
         };
     }""")
     assert result['editable'] is True
@@ -2003,6 +2020,11 @@ def test_array_parameters_use_a_compact_preview_and_round_trip_table_data(page, 
     assert result['nullEqualsZero'] is False
     assert result['blankInvalid'] is True
     assert result['removedValueCount'] == 1
+    assert result['sharedArrays'] == {
+        'dimensions': [2, 3],
+        'rank': 2,
+        'flattened': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+    }
 
 
 def test_unchanged_lazy_defaults_and_string_choices_do_not_block_save(page, base_url):

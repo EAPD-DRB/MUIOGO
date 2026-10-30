@@ -207,6 +207,16 @@ export class Routes {
                 loadView(version, 'App/View/OGRuns.html', 'OGRuns', () => OGRuns.default.onLoad(sourcePage));
             }).catch(error => viewFailed(version, error));
         });
+        // the optional query carries the chosen run or comparison (see OGResults.syncUrl)
+        crossroads.addRoute('/OGResults:?query:', function() {
+            if (!requireWorkspace()) return;
+            enterWorkspace();
+            let version = beginView();
+            import('../App/Controller/OGResults.js')
+            .then(OGResults => {
+                loadView(version, 'App/View/OGResults.html', 'OGResults', () => OGResults.default.onLoad());
+            }).catch(error => viewFailed(version, error));
+        });
         //dynamic routes
         function addAppRoute(group, id){
             return crossroads.addRoute(`/${group}/${id}`, function() {

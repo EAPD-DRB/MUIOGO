@@ -79,6 +79,7 @@ test('case action markup retains actions with the orange primary style', () => {
         run: { run_name: 'baseline', run_type: 'baseline' }
     });
     assert.match(html, /data-act="add-reform" data-case="Test" data-run="baseline"/);
+    assert.doesNotMatch(OGCases.defaultRow(), /data-act="(?:create-case|new-case)"/);
     for (const action of ['run', 'params', 'run-menu']) {
         assert.match(html, new RegExp('<button class="[^"]*ogc-btn-main[^"]*" data-act="' + action + '"'));
     }

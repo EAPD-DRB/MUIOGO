@@ -65,6 +65,11 @@ active workspace and use both `country_id` and `casename` when addressing a
 case. Leaving the workspace clears the active backend session but does not stop
 a running job.
 
+The Results route (`#/OGResults`) draws nothing until a run is chosen: "View"
+shows one run, "Compare" a reform against its baseline. The choice is kept in
+the route's optional query (`#/OGResults?case=...&base=...&reform=...`), which
+the page updates in place so refresh and shared links reopen the same view.
+
 ### Runtime data and outputs
 
 CLEWS continues to use:
