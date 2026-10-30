@@ -14,6 +14,7 @@ from types import SimpleNamespace
 import pytest
 
 from Classes.Base import Config
+from Classes.Case import CommodityPrice
 from Classes.Case.OsemosysClass import Osemosys
 
 MODEL = Path(Config.SOLVERs_FOLDER, Osemosys.MODEL_FILE_NAME)
@@ -50,12 +51,14 @@ def test_each_commodity_has_one_yearly_balance_row():
 
 def test_every_shadow_price_points_at_a_real_constraint():
     constraints = _constraint_names(_model_text())
+    # Calculated by MUIOGO from the balance rows, not read from the solver.
+    computed = {CommodityPrice.OUTPUT_NAME}
     duals = json.loads(DUALS.read_text())
     missing = [
         (group, entry["id"], entry["name"])
         for group, entries in duals.items()
         for entry in entries
-        if entry["name"] not in constraints
+        if entry["name"] not in constraints | computed
     ]
     assert not missing, (
         "Duals.json names constraints the model file does not have, so those "

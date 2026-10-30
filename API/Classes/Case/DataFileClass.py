@@ -13,6 +13,7 @@ from Classes.Case.OsemosysClass import Osemosys
 from Classes.Case.HelpersClass import Helpers
 from Classes.Base.FileClass import File
 from Classes.Base.CustomThreadClass import CustomThread
+from Classes.Case import CommodityPrice
 
 logger = logging.getLogger(__name__)
 
@@ -941,10 +942,9 @@ class DataFile(Osemosys):
             if os.path.exists(csvPath):
                 shutil.rmtree(csvPath)
 
-            # Iterate over variables ∪ indicators so cleanup also touches any
-            # indicator-group view files. With empty IND_GROUPED this is a no-op
-            # and equivalent to iterating VARIABLES alone.
-            merged = Helpers.merge_groups(self.VARIABLES, self.IND_GROUPED)
+            # Clear all result families, including cached duals.
+            merged = Helpers.merge_groups(self.VARIABLES, self.DUALS)
+            merged = Helpers.merge_groups(merged, self.IND_GROUPED)
             for group, array in merged.items():
                 #if group != 'RYS':
                 path = Path(self.viewFolderPath, group+'.json')
@@ -2163,6 +2163,10 @@ class DataFile(Osemosys):
                     if runout["status_code"] == "success":
                         try:
                             self.postProcess(runout["caserun"])
+                            warnings = getattr(self, 'postprocessWarnings', [])
+                            if warnings:
+                                runout["timer"] = runout["timer"] + " -- Warning: " + " ".join(warnings)
+                                runout["warnings"] = list(warnings)
                         except Exception as ex:
                             runout["status_code"] = "error"
                             runout["timer"] = f"Post-processing failed: {ex}"
@@ -2486,6 +2490,12 @@ class DataFile(Osemosys):
                 print("MESSAGES DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                 txtOut = txtOut + ("Message preparation time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
+                # MUIOGO: a result that could not be produced (e.g. commodity prices) is
+                # shown with the run; the solve itself still succeeded.
+                warnings = (getattr(self, 'postprocessWarnings', [])
+                            if postprocess and statusFlag == "success" else [])
+                if warnings:
+                    customMsg = customMsg + " -- Warning: " + " ".join(warnings)
                 response = {
                     "cbc_message": cbc_out.stdout,
                     "cbc_stdmsg": cbc_out.stderr,
@@ -2493,7 +2503,8 @@ class DataFile(Osemosys):
                     "glpk_stdmsg": glpk_out.stderr,
                     "timer": customMsg,
                     "status_code": statusFlag,
-                    "caserun": caserunname
+                    "caserun": caserunname,
+                    "warnings": warnings
                 }
                 if oglinkInfo:
                     response["oglink"] = oglinkInfo
@@ -2514,6 +2525,7 @@ class DataFile(Osemosys):
                 lock.release()
     
     def generateCSVfromCBC(self, data_file, results_file, base_folder=os.getcwd()):
+        self.postprocessWarnings = []   # MUIOGO: reported with the run, see run()/batchRun()
         try:
             #pd.options.mode.chained_assignment = None
             #pd.options.mode.chained_assignment = None
@@ -2577,8 +2589,18 @@ class DataFile(Osemosys):
                 df[['parameter','id']] = df['temp'].str.split('(', expand=True)
                 df['parameter'] = df['parameter'].str.split(' ', expand=True)[1]
                 df = df.drop('temp', axis=1)
-                df['value'] = df['value'].astype(float).round(4)
-                df['dual'] = df['dual'].astype(float).round(4)
+                df['value'] = df['value'].astype(float)
+                df['dual'] = df['dual'].astype(float)
+
+                # Compute once from full-precision activities and shadow prices.
+                warning = CommodityPrice.write_csv_or_warn(
+                    df, data, self.genData, start_year,
+                    os.path.join(base_folder, 'csv'))
+                if warning:
+                    self.postprocessWarnings.append(warning)
+
+                # Preserve the existing precision of the other CSV exports.
+                df[['value', 'dual']] = df[['value', 'dual']].round(4)
 
                 #variables that are output form solver 19
                 params = df.parameter.unique()
@@ -2865,6 +2887,18 @@ class DataFile(Osemosys):
     def generateResultsViewer(self, caserunname):
         try:
             csvFolderPath = Path(Config.DATA_STORAGE,self.case,'res',caserunname, 'csv')
+
+            # Standalone regeneration may not have run the usual rerun cleanup.
+            # Remove the previous price; the CSV loop restores it if available.
+            price_meta = self.DUALS_BY_NAME.get(CommodityPrice.OUTPUT_NAME)
+            if price_meta:
+                path = Path(self.viewFolderPath, price_meta['group'] + '.json')
+                if path.is_file():
+                    cached = File.readFile(path)
+                    runs = cached.get(price_meta['id'], {})
+                    if caserunname in runs:
+                        del runs[caserunname]
+                        File.writeFile(cached, path)
 
             #CSV
             csvs = [f.name for f in os.scandir(csvFolderPath) ]
