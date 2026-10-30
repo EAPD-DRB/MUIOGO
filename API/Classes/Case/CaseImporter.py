@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import shutil
+import stat
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -38,20 +39,68 @@ ACCEPTED_CASE_VERSIONS = ("1.0", "2.0", "3.0", "4.0", "4.5", "4.9", "5.0", "5.6"
 _LEGACY_CASE_PREFIX = "WebAPP/DataStorage/"
 
 
-def _extract_case_zip(zf, dest_dir):
-    """Extract a case backup ZIP under dest_dir, handling both legacy and current arcname
-    layouts. Each entry is rewritten to be case-rooted ('<case>/<rel>') and validated
-    against path traversal before writing.
+def _case_zip_parts(zi):
+    """Read portable relative ZIP names without silently removing unsafe components."""
+    name = zi.orig_filename  # ZipInfo.filename silently truncates names at a NUL.
+    parts = tuple(name.rstrip('/').split('/'))
+    if ('\\' in name or '\x00' in name
+            or any(part in ('', '.', '..') or ':' in part for part in parts)):
+        raise PermissionError("Invalid case archive path")
+    # Some legacy ZIP tools include the two harmless parent directory records.
+    if zi.is_dir() and parts in (('WebAPP',), ('WebAPP', 'DataStorage')):
+        return None
+    if name.startswith(_LEGACY_CASE_PREFIX):
+        parts = parts[2:]
+    return parts
+
+
+def _plan_case_zip(zf, dest_dir):
+    """Validate every member against one case root before creating any files.
+
+    An operator-placed case symlink may resolve outside DataStorage. Its resolved
+    directory is the boundary; a member may never select another case or shared
+    configuration. Archive members themselves cannot create symlinks.
     """
-    for zi in zf.infolist():
+    members = [(zi, _case_zip_parts(zi)) for zi in zf.infolist()]
+    members = [(zi, parts) for zi, parts in members if parts is not None]
+    metadata = [(zi, parts) for zi, parts in members
+                if not zi.is_dir() and parts[-1] == 'genData.json']
+    if not metadata:
+        return None, None, None, []
+    if len(metadata) != 1 or len(metadata[0][1]) != 2:
+        raise PermissionError("Case archive must contain one case-root genData.json")
+    target_info, metadata_parts = metadata[0]
+    casename = metadata_parts[0]
+    case_root = Path(Config.validate_path(dest_dir, casename))
+    planned_files = []
+    seen = set()
+    for zi, parts in members:
+        if parts[0] != casename or stat.S_ISLNK(zi.external_attr >> 16):
+            raise PermissionError("Archive entry is outside its case or is a symlink")
+        if len(parts) == 1:
+            if not zi.is_dir():
+                raise PermissionError("Invalid case archive root")
+            continue
+        relative = str(Path(*parts[1:]))
+        target = Path(Config.validate_path(case_root, relative))
+        # Config also supports first-component operator symlinks. Inside a case,
+        # those must not widen the already approved case-directory boundary.
+        if not target.is_relative_to(case_root):
+            raise PermissionError("Archive entry escapes its case directory")
         if zi.is_dir():
             continue
-        name = zi.filename.lstrip('/')
-        if name.startswith(_LEGACY_CASE_PREFIX):
-            name = name[len(_LEGACY_CASE_PREFIX):]
-        if not name:
-            continue
-        target = Config.validate_path(dest_dir, name)
+        key = tuple(part.casefold() for part in parts)
+        if key in seen:
+            raise PermissionError("Duplicate case archive member")
+        seen.add(key)
+        planned_files.append((zi, target))
+    return target_info, casename, case_root, planned_files
+
+
+def _extract_case_zip(zf, case_root, planned_files):
+    """Write only the fully checked plan, reserving a new case directory first."""
+    case_root.mkdir()  # Refuse a case created concurrently after the duplicate check.
+    for zi, target in planned_files:
         os.makedirs(os.path.dirname(target), exist_ok=True)
         with zf.open(zi) as src, open(target, "wb") as dst:
             shutil.copyfileobj(src, dst)
@@ -190,6 +239,7 @@ class CaseImporter:
         sidecar records whether the archive matched. Sidecar writing is best-effort;
         the import stands even if it cannot be written.
 
+        Unsafe or multi-case archives raise PermissionError before extraction.
         A corrupt/unreadable ZIP raises (zipfile.BadZipFile/OSError) -- the upload
         route turns that into its usual 500, an installer into a failed job.
         """
@@ -197,11 +247,7 @@ class CaseImporter:
         case = os.path.splitext(os.path.basename(filepath))[0]
 
         with ZipFile(filepath) as zf:
-            # --- Find first genData.json entry (single pass) ---
-            target_info = next(
-                (zi for zi in zf.infolist() if Path(zi.filename).name == "genData.json"),
-                None
-            )
+            target_info, casename, case_root, planned_files = _plan_case_zip(zf, Config.DATA_STORAGE)
 
             if not target_info:
                 # No genData.json at all
@@ -211,14 +257,13 @@ class CaseImporter:
                 })
                 return msg
 
-            zippedfilepath = Path(target_info.filename)
-            casename = zippedfilepath.parent.name
             if not os.path.exists(Path(Config.DATA_STORAGE,casename)):
                 data = json.loads(zf.read(target_info).decode('ISO-8859-1'))
                 name = data.get('osy-version', None)
+                if name in ACCEPTED_CASE_VERSIONS:
+                    _extract_case_zip(zf, case_root, planned_files)
 
                 if name == '1.0' or name == '2.0':
-                    _extract_case_zip(zf, Config.DATA_STORAGE)
 
                     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                     genData = File.readParamFile(genDataPath)
@@ -248,7 +293,6 @@ class CaseImporter:
                         "casename": casename
                     })
                 elif name == '3.0':
-                    _extract_case_zip(zf, Config.DATA_STORAGE)
                     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                     genData = File.readParamFile(genDataPath)
                     genData["osy-techGroups"] = []
@@ -267,7 +311,6 @@ class CaseImporter:
                         "casename": casename
                     })
                 elif name in ['4.0', '4.5', '4.9']:
-                    _extract_case_zip(zf, Config.DATA_STORAGE)
                     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                     genData = File.readParamFile(genDataPath)
                     updateTimeslices(casename)
@@ -282,7 +325,6 @@ class CaseImporter:
                         "casename": casename
                     })
                 elif name == '5.0':
-                    _extract_case_zip(zf, Config.DATA_STORAGE)
                     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                     genData = File.readParamFile(genDataPath)
                     updateGenData(casename, genData)
@@ -295,7 +337,6 @@ class CaseImporter:
                         "casename": casename
                     })
                 elif name == '5.6':
-                    _extract_case_zip(zf, Config.DATA_STORAGE)
                     genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
                     genData = File.readParamFile(genDataPath)
                     updateViewDefintions(casename, genData)
@@ -306,7 +347,6 @@ class CaseImporter:
                         "casename": casename
                     })
                 elif name == '5.7':
-                    _extract_case_zip(zf, Config.DATA_STORAGE)
                     msg.append({
                         "message": "Model " + casename +" have been uploaded!",
                         "status_code": "success",

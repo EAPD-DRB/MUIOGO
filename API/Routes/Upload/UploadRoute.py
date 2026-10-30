@@ -8,16 +8,7 @@ import os, json, glob
 
 from Classes.Base import Config
 from Classes.Base.FileClass import File
-# The zip-processing core and the version-migration helpers moved to CaseImporter so
-# the browser upload and programmatic installers share one implementation. They are
-# re-imported here because the legacy /uploadCaseUnchunked_old route still calls them.
-from Classes.Case.CaseImporter import (
-    CaseImporter,
-    _extract_case_zip,
-    updateStorageSet,
-    updateTimeslices,
-    updateViewDefintions,
-)
+from Classes.Case.CaseImporter import CaseImporter
 
 upload_api = Blueprint('UploadRoute', __name__)
 
@@ -28,6 +19,13 @@ def allowed_filename(filename):
 #File extension checking
 def allowed_filename_xls(filename):
     return '.' in filename and filename.rsplit('.',1)[1] in Config.ALLOWED_EXTENSIONS_XLS
+
+
+def _validate_upload_name(name):
+    """Archive labels and chunk IDs are single portable names, never case paths."""
+    if not name or name in ('.', '..') or any(char in name for char in ('/', '\\', '\x00', ':')):
+        raise PermissionError("Invalid upload name")
+
 
 def download_dir(prefix, local, bucket, client):
     """
@@ -198,165 +196,20 @@ def backupCase():
 
 @upload_api.route('/uploadCaseUnchunked_old', methods=['POST'])
 def uploadCaseUnchunked_old():
-    try:        
-        msg = []
-        submitted_storage =  request.files.to_dict()
-        for files in submitted_storage.items():
-            file = files[1]
-            submitted_file = file.filename
-            
-            case = os.path.splitext(submitted_file)[0]
+    """Keep the old endpoint on the same validated importer as current uploads."""
+    try:
+        messages = []
+        for file in request.files.values():
+            response, status = handle_full_zip(file)
+            if status != 200:
+                return response, status
+            messages.extend(response.get_json()["response"])
+        return jsonify({"response": messages}), 200
+    except PermissionError:
+        return jsonify({"error": "Invalid path"}), 400
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
 
-            if submitted_file and allowed_filename(submitted_file):
-                filename = secure_filename(submitted_file)
-                #spasiti zip u data storage
-                file.save(os.path.join(Config.DATA_STORAGE, filename))
-                #zipfiles = []
-                with ZipFile(os.path.join(Config.DATA_STORAGE, filename)) as zf:
-                    errorcode = 1
-                    for zippedfile in zf.namelist():
-                        # one = zippedfile
-                        # two = Path(zippedfile)
-                        # name = two.name
-                        #zipfiles.append(Path(zippedfile).name)
-                        zippedfilepath = Path(zippedfile)
-                        zippedfilename = zippedfilepath.name
-                        casename = zippedfilepath.parent.name
-                        if 'genData.json' == zippedfilename:
-                            errorcode = 0
-                            
-                            if not os.path.exists(Path(Config.DATA_STORAGE,casename)):
-                                data = json.loads(zf.read(zippedfile).decode('ISO-8859-1'))
-                                #name = data['else-version']
-                                name = data.get('osy-version', None)
-
-                                if name == '1.0' or name == '2.0':
-                                    _extract_case_zip(zf, Config.DATA_STORAGE)
-
-                                    #add res view folders with json default files
-                                    configPath = Path(Config.DATA_STORAGE, 'Variables.json')
-                                    vars = File.readParamFile(configPath)
-                                    viewDef = {}
-                                    for group, lists in vars.items():
-                                        for list in lists:
-                                            viewDef[list['id']] = []
-
-                                    resPath = Path(Config.DATA_STORAGE,case,'res')
-                                    viewPath = Path(Config.DATA_STORAGE,case,'view')
-                                    resDataPath = Path(Config.DATA_STORAGE,case,'view','resData.json')
-                                    viewDataPath = Path(Config.DATA_STORAGE,case,'view','viewDefinitions.json')
-
-                                    # remove res and view folder if ver 1.0
-                                    if os.path.exists(resPath):
-                                        shutil.rmtree(resPath)
-
-                                    if os.path.exists(viewPath):
-                                        shutil.rmtree(viewPath)
-
-                                    
-                                    os.makedirs(resPath, exist_ok=True)
-                                    os.makedirs(viewPath, exist_ok=True)
-                                    resData = {
-                                        "osy-cases":[]
-                                    }
-                                    File.writeFile( resData, resDataPath)
-
-                                    viewData = {
-                                        "osy-views": viewDef
-                                    }
-                                    File.writeFile( viewData, viewDataPath)
-
-                                    #update for dynamic timeslicec
-                                    updateTimeslices(casename)
-                                    updateStorageSet(casename)
-                                    
-                                    msg.append({
-                                        "message": "Model " + casename +" have been uploaded!",
-                                        "status_code": "success",
-                                        "casename": casename
-                                    })
-                                elif name == '3.0': 
-                                    #potrebno dodati tech groups
-                                    #case = data.get('osy-casename', None)
-                                    _extract_case_zip(zf, Config.DATA_STORAGE)
-                                    genDataPath = Path(Config.DATA_STORAGE, casename, 'genData.json')
-                                    genData = File.readParamFile(genDataPath)
-                                    genData["osy-techGroups"] = []
-                                    for dic in genData["osy-tech"]:
-                                        dic["TG"] =[]
-                                    File.writeFile( genData, genDataPath)
-                 
-                                    #update for dynamic timeslicec
-                                    updateTimeslices(casename)
-                                    updateStorageSet(casename)
-                                    updateViewDefintions(casename)
-
-                                    msg.append({
-                                        "message": "Model " + casename +" have been uploaded!",
-                                        "status_code": "success",
-                                        "casename": casename
-                                    })
-                                elif name == '4.0' or name == '4.5' or name == '4.9': 
-                                    _extract_case_zip(zf, Config.DATA_STORAGE)
-                                    # potrebno updatevoati YearSplit u verziji 5.0 su dinamicki
-                                    #update for dynamic timeslicec
-                                    updateTimeslices(casename)
-                                    updateStorageSet(casename)
-                                    updateViewDefintions(casename)
-                                    #u 4.5 ver dodani paramteri i varijable
-                                    # u 4.9 versiji dodano param DiscountRateIdv
-                                    msg.append({
-                                        "message_warning": "You have restored a model created in a earlier version of this UI. In order to update to the current version click <b>Update model</b> on the configuration page.",
-                                        "message": "Model " + casename +" have been uploaded!",
-                                        "status_code": "warning",
-                                        "casename": casename
-                                    })
-
-                                # elif name == '4.9': 
-                                #     _extract_case_zip(zf, Config.DATA_STORAGE)
-                                #     # potrebno updatevoati YearSplit u verziji 5.0 su dinamicki
-                                #     #update for dynamic timeslicec
-                                #     updateTimeslices(casename)
-
-                                #     msg.append({
-                                #             "message": "Model " + casename +" have been uploaded!",
-                                #             "status_code": "success",
-                                #             "casename": casename
-                                #         })
-
-                                elif name == '5.0': 
-                                    _extract_case_zip(zf, Config.DATA_STORAGE)
-                                    updateViewDefintions(casename)
-                                    msg.append({
-                                        "message": "Model " + casename +" have been uploaded!",
-                                        "status_code": "success",
-                                        "casename": casename
-                                    })
-                                else:
-                                    msg.append({
-                                        "message": "Model " + casename +" is not valid OSEMOSYS ver 1.0, 2.0, 3.0, 4.0 or 5.0 model!",
-                                        "status_code": "error"
-                                    })
-                            else:
-                                msg.append({
-                                    "message": "Model " + casename + " already exists!",
-                                    "status_code": "warning"
-                                })
-                            
-                    if errorcode == 1:
-                        msg.append({
-                            "message": "ZIP archive " + case +" is not valid archive!",
-                            "status_code": "error"
-                        })
-                os.remove(os.path.join(Config.DATA_STORAGE, filename))
-        
-        response = {
-            "response" :msg
-        }
-
-        return jsonify(response), 200
-    except OSError:
-        return jsonify({'message': 'A filesystem error occurred.', 'status_code': 'error'}), 500
 
 def handle_full_zip(file, filepath=None):
     """HTTP wrapper around CaseImporter.import_zip: save/validate the upload, run the
@@ -367,6 +220,12 @@ def handle_full_zip(file, filepath=None):
     # Ako je file objekat (upload iz browsera)
     if filepath is None:
         submitted_file = file.filename
+        # A multipart filename is an archive label, never a path into a case.
+        # Check before saving: otherwise even a rejected non-ZIP could overwrite
+        # another case's JSON or shared configuration under DataStorage.
+        _validate_upload_name(submitted_file)
+        if not allowed_filename(submitted_file):
+            raise PermissionError("Invalid archive filename")
         filepath = Config.validate_path(Config.DATA_STORAGE, submitted_file)
         file.save(filepath)
     else:
@@ -397,6 +256,8 @@ def uploadCase():
             # ==========================
             return handle_full_zip(file)
 
+        _validate_upload_name(dz_uuid)
+
         # Pretvaranje u int
         dz_chunk_index = int(dz_chunk_index)
         dz_total_chunks = int(dz_total_chunks)
@@ -421,7 +282,8 @@ def uploadCase():
         # -------------------------------
         # 4) Spajanje ZIP fajla
         # -------------------------------
-        final_zip = Config.validate_path(Config.DATA_STORAGE, f"{dz_uuid}.zip")
+        final_zip_name = f"{dz_uuid}.zip"
+        final_zip = Config.validate_path(Config.DATA_STORAGE, final_zip_name)
 
         with open(final_zip, "wb") as merged:
             for i in range(dz_total_chunks):
@@ -441,7 +303,9 @@ def uploadCase():
         # 5) Pokreni TVOJ originalni ZIP handler
         # -------------------------------
         #return handle_full_zip(open(final_zip, "rb"), final_zip)
-        return handle_full_zip(None, final_zip) 
+        # Pass the name relative to DataStorage: handle_full_zip validates it again,
+        # and validate_path refuses absolute paths.
+        return handle_full_zip(None, final_zip_name)
 
     except PermissionError:
         return jsonify({"error": "Invalid path"}), 400
