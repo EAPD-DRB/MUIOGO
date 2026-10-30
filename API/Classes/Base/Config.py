@@ -4,6 +4,23 @@ import tempfile
 from dotenv import load_dotenv
 import platform
 
+
+def validate_case_name(name):
+    """Require one directory name, preserving spaces, Unicode, and case symlinks.
+
+    Reject both path separators on every platform. In particular, accepting
+    ``linked_case/../name`` would let filesystem operations follow the symlink
+    before ``..``, unlike the lexical normalization in validate_path.
+    """
+    if (
+        not isinstance(name, str)
+        or name in ("", ".", "..")
+        or any(char in name for char in ("/", "\\", "\x00"))
+    ):
+        raise PermissionError("Invalid model name.")
+    return name
+
+
 # Central path validation utility (prevents path traversal).
 def validate_path(base_dir, user_input):
     """Resolve user_input under base_dir, or raise PermissionError.

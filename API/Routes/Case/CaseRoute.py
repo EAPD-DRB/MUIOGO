@@ -289,8 +289,22 @@ def saveCase():
         if err:
             return err, code
         genData = request.json['data']
-        casename = genData['osy-casename']
+        if not isinstance(genData, dict):
+            return jsonify({'message': 'Invalid model name.', 'status_code': 'error'}), 400
+        casename = genData.get('osy-casename')
         case = session.get('osycase', None)
+
+        # Check both names before reading or updating any case files. Keep the
+        # original single-component names so renaming a linked case moves its
+        # DataStorage symlink, rather than the external country directory.
+        try:
+            Config.validate_case_name(casename)
+            Config.validate_path(Config.DATA_STORAGE, casename)
+            if case is not None and case != '':
+                Config.validate_case_name(case)
+                Config.validate_path(Config.DATA_STORAGE, case)
+        except PermissionError:
+            return jsonify({'message': 'Invalid model name.', 'status_code': 'error'}), 400
 
         configPath = Path(Config.DATA_STORAGE, 'Variables.json')
         vars = File.readParamFile(configPath)
