@@ -13,7 +13,7 @@ Before you start
   manages software installation, ask your IT team to help.
 * Keep the computer awake during installation and simulations.
 
-The installer adds the required Python tools and app packages. OG-PHL is
+The installer adds the required Python tools and app packages. OG-ZAF is
 installed separately from inside MUIOGO.
 
 Install Git
@@ -123,7 +123,7 @@ If Git reports conflicting local changes or says it cannot fast-forward,
 stop and ask your IT support or repository maintainer to help resolve
 them before continuing.
 
-Country models such as OG-PHL are updated separately using the country
+Country models such as OG-ZAF are updated separately using the country
 card's **Check for updates** and **Update** buttons; see :doc:`workspace`.
 
 Existing source checkout — for IT support

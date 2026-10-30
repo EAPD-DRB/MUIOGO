@@ -10,22 +10,22 @@ Create the example baseline
 
 1. Click **Create case** in the country bar above the cases list.
 2. Select **Baseline** under **Type**.
-3. Enter ``PHL tax example`` under **Name**.
+3. Enter ``ZAF tax example`` under **Name**.
 4. Under **Description**, enter ``Unchanged country defaults``.
 5. Click **Create and edit**. The Parameters screen opens.
 6. Keep the defaults and click **Save**. Return to **Cases**.
 
-**Check:** ``PHL tax example`` appears with type **baseline**.
+**Check:** ``ZAF tax example`` appears with type **baseline**.
 
 Create the example reform
 -------------------------
 
-1. On the ``PHL tax example`` baseline row, click **Add reform**.
+1. On the ``ZAF tax example`` baseline row, click **Add reform**.
    You can also click **Create case**, choose **Reform** under **Type**,
    and select the baseline under **Based on**.
 2. Enter ``CIT cut`` under **Name**.
-3. Check **Based on**: it must be ``PHL tax example``.
-4. Add the description ``Corporate income tax: 25% to 20%``.
+3. Check **Based on**: it must be ``ZAF tax example``.
+4. Add the description ``Corporate income tax: 27% to 20%``.
 5. Click **Create and edit**.
 
 **Check:** the Parameters bar says **reform**, ``CIT cut``, and the correct

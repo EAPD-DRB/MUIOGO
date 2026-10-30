@@ -7,7 +7,7 @@ Run the example
 ----------------
 
 1. Under **Analysis**, choose **Steady state**.
-2. Select the checkboxes for ``PHL tax example`` and ``CIT cut``.
+2. Select the checkboxes for ``ZAF tax example`` and ``CIT cut``.
    Clear other selections.
 3. Leave **Re-run completed selections** unchecked.
 4. Click **Run selected**. The number on the button is your selection count.

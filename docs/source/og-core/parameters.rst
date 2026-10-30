@@ -13,8 +13,8 @@ Make the example tax change
 2. Leave **Compare against** set to its own baseline.
 3. In **Frequently Used Parameters**, find **Corporate income tax rate**
    (``cit_rate``). Use the browser's Find command if needed.
-4. Check the baseline value. The OG-PHL defaults inspected for this draft
-   use ``0.25``, meaning 25%.
+4. Check the baseline value. The OG-ZAF country defaults
+   use ``0.27``, meaning 27%.
 5. Enter ``0.20``, meaning 20%. Set every displayed year for this parameter
    to ``0.20``. A later unchanged year would otherwise reverse the cut.
 6. Leave all other parameters unchanged. Click **Show only changed**.
@@ -37,8 +37,8 @@ Enter rates correctly
 ----------------------
 
 Use a decimal point. Enter ``0.20`` for 20%, not ``20`` or ``20%``.
-A change from 25% to 20% is **−5 percentage points**. It is a **20% reduction**
-in the rate. Those measures are different.
+A change from 27% to 20% is **−7 percentage points**. It is approximately a
+**25.9% reduction** in the rate. Those measures are different.
 
 For yearly policy fields, the last value continues into years that you
 have not entered. In **Steady state**, this final rate determines the

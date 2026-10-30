@@ -90,7 +90,7 @@ Read the [online user manual](https://eapd-drb.github.io/MUIOGO/).
 
 The [OG-Core user manual](docs/source/og-core/index.rst) includes a
 [Quick Guide](docs/source/og-core/quick-guide.rst) and a detailed screen guide.
-Both use an OG-PHL baseline and corporate tax reform example.
+Both use an OG-ZAF baseline and corporate tax reform example (27% to 20%).
 The manual is built with Sphinx for Read the Docs. See
 [documentation build instructions](docs/USER_MANUAL.md) to preview or publish it.
 

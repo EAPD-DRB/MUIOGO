@@ -9,9 +9,9 @@ Open the example comparison
 ---------------------------
 
 1. Click **Results** in the left menu.
-2. Find ``PHL tax example`` in the run list. Use **Filter runs...** if needed.
+2. Find ``ZAF tax example`` in the run list. Use **Filter runs...** if needed.
 3. Find its ``CIT cut`` reform and click **Compare** on that row.
-4. Check the title: it should name ``PHL tax example`` and ``CIT cut``.
+4. Check the title: it should name ``ZAF tax example`` and ``CIT cut``.
 5. In **Report**, click **Policy**. Under **Policy changes**, check that only
    ``cit_rate`` differs, with the intended baseline and reform values.
 

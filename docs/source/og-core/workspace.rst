@@ -8,10 +8,10 @@ On **Select a model**, click **Open OG-Core**. You can also click
 **OG-Core** in the top bar. The **CLEWS** button opens the resource model.
 Its new manual will be developed separately.
 
-Install OG-PHL
+Install OG-ZAF
 ---------------
 
-1. On the OG-Core home screen, find **Philippines**, code **PHL**.
+1. On the OG-Core home screen, find **South Africa**, code **ZAF**.
 2. Click **Install**. A window shows installation progress.
 3. Wait until the country card says **installed**.
 4. Click **Open workspace**.
@@ -20,7 +20,7 @@ The app checks the installation, opens the country workspace and loads its
 cases. **Retry** repeats a failed opening step. **Return to OG-Core**
 returns to the country list.
 
-**Check:** the title says **Philippines workspace** and the left menu
+**Check:** the title says **South Africa workspace** and the left menu
 shows **Cases**, **Parameters**, **Run** and **Results**.
 
 Country-card buttons
@@ -65,7 +65,7 @@ Add a country from another source
 ---------------------------------
 
 Use **Add calibration** when a modeller gives you a country repository or
-an existing model folder. This is not needed for the OG-PHL example.
+an existing model folder. This is not needed for the OG-ZAF example.
 
 1. Click **Add calibration**.
 2. In **Source**, enter the full local folder path or Git repository URL.

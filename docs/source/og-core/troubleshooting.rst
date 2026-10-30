@@ -17,8 +17,8 @@ Help and troubleshooting
      - Run ``conda deactivate`` until no Conda environment is active, then start MUIOGO again.
    * - Address or port is already in use
      - Check whether another MUIOGO window is already running. Use that instance, or stop it before starting another.
-   * - Philippines is missing from the list
-     - Check the internet connection and reload. If the catalogue is still unavailable, ask a modeller to help add the official OG-PHL repository.
+   * - South Africa is missing from the list
+     - Check the internet connection and reload. If the catalogue is still unavailable, ask a modeller to help add the official OG-ZAF repository.
    * - Country installation fails
      - Open View error. Copy the log, correct the reported problem, then use Retry. Closing the log window does not cancel installation.
    * - Workspace does not open

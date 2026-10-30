@@ -92,14 +92,15 @@ selection, and the **Report / Explore data** interface.
 | Run | `WebAPP/App/View/OGRuns.html`, `WebAPP/App/Controller/OGRuns.js`, `API/Classes/OGCore/RunJob.py`, `OGRunner.py`, `ogc_worker.py` |
 | Results and exports | `WebAPP/App/View/OGResults.html`, `WebAPP/App/Controller/OGResults.js`, `WebAPP/App/Model/OGResultsData.js`, `OGResultsView.js`; `API/Routes/OGCore/OGCoreRunRoute.py`, `API/Classes/OGCore/OGReport.py`, `OGTables.py`, `ogc_worker.py` |
 
-The local OG-PHL package inspected for this revision is version `0.1.1`, commit
-`774267ac516761c519fd8a4fc86d130250e6a84a`. Its
-`ogphl/ogphl_default_parameters.json` supplies `cit_rate = [[0.25]]`.
+The worked example uses South Africa (OG-ZAF). The local OG-ZAF package
+inspected for this revision is version `0.3.0`, commit
+`9259d221cf9554f518e96ad2c400bf3954ca986a`. Its
+`ogzaf/ogzaf_default_parameters.json` supplies `cit_rate = [[0.27]]`.
 The installed OG-Core parameter definition labels it **Corporate income tax
 rate** and says that unspecified years use the last entered value. The example
-sets every displayed year to `0.20`, a five-percentage-point cut (a 20%
-reduction in the rate). These are model inputs, not claims about
-current tax law. Country packages may change independently of MUIOGO.
+sets every displayed year to `0.20`, a seven-percentage-point cut
+(approximately a 25.9% reduction in the rate). These are model inputs, not
+claims about current tax law. Country packages may change independently of MUIOGO.
 
 ## Validation and release follow-up
 
@@ -124,27 +125,36 @@ Revision checks on 29 October 2026:
 - Fresh application installation or OG-Core simulation: not run for this
   documentation revision. No new economic result values are claimed.
 
+South Africa example update on 29 October 2026:
+
+- Quick Guide, detailed guide, troubleshooting and README now use OG-ZAF,
+  `ZAF tax example`, and a corporate tax cut from 27% to 20%.
+- The installed country defaults were inspected for the 27% starting rate.
+- Strict Sphinx build and all 2,614 local link, asset and anchor checks passed.
+- No old country-example or 25% starting-rate references remain in the manual.
+- No new simulation was run for this documentation update.
+
 Historical draft checks on 28 October 2026:
 
 - Strict Sphinx HTML build (`-n -W --keep-going`): passed without warnings.
 - Generated documentation links, anchors and local assets: checked.
 - `git diff --check`: passed.
 - Browser visual check: not completed; the browser preview tools stalled.
-- Fresh app installation and OG-PHL simulation: not run.
+- Fresh app installation and OG-Core simulation: not run.
 - The initial draft was checked locally; publication now uses the GitHub Actions
   workflow above. A hosted Read the Docs build has not been run.
 
 The guide is based on code and parameter-file inspection. It does not claim
 a successful simulation or include invented result values. At the original
-draft inspection, the retained `Default Baseline` run was failed and contained
-a `gamma = [0.5]` override; it was not evidence for the unchanged-default
-tutorial. It was not reused or changed. No model or case files were edited
-for this documentation task.
+draft inspection, a retained `Default Baseline` run from the earlier country
+example was failed and contained a `gamma = [0.5]` override; it was not evidence
+for the unchanged-default tutorial. It was not reused or changed. No model or
+case files were edited for this documentation task.
 
 Before calling the tutorial tested for training:
 
 1. Follow installation on a clean supported computer.
-2. Record the MUIOGO, OG-PHL and OG-Core versions.
+2. Record the MUIOGO, OG-ZAF and OG-Core versions.
 3. Create a fresh baseline with unchanged country defaults, then the single
    `cit_rate` reform. Verify both reach Completed with Steady state.
 4. Check the selected comparison, the one-parameter difference, chart export
