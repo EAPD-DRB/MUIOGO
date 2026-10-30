@@ -982,6 +982,33 @@
                     }
                 ]
             }
+        },
+        {
+            "id": "OP",
+            "value": "Operational Profile",
+            "name": "OperationalProfile",
+            "default": 0,
+            "enable": true,
+            "menu": 1,
+            "setrelation": [
+                "r",
+                "t",
+                "y",
+                "l"
+            ],
+            "unitRule": {
+                "cat": [
+                    {
+                        "var": "percent"
+                    },
+                    {
+                        "var": "divide"
+                    },
+                    {
+                        "var": "hundert"
+                    }
+                ]
+            }
         }
     ],
     "RYC": [

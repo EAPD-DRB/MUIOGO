@@ -19,7 +19,7 @@ Discussions are the right place to ask questions, compare approaches, and sort
 out scope before work turns into a PR.
 
 Bugs, Blockers, and Actionable Work
-+++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++
 
 Use the `GitHub Issue Tracker <https://github.com/EAPD-DRB/MUIOGO/issues>`_ for:
 

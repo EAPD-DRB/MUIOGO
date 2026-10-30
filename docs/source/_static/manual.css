@@ -1,0 +1,45 @@
+/* Emphasise the home link while keeping room for the active-page marker. */
+.bd-sidebar-primary nav.bd-links .bd-sidenav__home-link > li > a {
+    font-weight: 700;
+}
+
+/* Emphasise the two model manuals without changing their nested links. */
+.bd-sidebar-primary nav.bd-links .bd-sidenav > .toctree-l1 > a {
+    font-weight: 700;
+}
+
+/* Keep operating-system options below their parent installation step. */
+.bd-article .installation-options.docutils.container {
+    margin-left: 3rem;
+    margin-right: 0;
+}
+
+/* Keep Copy discoverable on touch screens and clear of the code itself. */
+.bd-article div.highlight pre {
+    padding-top: 2.5rem;
+}
+
+.bd-article button.copybtn {
+    opacity: 1;
+    width: auto;
+    height: auto;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.4rem;
+}
+
+.bd-article button.copybtn::before {
+    content: attr(data-tooltip);
+    font-size: 0.75rem;
+}
+
+.bd-article button.copybtn:focus-visible {
+    outline: 2px solid var(--pst-color-primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 575px) {
+    .bd-article .installation-options.docutils.container {
+        margin-left: 1.5rem;
+    }
+}
