@@ -28,9 +28,11 @@ longer. Required baselines use the same analysis as their reforms.
 
 .. note::
 
-   The current Results screen displays steady-state comparisons. Selecting
-   Transition path runs the extra calculations, but does not add a
-   year-by-year chart to that screen.
+   Results labels long-run results separately from the transition path.
+   For completed transition-path runs, **Report** includes year-by-year
+   macroeconomic charts. In **Explore data**, choose **Period → Over time**
+   for an economy-wide variable. A reform comparison needs transition-path
+   results for both the reform and its baseline.
 
 Run controls
 -------------
@@ -51,6 +53,8 @@ Run controls
      - Recalculates completed selections even when matching saved results can be reused.
    * - Run selected
      - Starts the selected queue. Required baselines are added before their reforms.
+   * - Refresh
+     - Reloads runs started or changed in another tab. Active runs also update automatically.
    * - Cancel active runs
      - Requests cancellation of active runs in this workspace and stops further submissions from the current selection.
    * - Latest outcomes row / arrow

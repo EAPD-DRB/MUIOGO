@@ -93,7 +93,7 @@ Move between screens
    * - Run
      - Select and execute saved runs.
    * - Results
-     - Compare a completed baseline and reform.
+     - View a completed run or compare a reform with its baseline.
    * - Home / top model buttons
      - Leave the country workspace. The app asks for confirmation.
    * - Stay

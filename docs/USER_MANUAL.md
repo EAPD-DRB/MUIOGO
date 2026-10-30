@@ -75,10 +75,13 @@ Earlier OSeMOSYS content is retained under `source/legacy-osemosys.rst`.
 Its heading underlines were repaired for strict builds; its model guidance
 has not been rewritten for the new CLEWs manual.
 
-## Code used for this draft
+## Code used for this revision
 
-The draft was checked against MUIOGO commit
-`c904aa93739fd92e1ffafce59861081851607554` (8 September 2026).
+The manual's controls and workflow were checked against MUIOGO commit
+`7057bb858577e47c85c03557de486c1ac6ac9981` (29 October 2026), after
+PRs #522, #555 and #525 were merged. This includes the unified **Create
+case** dialog, **Grouped / Separate** case views, Results **View / Compare**
+selection, and the **Report / Explore data** interface.
 
 | Manual page | Main implementation sources |
 | --- | --- |
@@ -87,10 +90,10 @@ The draft was checked against MUIOGO commit
 | Cases | `WebAPP/App/View/OGCases.html`, `WebAPP/App/Controller/OGCases.js`, `API/Classes/OGCore/OGCoreCase.py` |
 | Parameters | `WebAPP/App/Controller/OGParameters.js`, `OGTableEditor.js`; `WebAPP/App/Model/OGParams.Overlay.js`, `OGParameters.Model.js`; `API/Classes/OGCore/OGSchema.py`; `WebAPP/Classes/NavigationGuard.Class.js` |
 | Run | `WebAPP/App/View/OGRuns.html`, `WebAPP/App/Controller/OGRuns.js`, `API/Classes/OGCore/RunJob.py`, `OGRunner.py`, `ogc_worker.py` |
-| Results and exports | `WebAPP/App/View/OGResults.html`, `WebAPP/App/Controller/OGResults.js`, `API/Routes/OGCore/OGCoreRunRoute.py`, `API/Classes/OGCore/OGTables.py`, `ogc_worker.py` |
+| Results and exports | `WebAPP/App/View/OGResults.html`, `WebAPP/App/Controller/OGResults.js`, `WebAPP/App/Model/OGResultsData.js`, `OGResultsView.js`; `API/Routes/OGCore/OGCoreRunRoute.py`, `API/Classes/OGCore/OGReport.py`, `OGTables.py`, `ogc_worker.py` |
 
-The inspected local OG-PHL package is version `0.1.1`, commit
-`c5516563a60075801d79354a4ef9df0e0b7dfd98`. Its
+The local OG-PHL package inspected for this revision is version `0.1.1`, commit
+`774267ac516761c519fd8a4fc86d130250e6a84a`. Its
 `ogphl/ogphl_default_parameters.json` supplies `cit_rate = [[0.25]]`.
 The installed OG-Core parameter definition labels it **Corporate income tax
 rate** and says that unspecified years use the last entered value. The example
@@ -100,7 +103,28 @@ current tax law. Country packages may change independently of MUIOGO.
 
 ## Validation and release follow-up
 
-Draft checks on 28 October 2026:
+The 29 October revision replaces the old Results instructions with the
+current run picker, Report, Explore data, household views, transition
+charts, units and download controls. It also aligns the Quick Guide,
+Cases, Run, navigation and troubleshooting pages. The original draft
+was based on commit `c904aa93739fd92e1ffafce59861081851607554` (8 September
+2026); its old Results limits no longer describe the app.
+
+Revision checks on 29 October 2026:
+
+- Control names and conditional availability: checked against the current
+  controllers, views, result-shaping modules and report endpoint.
+- Strict Sphinx HTML build (`-n -W --keep-going`): passed without warnings.
+- Generated documentation: 30 rendered pages and 2,614 local links,
+  assets and anchors checked without failures. Copied theme templates
+  under `_static` are not treated as rendered documentation pages.
+- Browser preview: Quick Guide, Cases and Results checked; the Results
+  opening instructions and Cases control table were inspected visually.
+- `git diff --check`: passed.
+- Fresh application installation or OG-Core simulation: not run for this
+  documentation revision. No new economic result values are claimed.
+
+Historical draft checks on 28 October 2026:
 
 - Strict Sphinx HTML build (`-n -W --keep-going`): passed without warnings.
 - Generated documentation links, anchors and local assets: checked.
@@ -110,11 +134,12 @@ Draft checks on 28 October 2026:
 - The initial draft was checked locally; publication now uses the GitHub Actions
   workflow above. A hosted Read the Docs build has not been run.
 
-The draft is based on code and parameter-file inspection. It does not claim
-a successful simulation or include invented result values. The local retained
-`Default Baseline` run is failed and contains a `gamma = [0.5]` override;
-it is not evidence for the unchanged-default tutorial. It was not reused or
-changed. No model or case files were edited for this documentation task.
+The guide is based on code and parameter-file inspection. It does not claim
+a successful simulation or include invented result values. At the original
+draft inspection, the retained `Default Baseline` run was failed and contained
+a `gamma = [0.5]` override; it was not evidence for the unchanged-default
+tutorial. It was not reused or changed. No model or case files were edited
+for this documentation task.
 
 Before calling the tutorial tested for training:
 
@@ -128,13 +153,26 @@ Before calling the tutorial tested for training:
    Avoid unrelated user cases. Add short captions and alternative text.
 6. Ask one non-specialist reader to follow the Quick Guide without coaching.
 
-Current interface limits documented in the manual:
+Current interface behavior documented in the manual:
 
-- Results needs a completed baseline and reform; no baseline-only dashboard.
-- The active Results controller reads steady-state values. Transition paths can
-  be calculated, but this screen does not plot them over time.
-- Explore defaults are local to the browser and country.
-- Wealth moments uses the baseline only and does not supply survey observations.
+- Results can view one current completed run or compare a reform with its
+  linked current completed baseline. Recent selections are local to the
+  browser and country; the URL retains the current selection and tab.
+- The Report separates long-run results from transition paths. Explore data
+  offers Over time for supported economy-wide variables when transition
+  results are available for the selection.
+- Household averages use each run's saved population weights. Missing age,
+  income-group or weight metadata produces a note; the worker can backfill
+  older metadata from saved model parameters when available.
+- Level changes use percent changes for positive baselines and differences
+  for non-positive baselines. Rates use percentage points; fiscal values use
+  shares of GDP and changes in percentage points of GDP.
+- Wealth moments uses the selected run in a single-run view and the baseline
+  in a comparison. It does not supply survey observations.
+- Tables have distinct availability rules for single runs, comparisons and
+  transition paths. The guide lists the visible labels and prerequisites.
+- Charts provide PNG and SVG downloads. Report, Explore and OG-Core tables
+  provide CSV downloads.
 - Backend backup and restore routes exist, but current OG-Core screens have no
   corresponding buttons. The manual does not invent them.
 - Keep Run open until its whole selection finishes: leaving can stop submission

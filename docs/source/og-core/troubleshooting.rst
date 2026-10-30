@@ -39,10 +39,16 @@ Help and troubleshooting
      - Open the Latest outcomes row and read its log. A modeller must check the inputs and model. Do not treat partial output as a result or change unrelated values just to remove the error.
    * - Run appears slow
      - Check the live log for progress. Transition paths can take much longer. Keep the computer awake; use Cancel active runs if you decide to stop.
-   * - No completed comparison on Results
-     - Complete both the baseline and its reform. A baseline-only run is not enough for this screen.
-   * - No year-by-year results chart
-     - The current Results screen shows long-run comparisons, including after a transition-path run.
+   * - View or Compare is disabled on Results
+     - Read the reason under the run name. View needs current completed results for that run. Compare needs current completed results for the reform and its linked baseline. Run any missing or out-of-date selections again.
+   * - The reform has the same parameters as its baseline
+     - Use Edit reform parameters to inspect the saved inputs. For the tax example, only cit_rate should differ. Save the intended change, run the reform again, then return to Results.
+   * - Over time is disabled or no year-by-year chart appears
+     - Check the analysis label. Steady-state runs provide long-run results only. For a comparison over time, complete both runs with Transition path and choose an economy-wide variable in Explore data.
+   * - Household outcomes are unavailable
+     - Read the note. Older results may need their age, income-group and population metadata rebuilt. Keep the country model installed; ask your modeller for help if the information cannot be recovered.
+   * - Check solution accuracy
+     - Review the solver-error information and run log with your modeller before interpreting the results.
    * - A table fails to load
      - Read the displayed error. Check the country model is installed and not updating. Try the table again; keep the message if it fails.
 

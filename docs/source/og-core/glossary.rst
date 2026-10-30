@@ -47,3 +47,12 @@ Short glossary
 
    SVG
       An image format that stays sharp when resized.
+
+   PNG
+      An image format suitable for documents, presentations and sharing.
+
+   Percentage point
+      The difference between percentages. A rise from 5% to 6% is one percentage point.
+
+   Population-weighted average
+      An average that gives each age and income group its share of the model's population.

@@ -11,7 +11,7 @@ Philippines.
 ---------------------------------
 
 1. Click **OG-Core** in the top bar.
-2. Find **Philippines (PHL)** and click **Install**.
+2. Find **Philippines (PHL)**. Click **Install** if it is not installed.
 3. Wait until the card says **installed** (in green) and then click **Open workspace**.
 
 **Check** that the page title at the top says **Philippines workspace**.
@@ -19,7 +19,7 @@ Philippines.
 3. Create the baseline
 ----------------------
 
-1. Click **Create baseline**, beside **Calibration defaults** (in the bottom right).
+1. On **Cases**, click **Create case** in the country bar.
 2. Leave **Type** as **Baseline**. Set **Name** to ``PHL tax example``.
 3. Click **Create and edit**. The Parameters screen opens.
 4. Keep the default values. Check **Corporate income tax rate**
@@ -32,16 +32,16 @@ Philippines.
 ------------------------
 
 1. Click the **Cases** icon in the left menu.
-2. On the ``PHL tax example`` row, open the three-dot menu to the right. Click
-   **Add reform**.
+2. On the ``PHL tax example`` baseline row, click **Add reform**.
 3. Set **Name** to ``CIT cut``. Check that **Based on** is
    ``PHL tax example``. Click **Create and edit**.
 4. Under **Frequently Used Parameters**, set **Corporate income tax rate**
-   (``cit_rate``) to ``0.20``.
+   (``cit_rate``) to ``0.20`` for every displayed year. Leave the baseline
+   unchanged. If its default differs from 25%, see :ref:`og-tax-example`.
 5. Keep all other values. Click **Save**.
 
-**Check** that **Compare against** vs baseline, the page shows
-**1 change**. This is the cut of five percentage points.
+**Check:** with **Compare against** set to the baseline, the page shows
+**1 change**. For a 25% baseline, this is a cut of five percentage points.
 
 5. Run the comparison
 ---------------------
@@ -59,17 +59,25 @@ If a run fails, follow :doc:`troubleshooting` before continuing.
 6. Read and save the results
 ----------------------------
 
-1. Click **Results**. Choose ``PHL tax example`` under **Case** and
-   ``CIT cut`` under **Reform**.
-2. In **Overview**, check **Parameter changes**. It should list only
-   ``cit_rate``. Read GDP, consumption, labor and tax revenue changes.
-3. Under **Lifecycle profiles**, choose **Consumption**. Compare income
-   groups to see who may gain or lose.
-4. Click **Export SVG** on a chart to save it.
-5. Open **Tables**, choose **Macroeconomic**, then click **Export CSV**.
+1. Click **Results**. In the run list, find ``PHL tax example`` and its
+   ``CIT cut`` reform. Click **Compare** on the reform row.
+2. In **Report**, open **Policy**. **Policy changes** should list only
+   ``cit_rate``, with the baseline and reform values.
+3. Read **Summary**, **Macroeconomy** and **Government**. Under
+   **Households**, choose **Consumption**. Start with **Population average**,
+   then compare income groups.
+4. On a chart, open **Download** and choose **Download SVG** or
+   **Download PNG**.
+5. Open **Explore data**. In **OG-Core tables**, choose **Macro (long run)**,
+   wait for it to load, then click **CSV**.
 
-These are long-run comparisons. They do not show the year-by-year path.
-For units and interpretation, see :doc:`results`.
+**Check:** the Results title names both the baseline and the reform, and
+the analysis says **Long run (steady state) only**. To inspect the baseline
+alone, click its **View** button instead of the reform's **Compare** button.
+
+This example uses long-run results. A completed **Transition path** run
+also provides year-by-year charts. Read each chart's period and units;
+see :doc:`results` for interpretation.
 
 When finished, wait for all jobs to end. Return to the terminal and press
 **Ctrl+C** to stop the app.

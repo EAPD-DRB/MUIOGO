@@ -8,8 +8,7 @@ with the country model's starting values. Create a baseline to run them.
 Create the example baseline
 ---------------------------
 
-1. Click **Create baseline** on the **Calibration defaults** row.
-   You can also click **Add case**.
+1. Click **Create case** in the country bar above the cases list.
 2. Select **Baseline** under **Type**.
 3. Enter ``PHL tax example`` under **Name**.
 4. Under **Description**, enter ``Unchanged country defaults``.
@@ -21,8 +20,9 @@ Create the example baseline
 Create the example reform
 -------------------------
 
-1. On the baseline row, open the **three-dot menu** and click **Add reform**.
-   You can also expand the row and click **Add reform** there.
+1. On the ``PHL tax example`` baseline row, click **Add reform**.
+   You can also click **Create case**, choose **Reform** under **Type**,
+   and select the baseline under **Based on**.
 2. Enter ``CIT cut`` under **Name**.
 3. Check **Based on**: it must be ``PHL tax example``.
 4. Add the description ``Corporate income tax: 25% to 20%``.
@@ -40,16 +40,14 @@ Case controls
 
    * - Control
      - What it does
-   * - Add case
+   * - Create case
      - Opens the creation window. Choose Baseline or Reform.
-   * - Create baseline
-     - Opens that window with Baseline selected.
    * - Search cases…
      - Filters the list by case, run or parent baseline name. Clear the text to see all rows.
-   * - Split baselines and reforms
-     - Displays separate baseline and reform lists.
-   * - Group by baseline
+   * - Grouped
      - Places each reform under its baseline.
+   * - Separate
+     - Displays separate baseline and reform lists.
    * - Row name / small arrow
      - Shows or hides the row's details, including its description.
    * - Run
@@ -64,7 +62,7 @@ Case controls
      - Creates the missing baseline run after incomplete case creation.
    * - Delete reform
      - Asks to delete the reform and its results.
-   * - Delete case
+   * - Delete baseline
      - Asks to delete the baseline, all its reforms and all their results.
 
 In the creation window, **Baseline** starts from country defaults.
@@ -78,4 +76,4 @@ fails, read the message, correct the problem and try again.
 .. warning::
 
    Deletion cannot be undone. In a deletion window, read the names before
-   clicking **Delete case** or **Delete reform**. **Cancel** keeps the work.
+   clicking **Delete baseline** or **Delete reform**. **Cancel** keeps the work.
