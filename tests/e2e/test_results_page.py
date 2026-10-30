@@ -10,6 +10,7 @@ import pytest
 from .test_shell_smoke import base_url  # noqa: F401
 
 pytest.importorskip("pytest_playwright")
+from playwright.sync_api import expect
 
 # Installs the fake client, loads the Results view and starts the page.
 # window.fake lets a test change what the next response contains.
@@ -140,8 +141,8 @@ def test_selection_is_kept_in_the_url_and_reopens(page, base_url):
     hash_ = page.evaluate("location.hash")
     assert hash_.startswith("#/OGResults?") and "reform=Tax+cut" in hash_
     open_results(page, base_url, hash=hash_)
-    assert page.is_visible("#ogcRsView")
-    assert page.inner_text("#ogcRsTitle") == "Tax policy → Tax cut"
+    expect(page.locator("#ogcRsView")).to_be_visible()
+    expect(page.locator("#ogcRsTitle")).to_have_text("Tax policy → Tax cut")
     open_results(page, base_url, hash="#/OGResults?case=Tax+policy&base=baseline&reform=Draft")
     assert page.is_visible("#ogcRsIntro")
 
