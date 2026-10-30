@@ -57,7 +57,10 @@ def write_run_manifest(out_dir, experiment, country, ctx, clews_run=None, og_mod
         "experiment": {"name": name, "description": desc},
         "country": country.name,
         "un_code": str(getattr(country, "un_code", "")),
-        "scenario": {"name": sc.name, "base_dir": sc.base_dir, "reform_dir": sc.reform_dir},
+        "scenario": {"name": sc.name,
+                     "base_dir": os.path.abspath(sc.base_dir) if sc.base_dir else None,
+                     "reform_dir": os.path.abspath(sc.reform_dir) if sc.reform_dir else None,
+                     "og_start_year": int(sc.og_start_year)},
         # input paths the viz needs but can't derive from out_dir: the OG baseline pickle cache
         # (separate dir) and the GBD burden CSV. Recorded so `--coupled-run <dir>` resolves them.
         "baseline_dir": baseline_dir,

@@ -34,14 +34,23 @@ def test_write_demand_header_and_values():
     assert rows[0] == ["REGION", "OG_ACTIVITY", "OG_INDEX", "CLEWS_FUEL", "YEAR", "DEMAND_RATIO"]
     assert len(rows) == 1 + len(_DEMAND["ratio_by_period"])           # header + one row per period
     assert rows[1][1] == "sector_output" and rows[1][2] == "1"       # og_activity, og_index
-    assert rows[1][4] == "2026" and rows[1][5] == "1.050000"         # year, ratio (start_year, first ratio)
+    assert rows[1][4] == "2026" and float(rows[1][5]) == 1.05       # year, ratio (start_year, first ratio)
 
 
 def test_write_emissions_penalty_header_and_values():
     with tempfile.TemporaryDirectory() as d:
         rows = _read(clews_io.write_emissions_penalty(_PENALTY, d))
     assert rows[0] == ["REGION", "EMISSION", "YEAR", "VALUE"]
-    assert rows[1] == ["RE1", "CO2e", "2026", "50.000000"]
+    assert rows[1][:3] == ["RE1", "CO2e", "2026"] and float(rows[1][3]) == 50.0
+
+
+def test_feedback_round_trips_full_precision(tmp_path):
+    ratio, penalty = 1.000000123456789, 50.12345678912345
+    demand = _read(clews_io.write_demand({**_DEMAND, "ratio_by_period": [ratio]}, str(tmp_path)))
+    emissions = _read(clews_io.write_emissions_penalty(
+        {**_PENALTY, "value_by_period": [penalty]}, str(tmp_path)))
+    assert float(demand[1][5]) == ratio
+    assert float(emissions[1][3]) == penalty
 
 
 def test_write_discount_rate_scalar_and_path():

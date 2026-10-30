@@ -1,3 +1,14 @@
 __pycache__/
+*.py[cod]
+
+# Local run outputs and disposable validation scratch.
 oglink_runs/
+ogclews_runs/
+_validation*/
+_validation*.json
+_pr1_gate_run/
+*.log
+.pytest_cache/
+
+# Machine-local model registry.
 /og_model_registry.json

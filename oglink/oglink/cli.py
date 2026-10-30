@@ -4,6 +4,7 @@
   python -m oglink channels             # the channel functions + direction
   python -m oglink run clean_incidence  # build baseline, apply channels, solve, report
   python -m oglink run coupled --out ./runs
+  python -m oglink writeback --run ./runs/coupled --country phl --case <case> --base-caserun <reform run>
 """
 from __future__ import annotations
 
@@ -39,6 +40,22 @@ def main(argv=None):
     rp.add_argument("--clews-run", default=None,
                     help="CLEWS/MUIOGO run dir recorded in the manifest for provenance")
 
+    import os as _os
+    wb = sub.add_parser("writeback", help="apply identified OG demand feedback through MUIOGO")
+    wb.add_argument("--run", required=True, help="coupled run holding clews_inputs and oglink_manifest.json")
+    wb.add_argument("--country", required=True)
+    wb.add_argument("--countries", default=None, help="countries JSON, as for the run command")
+    wb.add_argument("--case", default=_os.environ.get("OGLINK_CLEWS_CASE"))
+    wb.add_argument("--base-caserun", default=_os.environ.get("OGLINK_CLEWS_REFORM_RUN"),
+                    help="caserun to clone; must match the manifest's CLEWS reform caserun")
+    wb.add_argument("--scenario", default=None,
+                    help="write layer; must be the last active scenario (default: select it automatically)")
+    wb.add_argument("--datastorage", default=None, help="DataStorage holding the source case")
+    wb.add_argument("--muiogo-url", default=_os.environ.get("OGLINK_MUIOGO_URL", "http://127.0.0.1:5000"))
+    wb.add_argument("--solver", default="CBC")
+    wb.add_argument("--with-emissions-penalty", action="store_true")
+    wb.add_argument("--dry-run", action="store_true", help="write the patch without posting or solving")
+
     sub.add_parser("list", help="list named experiments")
     sub.add_parser("channels", help="list registered channels")
 
@@ -69,6 +86,12 @@ def main(argv=None):
 
     args = ap.parse_args(argv)
 
+    if args.cmd == "writeback":
+        from .writeback import run_writeback
+        try:
+            return run_writeback(args)
+        except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+            raise SystemExit(str(exc)) from exc
     if args.cmd == "list":
         import inspect
         for n in experiments.names():

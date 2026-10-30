@@ -17,6 +17,7 @@
       "power_prefix": "XMP_POW",
       "public_power_markers": ["_TD"],
       "electricity_fuel": "XMP_HOU_ELE",
+      "demand_commodity": "XMP_HOU_ELEF",
       "clews_region": "RE1",
       "co2_emission": "CO2e",
       "health_emission": "PM2_5",

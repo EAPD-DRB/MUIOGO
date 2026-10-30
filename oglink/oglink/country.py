@@ -35,6 +35,9 @@ class CountryConfig:
     # electricity price (drives the energy_price channel's 'marginal' source). None -> the marginal's
     # generic 'ELC*' default, which is wrong for country-prefixed fuels (PHL uses PHL_*_ELE), so set it.
     electricity_fuel: str | None = None
+    # Final-demand carrier receiving the OG activity ratio through writeback.
+    # This can differ from electricity_fuel, which identifies the price-facing fuel.
+    demand_commodity: str | None = None
     # the BUSBAR electricity commodity code -- generation output, pre-T&D (e.g. PHL uses "PHL_POW_ELE").
     # Distinct from electricity_fuel (the household/retail code): this is the LCOE denominator and the
     # commodity whose producers ARE the generation fleet. Drives the energy_price channel's 'lcoe' source
@@ -161,6 +164,7 @@ PHL = CountryConfig(
     og_repo="og-phl",
     power_prefix="PHL_POW",           # all PHL power-sector technology codes in the CLEWS export
     electricity_fuel="PHL_HOU_ELE",   # household electricity commodity (its marginal = the price route A faces)
+    demand_commodity="PHL_HOU_ELEF",
     busbar_electricity="PHL_POW_ELE", # busbar generation output (pre-T&D) -- the LCOE denominator
     gdp_musd=461_600.0,  # 2024 nominal GDP, USD millions (World Bank)
     units=UnitMap(clews_money_unit="MUSD", clews_energy_unit="PJ", base_year=2020,
