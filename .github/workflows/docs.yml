@@ -1,0 +1,63 @@
+name: User manual
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/source/**"
+      - "docs/requirementsrtd.txt"
+      - ".readthedocs.yml"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "docs/source/**"
+      - "docs/requirementsrtd.txt"
+      - ".readthedocs.yml"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: user-manual-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  html:
+    name: Build and check documentation
+    runs-on: ubuntu-latest
+    env:
+      MUIOGO_DOCS_BRANCH: ${{ github.head_ref || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install documentation tools
+        run: python -m pip install -r docs/requirementsrtd.txt
+      - name: Build HTML with strict reference checks
+        run: python -m sphinx -b html -n -W --keep-going docs/source docs/build/html
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs/build/html/
+
+  deploy:
+    name: Publish user manual
+    if: github.event_name != 'pull_request'
+    needs: html
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -2,7 +2,7 @@ import { Message } from "../../Classes/Message.Class.js";
 import { Ogc } from "../../Classes/Ogc.Class.js";
 import { escapeHtml as esc } from "../../Classes/Html.Class.js";
 import { Model } from "../Model/OGCases.Model.js";
-import { loadSelection, loadWorkspace, runKey } from "./OGCases.js";
+import { FLAG_ISO2, loadSelection, loadWorkspace, runKey } from "./OGCases.js";
 const STATUS = {
     completed: ['ogc-tag-done', 'Completed'],
     running: ['ogc-tag-run', 'Running'],
@@ -185,6 +185,7 @@ export default class OGRuns {
             entry.error = entry.error || entry.run.error || '';
         }
         if (owns('run_log')) entry.log = $.isArray(status.run_log) ? status.run_log : [];
+        if (owns('time_path')) entry.run.time_path = status.time_path;
         if (status.run_state) entry.run.status = status.run_state;
         return entry;
     }
@@ -266,13 +267,20 @@ export default class OGRuns {
         if (!OGRuns.workspace) return;
         $('#ogcRunsTitle').text('Run');
         $('#ogcRunsSub').text('Select baselines and reforms to run. Required baselines are added before their reforms.');
-        $('#ogcRunWorkspace').html(`<b>${esc(OGRuns.workspace.country_name)}</b> <span class="ogc-mono ogc-mut">${esc(OGRuns.workspace.country_id)}</span>`);
+        $('#ogcRunCountryName').text(OGRuns.workspace.country_name);
+        $('#ogcRunCountryId').text(OGRuns.workspace.country_id);
+        let iso2 = FLAG_ISO2[OGRuns.workspace.country_id];
+        $('#ogcRunCountryFlag').html(iso2
+            ? `<img class="ogc-flag" src="References/flags/4x3/${iso2}.svg" alt="">`
+            : '<span class="ogc-flag ogc-flag-none"><i class="fa fa-flag-o"></i></span>');
+        $('#ogcAnalysisDescription').text(OGRuns.timePath()
+            ? 'Solve the long-run equilibrium and the adjustment over time. Required baselines use the same analysis.'
+            : 'Solve the long-run equilibrium. Required baselines use the same analysis.');
         let rows = '';
         let force = $('#ogcForceRun').prop('checked');
         $.each(OGRuns.entries || [], function (id, entry) {
             let status = STATUS[entry.state] || STATUS.pending;
-            let reusable = !force && (entry.reusable !== undefined
-                ? entry.reusable : (entry.state == 'completed' && !entry.stale));
+            let reusable = !force && OGRuns.canReuse(entry, OGRuns.timePath());
             let from = entry.run.run_type == 'reform' ? OGRuns.baselineName(entry) : '&mdash;';
             let staleReason = entry.state == 'stale' && entry.staleReason
                 ? `<div class="ogc-run-stale-reason">${esc(entry.staleReason)}</div>` : '';
@@ -324,7 +332,7 @@ export default class OGRuns {
         return `<button class="ogc-history-row" data-act="outcome" data-case="${esc(entry.case.casename)}" data-run="${esc(entry.run.run_name)}" data-key="${esc(entry.key)}">
             <span><i class="fa fa-caret-right"></i> <b>${esc(entry.name)}</b> <span class="ogc-mut">${esc(entry.run.run_type)}</span></span>
             <span><span class="ogc-outcome-time">${esc(OGRuns.formatTime(completedAt))}</span><span class="ogc-tag ${status[0]}">${esc(status[1])}</span></span></button>
-            <div class="ogc-history-log" data-outcome="${esc(entry.key)}" style="display:none">
+            <div class="ogc-history-log" data-outcome="${esc(entry.key)}" data-version="${esc(JSON.stringify([state, completedAt, error, staleReason]))}" style="display:none">
                 ${staleReason ? `<div class="ogc-run-error">${esc(staleReason)}</div>` : ''}
                 ${error ? `<div class="ogc-run-error">${esc(error)}</div>` : ''}
             </div>`;
@@ -401,9 +409,24 @@ export default class OGRuns {
         });
         outcomes.sort((a, b) => String(b.completedAt || b.entry.completedAt || '')
             .localeCompare(String(a.completedAt || a.entry.completedAt || '')));
+        let previousLogs = {};
+        $('#ogcRecentOutcomes .ogc-history-log').each(function () {
+            previousLogs[$(this).attr('data-outcome')] = {
+                box: $(this),
+                top: $(this).find('pre').scrollTop()
+            };
+        });
+        $('#ogcRecentOutcomes .ogc-history-log').detach();
         $('#ogcRecentOutcomes').html(outcomes.length
             ? $.map(outcomes, job => OGRuns.renderOutcome(job)).join('')
             : '<div class="ogc-queue-empty">No run outcomes are available.</div>');
+        $('#ogcRecentOutcomes .ogc-history-log').each(function () {
+            let previous = previousLogs[$(this).attr('data-outcome')];
+            if (!previous || previous.box.attr('data-version') != $(this).attr('data-version')) return;
+            $(this).replaceWith(previous.box);
+            previous.box.find('pre').scrollTop(previous.top);
+            previous.box.prev().find('.fa-caret-right').toggleClass('ogc-rotated', previous.box.is(':visible'));
+        });
     }
 
     static formatTime(value){
@@ -422,22 +445,25 @@ export default class OGRuns {
         $('#ogcSelectAll').html(`<i class="fa fa-${allSelected ? 'square-o' : 'check-square-o'}"></i> ${allSelected ? 'Clear selection' : 'Select all'}`);
         let active = $.grep(OGRuns.entries || [], entry => ACTIVE_STATES.indexOf(entry.state) >= 0).length;
         $('#ogcCancelRun').toggle(!!active || OGRuns.running).prop('disabled', !active && !OGRuns.running);
-        $('#ogcForceRun, #ogcSelectAll').prop('disabled', OGRuns.running);
+        $('#ogcForceRun, #ogcSelectAll, #ogcAnalysis, #ogcRefreshRuns').prop('disabled', OGRuns.running);
     }
 
-    static buildQueue(entries, selected, force){
+    static timePath(){
+        return $('#ogcAnalysis').val() == 'transition';
+    }
+
+    static canReuse(entry, timePath){
+        return entry.run.time_path === timePath && (entry.reusable !== undefined
+            ? entry.reusable
+            : (entry.state || OGRuns.normaliseState(entry.run, entry.stale)) == 'completed' && !entry.stale);
+    }
+
+    static buildQueue(entries, selected, force, timePath = false){
         let chosen = $.grep(entries || [], entry => !!selected[entry.key]);
         let byKey = {};
         $.each(entries || [], (id, entry) => { byKey[entry.key] = entry; });
         let ordered = [], added = {};
-        function stateOf(entry){
-            return entry.state || OGRuns.normaliseState(entry.run, entry.stale);
-        }
-        function canReuse(entry){
-            return entry.reusable !== undefined
-                ? entry.reusable
-                : stateOf(entry) == 'completed' && !entry.stale;
-        }
+        function canReuse(entry){ return OGRuns.canReuse(entry, timePath); }
         function add(entry, dependency){
             if (!entry || added[entry.key]) return;
             let invalidatedByBaseline = false;
@@ -475,15 +501,32 @@ export default class OGRuns {
     static async runSelected(){
         if (OGRuns.running) return;
         let force = $('#ogcForceRun').prop('checked');
-        OGRuns.plan = OGRuns.buildQueue(OGRuns.entries, OGRuns.selected, force);
-        if (!OGRuns.plan.length) return;
-        let execution = Object.freeze({id: ++EXECUTION_ID, pageToken: OGRuns.pageToken});
+        let chosen = (OGRuns.entries || []).filter(entry => OGRuns.selected[entry.key]);
+        if (!chosen.length) return;
+        OGRuns.plan = [];
+        let execution = Object.freeze({id: ++EXECUTION_ID, pageToken: OGRuns.pageToken, timePath: OGRuns.timePath()});
         OGRuns.execution = execution;
         OGRuns.stopExecutionID = null;
         OGRuns.running = true;
         OGRuns.render();
         let detached = false;
         try {
+            // Refresh backend metadata before planning dependencies or reusing results.
+            let caseNames = [...new Set(chosen.map(entry => entry.case.casename))];
+            let snapshots = await Promise.all(caseNames.map(async casename => {
+                let response = await Ogc.getRuns(OGRuns.workspace.country_id, casename);
+                return {casename, runs: new Model([], {}, [], null).flattenRuns(response.runs || response)};
+            }));
+            if (!OGRuns.executionIsActive(execution)) { detached = true; return; }
+            snapshots.forEach(snapshot => {
+                snapshot.runs.forEach(run => {
+                    let entry = OGRuns.findEntry(snapshot.casename, run.run_name);
+                    if (!entry) return;
+                    entry.run.time_path = run.time_path;
+                    OGRuns.applyBackendStatus(entry, run);
+                });
+            });
+            OGRuns.plan = OGRuns.buildQueue(OGRuns.entries, OGRuns.selected, force, execution.timePath);
             for (let i = 0; i < OGRuns.plan.length; i++){
                 if (!OGRuns.executionIsActive(execution)) { detached = true; break; }
                 let job = OGRuns.plan[i], entry = job.entry;
@@ -492,8 +535,7 @@ export default class OGRuns {
                     let verifiedReuse = false;
                     try {
                         await OGRuns.readStatus(job);
-                        verifiedReuse = job.state == 'completed'
-                            && entry.reusable !== false && !entry.stale;
+                        verifiedReuse = job.state == 'completed' && OGRuns.canReuse(entry, execution.timePath);
                         if (verifiedReuse){
                             job.state = 'reused';
                         }else{
@@ -515,7 +557,7 @@ export default class OGRuns {
                     if (['failed', 'cancelled', 'blocked'].indexOf(baseState) >= 0
                         || (!baseJob && (!base || base.state != 'completed' || base.stale))){
                         job.state = 'blocked';
-                        job.error = 'Its baseline did not complete.';
+                        job.error = 'The required baseline did not complete. Run the baseline successfully before retrying this reform.';
                         OGRuns.render();
                         continue;
                     }
@@ -528,8 +570,9 @@ export default class OGRuns {
                         entry.case.country_id,
                         entry.case.casename,
                         entry.run.run_name,
-                        false
+                        execution.timePath
                     );
+                    entry.run.time_path = execution.timePath;
                     job.accepted = true;
                     job.state = 'queued';
                     job.stage = '';
@@ -554,6 +597,7 @@ export default class OGRuns {
                 if (OGRuns.executionIsActive(execution)) OGRuns.render();
             }
         } catch (error) {
+            detached = true;
             if (OGRuns.isCurrent(execution.pageToken)) Message.danger(error);
         } finally {
             if (OGRuns.execution === execution){
@@ -654,8 +698,10 @@ export default class OGRuns {
         let monitor = async function () {
             while (OGRuns.isCurrent(pageToken) && window.location.hash.split('?')[0] == '#/OGRuns'
                 && monitorID == OGRuns.monitorID && !OGRuns.running){
+                if (!OGRuns.entries.some(entry => ACTIVE_STATES.includes(entry.state))) return;
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                if (!OGRuns.isCurrent(pageToken) || monitorID != OGRuns.monitorID) return;
+                if (!OGRuns.isCurrent(pageToken) || monitorID != OGRuns.monitorID || OGRuns.running
+                    || window.location.hash.split('?')[0] != '#/OGRuns') return;
                 await OGRuns.hydrateBackendState(pageToken);
                 if (!OGRuns.isCurrent(pageToken) || monitorID != OGRuns.monitorID) return;
                 let active = $.grep(OGRuns.entries || [], entry => ACTIVE_STATES.indexOf(entry.state) >= 0);
@@ -681,10 +727,11 @@ export default class OGRuns {
             OGRuns.selected[$(this).attr('data-key')] = $(this).prop('checked');
             OGRuns.updateControls();
         })
-        .on('change.ogruns', '#ogcForceRun', function () { OGRuns.render(); })
+        .on('change.ogruns', '#ogcForceRun, #ogcAnalysis', function () { OGRuns.render(); })
         .on('click.ogruns', '[data-act]', async function (event) {
             event.preventDefault();
             let act = $(this).attr('data-act');
+            if (act == 'refresh' && !OGRuns.running) OGRuns.load(OGRuns.pageToken, null, true);
             if (act == 'run-selected') OGRuns.runSelected();
             if (act == 'cancel') OGRuns.cancelActive();
             if (act == 'select-all'){

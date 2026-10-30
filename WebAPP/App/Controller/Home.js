@@ -144,8 +144,7 @@ export default class Home {
                 if(response.status_code=="success"){
                     Message.bigBoxSuccess('Copy message', response.message, 3000);
                     //REFRESH
-                    Html.apendModel(casename+'_copy');
-                    Html.appendCasePicker(casename+'_copy', null)
+                    Base.refreshCaseLists();
                     if (Base.AWS_SYNC == 1){
                         SyncS3.deleteResultsPreSync(casename)
                         .then(response =>{
@@ -163,7 +162,7 @@ export default class Home {
             });
         });
 
-        //get descrition
+        //get description
         $("#cases").off('click.homeDescription', '.descriptionPS');
         $("#cases").on('click.homeDescription', '.descriptionPS', function(e){
             //e.stopImmediatePropagation();

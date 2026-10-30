@@ -10,7 +10,7 @@ import os
 import shutil
 import tempfile
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -25,7 +25,7 @@ from flask import (
 
 from Classes.Base import Config
 from Classes.Base.FileClass import File
-from Classes.OGCore import OGSchema, OGTables
+from Classes.OGCore import OGReport, OGSchema, OGTables
 from Classes.OGCore.CalibrationRegistry import CalibrationRegistry
 from Classes.OGCore.OGCoreCase import OGCoreCase, is_safe_name
 from Classes.OGCore.OGResults import OGResults
@@ -147,7 +147,7 @@ def guard_active_country():
 
 def _utc_now_z():
     """ISO-8601 UTC timestamp with a trailing Z, seconds precision."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 # ── active workspace country and optional active case ─────────────────────────
@@ -220,6 +220,8 @@ def setSession():
         if country_id is None:
             session.pop("ogccountry", None)
             return jsonify({"ogccase": None, "ogccountry": None}), 200
+        if not is_safe_name(country_id):
+            return _err("Invalid country id.")
         if CalibrationRegistry.get(country_id) is None:
             return _err("That country calibration is not installed.")
         active_country = session.get("ogccountry")
@@ -372,15 +374,17 @@ def getRuns():
     if not case.case_path.is_dir():
         return _err("Case not found.", http=404)
     shaped = case.get_runs_shaped()
+    snapshot = RunJob.get_queue_snapshot(data["country_id"], data["casename"])
+    live_runs = {item["run_name"]: item for item in snapshot["queued"]}
+    if snapshot["active"]:
+        live_runs[snapshot["active"]["run_name"]] = snapshot["active"]
     for item in ([shaped.get("baseline")] + shaped.get("reforms", [])):
         if not item:
             continue
-        live = RunJob.get_live(
-            data["country_id"], data["casename"], item["RunName"]
-        )
+        live = live_runs.get(item["RunName"])
         item["queue_position"] = live.get("queue_position") if live else None
         if live:
-            item["status"] = "queued" if live.get("queued") else "running"
+            item["status"] = live["state"]
     return jsonify(shaped), 200
 
 
@@ -546,29 +550,11 @@ def getRunStatus():
 
     live = RunJob.get_live(country_id, casename, run_name)
     run_state = meta.get("status")
-    # A persisted active/queued state without in-memory ownership was orphaned by a
-    # restart (including WSGI startup paths that skip reconcile). Repair truthfully.
     if run_state in ("running", "queued") and live is None:
-        # Re-read first: the run may have finished between the read above and the
-        # live check, and marking a completed run failed would lose it.
+        RunJob.repair_orphan(country_id, casename, run_name)
         meta = case.get_run_meta(run_name)
         run_state = meta.get("status")
-        if run_state in ("running", "queued"):
-            # This is also the only repair path under a WSGI loader, which never runs
-            # the startup reconcile, so kill the orphan before its pid is cleared.
-            was_running = run_state == "running"
-            if was_running:
-                kill_worker_tree(meta.get("pid"), case.res_path / run_name)
-            case.update_run_status(
-                run_name, "failed",
-                error=(
-                    "Run was interrupted by an application restart."
-                    if was_running
-                    else "Queued run was interrupted by an application restart before it started."
-                ),
-            )
-            meta = case.get_run_meta(run_name)
-            run_state = meta.get("status")
+        live = RunJob.get_live(country_id, casename, run_name)
 
     if live:
         run_state = "queued" if live.get("queued") else "running"
@@ -595,6 +581,9 @@ def getRunStatus():
         "queue_position": queue_position,
         "queue_length": queue_length,
         "reusable": case.is_run_reusable(run_name),
+        "stale_reason": meta.get("stale_reason"),
+        "completed_at": meta.get("completed_at"),
+        "time_path": meta.get("time_path"),
         # Carried here as well as on getRuns: this is the endpoint a client polls, so
         # without it a run that fails mid-poll reads as failed with no reason given.
         "error": meta.get("error"),
@@ -675,7 +664,7 @@ def getSSVars():
     meta = case.get_run_meta(run_name)
     if not meta:
         return _err("Run not found.", http=404)
-    if meta.get("status") != "completed":
+    if meta.get("status") != "completed" or not case.is_run_reusable(run_name):
         return _err("No results - run it first", http=404)
     ss = OGResults.load_ss(case.res_path / run_name)
     if ss is None:
@@ -706,7 +695,7 @@ def getTPIVars():
     meta = case.get_run_meta(run_name)
     if not meta:
         return _err("Run not found.", http=404)
-    if meta.get("status") != "completed":
+    if meta.get("status") != "completed" or not case.is_run_reusable(run_name):
         return _err("No results - run it first", http=404)
     tpi = OGResults.load_tpi(case.res_path / run_name)
     if tpi is None:
@@ -734,11 +723,12 @@ def _results_gate(case, run_name):
             "casename": case.casename,
             "message": "Solve in progress",
         }), 200
-    if status != "completed":
+    if status != "completed" or not case.is_run_reusable(run_name):
         return jsonify({
             "status_code": "error",
             "casename": case.casename,
-            "message": "No results - run it first",
+            "message": (meta.get("stale_reason") or "Results no longer match the current inputs; run again.")
+            if status == "completed" else "No results - run it first",
         }), 404
     return None
 
@@ -786,6 +776,50 @@ def getResults():
             "message": message,
         }), http
     return jsonify(payload), 200
+
+
+# ── 16b. the Results report (single run or baseline vs reform) ────────────────
+@ogcore_run_api.route("/getResultsReport", methods=["POST"])
+def getResultsReport():
+    """Labelled, unit-consistent results for one run or a baseline/reform pair.
+
+    Old runs have their results metadata rebuilt once (see
+    OGTables.ensure_run_metadata); when that fails the report still returns, with
+    the household blocks replaced by a reason.
+    """
+    data = request.get_json(silent=True)
+    if data is None:
+        return _err("Request body must be valid JSON.")
+    case, err = _resolve_case(data, "base_run")
+    if err:
+        return err
+    base_run = data["base_run"]
+    reform_run = data.get("reform_run") or None
+    names = [base_run] + ([reform_run] if reform_run else [])
+    bad = _unsafe_name(*names)
+    if bad:
+        return bad
+    if not case.case_path.is_dir():
+        return _err("Case not found.", http=404)
+    loaded = []
+    for name in names:
+        gate = _results_gate(case, name)
+        if gate:
+            return gate
+        run_dir = case.res_path / name
+        ss = OGResults.load_ss(run_dir)
+        if ss is None:
+            return _err("No results - run it first", http=404)
+        meta, reason = OGTables.ensure_run_metadata(case, run_dir)
+        loaded.append({"ss": ss, "tpi": OGResults.load_tpi(run_dir), "meta": meta, "reason": reason})
+    report = OGReport.build_report(loaded[0], loaded[1] if reform_run else None)
+    reasons = [item["reason"] for item in loaded if item["reason"]]
+    if reasons and report["households"] is None:
+        report["households_reason"] = reasons[0]
+    report.update({"status_code": "success", "casename": case.casename, "base_run": base_run})
+    if reform_run:
+        report["reform_run"] = reform_run
+    return jsonify(report), 200
 
 
 # ── analysis tables: shared endpoint ─────────────────────────────────────────
@@ -1151,7 +1185,7 @@ def getParameterSchema():
     session_country, session_case = _active_case()
     casename = request.args.get("casename")
     country_id = request.args.get("country_id")
-    if not casename:
+    if not casename and not country_id:
         country_id, casename = session_country, session_case
     if not casename or not country_id:
         return _err("No case selected.")
@@ -1173,8 +1207,10 @@ def getParameterSchema():
 
 @ogcore_run_api.route("/getParameterDefault", methods=["GET"])
 def getParameterDefault():
-    country_id = request.args.get("country_id") or session.get("ogccountry")
-    casename = request.args.get("casename") or session.get("ogccase")
+    country_id = request.args.get("country_id")
+    casename = request.args.get("casename")
+    if not country_id and not casename:
+        country_id, casename = _active_case()
     parameter = request.args.get("parameter")
     if not country_id or not casename or not parameter:
         return _err("Missing case or parameter name.")

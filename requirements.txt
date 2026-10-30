@@ -51,6 +51,7 @@ numpy==1.26.4
     # via
     #   muiogo
     #   pandas
+    #   scipy
 openpyxl==3.1.4
     # via muiogo
 packaging==24.0
@@ -72,6 +73,8 @@ s3transfer==0.10.1
     # via
     #   boto3
     #   muiogo
+scipy==1.17.1
+    # via muiogo
 six==1.17.0
     # via python-dateutil
 tzdata==2024.1

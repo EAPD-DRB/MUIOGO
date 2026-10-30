@@ -1,0 +1,36 @@
+{
+  "repository": "https://github.com/marcelolafleur/ogclews-link",
+  "revision": "4134763e00234cd499cd744b36e400888f228278",
+  "path": "IHME-GBD_2023_DATA/IHME-GBD_2023_DATA-a20a92ea-1.csv",
+  "git_blob": "d56c2970f2240ead437e12097002c8cb2dc1aa2c",
+  "sha256": "81ce2033f8fa3f5479354d12d882651754d562f5f7c8294dff76eee113da7ab1",
+  "export_citation_file": "citation.txt",
+  "extraction": "Original header and complete original CSV records retained byte-for-byte; select location_name and measure_name in Deaths / YLDs (Years Lived with Disability). No numeric reformatting.",
+  "files": {
+    "IHME-GBD_2023_DATA-IDN.csv": {
+      "country": "Indonesia",
+      "year": 2023,
+      "rows": 1118,
+      "sha256": "d7a82c98a96e998b012608ecac2e8e3c7e378fd167f08623762a6f1092826f4a"
+    },
+    "IHME-GBD_2023_DATA-ZAF.csv": {
+      "country": "South Africa",
+      "year": 2023,
+      "rows": 1118,
+      "sha256": "2ce3d2b7a8786821bf9317f8104acdcaa86cd8172c10a6433941b960a3328ac8"
+    },
+    "IHME-GBD_2023_DATA-ETH.csv": {
+      "country": "Ethiopia",
+      "year": 2023,
+      "rows": 1118,
+      "sha256": "2705823c3fd0477a602e75d3141e23496bc34d508c3ee9c77d110125ca30a10e"
+    }
+  },
+  "reference": {
+    "file": "IHME-GBD_2023_DATA-a2dc02fe-1.csv",
+    "country": "Philippines",
+    "rows": 1118,
+    "sha256": "0aec95d9854a3766db59f41dfae52f67bda611bf2653b095c00d4b15d11b1326",
+    "check": "All 1118 existing records have identical val, lower and upper values in the recovered multi-country export."
+  }
+}

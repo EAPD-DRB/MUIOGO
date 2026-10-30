@@ -125,7 +125,7 @@ export class OGTableEditor {
             let row = cell.getRow().getData();
             let column = parseInt(cell.getField().slice(6), 10);
             let baseline = row._baseline[column];
-            let changed = !Model.equal(cell.getValue(), baseline);
+            let changed = baseline !== undefined && !Model.equal(cell.getValue(), baseline);
             cell.getElement().classList.toggle('ogc-table-modified', changed);
             cell.getElement().classList.toggle('ogc-table-invalid', !OGTableEditor.validValue(cell.getValue()));
             cell.getElement().title = changed && baseline !== undefined
@@ -210,7 +210,8 @@ export class OGTableEditor {
             $.each(row, function (field, value) {
                 if (field.indexOf('value_') !== 0) return;
                 let column = parseInt(field.slice(6), 10);
-                if (!Model.equal(value, row._baseline[column])) count++;
+                let baseline = row._baseline[column];
+                if (baseline !== undefined && !Model.equal(value, baseline)) count++;
                 if (!OGTableEditor.validValue(value)) invalid++;
             });
         });

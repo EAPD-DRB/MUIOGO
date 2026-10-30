@@ -1,5 +1,12 @@
 export const TIER = { LEVERS: 1, ASSUMPTIONS: 2, REFERENCE: 3 };
 
+export const FREQUENT_PARAMETERS = [
+    'start_year', 'cit_rate', 'tau_c', 'tau_payroll',
+    'alpha_G', 'alpha_I', 'alpha_T', 'debt_ratio_ss', 'g_y_annual',
+    'pension_system', 'retirement_age', 'replacement_rate_adjust',
+    'zeta_D', 'zeta_K', 'alpha_RM_T'
+];
+
 export const GROUPS = [
     {
         id: 'taxes',
@@ -346,6 +353,7 @@ export function decorate(name, entry) {
         }
     }
     let large = entry.large === true || entry.default === null;
+    if (large && storageShape == 'column_matrix') dimension = 'matrix';
     let tableEditable = dimension == 'by_age' || dimension == 'matrix';
     let access = 'edit';
     if (ro){

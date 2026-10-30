@@ -232,14 +232,16 @@ def project_entry(name: str, entry) -> dict:
         choices = choice.get("choices") if isinstance(choice, dict) else None
         if isinstance(choices, list) and choices:
             projected["choices"] = choices
-    if _leaf_count(display_value) > _LARGE_VALUE_THRESHOLD and not _is_column_matrix(display_value):
+    if _leaf_count(display_value) > _LARGE_VALUE_THRESHOLD:
         projected["default"] = None
         projected["large"] = True
         projected["preview"] = _preview(display_value)
     else:
         projected["default"] = display_value
     if dimensions:
+        # Logical storage shape; display_dimensions describes the compact default.
         projected["dimensions"] = dimensions
+        projected["display_dimensions"] = _dimensions(projected["default"])
     projected["min"] = rng[0] if rng else None
     projected["max"] = rng[1] if rng else None
     return projected
@@ -268,7 +270,7 @@ def _with_default(entry: dict, value) -> dict:
     out = dict(entry)
     dimensions = _dimensions(value) if isinstance(value, list) else None
     display_value = _compact_column_matrix(value)
-    if _leaf_count(display_value) > _LARGE_VALUE_THRESHOLD and not _is_column_matrix(display_value):
+    if _leaf_count(display_value) > _LARGE_VALUE_THRESHOLD:
         out["default"] = None
         out["large"] = True
         out["preview"] = _preview(display_value)
@@ -278,8 +280,10 @@ def _with_default(entry: dict, value) -> dict:
         out.pop("preview", None)
     if dimensions:
         out["dimensions"] = dimensions
+        out["display_dimensions"] = _dimensions(out["default"])
     else:
         out.pop("dimensions", None)
+        out.pop("display_dimensions", None)
     return out
 
 
@@ -310,12 +314,7 @@ def build_schema(case) -> tuple[dict | None, str | None]:
     Returns (schema, None) on success or (None, error_message) when the case's
     calibration is not installed or its parameter definitions cannot be found.
     """
-    try:
-        country_id = case.gen_data.get("country_id")
-    except (OSError, ValueError, KeyError):
-        country_id = None
-
-    rec = CalibrationRegistry.get(country_id)
+    rec = CalibrationRegistry.get(case.country_id)
     if rec is None:
         return None, "That country calibration is not installed."
 
@@ -346,12 +345,7 @@ def build_schema(case) -> tuple[dict | None, str | None]:
 
 def get_parameter_default(case, name: str) -> tuple[object | None, str | None]:
     """Load one full calibration default without expanding the whole schema."""
-    try:
-        country_id = case.gen_data.get("country_id")
-    except (OSError, ValueError, KeyError):
-        country_id = None
-
-    rec = CalibrationRegistry.get(country_id)
+    rec = CalibrationRegistry.get(case.country_id)
     if rec is None:
         return None, "That country calibration is not installed."
 

@@ -1,0 +1,22 @@
+<div class="clw-page">
+  <h1 class="clw-title">CLEWs country models</h1>
+  <p class="clw-sub">Models are installed from their repositories. <b>Install</b> adds the newest version; <b>All versions</b> lists every version the repository holds. Nothing already on this machine is ever overwritten.</p>
+
+  <div class="clw-srcnote" id="clwSourceNote" style="display: none;"></div>
+
+  <div id="clwCountries"></div>
+
+  <div class="clw-block clw-addblock">
+    <div class="clw-block-head"><span class="clw-block-title">Add a repository</span><span class="clw-muted">a GitHub repository not on the list, or a local folder</span></div>
+    <div class="clw-source">
+      <input type="text" class="form-control" id="clwSource" placeholder="https://github.com/EAPD-DRB/CLEWs-FJI  (or a folder on this machine)" />
+      <button class="btn btn-primary" id="clwLookup"><i class="fa fa-search"></i> Look up</button>
+    </div>
+    <div id="clwAdded"></div>
+  </div>
+
+  <div class="clw-block" id="clwInstalledBlock">
+    <div class="clw-block-head"><span class="clw-block-title">Installed on this machine</span><span class="clw-muted">every model, by repository and version; Delete removes a model with all its scenarios and results</span></div>
+    <div id="clwInstalled"></div>
+  </div>
+</div>

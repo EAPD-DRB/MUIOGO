@@ -189,8 +189,8 @@ def test_parameter_change_invalidates_run_and_dependent_reforms(
     )
 
     assert response.status_code == 200
-    assert case.get_run_meta("base")["status"] == "pending"
-    assert case.get_run_meta("reform")["status"] == "pending"
+    assert case.get_run_meta("base")["status"] == "completed"
+    assert case.get_run_meta("reform")["status"] == "completed"
     assert case.is_run_reusable("base") is False
     assert case.is_run_reusable("reform") is False
 
@@ -206,7 +206,7 @@ def test_rerunning_baseline_invalidates_completed_reform(
     RunJob.start("ETH", "c1", "base", False)
 
     reform = case.get_run_meta("reform")
-    assert reform["status"] == "pending"
+    assert reform["status"] == "completed"
     assert "baseline" in reform["stale_reason"].lower()
 
 

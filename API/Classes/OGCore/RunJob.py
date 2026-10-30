@@ -143,7 +143,10 @@ class RunJob:
         )
         case = OGCoreCase(country_id, casename)
         for run_name in candidates:
-            meta = case.get_run_meta(run_name)
+            meta = _read_json(case.res_path / run_name / "run_meta.json")
+            # Unknown live dependencies must not allow baseline inputs to change.
+            if meta is None:
+                return True
             if (
                 meta.get("run_type") == "reform"
                 and meta.get("baseline_run_name") == baseline_run_name
@@ -278,7 +281,7 @@ class RunJob:
     @classmethod
     def _preceding_baseline_time_path_locked(
         cls, country_id: str, casename: str, baseline_run_name: str
-    ) -> bool | None:
+    ) -> tuple[bool, bool | None]:
         act = cls._active
         if (
             act
@@ -286,17 +289,16 @@ class RunJob:
             and act["casename"] == casename
             and act["run_name"] == baseline_run_name
         ):
-            return OGCoreCase(country_id, casename).get_run_meta(
-                baseline_run_name
-            ).get("time_path")
+            meta = _read_json(cls._run_dir(country_id, casename, baseline_run_name) / "run_meta.json")
+            return True, (meta or {}).get("time_path")
         for queued_country, queued_case, queued_run, queued_time_path in cls._queue:
             if (
                 queued_country == country_id
                 and queued_case == casename
                 and queued_run == baseline_run_name
             ):
-                return queued_time_path
-        return None
+                return True, queued_time_path
+        return False, None
 
     @classmethod
     def _validate_reform_locked(
@@ -315,8 +317,9 @@ class RunJob:
         )
         baseline_name = meta.get("baseline_run_name")
         preceding_time_path = None
+        baseline_precedes = False
         if allow_preceding_baseline and baseline_name:
-            preceding_time_path = cls._preceding_baseline_time_path_locked(
+            baseline_precedes, preceding_time_path = cls._preceding_baseline_time_path_locked(
                 case.country_id, case.casename, baseline_name
             )
 
@@ -326,7 +329,6 @@ class RunJob:
             and baseline_name
             and case.is_run_reusable(baseline_name)
         )
-        baseline_precedes = preceding_time_path is not None
 
         if time_path and not (
             (baseline_ready and baseline_meta.get("time_path") is True)
@@ -623,6 +625,25 @@ class RunJob:
         return True
 
     # ── live view ──────────────────────────────────────────────────────────
+    @classmethod
+    def repair_orphan(cls, country_id: str, casename: str, run_name: str) -> bool:
+        """Recheck ownership and repair under the same lock as FIFO admission."""
+        with cls._lock:
+            if cls.is_busy(country_id, casename, run_name):
+                return False
+            case = OGCoreCase(country_id, casename)
+            meta = _read_json(case.res_path / run_name / "run_meta.json") or {}
+            if meta.get("status") not in ("running", "queued"):
+                return False
+            was_running = meta["status"] == "running"
+            if was_running:
+                kill_worker_tree(meta.get("pid"), case.res_path / run_name)
+            case.update_run_status(run_name, "failed", error=(
+                "Run was interrupted by an application restart." if was_running
+                else "Queued run was interrupted by an application restart before it started."
+            ))
+            return True
+
     @classmethod
     def get_live(cls, country_id: str, casename: str, run_name: str) -> dict | None:
         with cls._lock:

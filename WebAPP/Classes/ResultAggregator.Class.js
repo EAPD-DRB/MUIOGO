@@ -98,7 +98,7 @@ export class ResultAggregator {
 
         // Calculate requested subtotals separately so charts cannot treat them as regular data.
         const totals = this.buildTotals(cells, rowDefinitions, columnDefinitions, valueFields, totalConfiguration);
-        this.applyShowAs(cells, rowKeys, columnKeys, valueFields);
+        this.applyShowAs(cells, rowKeys, columnKeys, valueFields, totals);
         const resultCells = cells.map(cell => ({
             rowKey: cell.rowKey,
             columnKey: cell.columnKey,
@@ -446,18 +446,28 @@ export class ResultAggregator {
     }
 
     // Apply Excel-style Show As transformations after the base summaries are complete.
-    static applyShowAs(cells, rowKeys, columnKeys, valueFields) {
-        const lookup = new Map(cells.map(cell => [this.cellID(this.keyID(cell.rowKey), this.keyID(cell.columnKey)), cell]));
+    static applyShowAs(cells, rowKeys, columnKeys, valueFields, totals = { cells: [], rowKeys: [], columnKeys: [] }) {
+        const allCells = cells.concat(totals.cells);
+        const lookup = new Map(allCells.map(cell => [this.cellID(this.keyID(cell.rowKey), this.keyID(cell.columnKey)), cell]));
+        // Compare siblings at the same depth; never mix detail rows and subtotals.
+        const groupID = key => key.length + ':' + this.keyID(key.slice(0, -1));
         const groupKeys = keys => keys.reduce((groups, key) => {
-            const prefix = this.keyID(key.slice(0, -1));
+            const prefix = groupID(key);
             if (!groups.has(prefix)) groups.set(prefix, []);
             groups.get(prefix).push(key);
             return groups;
         }, new Map());
-        const rowGroups = groupKeys(rowKeys);
+        const rowGroups = groupKeys(rowKeys.concat(totals.rowKeys));
+        const columnGroups = groupKeys(columnKeys.concat(totals.columnKeys));
+        const rowDepth = rowKeys.length ? rowKeys[0].length : 0;
+        const columnDepth = columnKeys.length ? columnKeys[0].length : 0;
+        const rowCalculations = new Set(['differenceRow', 'differenceRowPercent', 'percentPreviousRow', 'runningTotal', 'runningTotalPercent']);
+        const columnCalculations = new Set(['differenceColumn', 'differenceColumnPercent', 'percentPreviousColumn']);
         valueFields.forEach(field => {
             if (field.showAs == 'none') return;
-            const original = new Map(cells.map(cell => [cell, cell.values[field.field]]));
+            // Snapshot before transforming either detail cells or totals.
+            const original = new Map(allCells.map(cell => [cell, cell.values[field.field]]));
+            // Denominators use only full-depth keys, excluding subtotal duplication.
             const rowTotal = rowKey => columnKeys.reduce((sum, columnKey) => {
                 const cell = lookup.get(this.cellID(this.keyID(rowKey), this.keyID(columnKey)));
                 const value = cell ? original.get(cell) : null;
@@ -469,18 +479,25 @@ export class ResultAggregator {
                 return sum + (Number.isFinite(value) ? value : 0);
             }, 0);
             const grand = cells.reduce((sum, cell) => sum + (Number.isFinite(original.get(cell)) ? original.get(cell) : 0), 0);
-            cells.forEach(cell => {
-                const row = rowKeys.findIndex(key => this.keyID(key) == this.keyID(cell.rowKey));
-                const column = columnKeys.findIndex(key => this.keyID(key) == this.keyID(cell.columnKey));
+            allCells.forEach(cell => {
                 const value = original.get(cell);
-                const rowPrefix = cell.rowKey.slice(0, -1);
-                const columnPrefix = cell.columnKey.slice(0, -1);
-                const sameRowGroup = key => this.keyID(key.slice(0, -1)) == this.keyID(rowPrefix);
-                const sameColumnGroup = key => this.keyID(key.slice(0, -1)) == this.keyID(columnPrefix);
-                const previousRow = row > 0 && sameRowGroup(rowKeys[row - 1])
-                    ? lookup.get(this.cellID(this.keyID(rowKeys[row - 1]), this.keyID(cell.columnKey))) : null;
-                const previousColumn = column > 0 && sameColumnGroup(columnKeys[column - 1])
-                    ? lookup.get(this.cellID(this.keyID(cell.rowKey), this.keyID(columnKeys[column - 1]))) : null;
+                const rowGrand = rowDepth > 0 && cell.rowKey.length == 0;
+                const columnGrand = columnDepth > 0 && cell.columnKey.length == 0;
+                // A grand total has no previous sibling or running-total group.
+                if (!Number.isFinite(value) ||
+                    (rowGrand && rowCalculations.has(field.showAs)) ||
+                    (columnGrand && columnCalculations.has(field.showAs))) {
+                    cell.values[field.field] = null;
+                    return;
+                }
+                const groupRows = rowGroups.get(groupID(cell.rowKey)) || [];
+                const groupColumns = columnGroups.get(groupID(cell.columnKey)) || [];
+                const row = groupRows.findIndex(key => this.keyID(key) == this.keyID(cell.rowKey));
+                const column = groupColumns.findIndex(key => this.keyID(key) == this.keyID(cell.columnKey));
+                const previousRow = row > 0
+                    ? lookup.get(this.cellID(this.keyID(groupRows[row - 1]), this.keyID(cell.columnKey))) : null;
+                const previousColumn = column > 0
+                    ? lookup.get(this.cellID(this.keyID(cell.rowKey), this.keyID(groupColumns[column - 1]))) : null;
                 const previousRowValue = previousRow ? original.get(previousRow) : null;
                 const previousColumnValue = previousColumn ? original.get(previousColumn) : null;
                 const ratio = denominator => Number.isFinite(value) && denominator ? value / denominator : null;
@@ -494,7 +511,6 @@ export class ResultAggregator {
                 else if (field.showAs == 'percentPreviousRow') cell.values[field.field] = previousRow ? ratio(previousRowValue) : 1;
                 else if (field.showAs == 'percentPreviousColumn') cell.values[field.field] = previousColumn ? ratio(previousColumnValue) : 1;
                 else if (field.showAs == 'runningTotal' || field.showAs == 'runningTotalPercent') {
-                    const groupRows = rowGroups.get(this.keyID(rowPrefix)) || [];
                     const groupIndex = groupRows.findIndex(key => this.keyID(key) == this.keyID(cell.rowKey));
                     const running = groupRows.slice(0, groupIndex + 1).reduce((sum, rowKey) => {
                         const item = lookup.get(this.cellID(this.keyID(rowKey), this.keyID(cell.columnKey)));

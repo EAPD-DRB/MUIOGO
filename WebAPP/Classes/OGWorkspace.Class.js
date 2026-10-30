@@ -34,11 +34,12 @@ export class OGWorkspace {
 
     static reconcileEntry(route){
         let path = String(route || '/').split('?')[0];
-        if (path != '/OGCore' || !OGWorkspace.current()){
+        if (OGWorkspace.isWorkspaceRoute(path) || !OGWorkspace.current()){
             return null;
         }
-        OGWorkspace.clearLocal();
-        return Ogc.setSession(null).then(() => true).catch(() => false);
+        return Ogc.setSession(null)
+            .then(() => { OGWorkspace.clearLocal(); return true; })
+            .catch(() => false);
     }
 
     static async activateCountry(countryId){

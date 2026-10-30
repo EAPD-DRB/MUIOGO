@@ -76,13 +76,13 @@ export class MuiogoShell {
         if (route == '#') route = '#/';
         let nav = $('#Navi');
         if (!nav.length) return;
-        let target = nav.children('li').filter(function () {
+        let target = nav.find('li').filter(function () {
             return $(this).children('a').attr('href') == route;
         });
         if (!target.length && route == '#/') target = nav.children('li.nav-home');
         // Keep SmartAdmin's `open` submenu state intact; it is independent of
         // which route currently owns the active marker.
-        nav.children('li').removeClass('active');
-        target.addClass('active');
+        nav.find('li').removeClass('active');
+        target.addClass('active').parentsUntil(nav, 'li').addClass('active');
     }
 }

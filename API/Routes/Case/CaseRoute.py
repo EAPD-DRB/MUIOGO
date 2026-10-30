@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, session, send_file
 import os
+import stat
 from pathlib import Path
 import shutil
 import pandas as pd
@@ -9,9 +10,19 @@ from Classes.Case.CaseClass import Case
 from Classes.Case.UpdateCaseClass import UpdateCase
 from Classes.Case.ImportTemplate import ImportTemplate
 from Classes.Base.SyncS3 import SyncS3
+from Classes.Clews.Provenance import Provenance
 from utils import validate_json_fields
 
 case_api = Blueprint('CaseRoute', __name__)
+
+# Helper to detect hidden directories using platform-specific flags and naming rules
+def _is_hidden_directory(entry):
+    metadata = entry.stat()
+    if os.name == 'nt':
+        return bool(metadata.st_file_attributes & stat.FILE_ATTRIBUTE_HIDDEN)
+    return entry.name.startswith('.') or bool(
+        getattr(metadata, 'st_flags', 0) & getattr(stat, 'UF_HIDDEN', 0)
+    )
 
 @case_api.route("/initSyncS3", methods=['GET'])
 def initSyncS3():
@@ -34,10 +45,14 @@ def initSyncS3():
 @case_api.route("/getCases", methods=['GET'])
 def getCases():
     try:
-        cases = [
-            f.name for f in os.scandir(Config.DATA_STORAGE)
-            if f.is_dir() and Path(f.path, "genData.json").is_file()
-        ]
+        with os.scandir(Config.DATA_STORAGE) as entries:
+            cases = [
+                entry.name for entry in entries
+                if entry.is_dir()
+                and not _is_hidden_directory(entry)
+                and Path(entry.path, "genData.json").is_file()
+            ]
+        cases.sort(key=lambda name: (name.casefold(), name))
         return jsonify(cases), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -101,6 +116,9 @@ def copy():
             genData = File.readFile(casePath)
             genData['osy-casename'] = case_copy
             File.writeFile(genData, casePath)
+            # The copied provenance sidecar would claim the copy is the pristine
+            # installed archive; restamp it as derived from the original.
+            Provenance.mark_copy(case, case_copy)
             response = {
                 "message": 'Model <b>'+ case + '</b> copied!',
                 "status_code": "success"
@@ -271,8 +289,22 @@ def saveCase():
         if err:
             return err, code
         genData = request.json['data']
-        casename = genData['osy-casename']
+        if not isinstance(genData, dict):
+            return jsonify({'message': 'Invalid model name.', 'status_code': 'error'}), 400
+        casename = genData.get('osy-casename')
         case = session.get('osycase', None)
+
+        # Check both names before reading or updating any case files. Keep the
+        # original single-component names so renaming a linked case moves its
+        # DataStorage symlink, rather than the external country directory.
+        try:
+            Config.validate_case_name(casename)
+            Config.validate_path(Config.DATA_STORAGE, casename)
+            if case is not None and case != '':
+                Config.validate_case_name(case)
+                Config.validate_path(Config.DATA_STORAGE, case)
+        except PermissionError:
+            return jsonify({'message': 'Invalid model name.', 'status_code': 'error'}), 400
 
         configPath = Path(Config.DATA_STORAGE, 'Variables.json')
         vars = File.readParamFile(configPath)

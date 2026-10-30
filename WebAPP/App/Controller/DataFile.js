@@ -337,7 +337,7 @@ export default class DataFile {
                 scAcitive.push($(value).attr("id"));
             });
 
-            let scOrder = DefaultObj.defaultScenario(true);
+            let scOrder = [{ ...model.scMap['SC_0'], Active: true }];
             $.each(order, function (id, sc) {
                 let tmp = {};
                 if (scAcitive.includes(sc)) {

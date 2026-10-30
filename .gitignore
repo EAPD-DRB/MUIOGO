@@ -25,6 +25,7 @@ test-results/
 .coverage
 .coverage.*
 htmlcov/
+docs/build/
 
 # Installer log files
 .install-*.log
@@ -48,6 +49,8 @@ WebAPP/SOLVERs/GLPK
 WebAPP/SOLVERs/COIN-OR
 WebAPP/SOLVERs/_GLPK
 WebAPP/SOLVERs/_COIN-OR
+WebAPP/app.log
+WebAPP/app*.log
 
 WebAPP/DataStorage/*
 !WebAPP/DataStorage/Parameters.json

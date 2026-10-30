@@ -2,6 +2,9 @@ from pathlib import Path
 import pandas as pd
 import traceback
 import json, shutil, os, time, subprocess
+import concurrent.futures
+import hashlib
+import logging
 from collections import defaultdict
 from itertools import product
 
@@ -10,6 +13,11 @@ from Classes.Case.OsemosysClass import Osemosys
 from Classes.Case.HelpersClass import Helpers
 from Classes.Base.FileClass import File
 from Classes.Base.CustomThreadClass import CustomThread
+from Classes.Case import CommodityPrice
+
+logger = logging.getLogger(__name__)
+
+
 class DataFile(Osemosys):
     # def __init__(self, case):
     #     Osemosys.__init__(self, case)
@@ -593,6 +601,12 @@ class DataFile(Osemosys):
         rytts = self.RYTTs(File.readFile(self.ryttsPath))
         for id, param in self.PARAM['RYTTs'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
+            if id not in rytts:
+                # A case saved before this parameter existed (e.g. Operational
+                # Profile, new in MUIO 5.7) has no entry for it: every value is
+                # the default, so the declaration alone is complete.
+                self.f.write('{}{}'.format(';', '\n'))
+                continue
             for techId in self.techIDs:
                 regionHeader = True
                 # self.f.write('{} {}'.format('[RE1,'+ self.techMap[techId] +',*,*]:', '\n'))
@@ -615,7 +629,7 @@ class DataFile(Osemosys):
                             self.f.write('{} {}'.format('[RE1,'+ self.techMap[techId] +',*,*]:', '\n'))
                             self.f.write('{}{}{}'.format( self.years, ':=', '\n'))
                         self.f.write('{} {}{}'.format(self.tsMap[timesliceId], ryttsString, '\n'))
-        self.f.write('{}{}'.format(';', '\n'))
+            self.f.write('{}{}'.format(';', '\n'))
 
     def gen_RYCTs(self):
         rycts = self.RYCTs(File.readFile(self.ryctsPath))
@@ -643,7 +657,16 @@ class DataFile(Osemosys):
                             self.f.write('{} {}'.format('[RE1,'+ self.commMap[commId] +',*,*]:', '\n'))
                             self.f.write('{}{}{}'.format( self.years, ':=', '\n'))
                         self.f.write('{} {}{}'.format(self.tsMap[timesliceId], ryctsString, '\n'))
-        self.f.write('{}{}'.format(';', '\n'))
+            self.f.write('{}{}'.format(';', '\n'))
+
+    def _joinIds(self, ids, idMap=None):
+        # Builds a GMPL set/list string, e.g. ids=['t1','t2'], idMap={'t1':'COAL','t2':'GAS'}
+        # -> "COAL GAS " (trailing space kept, matches old '{} '.format loop output).
+        # Without idMap, ids are used as-is, e.g. ids=[2020,2021] -> "2020 2021 ".
+        # Empty ids -> "" (not " ").
+        values = (idMap[i] for i in ids) if idMap is not None else ids
+        joined = ' '.join(str(v) for v in values)
+        return joined + ' ' if joined else ''
 
     def generateDatafile( self, caserunname ):
         try:
@@ -680,6 +703,32 @@ class DataFile(Osemosys):
 
             self.storageTechIDs = self.getStorageTechIds()
 
+            # --- BEGIN storage balance-level warning (safe to delete this block) ---
+            # Model fix (model.v.5.7.Storage.txt): a technology linked to storage is
+            # always forced to Timeslice resolution, regardless of its commodities'
+            # Balance Level. This is just a heads-up log for the user when that
+            # override actually kicks in (i.e. the tech has no Timeslice-level
+            # commodity of its own). Purely informational - does not affect data.txt.
+            try:
+                commBalanceLevel = {c['CommId']: c.get('BalanceLevel') or 'Ts' for c in self.genData["osy-comm"]}
+                storageLinkedTechIds = set()
+                for stgDict in self.storageTechIDs.values():
+                    for techList in stgDict.values():
+                        storageLinkedTechIds.update(techList)
+
+                for techId in storageLinkedTechIds:
+                    techCommIds = (self.activityCommIDs.get('IAR', {}).get(techId, [])
+                                   + self.activityCommIDs.get('OAR', {}).get(techId, []))
+                    if techCommIds and not any(commBalanceLevel.get(c) == 'Ts' for c in techCommIds):
+                        logger.warning(
+                            "Technology '%s' is linked to storage, so it is forced to Timeslice "
+                            "resolution even though none of its commodities are Timeslice balanced.",
+                            self.techMap.get(techId, techId)
+                        )
+            except Exception:
+                logger.exception("storage balance-level warning check failed (non-fatal)")
+            # --- END storage balance-level warning ---
+
             self.inputCapTechIds = self.getInputCapTechIds()
             self.inputCapCommIds = self.getInputCapCommIds()
 
@@ -688,59 +737,29 @@ class DataFile(Osemosys):
 
             self.constraintTechIDs = self.getConstraintTechIds()
 
-            self.stgs = ''
-            for stgId in self.stgIDs:
-                self.stgs += '{} '.format(self.stgMap[stgId]) 
+            self.stgs = self._joinIds(self.stgIDs, self.stgMap)
 
-            self.yearlyStgs = ''
-            self.dailyStgs = ''
-            for stgType, sbt in self.StgByType.items():
-                if stgType == 'Yearly':
-                    for s in sbt:
-                        self.yearlyStgs += '{} '.format(s) 
-                else:
-                    for s in sbt:
-                        self.dailyStgs += '{} '.format(s)      
+            yearlyStgs = self.StgByType.get('Yearly', [])
+            dailyStgs = [s for stgType, sbt in self.StgByType.items() if stgType != 'Yearly' for s in sbt]
+            self.yearlyStgs = self._joinIds(yearlyStgs)
+            self.dailyStgs = self._joinIds(dailyStgs)
 
-            self.techs = ''
-            for techId in self.techIDs:
-                self.techs += '{} '.format(self.techMap[techId]) 
+            self.techs = self._joinIds(self.techIDs, self.techMap)
+            self.comms = self._joinIds(self.commIDs, self.commMap)
+            self.emis = self._joinIds(self.emiIDs, self.emiMap)
+            self.years = self._joinIds(self.yearIDs)
+            self.timeslices = self._joinIds(self.timesliceIDs, self.tsMap)
+            self.seasons = self._joinIds(self.seIDs, self.seMap)
+            self.daytypes = self._joinIds(self.dtIDs, self.dtMap)
+            self.dailytimebrackets = self._joinIds(self.dtbIDs, self.dtbMap)
+            self.mods = self._joinIds(self.modIds)
+            self.cons = self._joinIds(self.conIDs, self.conMap)
 
-            self.comms = ''
-            for commId in self.commIDs:
-                self.comms += '{} '.format(self.commMap[commId]) 
-
-            self.emis = ''
-            for emiId in self.emiIDs:
-                self.emis += '{} '.format(self.emiMap[emiId])
-
-            self.years = ''
-            for yearId in self.yearIDs:
-               self.years += '{} '.format(yearId)
-
-            self.timeslices = ''
-            for timesliceId in self.timesliceIDs:
-                self.timeslices += '{} '.format(self.tsMap[timesliceId])
-
-            self.seasons = ''
-            for seId in self.seIDs:
-                self.seasons += '{} '.format(self.seMap[seId]) 
-
-            self.daytypes = ''
-            for dtId in self.dtIDs:
-                self.daytypes += '{} '.format(self.dtMap[dtId]) 
-
-            self.dailytimebrackets = ''
-            for dtbId in self.dtbIDs:
-                self.dailytimebrackets += '{} '.format(self.dtbMap[dtbId]) 
-
-            self.mods = ''
-            for modId in self.modIds:
-                self.mods += '{} '.format(modId)
-
-            self.cons = ''
-            for conId in self.conIDs:
-                self.cons += '{} '.format(self.conMap[conId])
+            #23052026 Blalnce leve
+            self.allCommLists = self.getAllCommLists()
+            self.comm_ts = self._joinIds(self.allCommLists["Ts"])
+            self.comm_se = self._joinIds(self.allCommLists["Se"])
+            self.comm_an = self._joinIds(self.allCommLists["An"])
 
             # path = '"{}"'.format(self.resPath.resolve())
             self.resPath = Path('..', '..', '..', '..', 'WebAPP', 'DataStorage', self.case, 'res',caserunname, 'csv')
@@ -772,6 +791,9 @@ class DataFile(Osemosys):
                 self.f.write('{} {} {} {}{}{}'.format('set', 'STORAGEINTRADAY',':=', self.dailyStgs, ';', '\n'))
                 self.f.write('{} {} {} {}{}{}'.format('set', 'STORAGEINTRAYEAR',':=', self.yearlyStgs, ';', '\n'))
                 self.f.write('{} {} {} {}{}{}'.format('set', 'UDC',':=', self.cons, ';', '\n'))
+                self.f.write('{} {} {} {}{}{}'.format('set', 'COMMODITY_TS',':=', self.comm_ts, ';', '\n'))
+                self.f.write('{} {} {} {}{}{}'.format('set', 'COMMODITY_S',':=', self.comm_se, ';', '\n'))
+                self.f.write('{} {} {} {}{}{}'.format('set', 'COMMODITY_AN',':=', self.comm_an, ';', '\n'))
                 self.f.write('####################\n#Parameters#\n####################\n')
 
                 #path
@@ -808,10 +830,9 @@ class DataFile(Osemosys):
                 #os.makedirs(name,0777)
 
         #ovako prosljedjujemo exception u prethodnom slucaju vracamo response u funkciju koja poziva writeFile
-        except(IOError, IndexError):
-            raise IndexError
-        except OSError:
-            raise OSError
+        except (IOError, IndexError, OSError):
+            logger.exception('generateDatafile failed for caserunname=%s', caserunname)
+            raise
 
     def createCaseRun(self, caserunname, data):
         try:
@@ -921,10 +942,9 @@ class DataFile(Osemosys):
             if os.path.exists(csvPath):
                 shutil.rmtree(csvPath)
 
-            # Iterate over variables ∪ indicators so cleanup also touches any
-            # indicator-group view files. With empty IND_GROUPED this is a no-op
-            # and equivalent to iterating VARIABLES alone.
-            merged = Helpers.merge_groups(self.VARIABLES, self.IND_GROUPED)
+            # Clear all result families, including cached duals.
+            merged = Helpers.merge_groups(self.VARIABLES, self.DUALS)
+            merged = Helpers.merge_groups(merged, self.IND_GROUPED)
             for group, array in merged.items():
                 #if group != 'RYS':
                 path = Path(self.viewFolderPath, group+'.json')
@@ -1758,15 +1778,22 @@ class DataFile(Osemosys):
             data_itnc = data['InputToNewCapacityRatio']
             data_ittc = data['InputToTotalCapacityRatio']
                             
-            data_out = list(set(data_out))
-            data_inp = list(set(data_inp))
-            data_all = list(set(data_all))
-            data_emi = list(set(data_emi))
-            data_emichange = list(set(data_emichange))
-            data_tts = list(set(data_tts))
-            data_tfs = list(set(data_tfs))
-            data_itnc = list(set(data_itnc))
-            data_ittc = list(set(data_ittc))
+            # Deterministic de-duplication: preserve first-seen order (the order the
+            # rows were parsed from the data file) instead of hash-set order.
+            # list(set(...)) reorders by hash, which Python randomizes per process
+            # (PYTHONHASHSEED) -> a differently ordered LP -> the solver returns a
+            # different (equally optimal, same-cost) solution on each run. dict.fromkeys
+            # keeps insertion order, so the LP and results are stable no matter how the
+            # run is launched (web UI, direct python, MUIOGO-AI over HTTP).
+            data_out = list(dict.fromkeys(data_out))
+            data_inp = list(dict.fromkeys(data_inp))
+            data_all = list(dict.fromkeys(data_all))
+            data_emi = list(dict.fromkeys(data_emi))
+            data_emichange = list(dict.fromkeys(data_emichange))
+            data_tts = list(dict.fromkeys(data_tts))
+            data_tfs = list(dict.fromkeys(data_tfs))
+            data_itnc = list(dict.fromkeys(data_itnc))
+            data_ittc = list(dict.fromkeys(data_ittc))
 
             dict_out = defaultdict(list)
             dict_inp = defaultdict(list)
@@ -1934,9 +1961,9 @@ class DataFile(Osemosys):
             lines.append('{}{}{}'.format('RE1 ', rtString, '\n'))
             lines.append('{}{}'.format(';', '\n'))
 
-            #ispis linija iz originalnog data file
-            with open(data_outfile, 'w') as f2:
-                f2.writelines(lines)
+            # (Previously wrote 'lines' to data_outfile here as an intermediate step,
+            # but that write was fully superseded by the final write below - removed
+            # so a failure here can never leave data_outfile partially overwritten.)
 
 
             # df_OL = pd.DataFrame(data['OperationalLife'], columns=['r','t','OperationalLife'])
@@ -1964,7 +1991,9 @@ class DataFile(Osemosys):
                     file_out.write(line + ';' + '\n')
 
             # Append lines at the end of the data file
-            with open(data_outfile, 'w') as file_out:  # 'a' to open in 'append' mode
+            # Written atomically: goes to data_outfile only if this whole block succeeds,
+            # so a failure never leaves a stale run's data_outfile partially overwritten.
+            with File.atomicWrite(data_outfile) as file_out:
                 file_out.writelines(lines)
                 file_output_function(dict_out, fuel_list, 'set MODExTECHNOLOGYperFUELout[', '')
                 file_output_function(dict_inp, fuel_list, 'set MODExTECHNOLOGYperFUELin[', '')
@@ -1985,23 +2014,167 @@ class DataFile(Osemosys):
 
                 file_out.write('end;')
 
-        except Exception as err:
-            print(f"Unexpected error: {err}")
-            print("An error occurred:")
-            traceback.print_exc()  # Prints full traceback
+        except Exception:
+            logger.exception("preprocessData failed for data_infile=%s, data_outfile=%s", data_infile, data_outfile)
+            raise
 
-    def batchRun(self, solver, cases):
+    def postProcess(self, caserunname):
+        """CSV extraction + results-viewer pivots for an already-solved caserun.
+
+        Split out of run() so parallel batch solves can defer this phase: it
+        rewrites view files shared between caseruns, so it must run
+        sequentially."""
+        dataFile = Path(Config.DATA_STORAGE, self.case, 'res', caserunname, 'data.txt')
+        resFile = Path(Config.DATA_STORAGE, self.case, 'res', caserunname, 'results.txt')
+        resPath = Path(Config.DATA_STORAGE, self.case, 'res', caserunname)
+        self.generateCSVfromCBC(dataFile, resFile, resPath)
+        self.generateResultsViewer(caserunname)
+
+    @staticmethod
+    def _total_memory_gb():
+        """Total machine memory in GB. Deliberately total, not free: free memory
+        changes minute to minute, and worker count should be predictable for
+        the same machine. Falls back to 8 GB (the conservative direction) when
+        detection fails."""
+        try:
+            if hasattr(os, "sysconf"):  # macOS / Linux
+                return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / 1024 ** 3
+            import ctypes  # Windows
+            class MEMORYSTATUSEX(ctypes.Structure):
+                _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                            ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                            ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                            ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                            ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+            stat = MEMORYSTATUSEX()
+            stat.dwLength = ctypes.sizeof(stat)
+            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))
+            return stat.ullTotalPhys / 1024 ** 3
+        except Exception:
+            return 8.0
+
+    @staticmethod
+    def _performance_cores():
+        """Physical performance cores: what concurrent solves actually contend for.
+
+        Logical CPUs overcount by 2x under hyper-threading, and efficiency cores do
+        not help a single-threaded simplex solve. See _batch_workers for the
+        measurement this count is used against.
+        macOS: hw.perflevel0.physicalcpu (P-cores; all cores on Intel Macs).
+        Linux: distinct physical cores in /proc/cpuinfo. Windows: NumberOfCores.
+        If detection fails, half the logical count (conservative), at least 1."""
+        logical = os.cpu_count() or 4
+        try:
+            if Config.SYSTEM == "Darwin":
+                for key in ("hw.perflevel0.physicalcpu", "hw.physicalcpu"):
+                    out = subprocess.run(["sysctl", "-n", key], capture_output=True,
+                                         text=True, timeout=5)
+                    if out.returncode == 0 and out.stdout.strip().isdigit():
+                        return max(1, int(out.stdout.strip()))
+            elif Config.SYSTEM == "Linux":
+                cores = set()
+                phys = core = None
+                for line in Path("/proc/cpuinfo").read_text().splitlines():
+                    if line.startswith("physical id"):
+                        phys = line.split(":")[1].strip()
+                    elif line.startswith("core id"):
+                        core = line.split(":")[1].strip()
+                    elif not line.strip() and core is not None:
+                        cores.add((phys, core))
+                        phys = core = None
+                if cores:
+                    return max(1, len(cores))
+            elif Config.SYSTEM == "Windows":
+                out = subprocess.run(
+                    ["powershell", "-NoProfile", "-Command",
+                     "(Get-CimInstance Win32_Processor | Measure-Object NumberOfCores -Sum).Sum"],
+                    capture_output=True, text=True, timeout=20)
+                if out.returncode == 0 and out.stdout.strip().isdigit():
+                    return max(1, int(out.stdout.strip()))
+        except (OSError, ValueError, subprocess.SubprocessError):
+            pass
+        return max(1, logical // 2)
+
+    @staticmethod
+    def _batch_workers(n_cases):
+        """How many scenarios to solve at once.
+
+            workers = min( scenarios,
+                           performance_cores - 1,
+                           (total_GB - 8) // 4 )    8 GB reserved; 4 GB per solve
+
+        No fixed upper cap: a machine with more performance cores and memory
+        solves more at once. The CPU term is empirical: on the one machine
+        measured (4 performance cores, Philippines vIS2, 829 MB LP), one to
+        three concurrent solves each ran ~1.3x slower than a solo solve and four
+        ran 2.6x slower, so performance_cores - 1 was the widest setting before
+        the slowdown jumped. Why it jumps there was not determined. 4 GB is the
+        worst case observed for a country-scale solve (COAL_PHASEOUT: 3.9 GB
+        peak). Too many workers costs speed, not correctness; memory is the only
+        hard limit and it is the second term. MUIOGO_BATCH_WORKERS overrides everything (1 forces
+        sequential); values below 1 are clamped to 1."""
+        override = os.environ.get("MUIOGO_BATCH_WORKERS")
+        if override:
+            try:
+                return max(1, int(override))
+            except ValueError:
+                pass
+        by_cpu = max(1, DataFile._performance_cores() - 1)
+        by_mem = max(1, int((DataFile._total_memory_gb() - 8) // 4))
+        return max(1, min(n_cases, by_cpu, by_mem))
+
+    def batchRun(self, solver, cases, parallel=True):
         try:
             batchlog=""
             msg=""
             status = "Success"
             results = []
 
-            ##################################Sequential code
-            for caserun in cases:
-                runout =self.run(solver, caserun)
+            # A caserun listed twice would make two workers write into the same
+            # folder; keep first occurrence, preserve order.
+            cases = list(dict.fromkeys(cases))
+            workers = self._batch_workers(len(cases))
+
+            if parallel and len(cases) > 1 and workers > 1:
+                # Solve phase in parallel: each scenario's solve is independent
+                # (own res/<caserun> folder, own subprocesses) and mostly waits
+                # on the solver binary, so threads scale. Each worker gets its
+                # OWN DataFile instance because run() stores per-caserun paths
+                # on self. The shared-view post-processing runs sequentially
+                # below — that is what broke earlier parallelization attempts.
+                case_name = self.case
+                # Sequential pre-phase: clear each caserun's old entries from the
+                # shared view files before any parallel work touches disk.
+                for caserun in cases:
+                    self.deleteCaseResultsJSON(caserun)
+                def _solve(caserun):
+                    # A failing scenario must not sink the batch: report it and
+                    # let the others finish.
+                    try:
+                        return DataFile(case_name).run(solver, caserun, postprocess=False)
+                    except Exception as ex:
+                        return {"caserun": caserun, "status_code": "error",
+                                "timer": f"Run failed: {ex}",
+                                "glpk_message": "", "glpk_stdmsg": "",
+                                "cbc_message": "", "cbc_stdmsg": str(ex)}
+                with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+                    outs = list(executor.map(_solve, cases))
+                for runout in outs:
+                    if runout["status_code"] == "success":
+                        try:
+                            self.postProcess(runout["caserun"])
+                            warnings = getattr(self, 'postprocessWarnings', [])
+                            if warnings:
+                                runout["timer"] = runout["timer"] + " -- Warning: " + " ".join(warnings)
+                                runout["warnings"] = list(warnings)
+                        except Exception as ex:
+                            runout["status_code"] = "error"
+                            runout["timer"] = f"Post-processing failed: {ex}"
+            else:
+                outs = [self.run(solver, caserun) for caserun in cases]
+
+            for runout in outs:
                 msg+="Case: {0}{1}{2}".format( runout["caserun"], runout["timer"],  '\n')
-                # batchlog+="GLPK status {0}{1}{2}GLPK log {3}{4}{5}{6}CBC log {7}{8}{9}{10}{11}".format(runout["status_code"], runout["timer"],'\n',runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n\n')
                 batchlog+="{0}{1}{2}{3}{4}{5}{6}{7}{8}".format(runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n')
                 batchlog+="------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ {0}".format('\n')
                 if runout["status_code"] != 'success':
@@ -2086,7 +2259,48 @@ class DataFile(Osemosys):
         except OSError:
             raise OSError
 
-    def run( self, solver, caserun, lock=None ):
+    @staticmethod
+    def _matrix_fingerprint(model_path, data_path, flavor):
+        """Identity of a built matrix: hash of the two files it is built from
+        (model equations + processed case data) plus the matrix flavor
+        ('exact' keeps whole-unit restrictions, 'relaxed' has them removed)."""
+        h = hashlib.sha256()
+        for p in (model_path, data_path):
+            with open(p, 'rb') as f:
+                for chunk in iter(lambda: f.read(1 << 20), b''):
+                    h.update(chunk)
+        h.update(str(flavor).encode())
+        return h.hexdigest()
+
+    def _ensure_lp_matrix(self, glpsol_exec, glpk_cwd, modelfile, datafile_processed, lpfile, flavor):
+        """Build lp.lp with glpsol, or reuse the previous build when nothing
+        it depends on has changed. A sidecar file next to lp.lp records the
+        fingerprint of the inputs that produced it. Returns (glpsol_result,
+        reused). A failed build removes the sidecar so a stale matrix can
+        never be picked up later."""
+        fp = self._matrix_fingerprint(modelfile, datafile_processed, flavor)
+        sidecar = Path(str(lpfile) + '.fingerprint')
+        if Path(lpfile).is_file() and sidecar.is_file() and sidecar.read_text().strip() == fp:
+            done = subprocess.CompletedProcess(args=["glpsol"], returncode=0,
+                                               stdout="matrix reused (inputs unchanged)\n", stderr="")
+            return done, True
+        out = subprocess.run(
+            [str(glpsol_exec), "--check", "-m", modelfile, "-d", datafile_processed, "--wlp", lpfile],
+            cwd=glpk_cwd,
+            capture_output=True,
+            text=True,
+        )
+        if out.returncode == 0 and Path(lpfile).is_file():
+            sidecar.write_text(fp)
+        else:
+            try:
+                sidecar.unlink()
+            except OSError:
+                pass
+        return out, False
+
+    def run( self, solver, caserun, lock=None, postprocess=True ):
+        lock_acquired = False
         try:
             caserunname = caserun
             if lock is not None:
@@ -2094,6 +2308,7 @@ class DataFile(Osemosys):
                 # lock = {}
                 # lock[caserunname] = threading.Lock() 
                 lock.acquire()
+                lock_acquired = True
                 caserunname = caserun
 
             start_time = time.time()
@@ -2133,7 +2348,10 @@ class DataFile(Osemosys):
             # respath = self.resPath.resolve()
             # resCBCPath = self.resCBCPath.resolve()
 
-            self.deleteCaseResultsJSON(caserunname)
+            # Rewrites shared view files, so parallel batch solves defer it to
+            # batchRun's sequential pre-phase (postprocess=False skips it here).
+            if postprocess:
+                self.deleteCaseResultsJSON(caserunname)
 
             if solver == 'glpk':
                 glpk_out = subprocess.run(
@@ -2160,12 +2378,20 @@ class DataFile(Osemosys):
                 txtOut = txtOut + ("Preprocessing time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
                 #return output to variable preprocessed data file
-                glpk_out = subprocess.run(
-                    [str(glpsol_exec), "--check", "-m", modelfile, "-d", datafile_processed, "--wlp", lpfile],
-                    cwd=glpk_cwd,
-                    capture_output=True,
-                    text=True,
-                )
+                glpk_out, lp_reused = self._ensure_lp_matrix(glpsol_exec, glpk_cwd, modelfile, datafile_processed, lpfile, 'exact')
+
+                # A failed check can leave no LP, or an older LP from another
+                # run. Neither is a matrix that CBC may optimize for these inputs.
+                if glpk_out.returncode != 0 or not Path(lpfile).is_file():
+                    return {
+                        "cbc_message": "",
+                        "cbc_stdmsg": "",
+                        "glpk_message": glpk_out.stdout,
+                        "glpk_stdmsg": glpk_out.stderr,
+                        "timer": "Matrix generation failed; CBC was not started. Check the GLPK log.",
+                        "status_code": "error",
+                        "caserun": caserunname,
+                    }
             
 
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
@@ -2174,8 +2400,8 @@ class DataFile(Osemosys):
                 #original data file without preprocessing
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile_original +' -d ' + datafile +' --wlp ' + lpfile, cwd=glpfolder,  capture_output=True, text=True, shell=True)
                 
-                print("CREATINON OF LP FILE DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
-                txtOut = txtOut + ("Creation of LP file time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
+                print("CREATINON OF LP FILE DONE (%s)! --- %s seconds --- %s" % ('reused' if lp_reused else 'rebuilt', time.time() - start_time, caserunname))
+                txtOut = txtOut + ("Creation of LP file time {:0.2f}s ({});{}".format(time.time() - start_time, 'reused' if lp_reused else 'rebuilt', '\n'))
 
 
                 ####output to logfile.txt
@@ -2219,6 +2445,7 @@ class DataFile(Osemosys):
 
                 statusFlag = "warning"
                 customMsg = "   "
+                oglinkInfo = None
                 if any("Optimal" in s for s in msg):
                     matching = [s for s in msg if "Optimal" in s]
                     customMsg = customMsg + matching[0] + " - "
@@ -2240,7 +2467,10 @@ class DataFile(Osemosys):
                     customMsg = customMsg + times[0]
                     statusFlag = "error"
 
-                if statusFlag == "success":
+                # postprocess=False defers CSV/pivot generation so parallel batch
+                # solves never write the shared view files concurrently; the caller
+                # runs postProcess() sequentially afterwards.
+                if statusFlag == "success" and postprocess:
                     self.generateCSVfromCBC(self.dataFile, self.resFile, self.resPath)
                     print("CSV DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                     txtOut = txtOut + ("csv files extraction time {:0.2f} s;{}".format(time.time() - start_time, '\n'))
@@ -2248,10 +2478,24 @@ class DataFile(Osemosys):
                     print("PIVOT TABLE DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                     txtOut = txtOut + ("Pivot data preparation time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
+                    # OG-CLEWS link post-run hook: opt-in per case (oglink/hook.json),
+                    # subprocess-only; a hook failure never affects the CLEWs run itself.
+                    try:
+                        from Classes.OGLink.PostRunHook import PostRunHook
+                        oglinkInfo = PostRunHook.after_run(self.case, caserunname)
+                    except Exception as ex:
+                        print("OGLink hook error (CLEWs run unaffected):", ex)
+
 
                 print("MESSAGES DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                 txtOut = txtOut + ("Message preparation time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
+                # MUIOGO: a result that could not be produced (e.g. commodity prices) is
+                # shown with the run; the solve itself still succeeded.
+                warnings = (getattr(self, 'postprocessWarnings', [])
+                            if postprocess and statusFlag == "success" else [])
+                if warnings:
+                    customMsg = customMsg + " -- Warning: " + " ".join(warnings)
                 response = {
                     "cbc_message": cbc_out.stdout,
                     "cbc_stdmsg": cbc_out.stderr,
@@ -2259,13 +2503,13 @@ class DataFile(Osemosys):
                     "glpk_stdmsg": glpk_out.stderr,
                     "timer": customMsg,
                     "status_code": statusFlag,
-                    "caserun": caserunname
-                } 
+                    "caserun": caserunname,
+                    "warnings": warnings
+                }
+                if oglinkInfo:
+                    response["oglink"] = oglinkInfo
 
            
-            if lock is not None:
-                lock.release()
-
             return response
             # urllib.request.urlretrieve(self.dataFile, dataFile)
 
@@ -2276,8 +2520,12 @@ class DataFile(Osemosys):
             raise IndexError
         except OSError:
             raise OSError
+        finally:
+            if lock_acquired:
+                lock.release()
     
     def generateCSVfromCBC(self, data_file, results_file, base_folder=os.getcwd()):
+        self.postprocessWarnings = []   # MUIOGO: reported with the run, see run()/batchRun()
         try:
             #pd.options.mode.chained_assignment = None
             #pd.options.mode.chained_assignment = None
@@ -2341,8 +2589,18 @@ class DataFile(Osemosys):
                 df[['parameter','id']] = df['temp'].str.split('(', expand=True)
                 df['parameter'] = df['parameter'].str.split(' ', expand=True)[1]
                 df = df.drop('temp', axis=1)
-                df['value'] = df['value'].astype(float).round(4)
-                df['dual'] = df['dual'].astype(float).round(4)
+                df['value'] = df['value'].astype(float)
+                df['dual'] = df['dual'].astype(float)
+
+                # Compute once from full-precision activities and shadow prices.
+                warning = CommodityPrice.write_csv_or_warn(
+                    df, data, self.genData, start_year,
+                    os.path.join(base_folder, 'csv'))
+                if warning:
+                    self.postprocessWarnings.append(warning)
+
+                # Preserve the existing precision of the other CSV exports.
+                df[['value', 'dual']] = df[['value', 'dual']].round(4)
 
                 #variables that are output form solver 19
                 params = df.parameter.unique()
@@ -2425,6 +2683,26 @@ class DataFile(Osemosys):
                     df_TSC = df_TSC[df_TSC['TotalStorageCapacity']!=0]
                     df_TSC.to_csv(os.path.join(base_folder, 'csv', 'TotalStorageCapacity.csv'), index=None)
             
+                # Annual flows apply to every technology resolution. Seasonal
+                # and annual technologies need not have any RateOfActivity rows.
+                annual_activity = all_params.get('TotalAnnualTechnologyActivityByMode')
+                if annual_activity is not None:
+                    for ratio_name, result_name in (
+                        ('OutputActivityRatio', 'ProductionByTechnologyByMode'),
+                        ('InputActivityRatio', 'UseByTechnologyByMode'),
+                    ):
+                        ratios = pd.DataFrame(data[ratio_name], columns=Config.PARAMETERS_C_full[ratio_name])
+                        ratios[ratio_name] = pd.to_numeric(ratios[ratio_name])
+                        flows = ratios.merge(annual_activity, on=['r', 't', 'm', 'y'], how='inner')
+                        flows[result_name] = (
+                            flows[ratio_name] * flows['TotalAnnualTechnologyActivityByMode']
+                        ).round(4)
+                        flows = flows.loc[
+                            flows[result_name] != 0,
+                            ['r', 't', 'm', 'f', 'y', result_name],
+                        ].sort_values(['r', 't', 'f', 'm', 'y'])
+                        flows.to_csv(os.path.join(base_folder, 'csv', result_name + '.csv'), index=False)
+
                 if 'RateOfActivity' in all_params:
                     #year split data frame
                     df_yearsplit = pd.DataFrame(data['YearSplit'], columns=['r','y', 'l','YearSplit'])
@@ -2432,14 +2710,16 @@ class DataFile(Osemosys):
 
                     # df_output = pd.DataFrame(data['OutputActivityRatio'], columns=['r','f','t','y','m','OutputActivityRatio'])
                     df_output = pd.DataFrame(data['OutputActivityRatio'], columns=Config.PARAMETERS_C_full['OutputActivityRatio'])
+                    df_output['OutputActivityRatio'] = df_output['OutputActivityRatio'].astype(float)
                     df_out_ys = pd.merge(df_output, df_yearsplit, on='y')
-                    df_out_ys['OutputActivityRatio'] = df_out_ys['OutputActivityRatio'].astype(float)
+                    #df_out_ys['OutputActivityRatio'] = df_out_ys['OutputActivityRatio'].astype(float)
                     df_out_ys['YearSplit'] = df_out_ys['YearSplit'].astype(float)
                     
                     # df_input = pd.DataFrame(data['InputActivityRatio'], columns=['r', 'f','t','y','m','InputActivityRatio'])
                     df_input = pd.DataFrame(data['InputActivityRatio'], columns=Config.PARAMETERS_C_full['InputActivityRatio'])
+                    df_input['InputActivityRatio'] = df_input['InputActivityRatio'].astype(float)
                     df_in_ys = pd.merge(df_input, df_yearsplit, on='y')
-                    df_in_ys['InputActivityRatio'] = df_in_ys['InputActivityRatio'].astype(float)
+                    # df_in_ys['InputActivityRatio'] = df_in_ys['InputActivityRatio'].astype(float)
                     df_in_ys['YearSplit'] = df_in_ys['YearSplit'].astype(float)
                     
                     # df_emi = pd.DataFrame(data['EmissionActivityRatio'], columns=['r', 'e','t','y','m','EmissionActivityRatio'])
@@ -2454,17 +2734,17 @@ class DataFile(Osemosys):
                     # df_aad = data['AccumulatedAnnualDemand'].rename(columns={'value':'AccumulatedAnnualDemand'})
 
                     if not df_out_ys.empty:
-                        ########################################ProductionByTechnologyByMode############################################
+                        ########################################ProductionByTechnologyByModeTs############################################
                         df_prod = pd.merge(df_out_ys, df_activity, how='left', on=['t','m','l','y'])
                         region = [x for x in list(df_prod.r.unique()) if str(x) != 'nan']
                         df_prod['r'] = str(region[0])
                         df_prod['RateOfActivity'] = df_prod['RateOfActivity'].fillna(0)
-                        df_prod['ProductionByTechnologyByMode'] = df_prod['OutputActivityRatio']*df_prod['YearSplit']*df_prod['RateOfActivity']
+                        df_prod['ProductionByTechnologyByModeTs'] = df_prod['OutputActivityRatio']*df_prod['YearSplit']*df_prod['RateOfActivity']
                         df_prod = df_prod.drop(['OutputActivityRatio','YearSplit','RateOfActivity'], axis=1)
-                        df_prod['ProductionByTechnologyByMode'] = df_prod['ProductionByTechnologyByMode'].astype(float).round(4)
+                        df_prod['ProductionByTechnologyByModeTs'] = df_prod['ProductionByTechnologyByModeTs'].astype(float).round(4)
                         df_prod = df_prod.sort_values(by=['r','l','t','f','y'])
-                        df_prod = df_prod[df_prod['ProductionByTechnologyByMode']!=0]
-                        df_prod.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnologyByMode.csv'), index=None)
+                        df_prod = df_prod[df_prod['ProductionByTechnologyByModeTs']!=0]
+                        df_prod.to_csv(os.path.join(base_folder, 'csv', 'ProductionByTechnologyByModeTs.csv'), index=None)
 
                         ########################################################INDICATOR#####################################################
                         # IND_CommodityIntensity per technology, optionally filtered by user-supplied tech list.
@@ -2489,8 +2769,8 @@ class DataFile(Osemosys):
                                     df_empty = pd.DataFrame(columns=['r','y','t','TotalProduction','TotalActivity', indicatorId])
                                     df_empty.to_csv(os.path.join(base_folder, 'csv', f'{indicatorId}.csv'), index=False)
                                 else:
-                                    dfP["ProductionByTechnologyByMode"] = pd.to_numeric(
-                                        dfP["ProductionByTechnologyByMode"], errors='coerce'
+                                    dfP["ProductionByTechnologyByModeTs"] = pd.to_numeric(
+                                        dfP["ProductionByTechnologyByModeTs"], errors='coerce'
                                     ).fillna(0)
                                     dfA["TotalAnnualTechnologyActivityByMode"] = pd.to_numeric(
                                         dfA["TotalAnnualTechnologyActivityByMode"], errors='coerce'
@@ -2498,9 +2778,9 @@ class DataFile(Osemosys):
 
                                     df_prod_ann = (
                                         dfP.groupby(['r', 'y', 'f'], as_index=False)
-                                        ['ProductionByTechnologyByMode']
+                                        ['ProductionByTechnologyByModeTs']
                                         .sum()
-                                        .rename(columns={'ProductionByTechnologyByMode': 'TotalProduction'})
+                                        .rename(columns={'ProductionByTechnologyByModeTs': 'TotalProduction'})
                                     )
                                     df_act_ann = (
                                         dfA.groupby(['r', 'y'], as_index=False)
@@ -2539,18 +2819,18 @@ class DataFile(Osemosys):
 
                     
                     if not df_in_ys.empty:
-                        ######################################UseByTechnologyByMode##############################################
+                        ######################################UseByTechnologyByModeTs##############################################
                         df_use = pd.merge(df_in_ys, df_activity, how='left', on=['t','m','l','y'])
                         region = [x for x in list(df_use.r.unique()) if str(x) != 'nan']
                         df_use['r'] = str(region[0])
                         df_use['RateOfActivity'] = df_use['RateOfActivity'].fillna(0)
-            
-                        df_use['UseByTechnologyByMode'] = df_use['InputActivityRatio']*df_use['YearSplit']*df_use['RateOfActivity']
+
+                        df_use['UseByTechnologyByModeTs'] = df_use['InputActivityRatio']*df_use['YearSplit']*df_use['RateOfActivity']
                         df_use = df_use.drop(['InputActivityRatio','YearSplit','RateOfActivity'], axis=1)
-                        df_use['UseByTechnologyByMode'] = df_use['UseByTechnologyByMode'].astype(float).round(4)
+                        df_use['UseByTechnologyByModeTs'] = df_use['UseByTechnologyByModeTs'].astype(float).round(4)
                         df_use = df_use.sort_values(by=['r','l','t','f','y'])
-                        df_use = df_use[df_use['UseByTechnologyByMode']!=0]
-                        df_use.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnologyByMode.csv'), index=None)
+                        df_use = df_use[df_use['UseByTechnologyByModeTs']!=0]
+                        df_use.to_csv(os.path.join(base_folder, 'csv', 'UseByTechnologyByModeTs.csv'), index=None)
 
                         ######################################RateOfUseByTechnologyByMode##############################################
                         df_roubt = pd.merge(df_in_ys, df_activity, how='left', on=['t','m','l','y'])
@@ -2601,16 +2881,24 @@ class DataFile(Osemosys):
                     df_ACI = df_ACI[df_ACI['AnnualizedInvestmentCost']!=0]
                     df_ACI.to_csv(os.path.join(base_folder, 'csv', 'AnnualizedInvestmentCost.csv'), index=None)
         except Exception as ex:
-            print(ex) # do whatever you want for debugging.
-            raise    # re-raise exception.
-        except(IOError, IndexError):
-            raise IndexError
-        except OSError:
-            raise OSError
-    
+            # unexpected
+            raise
+ 
     def generateResultsViewer(self, caserunname):
         try:
             csvFolderPath = Path(Config.DATA_STORAGE,self.case,'res',caserunname, 'csv')
+
+            # Standalone regeneration may not have run the usual rerun cleanup.
+            # Remove the previous price; the CSV loop restores it if available.
+            price_meta = self.DUALS_BY_NAME.get(CommodityPrice.OUTPUT_NAME)
+            if price_meta:
+                path = Path(self.viewFolderPath, price_meta['group'] + '.json')
+                if path.is_file():
+                    cached = File.readFile(path)
+                    runs = cached.get(price_meta['id'], {})
+                    if caserunname in runs:
+                        del runs[caserunname]
+                        File.writeFile(cached, path)
 
             #CSV
             csvs = [f.name for f in os.scandir(csvFolderPath) ]
@@ -2932,6 +3220,31 @@ class DataFile(Osemosys):
                                     path = Path(self.viewFolderPath, paramobj['group']+'.json')
                                     File.writeFile( viewData, path)
                             
+                                if paramobj['group'] == 'RYTCM':
+                                    tech = jsondata[0]['t']
+                                    comm = jsondata[0]['f']
+                                    mod = jsondata[0]['m']
+                                    tmp = {}
+                                    for obj in jsondata:
+                                        if tech == obj['t'] and comm == obj['f'] and mod == obj['m']:
+                                            tmp['Tech'] = obj['t']
+                                            tmp['Comm'] = obj['f']
+                                            tmp['MoId'] = obj['m']
+                                            tmp[obj['y']] = obj[param]
+                                        else:
+                                            tech = obj['t']
+                                            comm = obj['f']
+                                            mod = obj['m']
+                                            viewData[paramobj['id']][caserunname].append(tmp)
+                                            tmp = {}
+                                            tmp['Tech'] = obj['t']
+                                            tmp['Comm'] = obj['f']
+                                            tmp['MoId'] = obj['m']
+                                            tmp[obj['y']] = obj[param]
+                                    viewData[paramobj['id']][caserunname].append(tmp)
+                                    path = Path(self.viewFolderPath, paramobj['group']+'.json')
+                                    File.writeFile( viewData, path)
+
                                 # ne koristi se jer smo izbrisali variajablu ROUBTBM Rate Of Use By Technology By Mode
                                 #ponovo koristimo jer korisitmo Production By Technology by Mode, Use By Technology By Mode (isto i sa Rate of...)
                                 if paramobj['group'] == 'RYTCMTs':

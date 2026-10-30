@@ -39,7 +39,8 @@ def _free_port():
 def base_url():
     """Real server on a free port, torn down after the session."""
     port = _free_port()
-    env = dict(os.environ, PORT=str(port))
+    # Avoid network catalogue requests in local browser tests.
+    env = dict(os.environ, PORT=str(port), MUIOGO_CLEWS_CATALOG_URL="")
     log = tempfile.TemporaryFile(mode="w+t", encoding="utf-8")
     proc = subprocess.Popen(
         [sys.executable, str(REPO_ROOT / "API" / "app.py")],
@@ -97,10 +98,11 @@ def test_switch_to_og(page, base_url):
 
 def test_sidebar_active_item_tracks_og_workspace_route(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-model', 'og');
         localStorage.setItem('osy-ogc-country', JSON.stringify({country_id:'ETH', country_name:'Ethiopia'}));""")
     page.goto(f"{base_url}/#/OGCases")
-    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(3)
+    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(4)
     expect(page.locator('#Navi > li.nav-og-workspace').filter(
         has=page.locator('a[href="#/OGCases"]'))).to_have_class(re.compile(r'(^|\s)active(\s|$)'))
     expect(page.locator('#Navi > li.nav-home')).not_to_have_class(re.compile(r'(^|\s)active(\s|$)'))
@@ -110,6 +112,7 @@ def test_sidebar_active_item_tracks_og_workspace_route(page, base_url):
 def test_desktop_sidebar_stays_fixed_while_content_scrolls(page, base_url):
     page.goto(base_url)
     result = page.evaluate("""() => {
+        document.body.classList.remove('minified');
         const sidebar = document.querySelector('#left-panel');
         const nav = sidebar && sidebar.querySelector('nav');
         document.body.style.minHeight = '200vh';
@@ -136,7 +139,7 @@ def test_switch_to_clews(page, base_url):
     page.locator("#osy-mb-clews").click()
     expect(page.locator("body.osy-mode-clews")).to_have_count(1)
     expect(page.locator(".project-context")).to_be_visible()
-    expect(page.locator("#Navi > li.nav-og-workspace")).to_have_count(3)
+    expect(page.locator("#Navi > li.nav-og-workspace")).to_have_count(4)
     expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(0)
 
 
@@ -148,405 +151,6 @@ def test_routes_assert_their_model(page, base_url):
     page.goto(f"{base_url}/#/OGCore")
     expect(page.locator("body.osy-mode-og")).to_have_count(1)
     expect(page.locator(".ogc-page")).to_be_visible()
-
-
-def test_results_tables_use_user_facing_headers_and_numeric_alignment(page, base_url):
-    page.goto(base_url, wait_until="domcontentloaded")
-    result = page.evaluate("""async () => {
-        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
-        const { default: Results } = await import(
-            new URL('App/Controller/OGResults.js', location.href).href
-        );
-        document.querySelector('.osy-content').innerHTML = markup;
-
-        Results.activeTableKey = 'wealth';
-        Results.selection = {casename: 'Case 1', base: 'Baseline 1', reform: 'Reform 1'};
-        Results.renderTableRows([{Moment: 'Gini coefficient', Model: 0.5711}]);
-        const wealthHeaders = [...document.querySelectorAll('#ogcResultTable th')]
-            .map(cell => cell.textContent.trim());
-        const wealthNumeric = [...document.querySelectorAll('#ogcResultTable td')]
-            .map(cell => cell.classList.contains('ogc-num'));
-
-        Results.activeTableKey = 'gini';
-        Results.renderTableRows([{
-            'Gini Type': 'Consumption',
-            'Inequality Measure': 'Coefficient',
-            Baseline: 0.2981,
-            Reform: 0.2978,
-        }]);
-        const giniNumeric = [...document.querySelectorAll('#ogcResultTable td')]
-            .map(cell => cell.classList.contains('ogc-num'));
-
-        Results.activeTableKey = 'ineq';
-        Results.renderTableRows([{
-            'Steady-State Variable': 'Household Consumption ($' + String.fromCharCode(92) + 'tilde{c}_{j,s,t}$)',
-            'Inequality Measure': 'Gini Coefficient',
-            Baseline: [0.2981],
-            Reform: [0.2978],
-            '% Change': [-0.1177],
-        }]);
-        const cleanedValues = [...document.querySelectorAll('#ogcResultTable td')]
-            .map(cell => cell.textContent.trim());
-        const cleanedNumeric = [...document.querySelectorAll('#ogcResultTable td')]
-            .map(cell => cell.classList.contains('ogc-num'));
-
-        Results.tables = Results.tables || {};
-        Results.tables.ineq = [{
-            'Inequality Measure': 'Top 10% Share',
-            Baseline: 0.2411,
-            Reform: 0.2435,
-        }];
-        Results.renderInequality();
-        const shareMetric = {
-            label: document.querySelector('.ogc-inequality-metric > span').textContent,
-            change: document.querySelector('.ogc-inequality-metric > strong').textContent,
-            levels: document.querySelector('.ogc-inequality-metric > small').textContent,
-        };
-
-        return {
-            wealthHeaders,
-            wealthNumeric,
-            giniNumeric,
-            cleanedValues,
-            cleanedNumeric,
-            shareMetric,
-            tableLabel: document.querySelector('#ogcResultTable table').getAttribute('aria-label'),
-        };
-    }""")
-
-    assert result == {
-        "wealthHeaders": ["Moment", "Baseline"],
-        "wealthNumeric": [False, True],
-        "giniNumeric": [False, False, True, True],
-        "cleanedValues": [
-            "Household Consumption",
-            "Gini Coefficient",
-            "0.2981",
-            "0.2978",
-            "-0.1177",
-        ],
-        "cleanedNumeric": [False, False, True, True, True],
-        "shareMetric": {
-            "label": "Top 10% share",
-            "change": "+0.24 percentage points",
-            "levels": "24.11% → 24.35%",
-        },
-        "tableLabel": "Inequality measures",
-    }
-
-
-def test_results_default_view_is_country_scoped_and_dimensions_are_explicit(page, base_url):
-    page.goto(base_url, wait_until="domcontentloaded")
-    result = page.evaluate("""async () => {
-        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
-        const { default: Results } = await import(
-            new URL('App/Controller/OGResults.js', location.href).href
-        );
-        document.querySelector('.osy-content').innerHTML = markup;
-
-        Results.workspace = {country_id: 'ETH'};
-        document.querySelector('#ogcExploreVariable').innerHTML = '<option value="c">Consumption</option>';
-        document.querySelector('#ogcExploreMeasure').innerHTML = '<option value="pct">Percent change</option>';
-        document.querySelector('#ogcExploreView').innerHTML = '<option value="heatmap">Heatmap</option>';
-        document.querySelector('#ogcExploreGroup').innerHTML = '<option value="2">50–70%</option>';
-        Results.saveView();
-        const ethiopia = JSON.parse(localStorage.getItem('osy-ogc-result-view:ETH'));
-        const savedNote = document.querySelector('#ogcSavedNote').textContent;
-
-        Results.workspace = {country_id: 'PHL'};
-        const philippines = Results.readSaved();
-
-        Results.workspace = {country_id: 'ETH'};
-        Results.groups = ['Bottom 25%', '25–50%', '50–70%', '70–80%', '80–90%', '90–99%', 'Top 1%'];
-        Results.ages = Array.from({length: 80}, (_, index) => index + 21);
-        Results.base = {c: Array.from({length: 80}, () => Array(7).fill(1))};
-        Results.refreshExploreViews('heatmap');
-        const dimensions = [...document.querySelector('#ogcExploreShape').children]
-            .map(node => node.textContent.trim());
-
-        return {ethiopia, philippines, savedNote, dimensions};
-    }""")
-
-    assert result == {
-        "ethiopia": {
-            "country_id": "ETH",
-            "variable": "c",
-            "measure": "pct",
-            "view": "heatmap",
-            "group": "2",
-        },
-        "philippines": None,
-        "savedNote": "Default view saved",
-        "dimensions": ["Dimensions", "Age × income group", "80 ages × 7 income groups"],
-    }
-
-
-def test_results_parameter_changes_show_names_for_all_value_types(page, base_url):
-    page.goto(base_url, wait_until="domcontentloaded")
-    result = page.evaluate("""async () => {
-        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
-        const { default: Results } = await import(
-            new URL('App/Controller/OGResults.js', location.href).href
-        );
-        document.querySelector('.osy-content').innerHTML = markup;
-
-        Results.schema = {
-            number_change: {title: 'Number parameter', default: 1},
-            boolean_change: {title: 'Boolean parameter', default: false},
-            string_change: {title: 'String parameter', default: 'old'},
-            null_change: {title: 'Null parameter', default: null},
-            flat_array_change: {title: 'Flat array parameter', default: [1, 2]},
-            nested_array_change: {title: 'Nested array parameter', default: [[1, 2]]},
-            baseline_only: {title: 'Baseline-only parameter', default: 0},
-            reform_only: {title: 'Reform-only parameter', default: 0},
-            fallback_title: {title: '', default: 0},
-            unchanged_scalar: {title: 'Unchanged scalar', default: 1},
-            unchanged_wrapper: {title: 'Unchanged wrapper', default: 1},
-            unchanged_object: {title: 'Unchanged object', default: {}},
-        };
-        Results.baseParams = {
-            number_change: 1,
-            boolean_change: false,
-            string_change: 'old',
-            null_change: null,
-            flat_array_change: [1, 2],
-            nested_array_change: [[1, 2]],
-            baseline_only: 5,
-            fallback_title: 0,
-            unchanged_scalar: 1,
-            unchanged_wrapper: [[1]],
-            unchanged_object: {first: 1, second: 2},
-        };
-        Results.reformParams = {
-            number_change: 2,
-            boolean_change: true,
-            string_change: 'new',
-            null_change: 'set',
-            flat_array_change: [1, 3],
-            nested_array_change: [[1, 4]],
-            reform_only: 6,
-            fallback_title: 1,
-            unchanged_scalar: 1,
-            unchanged_wrapper: 1,
-            unchanged_object: {second: 2, first: 1},
-        };
-        Results.renderPolicy();
-
-        const items = [...document.querySelectorAll('.ogc-policy-item')].map(item => ({
-            label: item.querySelector('b').textContent,
-            name: item.querySelector('code').textContent,
-        }));
-        return {
-            count: document.querySelector('.ogc-policy-count').textContent,
-            items,
-            hasValues: document.querySelectorAll('.ogc-policy-values').length,
-            hasUnsafeMarkup: document.querySelectorAll('#ogcPolicyChange img, #ogcPolicyChange script').length,
-            text: document.querySelector('#ogcPolicyChange').textContent,
-            hiddenExtra: document.querySelector('.ogc-policy-extra').hidden,
-            more: document.querySelector('.ogc-policy-toggle').textContent,
-        };
-    }""")
-
-    assert result == {
-        "count": "9 parameters changed",
-        "items": [
-            {"label": "Baseline-only parameter", "name": "baseline_only"},
-            {"label": "Boolean parameter", "name": "boolean_change"},
-            {"label": "Fallback Title", "name": "fallback_title"},
-            {"label": "Flat array parameter", "name": "flat_array_change"},
-            {"label": "Nested array parameter", "name": "nested_array_change"},
-            {"label": "Null parameter", "name": "null_change"},
-            {"label": "Number parameter", "name": "number_change"},
-            {"label": "Reform-only parameter", "name": "reform_only"},
-            {"label": "String parameter", "name": "string_change"},
-        ],
-        "hasValues": 0,
-        "hasUnsafeMarkup": 0,
-        "text": (
-            "9 parameters changedBaseline-only parameterbaseline_onlyBoolean parameter"
-            "boolean_changeFallback Titlefallback_titleFlat array parameterflat_array_change"
-            "Show 5 moreNested array parameternested_array_changeNull parameternull_change"
-            "Number parameternumber_changeReform-only parameterreform_onlyString parameter"
-            "string_change"
-        ),
-        "hiddenExtra": True,
-        "more": "Show 5 more",
-    }
-
-
-def test_results_matrix_headers_and_missing_data_guard(page, base_url):
-    page.goto(base_url, wait_until="domcontentloaded")
-    result = page.evaluate("""async () => {
-        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
-        const { default: Results } = await import(
-            new URL('App/Controller/OGResults.js', location.href).href
-        );
-        document.querySelector('.osy-content').innerHTML = markup;
-
-        Results.selection = {casename: 'Baseline 1', base: 'baseline', reform: 'Reform 1'};
-        Results.groups = ['Bottom 50%', 'Top 50%'];
-        Results.ages = [31, 32];
-        Results.base = {c: [[1, 2], [3, 4]]};
-        Results.reform = {c: [[2, 3], [4, 5]]};
-        Results.renderExploreTable('c', 'levels');
-        const headers = [...document.querySelectorAll('#ogcExploreTable th')]
-            .map(cell => cell.textContent.trim());
-        const heat = Results.heatOption('c', 'pct');
-
-        Results.reform = {c: [[2, 3]]};
-        Results.renderExploreTable('c', 'pct');
-        return {
-            headers,
-            heatContract: {
-                hasOption: Boolean(heat.option && heat.option.series),
-                hasScale: Boolean(heat.scale && heat.scale.bound),
-                unknownOptionKey: Object.prototype.hasOwnProperty.call(heat.option, 'ogcScale'),
-            },
-            missing: document.querySelector('#ogcExploreTable').textContent.trim(),
-        };
-    }""")
-
-    assert result == {
-        "headers": [
-            "Age",
-            "Baseline: Bottom 50%",
-            "Reform: Bottom 50%",
-            "Baseline: Top 50%",
-            "Reform: Top 50%",
-        ],
-        "heatContract": {"hasOption": True, "hasScale": True, "unknownOptionKey": False},
-        "missing": "Comparable baseline and reform matrix data are unavailable.",
-    }
-
-
-def test_results_dimensions_prefer_run_metadata_and_explain_fallback(page, base_url):
-    page.goto(base_url, wait_until="domcontentloaded")
-    result = page.evaluate("""async () => {
-        const markup = await fetch('App/View/OGResults.html').then(response => response.text());
-        const { default: Results } = await import(
-            new URL('App/Controller/OGResults.js', location.href).href
-        );
-        document.querySelector('.osy-content').innerHTML = markup;
-
-        Results.base = {c: [[1, 2, 3], [4, 5, 6]]};
-        Results.baseParams = {lambdas: [[0.2, 0.3, 0.5]], starting_age: [30]};
-        Results.schema = {
-            lambdas: {default: [0.5, 0.5]},
-            starting_age: {default: 20},
-        };
-        Results.schemaUnavailable = false;
-        Results.setDimensions();
-        const fromRun = {
-            groups: Results.groups,
-            ages: Results.ages,
-            hidden: document.querySelector('#ogcDimensionNote').hidden,
-        };
-
-        Results.base = {c: [[1, 2, 3, 4], [5, 6, 7, 8]]};
-        Results.baseParams = {};
-        Results.schema = {};
-        Results.schemaUnavailable = true;
-        Results.setDimensions();
-        return {
-            fromRun,
-            fallback: {
-                groups: Results.groups,
-                ages: Results.ages,
-                hidden: document.querySelector('#ogcDimensionNote').hidden,
-                note: document.querySelector('#ogcDimensionNote').textContent,
-            },
-        };
-    }""")
-
-    assert result == {
-        "fromRun": {
-            "groups": ["Bottom 20%", "20–50%", "Top 50%"],
-            "ages": [31, 32],
-            "hidden": True,
-        },
-        "fallback": {
-            "groups": ["Group 1", "Group 2", "Group 3", "Group 4"],
-            "ages": [1, 2],
-            "hidden": False,
-            "note": (
-                "Parameter metadata could not be loaded. "
-                "Income-group metadata is unavailable, so generic group labels are shown. "
-                "Starting-age metadata is unavailable, so model age indices are shown."
-            ),
-        },
-    }
-
-
-def test_results_comparison_tables_are_cached_independently(page, base_url):
-    page.goto(base_url, wait_until="domcontentloaded")
-    result = page.evaluate("""async () => {
-        const { default: Results } = await import(
-            new URL('App/Controller/OGResults.js', location.href).href
-        );
-        Results.tableCache = Object.create(null);
-        const first = {casename: 'Baseline 1', base: 'baseline', reform: 'Reform 1'};
-        const second = {casename: 'Baseline 1', base: 'baseline', reform: 'Reform 2'};
-
-        Results.useTableCache(first);
-        Results.tables.ineq = [{Baseline: 0.3, Reform: 0.29}];
-        Results.useTableCache(second);
-        const secondStartsEmpty = !Object.prototype.hasOwnProperty.call(Results.tables, 'ineq');
-        Results.tables.gini = [{Baseline: 0.4, Reform: 0.39}];
-        Results.useTableCache(first);
-        const firstIneq = Results.tables.ineq;
-        const firstHasGini = Object.prototype.hasOwnProperty.call(Results.tables, 'gini');
-
-        for (let index = 3; index <= 6; index++){
-            Results.useTableCache({
-                casename: 'Baseline 1', base: 'baseline', reform: `Reform ${index}`
-            });
-        }
-        const firstKey = JSON.stringify(first);
-        const secondKey = JSON.stringify(second);
-
-        return {
-            secondStartsEmpty,
-            firstIneq,
-            firstHasGini,
-            cacheCount: Object.keys(Results.tableCache).length,
-            firstEvicted: !Object.prototype.hasOwnProperty.call(Results.tableCache, firstKey),
-            secondEvicted: !Object.prototype.hasOwnProperty.call(Results.tableCache, secondKey),
-        };
-    }""")
-
-    assert result == {
-        "secondStartsEmpty": True,
-        "firstIneq": [{"Baseline": 0.3, "Reform": 0.29}],
-        "firstHasGini": False,
-        "cacheCount": 5,
-        "firstEvicted": False,
-        "secondEvicted": True,
-    }
-
-
-def test_results_route_normalization_and_cleanup(page, base_url):
-    page.goto(base_url, wait_until="domcontentloaded")
-    result = page.evaluate("""async () => {
-        const { default: Results } = await import(
-            new URL('App/Controller/OGResults.js', location.href).href
-        );
-        history.replaceState({}, '', '#/OGResults/?tab=overview');
-        localStorage.setItem('osy-pageId', 'OGResults');
-        Results.pageID = 0;
-        Results.initEvents();
-        const normalized = Results.isCurrent();
-        const before = Object.keys(jQuery._data(document, 'events') || {})
-            .some(type => (jQuery._data(document, 'events')[type] || [])
-                .some(handler => handler.namespace === 'ogresults'));
-        location.hash = '#/OGCases';
-        jQuery(window).triggerHandler('hashchange');
-        const after = Object.keys(jQuery._data(document, 'events') || {})
-            .some(type => (jQuery._data(document, 'events')[type] || [])
-                .some(handler => handler.namespace === 'ogresults'));
-        return {normalized, before, after};
-    }""")
-
-    assert result == {"normalized": True, "before": True, "after": False}
 
 
 def test_local_folder_update_action_is_manual(page, base_url):
@@ -722,6 +326,7 @@ def test_polling_stops_when_leaving_og_page(page, base_url):
     assert len(calls) == settled, f"polling outlived the page: {calls[settled:]}"
 def test_og_workspace_routes_assert_og_mode(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -729,7 +334,7 @@ def test_og_workspace_routes_assert_og_mode(page, base_url):
     expect(page.locator("body.osy-mode-og")).to_have_count(1)
     expect(page.locator("body.osy-og-workspace")).to_have_count(1)
     expect(page.locator("#ogcCasesPage")).to_be_visible()
-    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(3)
+    expect(page.locator("#Navi > li.nav-og-workspace:visible")).to_have_count(4)
     expect(page.locator("#ogcCasesPage [data-act='run']")).to_have_count(0)
     page.goto(f"{base_url}/#/OGRuns")
     expect(page.locator("body.osy-mode-og.osy-og-workspace")).to_have_count(1)
@@ -1064,6 +669,7 @@ def test_non_workspace_entry_reconciles_a_stranded_country_session(page, base_ur
 
 def test_clews_switch_waits_for_workspace_exit_confirmation(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1088,6 +694,7 @@ def test_clews_switch_waits_for_workspace_exit_confirmation(page, base_url):
 
 def test_workspace_exit_is_serialized_and_back_cannot_reenter(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1097,23 +704,26 @@ def test_workspace_exit_is_serialized_and_back_cannot_reenter(page, base_url):
         window.__serializedSessionCalls = [];
         Ogc.setSession = async value => { window.__serializedSessionCalls.push(value); };
     }""")
-    page.locator("[href='#/OGCore']").click()
+    page.locator("#Navi .nav-home > a").click()
     expect(page.locator("#ogWorkspaceConfirm")).to_be_visible()
-    page.evaluate("window.location.hash = '#/'")
+    page.evaluate("window.location.hash = '#/OGCore'")
     page.locator('[data-og-confirm="leave"]').click()
-    expect(page).to_have_url(f"{base_url}/#/OGCore")
+    expect(page).to_have_url(f"{base_url}/#/")
     assert page.evaluate("window.__serializedSessionCalls") == [None]
 
     page.go_back()
     expect(page).to_have_url(f"{base_url}/#/OGCore")
     expect(page.locator("body.osy-og-workspace")).to_have_count(0)
     page.go_back()
-    expect(page).to_have_url(f"{base_url}/#/")
+    expect(page).to_have_url(f"{base_url}/#/OGCore")
     expect(page.locator("body.osy-og-workspace")).to_have_count(0)
+    assert page.evaluate("localStorage.getItem('osy-ogc-country')") is None
+    assert page.evaluate("window.__serializedSessionCalls") == [None]
 
 
-def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
+def test_create_case_dialog_switches_types(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1128,25 +738,30 @@ def test_add_case_dialog_switches_between_baseline_and_reform(page, base_url):
             {'Baseline 1': [{run_name: 'baseline', run_type: 'baseline'}]},
             [{country_id: 'ETH'}], 'ETH'
         );
+        Cases.render(Cases.model, Cases.pageID);
         Cases.initEvents();
-        Cases.openNewCase();
     }""")
 
-    expect(page.locator("#ogcCasesModalHead")).to_have_text("Add a case")
-    expect(page.locator("[data-act='case-type'][data-type='baseline']")).to_have_class("active")
+    expect(page.locator("[data-act='create-case']")).to_have_count(1)
+    page.locator("[data-act='create-case']").click()
+    expect(page.locator("#ogcCasesModalHead")).to_have_text("Create case")
+    expect(page.locator("[data-act='case-type'][data-type='baseline']")).to_have_attribute("aria-pressed", "true")
     expect(page.locator("#ogcCaseName")).to_have_value("Baseline 2")
     expect(page.locator("#ogcCaseBaseWrap")).to_be_hidden()
-    expect(page.locator("[data-act='new-case-confirm']")).to_have_text("Create and edit")
-
+    page.locator("#ogcCaseName").fill("My baseline")
     page.locator("[data-act='case-type'][data-type='reform']").click()
+    expect(page.locator("#ogcCaseBaseline")).to_be_visible()
+    expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Baseline 1")
     expect(page.locator("#ogcCaseName")).to_have_value("New reform")
-    expect(page.locator("#ogcCaseBaseWrap")).to_be_visible()
-    expect(page.locator("#ogcCaseBaseline option")).to_have_text("Baseline 1")
-    expect(page.locator("#ogcCaseNote")).to_contain_text("inherits this baseline's values")
+    expect(page.locator("#ogcCaseNote")).to_contain_text("compared against this baseline")
+    page.locator("[data-act='case-type'][data-type='baseline']").click()
+    expect(page.locator("#ogcCaseName")).to_have_value("My baseline")
+    expect(page.locator("[data-act='create-confirm']")).to_have_text("Create and edit")
 
 
-def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
+def test_baseline_row_exposes_add_reform_in_both_views(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1168,21 +783,28 @@ def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
         Cases.initEvents();
     }""")
 
-    baseline_menu = page.locator(
-        "[data-act='run-menu'][data-case='Policy baseline'][data-run='baseline']"
-    )
-    baseline_menu.click()
-    baseline_actions = baseline_menu.locator("xpath=..//span[@role='menu']")
-    expect(baseline_actions).to_be_visible()
-    expect(baseline_actions.get_by_text("Add reform", exact=True)).to_be_visible()
-    expect(baseline_actions.get_by_text("Delete case", exact=True)).to_be_visible()
+    for layout in ("separate", "grouped"):
+        view_button = page.locator(f"[data-layout='{layout}']")
+        view_button.click()
+        expect(view_button).to_be_focused()
+        expect(view_button).to_have_attribute("aria-pressed", "true")
+        expect(view_button).to_have_css("color", "rgb(255, 255, 255)")
+        page.keyboard.press("Tab")
+        page.keyboard.press("Shift+Tab")
+        expect(view_button).to_be_focused()
+        expect(view_button).to_have_css("outline-style", "solid")
+        page.keyboard.press("Space")
+        expect(view_button).to_have_attribute("aria-pressed", "true")
+        expect(page.locator(".ogc-case-split")).to_have_count(1 if layout == "separate" else 0)
+        expect(page.locator("[data-act='add-reform']")).to_have_count(1)
+        page.locator("[data-act='add-reform']").click()
+        expect(page.locator("#ogcCasesModalHead")).to_have_text("Create case")
+        expect(page.locator("[data-act='case-type'][data-type='reform']")).to_have_attribute("aria-pressed", "true")
+        expect(page.locator("#ogcCaseName")).to_have_value("New reform")
+        expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Policy baseline")
+        expect(page.locator("#ogcCaseNote")).to_contain_text("inherits this baseline's values")
+        page.locator("[data-act='close']").click()
 
-    baseline_actions.get_by_text("Add reform", exact=True).click()
-    expect(page.locator("#ogcCasesModalHead")).to_have_text("Add a case")
-    expect(page.locator("[data-act='case-type'][data-type='reform']")).to_have_class("active")
-    expect(page.locator("#ogcCaseBaseline option:checked")).to_have_text("Policy baseline")
-
-    page.locator("[data-act='close']").click()
     reform_menu = page.locator(
         "[data-act='run-menu'][data-case='Policy baseline'][data-run='Tax reform']"
     )
@@ -1191,10 +813,22 @@ def test_baseline_action_menu_adds_reform_shortcut(page, base_url):
     expect(reform_actions).to_be_visible()
     expect(reform_actions.get_by_text("Delete reform", exact=True)).to_be_visible()
     expect(reform_actions.get_by_text("Add reform", exact=True)).to_have_count(0)
+    reform_actions.get_by_text("Delete reform", exact=True).click()
+    expect(page.locator("#ogcCasesModalBody")).to_contain_text("Delete the reform Tax reform and its results?")
+    expect(page.locator("[data-act='del-run-confirm']")).to_have_text("Delete reform")
+    page.locator("[data-act='close']").click()
+
+    page.locator("[data-act='run-menu'][data-run='baseline']").click()
+    page.get_by_role("menuitem", name="Delete baseline").click()
+    expect(page.locator("#ogcCasesModalBody")).to_contain_text("Delete the baseline Policy baseline and its results?")
+    expect(page.locator("#ogcCasesModalBody")).to_contain_text("This also deletes 1 reform and all of their results.")
+    expect(page.locator("[data-act='del-run-confirm']")).to_have_text("Delete baseline")
 
 
-def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url):
+@pytest.mark.parametrize("entry_point", ["shortcut", "create_case"])
+def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url, entry_point):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1206,8 +840,9 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
         const { Ogc } = await import(new URL('Classes/Ogc.Class.js', location.href).href);
         Cases.workspace = {country_id: 'ETH', country_name: 'Ethiopia'};
         Cases.model = new Model(
-            [{casename: 'Policy baseline', country_id: 'ETH'}],
-            {'Policy baseline': [{run_name: 'baseline', run_type: 'baseline'}]},
+            [{casename: 'Other baseline', country_id: 'ETH'}, {casename: 'Policy baseline', country_id: 'ETH'}],
+            {'Other baseline': [{run_name: 'baseline', run_type: 'baseline'}],
+             'Policy baseline': [{run_name: 'baseline', run_type: 'baseline'}]},
             [{country_id: 'ETH'}], 'ETH'
         );
         window.__newCaseCalls = [];
@@ -1217,11 +852,17 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.openNewCase('reform');
+        Cases.render(Cases.model, Cases.pageID);
     }""")
+    if entry_point == "shortcut":
+        page.locator("[data-act='add-reform'][data-case='Policy baseline']").click()
+    else:
+        page.locator("[data-act='create-case']").click()
+        page.locator("[data-act='case-type'][data-type='reform']").click()
+        page.locator("#ogcCaseBaseline").select_option(label="Policy baseline")
     page.locator("#ogcCaseName").fill("Corporate tax cut")
     page.locator("#ogcCaseDesc").fill("Reduce the corporate income tax rate")
-    page.locator("[data-act='new-case-confirm']").click()
+    page.locator("[data-act='create-confirm']").click()
     page.wait_for_url("**/#/OGParameters")
 
     result = page.evaluate("""({
@@ -1249,6 +890,7 @@ def test_create_reform_opens_parameters_for_the_selected_baseline(page, base_url
 
 def test_create_baseline_creates_its_container_and_opens_parameters(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1270,11 +912,12 @@ def test_create_baseline_creates_its_container_and_opens_parameters(page, base_u
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.openNewCase();
+        Cases.openCreateDialog();
     }""")
+    expect(page.locator("[data-act='case-type'][data-type='reform']")).to_be_disabled()
     page.locator("#ogcCaseName").fill("Alternative baseline")
     page.locator("#ogcCaseDesc").fill("A second policy starting point")
-    page.locator("[data-act='new-case-confirm']").click()
+    page.locator("[data-act='create-confirm']").click()
     page.wait_for_url("**/#/OGParameters")
 
     result = page.evaluate("""({
@@ -1313,6 +956,7 @@ def test_create_baseline_creates_its_container_and_opens_parameters(page, base_u
 
 def test_failed_baseline_run_creation_rolls_back_the_case(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1332,10 +976,10 @@ def test_failed_baseline_run_creation_rolls_back_the_case(page, base_url):
             return {status_code: 'success'};
         };
         Cases.initEvents();
-        Cases.openNewCase();
+        Cases.openCreateDialog();
     }""")
     page.locator("#ogcCaseName").fill("Incomplete baseline")
-    page.locator("[data-act='new-case-confirm']").click()
+    page.locator("[data-act='create-confirm']").click()
     expect(page.locator("#ogcCaseErr")).to_contain_text("run creation failed")
     assert page.evaluate("window.__rollbackCalls") == [['ETH', 'Incomplete baseline']]
 
@@ -1356,7 +1000,7 @@ def test_runless_case_is_visible_and_recoverable(page, base_url):
     assert result['count'] == 1
     assert 'Incomplete baseline' in result['html']
     assert 'Retry setup' in result['html']
-    assert 'Delete case' in result['html']
+    assert 'Delete baseline' in result['html']
 
 
 def test_run_queue_orders_dependencies_and_marks_cache(page, base_url):
@@ -1375,6 +1019,7 @@ def test_run_queue_orders_dependencies_and_marks_cache(page, base_url):
         );
         base.run.status = 'completed';
         reform.run.status = 'completed';
+        base.run.time_path = reform.run.time_path = false;
         const cached = Runs.buildQueue([reform, base], {
             'ETH:ethiopia-case:reform': true, 'ETH:ethiopia-case:base': true
         }, false);
@@ -1410,7 +1055,7 @@ def test_calibration_defaults_are_reference_only(page, base_url):
     assert 'Calibration defaults' in result['row']
     assert 'reference only' in result['row']
     assert 'not runnable' in result['row']
-    assert 'Create baseline' in result['row']
+    assert 'Create baseline' not in result['row']
     assert 'Baselines <span>(0)</span>' in result['panel']
     assert result['choices'] == []
     assert 'Default baseline' not in result['row']
@@ -1434,6 +1079,7 @@ def test_parameters_page_token_also_requires_the_current_page(page, base_url):
 
 def test_og_run_clears_clews_messages_and_late_home_is_scoped(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""async () => {
         const { Message } = await import(new URL('Classes/Message.Class.js', location.href).href);
         Message.info('Please select existing or create new model to proceed!');
@@ -1499,6 +1145,7 @@ def test_run_selection_defaults_and_explicit_handoff(page, base_url):
 
 def test_navigation_stops_unsent_run_plan(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1546,6 +1193,7 @@ def test_navigation_stops_unsent_run_plan(page, base_url):
 
 def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1604,8 +1252,9 @@ def test_run_reconstructs_and_cancels_backend_queue(page, base_url):
     assert result['queueCases'] == ['case-one']
 
 
-def test_idle_run_monitor_keeps_checking_queue_without_status_fanout(page, base_url):
+def test_idle_run_monitor_stops_without_status_fanout(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1630,14 +1279,11 @@ def test_idle_run_monitor_keeps_checking_queue_without_status_fanout(page, base_
             return {run_state: 'pending'};
         };
         Runs.onLoad('OGCases');
-        let deadline = Date.now() + 5000;
-        while (queueCalls < 2 && Date.now() < deadline){
-            await new Promise(resolve => setTimeout(resolve, 25));
-        }
+        await new Promise(resolve => setTimeout(resolve, 2300));
         history.replaceState(null, '', '#/OGCases');
         return {queueCalls, statusCalls};
     }""")
-    assert result['queueCalls'] >= 2
+    assert result['queueCalls'] == 1
     assert result['statusCalls'] == 0
 
 
@@ -1760,6 +1406,7 @@ def test_single_job_cancel_does_not_stop_remaining_plan(page, base_url):
 
 def test_cached_status_error_always_reenables_run_controls(page, base_url):
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")
@@ -1776,7 +1423,7 @@ def test_cached_status_error_always_reenables_run_controls(page, base_url):
         }));
         Ogc.getCases = async () => [{casename: 'case-one', country_id: 'ETH'}];
         Ogc.getRuns = async () => ({runs: [{
-            run_name: 'baseline', run_type: 'baseline', status: 'completed',
+            run_name: 'baseline', run_type: 'baseline', status: 'completed', time_path: false,
             completed_at: '2026-08-13T10:00:00Z'
         }]});
         Ogc.getRunQueue = async () => ({active: null, queued: []});
@@ -1883,6 +1530,7 @@ def test_suffix_families_are_grouped_without_being_locked(page, base_url):
 def test_parameters_page_without_a_selection_is_empty(page, base_url):
     """No run selected: the page must say so rather than call the backend."""
     page.goto(base_url)
+    expect(page.locator(".osy-pickwrap")).to_be_visible()
     page.evaluate("""localStorage.setItem('osy-ogc-country', JSON.stringify({
         country_id: 'ETH', country_name: 'Ethiopia'
     }))""")

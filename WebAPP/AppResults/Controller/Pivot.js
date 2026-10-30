@@ -67,7 +67,7 @@ export default class Pivot {
     // Field each result group puts in Columns by default; null means no column field. Others default to Tech.
     static GROUP_COLUMNS = Object.freeze({
         R: 'Optimal', RY: null, RYE: 'Emi', RYCn: 'Con', RYS: 'Stg',
-        RYCTs: 'Comm', RYC: 'Comm', RYTC: 'Comm', RYTCMTs: 'Comm'
+        RYCTs: 'Comm', RYC: 'Comm', RYTC: 'Comm', RYTCM: 'Comm', RYTCMTs: 'Comm'
     });
 
     // List the fields in the pivot records, splitting camel case into the headers saved views refer to.
@@ -90,6 +90,7 @@ export default class Pivot {
             ['rows', 'columns', 'filters', 'values'].forEach(area => current.getAreas()[area].splice(0));
             // Clear filters too, or one variable's filter would silently restrict the next.
             Object.keys(current.filters).forEach(name => current.setFilter(name, null));
+            Object.keys(current.conditionFilters).forEach(name => current.setConditionFilter(name, null));
             Object.keys(current.descending).forEach(name => current.setDescending(name, false));
             current.assignField('Case', 'rows');
             if (group != 'R') current.assignField('Year', 'rows');
@@ -731,6 +732,7 @@ export default class Pivot {
     }
 
     static refreshPage(casename) {
+        const start = Pivot.startPoint(casename);
         Base.setSession(casename)
             .then(response => {
                 const promise = [];
@@ -747,14 +749,14 @@ export default class Pivot {
                 promise.push(DUALS);
                 const VIEWS = Osemosys.getResultData(casename, 'viewDefinitions.json');
                 promise.push(VIEWS);
-                const DATA = Osemosys.getResultData(casename, 'RYT.json');
+                const DATA = Osemosys.getResultData(casename, (start ? start.group : 'RYT') + '.json');
                 promise.push(DATA);
                 return Promise.all(promise);
             })
             .then(data => {
                 let [casename, genData, resData, VARIABLES, INDICATORS, DUALS, VIEWS, DATA] = data;
                 let model = new Model(casename, genData, resData, VARIABLES, INDICATORS, DUALS, DATA, VIEWS,
-                    Pivot.startPoint(casename));
+                    start);
                 model.refreshPage = true;
                 this.initPage(model);
                 //this.initEvents(model);

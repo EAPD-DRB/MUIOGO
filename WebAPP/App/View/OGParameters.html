@@ -2,9 +2,12 @@
 
   <div class="ogc-pagehead">
     <h1 class="ogc-title" id="ogcParamsTitle">Parameters</h1>
-    <span class="ogc-bar-right">
-      <a class="btn ogc-btn" href="#/OGCases"><i class="fa fa-arrow-left"></i> Cases</a>
-      <a class="btn ogc-btn" href="#/OGCore"><i class="fa fa-globe"></i> All countries</a>
+    <span class="ogc-country-summary">
+      <span class="ogc-country-flag" id="ogcParamsCountryFlag"></span>
+      <span class="ogc-country-copy">
+        <b id="ogcParamsCountryName"></b>
+        <span class="ogc-country-code" id="ogcParamsCountryId"></span>
+      </span>
     </span>
   </div>
 
@@ -16,7 +19,7 @@
     <span><i class="fa fa-pencil-square-o"></i> <b id="ogcChangeCount">0 changes</b> <span class="ogc-mut" id="ogcChangeVs"></span></span>
     <label><input type="checkbox" id="ogcOnlyChanged"> Show only changed</label>
     <span class="ogc-eb-right">
-      <button class="btn ogc-btn" data-act="reset-all"><i class="fa fa-undo"></i> <span id="ogcResetLabel">Reset all</span></button>
+      <button class="btn ogc-btn ogc-btn-main" data-act="reset-all"><i class="fa fa-undo"></i> <span id="ogcResetLabel">Reset all</span></button>
       <button class="btn ogc-btn ogc-btn-main" data-act="save"><i class="fa fa-save"></i> Save</button>
     </span>
   </div>

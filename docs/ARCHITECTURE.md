@@ -52,7 +52,9 @@ drives per-model navigation through a body class
 (`WebAPP/Classes/MuiogoShell.Class.js`, `muiogo.css`). Model-specific routes set
 that state explicitly; `localStorage` remembers the default used by `/`.
 OG-Core pages are scoped UI islands (`.ogc-*` styles) and call the `/ogc` API
-through `WebAPP/Classes/Ogc.Class.js`.
+through `WebAPP/Classes/Ogc.Class.js`. The CLEWs install page (`#/ClewsInstall`,
+reached from the Home page) follows the same pattern: `.clw-*` styles, and the
+`/clews` API through `WebAPP/Classes/Clews.Class.js`.
 
 #### OG-Core workspace
 
@@ -63,27 +65,37 @@ active workspace and use both `country_id` and `casename` when addressing a
 case. Leaving the workspace clears the active backend session but does not stop
 a running job.
 
+The Results route (`#/OGResults`) draws nothing until a run is chosen: "View"
+shows one run, "Compare" a reform against its baseline. The choice is kept in
+the route's optional query (`#/OGResults?case=...&base=...&reform=...`), which
+the page updates in place so refresh and shared links reopen the same view.
+
 #### CLEWS results
 
-The Results page is built from MUIOGO-owned code and open-source libraries,
-Apache ECharts, Tabulator and jQuery UI, with no commercial runtime dependency.
-Vendored libraries live under `WebAPP/References/` with their licences.
+The Results page uses MUIOGO-owned aggregation and layout state, with Tabulator,
+Apache ECharts and jQuery UI for its table, chart and field panel. The RES Viewer
+uses `MultiSelect.Class.js`. Vendored libraries live under `WebAPP/References/`
+with their licences.
 
-- `WebAPP/Classes/ResultAggregator.Class.js` owns aggregation: grouping,
-  subtotals and grand totals, value and condition filters, sorting, and the
-  Show As calculations. It has no DOM access and runs under plain Node.
-- `WebAPP/Classes/ResultLayoutState.Class.js` holds the layout the user has
-  built and notifies the renderers. Its `definition()` and `apply()` pair
-  serialises and restores a layout, and is what saved views store in
-  `viewDefinitions.json`.
-- `WebAPP/Classes/ResultPanel.Class.js` renders the field panel and its
-  drag-and-drop between areas, using jQuery UI `sortable`.
-- `WebAPP/Classes/ResultGrid.Class.js` renders the table with Tabulator, and
-  owns range selection, clipboard copy, and Show Details.
-- `WebAPP/AppResults/Controller/Pivot.js` renders the chart with ECharts, the
-  same vendored runtime OG-Core results use, and coordinates the page.
-- `WebAPP/Classes/MultiSelect.Class.js` is the checkbox dropdown used by the RES
-  Viewer.
+- `ResultAggregator.Class.js` groups records, applies filters and calculates
+  totals. Show As calculations transform both detail cells and totals from a
+  snapshot of their raw values. Percentage denominators include detail cells
+  only; differences and running totals compare siblings at the same hierarchy
+  depth, with grand totals left blank for those calculations.
+- `ResultLayoutState.Class.js` serialises layouts and reads both legacy Wijmo
+  saved views and the versioned MUIOGO format. Changing variables resets both
+  value and condition filters before capturing the new default layout.
+- `ResultPanel.Class.js` and `ResultFieldSettings.Class.js` edit the layout.
+  `ResultGrid.Class.js` renders the table, clipboard selection and detail view.
+- `AppResults/Controller/Pivot.js` coordinates the renderers. Case switching
+  captures the remembered variable once and uses its group for both fetching
+  result data and constructing the model.
+
+Run the frontend regressions with `node --test tests/frontend/*.test.mjs`.
+`tests/e2e/test_clews_results_page.py` exercises the real renderers and controls
+with synthetic results, including percentages, CSV/SVG exports, original detail
+records, filter resets, remembered views and the RES Viewer multiselect. These
+checks do not write model inputs or launch a solver.
 
 ### Runtime data and outputs
 
@@ -147,6 +159,20 @@ using that country environment, and a run cannot start while that environment
 is being installed or updated. Cancellation stops the worker process tree.
 Application startup marks interrupted active or queued runs as failed and
 terminates a matching orphaned worker when one is found.
+
+### OG-Core results
+
+Each finished OG-Core run writes `results_meta.json` next to its results: start
+year, `T`, `S`, `J`, the age vector, income-group shares and labels (from
+OG-Core's `lambda_labels`), and steady-state population weights. Household
+outputs are labelled and weighted only from this file. Runs solved before it
+carried these fields are rebuilt once from their `model_params.pkl` by the
+worker's `meta` mode.
+
+`API/Classes/OGCore/OGReport.py` owns the variable catalog and the comparison
+rules served by `/ogc/getResultsReport`: levels as a percent change, rates in
+percentage points, fiscal values as shares of GDP, and a negative baseline
+flagged instead of given a percent change.
 
 ## Known architectural constraints
 

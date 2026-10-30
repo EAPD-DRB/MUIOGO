@@ -67,9 +67,10 @@ def schema_files(tmp_path, monkeypatch):
 
 
 class _Case:
-    """Minimal stand-in for OGCoreCase: build_schema only reads gen_data."""
+    """Minimal stand-in for the case's authoritative directory country."""
 
     def __init__(self, country_id):
+        self.country_id = country_id
         self.gen_data = {"country_id": country_id}
 
 
@@ -134,6 +135,7 @@ def test_repeated_column_matrix_is_a_compact_schedule(schema_files, monkeypatch)
     schedule = schema["delta_tau_annual"]
     assert schedule["default"] == [[0.027]]
     assert schedule["dimensions"] == [400, 1]
+    assert schedule["display_dimensions"] == [1, 1]
     assert "large" not in schedule
 
 
@@ -173,3 +175,30 @@ def test_metadata_shaped_country_file_is_projected_normally(
     schema = _build(monkeypatch, "ogxyz")
     assert schema["frisch"]["title"] == "Country frisch"
     assert schema["frisch"]["default"] == 0.7
+
+
+def test_schema_and_default_use_directory_country(schema_files, monkeypatch):
+    countries = []
+    def record(country_id):
+        countries.append(country_id)
+        return {"package_name": "ogxyz", "local_path": "/x"}
+    monkeypatch.setattr(OGSchema.CalibrationRegistry, "get", record)
+    case = _Case("XYZ")
+    case.gen_data["country_id"] = "WRONG"
+    assert OGSchema.build_schema(case)[1] is None
+    assert OGSchema.get_parameter_default(case, "frisch") == (0.5, None)
+    assert countries == ["XYZ", "XYZ"]
+
+
+def test_varying_column_matrix_is_lazy_loaded(schema_files, monkeypatch, tmp_path):
+    values = [[i / 1000] for i in range(400)]
+    _write(tmp_path, "ogxyz_default_parameters.json", {"cit_rate": values, "local_schedule": values})
+    OGSchema._DEFAULTS_CACHE.clear()
+    schema = _build(monkeypatch, "ogxyz")
+    for name in ("cit_rate", "local_schedule"):
+        assert schema[name]["default"] is None
+        assert schema[name]["large"] is True
+        assert schema[name]["dimensions"] == [400, 1]
+        assert schema[name]["display_dimensions"] == []
+        assert schema[name]["preview"] == values[:4]
+        assert OGSchema.get_parameter_default(_Case("XYZ"), name) == (values, None)

@@ -1,0 +1,25 @@
+{
+  "genData": {
+    "osy-currency": "USD",
+    "osy-years": [2020, 2021],
+    "osy-tech": [
+      {"TechId": "solar", "Tech": "SOLAR", "Desc": "Solar", "TG": [], "CapUnitId": "GW", "ActUnitId": "PJ"},
+      {"TechId": "wind", "Tech": "WIND", "Desc": "Wind", "TG": [], "CapUnitId": "GW", "ActUnitId": "PJ"}
+    ],
+    "osy-techGroups": [], "osy-comm": [], "osy-emis": [], "osy-stg": [], "osy-constraints": []
+  },
+  "variables": {
+    "R": [{"id": "OV", "value": "Objective Value", "unitRule": "USD"}],
+    "RYT": [
+      {"id": "ANC", "value": "Accumulated New Capacity", "unitRule": "GW"},
+      {"id": "NC", "value": "New Capacity", "unitRule": "GW"}
+    ]
+  },
+  "results": {
+    "R.json": {"OV": {"base": [{"ObjectiveValue": 40}]}},
+    "RYT.json": {
+      "ANC": {"base": [{"Tech": "SOLAR", "2020": 10, "2021": 30}, {"Tech": "WIND", "2020": 20, "2021": 40}]},
+      "NC": {"base": [{"Tech": "SOLAR", "2020": 1, "2021": 3}, {"Tech": "WIND", "2020": 2, "2021": 4}]}
+    }
+  }
+}

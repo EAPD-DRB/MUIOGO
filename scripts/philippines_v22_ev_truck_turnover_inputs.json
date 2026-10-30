@@ -1,0 +1,38 @@
+{
+  "schema": "philippines-v22-ev-truck-turnover-inputs-v1",
+  "constraint_id": "CO_sdx29",
+  "base_scenario": "BASE",
+  "ev_scenario": "EV",
+  "historical_stock_through": 2020,
+  "truck_groups": [
+    {
+      "name": "TURN_TRUL",
+      "service_commodity": "PHL_TRA_FKMTL",
+      "members": [
+        "PHL_TRA_TRUL_ELE",
+        "PHL_TRA_TRUL_PHEV",
+        "PHL_TRA_TRUL_LIQ",
+        "PHL_TRA_TRUL_NG",
+        "PHL_TRA_TRUL_H2"
+      ]
+    },
+    {
+      "name": "TURN_TRUH",
+      "service_commodity": "PHL_TRA_FKMTH",
+      "members": [
+        "PHL_TRA_TRUH_H2",
+        "PHL_TRA_TRUH_PHEV",
+        "PHL_TRA_TRUH_NG",
+        "PHL_TRA_TRUH_LIQ",
+        "PHL_TRA_TRUH_ELE"
+      ]
+    }
+  ],
+  "turnover_formula": "scheduled initial-stock retirement + max(0, annual service-demand growth) / minimum class CAU + replacement of previously allowed technology vintages at operational life",
+  "classification": {
+    "truck_service_demand": "genuine exogenous final demand",
+    "base_zero_ev": "full-horizon counterfactual technology-availability restriction",
+    "truck_activity_and_powertrain_mix": "endogenous outcomes",
+    "observed_historical_powertrain_mix": "validation benchmark only"
+  }
+}

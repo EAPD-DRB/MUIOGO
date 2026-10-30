@@ -3,6 +3,18 @@ import { Message } from "./Message.Class.js";
 let activeGuard = null;
 let leaveRequestPending = false;
 
+async function runAllowed(guard, onAllowed) {
+    NavigationGuard.deactivate();
+    try {
+        const result = await onAllowed();
+        if (result === false && !activeGuard) NavigationGuard.activate(guard);
+        return result;
+    } catch (error) {
+        if (!activeGuard) NavigationGuard.activate(guard);
+        throw error;
+    }
+}
+
 // Warn before reloading or closing a page with unsaved changes
 function handleBeforeUnload(event) {
     if (!activeGuard || !activeGuard.hasChanges()) {
@@ -40,13 +52,7 @@ export class NavigationGuard {
         }
 
         if (!activeGuard.hasChanges()) {
-            const guard = activeGuard;
-            NavigationGuard.deactivate();
-            const result = await onAllowed();
-            if (result === false) {
-                NavigationGuard.activate(guard);
-            }
-            return result;
+            return await runAllowed(activeGuard, onAllowed);
         }
 
         leaveRequestPending = true;
@@ -56,13 +62,7 @@ export class NavigationGuard {
             const choice = await Message.confirmUnsavedModelChanges();
 
             if (choice === "Don't save") {
-                const guard = activeGuard;
-                NavigationGuard.deactivate();
-                const result = await onAllowed();
-                if (result === false) {
-                    NavigationGuard.activate(guard);
-                }
-                return result;
+                return await runAllowed(activeGuard, onAllowed);
             }
 
             if (choice === "Save") {

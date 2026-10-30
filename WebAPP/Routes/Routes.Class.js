@@ -36,12 +36,19 @@ export class Routes {
         }
 
         function loadView(version, path, pageId, onLoad){
-            $.get(path).then(function (html) {
+            return $.get(path).then(function (html) {
                 if (version != viewVersion) return;
                 $('.osy-content').html(html);
                 localStorage.setItem('osy-pageId', pageId);
-                if (onLoad) onLoad();
-            });
+                if (onLoad) return onLoad();
+            }).catch(error => viewFailed(version, error));
+        }
+
+        function viewFailed(version, error){
+            if (version != viewVersion) return;
+            $('.osy-content').html('<div class="alert alert-danger" role="alert">This page could not be loaded. Check the connection and try again. <button type="button" class="btn btn-default" data-act="retry-view">Retry</button></div>');
+            $('.osy-content [data-act="retry-view"]').on('click', () => window.location.reload());
+            Message.danger(error);
         }
 
         function enterModel(model){
@@ -103,12 +110,12 @@ export class Routes {
                 import('../App/Controller/OGCore.js')
                 .then(OGCore => {
                     loadView(version, 'App/View/OGCore.html', 'OGCore', () => OGCore.default.onLoad());
-                });
+                }).catch(error => viewFailed(version, error));
             }else if (selected == 'clews'){
                 import('../App/Controller/Home.js')
                 .then(Home => {
                     loadView(version, 'App/View/Home.html', 'Home', () => Home.default.onLoad());
-                });
+                }).catch(error => viewFailed(version, error));
             }else{
                 loadView(version, 'App/View/ModelPick.html', 'ModelPick');
             }
@@ -130,7 +137,7 @@ export class Routes {
             import('../App/Controller/Config.js')
             .then(Config => {
                 loadView(version, 'App/View/Config.html', 'Config', () => Config.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });  
         crossroads.addRoute('/AddCase', function() {
             enterModel('clews');
@@ -138,7 +145,7 @@ export class Routes {
             import('../App/Controller/AddCase.js')
             .then(AddCase => {
                 loadView(version, 'App/View/AddCase.html', 'AddCase', () => AddCase.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         }); 
         crossroads.addRoute('/ViewData', function() {
             enterModel('clews');
@@ -146,7 +153,7 @@ export class Routes {
             import('../App/Controller/ViewData.js')
             .then(ViewData => {
                 loadView(version, 'App/View/ViewData.html', 'ViewData', () => ViewData.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
         crossroads.addRoute('/LegacyImport', function() {
             enterModel('clews');
@@ -154,7 +161,15 @@ export class Routes {
             import('../App/Controller/LegacyImport.js')
             .then(ViewData => {
                 loadView(version, 'App/View/LegacyImport.html', 'LegacyImport', () => ViewData.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
+        });
+        crossroads.addRoute('/ClewsInstall', function() {
+            enterModel('clews');
+            let version = beginView();
+            import('../App/Controller/ClewsInstall.js')
+            .then(ClewsInstall => {
+                loadView(version, 'App/View/ClewsInstall.html', 'ClewsInstall', () => ClewsInstall.default.onLoad());
+            }).catch(error => viewFailed(version, error));
         });
         crossroads.addRoute('/OGCore', function() {
             enterModel('og');
@@ -162,7 +177,7 @@ export class Routes {
             import('../App/Controller/OGCore.js')
             .then(OGCore => {
                 loadView(version, 'App/View/OGCore.html', 'OGCore', () => OGCore.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
         crossroads.addRoute('/OGCases', function() {
             if (!requireWorkspace()) return;
@@ -171,7 +186,7 @@ export class Routes {
             import('../App/Controller/OGCases.js')
             .then(OGCases => {
                 loadView(version, 'App/View/OGCases.html', 'OGCases', () => OGCases.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
         crossroads.addRoute('/OGParameters', function() {
             if (!requireWorkspace()) return;
@@ -180,7 +195,7 @@ export class Routes {
             import('../App/Controller/OGParameters.js')
             .then(OGParameters => {
                 loadView(version, 'App/View/OGParameters.html', 'OGParameters', () => OGParameters.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
         crossroads.addRoute('/OGRuns', function() {
             if (!requireWorkspace()) return;
@@ -190,16 +205,17 @@ export class Routes {
             import('../App/Controller/OGRuns.js')
             .then(OGRuns => {
                 loadView(version, 'App/View/OGRuns.html', 'OGRuns', () => OGRuns.default.onLoad(sourcePage));
-            });
+            }).catch(error => viewFailed(version, error));
         });
-        crossroads.addRoute('/OGResults', function() {
+        // the optional query carries the chosen run or comparison (see OGResults.syncUrl)
+        crossroads.addRoute('/OGResults:?query:', function() {
             if (!requireWorkspace()) return;
             enterWorkspace();
             let version = beginView();
             import('../App/Controller/OGResults.js')
             .then(OGResults => {
                 loadView(version, 'App/View/OGResults.html', 'OGResults', () => OGResults.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
         //dynamic routes
         function addAppRoute(group, id){
@@ -209,7 +225,7 @@ export class Routes {
                 import(`../App/Controller/${group}.js`)
                 .then(f => {
                     loadView(version, `App/View/${group}.html`, group, () => f.default.onLoad(group, id));
-                });
+                }).catch(error => viewFailed(version, error));
             });
         }
         $.each(model.PARAMETERS, function (param, array) {                    
@@ -223,7 +239,7 @@ export class Routes {
             import('../App/Controller/DataFile.js')
             .then(DataFile => {
                 loadView(version, 'App/View/DataFile.html', 'DataFile', () => DataFile.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
         crossroads.addRoute('/ModelFile', function() {
             enterModel('clews');
@@ -231,7 +247,7 @@ export class Routes {
             import('../App/Controller/ModelFile.js')
             .then(ModelFile => {
                 loadView(version, 'App/View/ModelFile.html', 'ModelFile', () => ModelFile.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
         crossroads.addRoute('/Versions', function() {
             let version = beginView();
@@ -243,7 +259,7 @@ export class Routes {
             import('../AppResults/Controller/Pivot.js')
             .then(Pivot => {
                 loadView(version, 'AppResults/View/Pivot.html', 'Pivot', () => Pivot.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
         crossroads.addRoute('/RESViewer', function() {
             enterModel('clews');
@@ -251,7 +267,7 @@ export class Routes {
             import('../App/Controller/RESViewer.js')
             .then(RESViewer => {
                 loadView(version, 'App/View/RESViewer.html', 'RESViewer', () => RESViewer.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
         crossroads.addRoute('/RESViewerMermaid', function() {
             enterModel('clews');
@@ -259,7 +275,7 @@ export class Routes {
             import('../App/Controller/RESViewerMermaid.js')
             .then(RESViewer => {
                 loadView(version, 'App/View/RESViewerMermaid.html', 'RESViewerMermaid', () => RESViewer.default.onLoad());
-            });
+            }).catch(error => viewFailed(version, error));
         });
 
         crossroads.bypassed.add(function(request) {
@@ -322,12 +338,15 @@ export class Routes {
                         window.location.hash = hash;
                     }
                     if (modelRequest) requestedModel = modelRequest;
-                    acceptedHash = hash;
                     crossroads.parse(route);
+                    acceptedHash = hash;
                     return true;
                 },
                 restoreAcceptedHash
-            )).finally(() => { navigationPending = false; });
+            )).catch(error => {
+                restoreAcceptedHash();
+                Message.danger(error);
+            }).finally(() => { navigationPending = false; });
         });
         // trigger hashchange on first page load
         window.dispatchEvent(new CustomEvent("hashchange"));

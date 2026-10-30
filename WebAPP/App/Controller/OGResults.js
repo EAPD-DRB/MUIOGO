@@ -1,1061 +1,988 @@
 import { Ogc } from "../../Classes/Ogc.Class.js";
-import { dimensions, rank } from "../../Classes/Array.Class.js";
 import { escapeHtml as esc } from "../../Classes/Html.Class.js";
-import { loadWorkspace } from "./OGCases.js";
+import OGCases, { loadWorkspace, saveSelection } from "./OGCases.js";
+import * as V from "../Model/OGResultsView.js";
+import * as D from "../Model/OGResultsData.js";
+
+// OG-Core Results. Nothing is drawn until a run is chosen in the picker: "View"
+// shows one run, "Compare" shows a reform against its baseline. The report reads
+// one labelled, unit-consistent payload (/ogc/getResultsReport); Explore data uses
+// the same catalog, units and population weights, so both views always agree.
 
 const ECHARTS_URL = 'References/echarts/echarts-6.1.0.min.js';
-const VIEW_KEY = 'osy-ogc-result-view';
-const ORANGE = '#f58220';
-const SLATE = '#3a3f51';
-const BLUE = '#39769f';
-const MUTED = '#8a8f9c';
-const GRID = '#e8e9ed';
-const MAX_TABLE_CACHE = 5;
-
-const CATALOG = {
-    Y: { label: 'Gross domestic product', short: 'GDP', category: 'Macroeconomy' },
-    C: { label: 'Aggregate consumption', short: 'Consumption', category: 'Macroeconomy' },
-    K: { label: 'Capital stock', short: 'Capital', category: 'Macroeconomy' },
-    L: { label: 'Aggregate labor', short: 'Labor', category: 'Macroeconomy' },
-    I: { label: 'Investment', short: 'Investment', category: 'Macroeconomy' },
-    I_total: { label: 'Total investment', category: 'Macroeconomy' },
-    w: { label: 'Wage rate', short: 'Wage', category: 'Prices and returns' },
-    r: { label: 'Real interest rate', short: 'Real interest', category: 'Prices and returns', rate: true },
-    r_gov: { label: 'Government interest rate', category: 'Prices and returns', rate: true },
-    r_p: { label: 'Household portfolio return', category: 'Prices and returns', rate: true },
-    D: { label: 'Government debt', category: 'Public finance' },
-    G: { label: 'Government consumption', category: 'Public finance' },
-    TR: { label: 'Government transfers', category: 'Public finance' },
-    total_tax_revenue: { label: 'Total tax revenue', short: 'Tax revenue', category: 'Public finance' },
-    business_tax_revenue: { label: 'Business tax revenue', category: 'Public finance' },
-    iit_payroll_tax_revenue: { label: 'Income and payroll tax revenue', category: 'Public finance' },
-    iit_revenue: { label: 'Individual income tax revenue', category: 'Public finance' },
-    payroll_tax_revenue: { label: 'Payroll tax revenue', category: 'Public finance' },
-    bequest_tax_revenue: { label: 'Bequest tax revenue', category: 'Public finance' },
-    wealth_tax_revenue: { label: 'Wealth tax revenue', category: 'Public finance' },
-    cons_tax_revenue: { label: 'Consumption tax revenue', category: 'Public finance' },
-    total_government_outlays: { label: 'Total government outlays', category: 'Public finance' },
-    total_primary_government_outlays: { label: 'Primary government outlays', category: 'Public finance' },
-    debt_service: { label: 'Debt service', category: 'Public finance' },
-    new_borrowing: { label: 'New borrowing', category: 'Public finance', differenceOnly: true },
-    c: { label: 'Household consumption', short: 'Consumption', category: 'Households' },
-    n: { label: 'Household labor supply', short: 'Labor supply', category: 'Households' },
-    b_s: { label: 'Household wealth', short: 'Wealth', category: 'Households' },
-    b_sp1: { label: 'Savings carried to next age', short: 'Savings', category: 'Households' },
-    before_tax_income: { label: 'Before-tax household income', short: 'Before-tax income', category: 'Households' },
-    hh_net_taxes: { label: 'Household net taxes', category: 'Households', differenceOnly: true },
-    etr: { label: 'Effective tax rate', category: 'Households', rate: true },
-    mtrx: { label: 'Marginal tax rate on labor income', category: 'Households', rate: true },
-    mtry: { label: 'Marginal tax rate on capital income', category: 'Households', rate: true },
-    euler_savings: { label: 'Savings Euler error', category: 'Model diagnostics' },
-    euler_labor_leisure: { label: 'Labor-leisure Euler error', category: 'Model diagnostics' },
-    resource_constraint_error: { label: 'Resource constraint error', category: 'Model diagnostics' }
-};
-
-const PROFILE_VARS = ['c', 'n', 'b_s', 'before_tax_income'];
-const DISTRIBUTION_VARS = ['c', 'n', 'b_s', 'before_tax_income'];
-const FISCAL_VARS = [
-    'total_tax_revenue', 'business_tax_revenue', 'iit_revenue',
-    'cons_tax_revenue', 'G', 'total_primary_government_outlays'
-];
+const RECENT_KEY = 'osy-ogc-results-recent';
+const RECENT_MAX = 5;
+// OG-Core builds each analysis table in a fresh worker process, so tables are kept
+// for the few most recent selections and returning to one costs nothing.
+const TABLE_CACHE_MAX = 5;
+const CATEGORY_ORDER = ['Output', 'Prices', 'Government', 'Households', 'Other', 'Diagnostics'];
+const HOUSEHOLD_ORDER = ['c', 'n', 'b_sp1', 'before_tax_income', 'labor_income', 'hh_net_taxes', 'etr', 'mtrx', 'mtry'];
 let PAGE_ID = 0;
-
-function humanize(name){
-    return String(name || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function info(name){
-    if (CATALOG[name]) return CATALOG[name];
-    let category = 'Other outputs';
-    if (/tax|revenue|debt|borrowing|government|pension|\bG\b/.test(name)) category = 'Public finance';
-    else if (/error|euler|constraint/.test(name)) category = 'Model diagnostics';
-    else if (/^p_|^r$|^r_|^w$/.test(name)) category = 'Prices and returns';
-    else if (/^c$|^n$|income|wealth|benefit|\bbq\b|\btr\b|\bubi\b/.test(name)) category = 'Households';
-    else if (/^Y|^K|^L|^I|^C|^B/.test(name)) category = 'Macroeconomy';
-    return { label: humanize(name), category: category };
-}
-
-function firstNumber(value){
-    if (typeof value == 'number' && isFinite(value)) return value;
-    if ($.isArray(value)){
-        for (let i = 0; i < value.length; i++){
-            let found = firstNumber(value[i]);
-            if (found !== null) return found;
-        }
-    }
-    return null;
-}
 
 function routePath(){
     let path = String(window.location.hash || '').replace(/^#/, '').split('?')[0] || '/';
     return path.length > 1 ? path.replace(/\/+$/, '') : path;
 }
 
-function rawMatrix(value){
-    let candidate = value;
-    if (rank(candidate) == 3 && candidate.length == 1) candidate = candidate[0];
-    return $.isArray(candidate) && candidate.length && $.isArray(candidate[0]) ? candidate : null;
+function readRecent(){
+    try {
+        let list = JSON.parse(localStorage.getItem(RECENT_KEY));
+        return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
 }
 
-function parameterArray(value){
-    let candidate = value;
-    while ($.isArray(candidate) && candidate.length == 1 && $.isArray(candidate[0])) candidate = candidate[0];
-    return $.isArray(candidate) ? candidate : null;
-}
 
-function validWeights(value, count){
-    let weights = parameterArray(value);
-    if (!weights || !weights.length || (count && weights.length != count)) return null;
-    let total = 0;
-    for (let index = 0; index < weights.length; index++){
-        let weight = Number(weights[index]);
-        if (!isFinite(weight) || weight < 0) return null;
-        total += weight;
-    }
-    return Math.abs(total - 1) < 0.001 ? weights : null;
-}
-
-function compatibleMatrices(base, reform){
-    if (!base || !reform || base.length != reform.length) return false;
-    for (let row = 0; row < base.length; row++){
-        if (!$.isArray(base[row]) || !$.isArray(reform[row]) || base[row].length != reform[row].length) return false;
-    }
-    return true;
-}
-
-function ageGroupMatrix(value){
-    let candidate = value;
-    if (rank(candidate) == 3 && candidate.length == 1) candidate = candidate[0];
-    if (!$.isArray(candidate) || !candidate.length || !$.isArray(candidate[0])) return null;
-    let groupCount = OGResults.groups && OGResults.groups.length;
-    if (groupCount && candidate[0].length == groupCount) return candidate;
-    if (groupCount && candidate.length == groupCount){
-        return candidate[0].map((_, col) => candidate.map(row => row[col]));
-    }
-    return null;
-}
-
-function shape(value){
-    let dims = dimensions(value);
-    if (!dims.length || (dims.length == 1 && dims[0] == 1)) return { kind: 'scalar', dims: [] };
-    let matrix = ageGroupMatrix(value);
-    if (matrix && OGResults.ages && matrix.length == OGResults.ages.length){
-        return { kind: 'age_group', dims: [matrix.length, matrix[0].length] };
-    }
-    if (dims.length == 1 && OGResults.groups && dims[0] == OGResults.groups.length) return { kind: 'group', dims: dims };
-    if (dims.length == 1) return { kind: 'vector', dims: dims };
-    return { kind: 'matrix', dims: dims };
-}
-
-function pct(base, reform){
-    if (typeof base != 'number' || typeof reform != 'number' || !isFinite(base) || !isFinite(reform) || Math.abs(base) < 1e-12) return null;
-    return (reform / base - 1) * 100;
-}
-
-function diff(base, reform){
-    if (typeof base != 'number' || typeof reform != 'number' || !isFinite(base) || !isFinite(reform)) return null;
-    return reform - base;
-}
-
-function level(name, value){
-    if (typeof value != 'number' || !isFinite(value)) return null;
-    return info(name).rate ? value * 100 : value;
-}
-
-function measureValue(name, base, reform, measure){
-    if (measure == 'levels') return level(name, reform);
-    if (measure == 'pp'){
-        let value = diff(base, reform);
-        return value === null ? null : value * 100;
-    }
-    return measure == 'diff' ? diff(base, reform) : pct(base, reform);
-}
-
-function measureLabel(name, measure){
-    if (measure == 'levels') return info(name).rate ? 'Rates (%)' : 'Levels';
-    if (measure == 'pp') return 'Percentage-point difference';
-    if (measure == 'diff') return 'Difference';
-    return 'Percent change';
-}
-
-function measureSuffix(name, measure){
-    if (measure == 'pct') return '%';
-    if (measure == 'pp') return ' pp';
-    if (measure == 'levels' && info(name).rate) return '%';
-    return '';
-}
-
-function signed(value, suffix){
-    if (value === null || value === undefined || !isFinite(value)) return 'n/a';
-    return (value > 0 ? '+' : '') + value.toFixed(Math.abs(value) >= 10 ? 1 : 2) + (suffix || '');
-}
-
-function fmt(value){
-    if (value === null || value === undefined || !isFinite(value)) return '—';
-    let abs = Math.abs(value);
-    if (abs && (abs >= 100000 || abs < 0.0001)) return value.toExponential(3);
-    if (abs >= 1000) return value.toLocaleString(undefined, {maximumFractionDigits: 1});
-    return value.toLocaleString(undefined, {maximumFractionDigits: abs >= 10 ? 2 : 4});
-}
-
-function plainMath(value){
-    return String(value || '')
-        .replace(/\\(?:tilde|hat|bar|vec)\s*\{([^{}]+)\}/g, '$1')
-        .replace(/\\(?:mathrm|text)\s*\{([^{}]+)\}/g, '$1')
-        .replace(/_\{([^{}]+)\}/g, ' ($1)')
-        .replace(/\^\{([^{}]+)\}/g, '^$1')
-        .replace(/_([A-Za-z0-9]+)/g, ' ($1)')
-        .replace(/\\([A-Za-z]+)/g, '$1')
-        .replace(/[{}]/g, '')
-        .replace(/\s*,\s*/g, ', ')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-function resultTableText(value){
-    let source = String(value == null ? '' : value);
-    let cleaned = source
-        .replace(/\s*\(\s*\$[^$]+\$\s*\)/g, '')
-        .replace(/\s*,?\s*\$[^$]+\$\s*$/g, '')
-        .replace(/\$([^$]+)\$/g, (_, expression) => plainMath(expression))
-        .replace(/\s+,/g, ',')
-        .replace(/\s+/g, ' ')
-        .trim();
-    return cleaned || plainMath(source.replace(/\$/g, ''));
-}
-
-function resultTableCell(value){
-    while ($.isArray(value) && value.length == 1) value = value[0];
-    if ($.isArray(value)) return $.map(value, resultTableCell).join(', ');
-    return typeof value == 'string' ? resultTableText(value) : value;
-}
-
-function parameterEqual(left, right){
-    while ($.isArray(left) && left.length == 1) left = left[0];
-    while ($.isArray(right) && right.length == 1) right = right[0];
-    if (left === right) return true;
-    if (typeof left == 'number' && typeof right == 'number' && isNaN(left) && isNaN(right)) return true;
-    if ($.isArray(left) || $.isArray(right)){
-        if (!$.isArray(left) || !$.isArray(right) || left.length != right.length) return false;
-        for (let index = 0; index < left.length; index++){
-            if (!parameterEqual(left[index], right[index])) return false;
-        }
-        return true;
-    }
-    let leftObject = left && typeof left == 'object';
-    let rightObject = right && typeof right == 'object';
-    if (leftObject || rightObject){
-        if (!leftObject || !rightObject) return false;
-        let leftKeys = Object.keys(left).sort();
-        let rightKeys = Object.keys(right).sort();
-        if (!parameterEqual(leftKeys, rightKeys)) return false;
-        for (let index = 0; index < leftKeys.length; index++){
-            let key = leftKeys[index];
-            if (!parameterEqual(left[key], right[key])) return false;
-        }
-        return true;
-    }
-    return false;
-}
-
-function robustHeatScale(values){
-    let absolute = $.map(values, value => value === null || !isFinite(value) ? null : Math.abs(value)).sort((a, b) => a - b);
-    if (!absolute.length) return { bound: 0.01, max: 0.01, clipped: false, cappedPercent: 0 };
-    let max = absolute[absolute.length - 1];
-    let bound = absolute[Math.floor((absolute.length - 1) * 0.95)];
-    bound = Math.max(0.01, bound);
-    let capped = $.grep(absolute, value => value > bound).length;
-    return { bound: bound, max: max, clipped: capped > 0, cappedPercent: Math.round(capped / absolute.length * 100) };
-}
-
-function indexedPairs(base, reform, path, rows){
-    let baseArray = $.isArray(base), reformArray = $.isArray(reform);
-    if (baseArray || reformArray){
-        let length = Math.max(baseArray ? base.length : 0, reformArray ? reform.length : 0);
-        for (let index = 0; index < length; index++){
-            indexedPairs(baseArray ? base[index] : null, reformArray ? reform[index] : null, path.concat(index + 1), rows);
-        }
-        return;
-    }
-    rows.push({ dimension: path.join(', '), baseline: base, reform: reform });
-}
-
-function axisLabel(value){
-    if (value === 0) return '0';
-    if (Math.abs(value) >= 10) return value.toFixed(0);
-    return value.toFixed(1);
-}
-
-function chartBase(description){
-    return {
-        animationDuration: 450,
-        aria: { show: true, description: description || '' },
-        textStyle: { fontFamily: 'Open Sans, Arial, sans-serif', color: SLATE },
-        tooltip: { trigger: 'axis', backgroundColor: '#20232d', borderWidth: 0, textStyle: { color: '#fff', fontSize: 12 } },
-        grid: { left: 22, right: 28, top: 20, bottom: 30, containLabel: true }
-    };
-}
-
-function comparisonBar(labels, values, description){
-    let max = Math.max(0.5, ...values.filter(v => v !== null).map(v => Math.abs(v))) * 1.18;
-    return $.extend(true, chartBase(description), {
-        grid: { left: 40, right: 52, top: 10, bottom: 26, containLabel: true },
-        xAxis: {
-            type: 'value', min: -max, max: max,
-            axisLine: { lineStyle: { color: '#ccd0d8' } }, axisTick: { show: false },
-            splitLine: { lineStyle: { color: GRID } }, axisLabel: { color: MUTED, formatter: v => axisLabel(v) + '%' }
-        },
-        yAxis: { type: 'category', data: labels, inverse: true, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: SLATE, fontWeight: 600 } },
-        series: [{
-            type: 'bar', data: values.map(v => {
-                let placeInside = v < 0 && Math.abs(v) / max > 0.18;
-                return {
-                    value: v,
-                    itemStyle: { color: v >= 0 ? ORANGE : BLUE },
-                    label: {
-                        position: v >= 0 ? 'right' : (placeInside ? 'insideLeft' : 'left'),
-                        color: placeInside ? '#fff' : SLATE,
-                        distance: 7
-                    }
-                };
-            }),
-            barMaxWidth: 17,
-            label: { show: true, position: 'outside', color: SLATE, fontWeight: 700, formatter: p => signed(p.value, '%') },
-            markLine: { silent: true, symbol: 'none', lineStyle: { color: '#9ba1ad', width: 1.2 }, label: { show: false }, data: [{ xAxis: 0 }] }
-        }]
-    });
-}
 
 export default class OGResults {
+
     static onLoad(){
         PAGE_ID++;
         OGResults.pageID = PAGE_ID;
-        OGResults.disposeCharts();
-        $(window).off('.ogresults');
-        $(document).off('.ogresults');
+        OGResults.teardown();
         OGResults.workspace = loadWorkspace();
-        OGResults.items = [];
-        OGResults.tableCache = Object.create(null);
-        OGResults.tables = Object.create(null);
-        OGResults.activeTable = null;
-        OGResults.charts = {};
-        OGResults.requestID = 0;
-        OGResults.tableRequestID = 0;
         if (!OGResults.workspace || !OGResults.workspace.country_id){
             window.location.hash = '#/OGCore';
             return;
         }
+        OGResults.cases = [];
+        OGResults.selection = null;
+        OGResults.report = null;
+        OGResults.requestID = 0;
+        OGResults.hh = {name: null, view: 'avg', scenario: 'baseline', group: 0};
+        OGResults.ex = null;
+        OGResults.ssData = null;
+        OGResults.tpiCache = Object.create(null);
+        OGResults.tableCache = new Map();
+        OGResults.ogTables = Object.create(null);
+        OGResults.activeOgTable = null;
         OGResults.initEvents();
-        Promise.all([OGResults.loadECharts(), Ogc.getCases(OGResults.workspace.country_id)])
-            .then(values => OGResults.prepareCases(values[1]))
-            .catch(error => OGResults.showEmpty('Unable to load results', String(error)));
+        const pageID = PAGE_ID;
+        Promise.all([OGResults.loadECharts(), OGResults.loadTree()])
+            .then(() => {
+                if (!OGResults.isCurrent(pageID)) return;
+                let requested = V.parseSelection(window.location.hash);
+                if (requested && OGResults.availability(requested).ok){
+                    OGResults.select(requested);
+                }else{
+                    OGResults.showIntro();
+                }
+            })
+            .catch(error => { if (OGResults.isCurrent(pageID)) OGResults.showError(String(error)); });
     }
 
-    static isCurrent(){
-        return OGResults.pageID == PAGE_ID && localStorage.getItem('osy-pageId') == 'OGResults' && routePath() == '/OGResults';
+    static isCurrent(pageID = OGResults.pageID){
+        return pageID == PAGE_ID && localStorage.getItem('osy-pageId') == 'OGResults' && routePath() == '/OGResults';
     }
 
     static loadECharts(){
         if (window.echarts) return Promise.resolve(window.echarts);
-        return new Promise((resolve, reject) => {
-            let script = document.getElementById('ogc-echarts-runtime');
-            if (script) script.remove();
-            script = document.createElement('script');
+        if (OGResults.echartsPromise) return OGResults.echartsPromise;
+        OGResults.echartsPromise = new Promise((resolve, reject) => {
+            let script = document.createElement('script');
             script.id = 'ogc-echarts-runtime';
             script.src = ECHARTS_URL;
             script.async = true;
             script.addEventListener('load', () => resolve(window.echarts), {once: true});
             script.addEventListener('error', () => {
                 script.remove();
+                OGResults.echartsPromise = null;
                 reject('Charts could not be loaded.');
             }, {once: true});
             document.head.appendChild(script);
         });
+        return OGResults.echartsPromise;
     }
 
-    static prepareCases(response){
-        let cases = $.isArray(response) ? response : (response.cases || []);
-        cases = $.grep(cases, item => item.country_id == OGResults.workspace.country_id);
-        if (!cases.length){
-            OGResults.showEmpty(
-                'No cases in this workspace',
-                'Create a case, then complete a baseline and reform run.',
-                { href: '#/OGCases', label: 'Go to Cases' }
-            );
-            return;
-        }
-        return Promise.all($.map(cases, item => Ogc.getRuns(OGResults.workspace.country_id, item.casename)
-            .then(result => ({ case: item, runs: result.runs || [] }))
-            .catch(() => ({ case: item, runs: [] })))).then(items => {
-                if (!OGResults.isCurrent()) return;
-                OGResults.items = items;
-                let viable = $.grep(items, item => {
-                    let complete = $.grep(item.runs, run => run.status == 'completed');
-                    let bases = $.grep(complete, run => run.run_type == 'baseline');
-                    return $.grep(bases, base => OGResults.compatibleReforms(item, base.run_name).length).length;
+    // ── picker ───────────────────────────────────────────────────────────────
+    static loadTree(){
+        let country = OGResults.workspace.country_id;
+        return Ogc.getCases(country).then(response => {
+            let cases = $.isArray(response) ? response : (response.cases || []);
+            cases = $.grep(cases, item => item.country_id == country);
+            return Promise.all($.map(cases, item => Ogc.getRuns(country, item.casename)
+                .then(result => Object.assign({}, item, {runs: result.runs || []}))
+                .catch(() => Object.assign({}, item, {runs: []}))));
+        }).then(cases => {
+            OGResults.cases = cases;
+            OGResults.renderTree();
+            OGResults.renderRecent();
+        });
+    }
+
+    static findCase(casename){
+        return $.grep(OGResults.cases, c => c.casename == casename)[0] || null;
+    }
+
+    static findRun(c, runName){
+        return c ? $.grep(c.runs, r => r.run_name == runName)[0] || null : null;
+    }
+
+    static runReady(run){
+        if (!run) return {ok: false, reason: 'This run no longer exists.'};
+        if (run.status != 'completed') return {ok: false, reason: 'Not run yet.'};
+        if (run.reusable === false) return {ok: false, reason: run.stale_reason || 'Out of date: run it again.'};
+        return {ok: true};
+    }
+
+    static availability(sel){
+        let c = OGResults.findCase(sel.casename);
+        let base = OGResults.findRun(c, sel.base);
+        let ready = OGResults.runReady(base);
+        if (!ready.ok || !sel.reform) return ready;
+        let reform = OGResults.findRun(c, sel.reform);
+        if (!reform || reform.baseline_run != sel.base) return {ok: false, reason: 'This reform is not built on that baseline.'};
+        return OGResults.runReady(reform);
+    }
+
+    static displayName(c, run){
+        return OGCases.displayName(c, run);
+    }
+
+    static selectionLabel(sel){
+        let c = OGResults.findCase(sel.casename);
+        let base = OGResults.findRun(c, sel.base);
+        let baseName = base ? OGResults.displayName(c, base) : sel.base;
+        if (!sel.reform) return {kicker: 'Run', title: baseName, base: baseName};
+        let reform = OGResults.findRun(c, sel.reform);
+        let reformName = reform ? OGResults.displayName(c, reform) : sel.reform;
+        return {kicker: 'Comparison', title: `${baseName} → ${reformName}`, base: baseName, reform: reformName};
+    }
+
+    static renderTree(){
+        let filter = String($('#ogcRsSearch').val() || '').toLowerCase();
+        let html = '';
+        let anyReady = false;
+        $.each(OGResults.cases, (_, c) => {
+            let baselines = $.grep(c.runs, r => r.run_type == 'baseline');
+            if (!baselines.length) return;
+            let rows = '';
+            $.each(baselines, (_, base) => {
+                let baseName = OGResults.displayName(c, base);
+                let reforms = $.grep(c.runs, r => r.run_type == 'reform' && r.baseline_run == base.run_name);
+                let matches = !filter || (c.casename + ' ' + baseName + ' ' + reforms.map(r => r.run_name).join(' ')).toLowerCase().indexOf(filter) >= 0;
+                if (!matches) return;
+                let ready = OGResults.runReady(base);
+                anyReady = anyReady || ready.ok;
+                rows += OGResults.treeRow(c, base, null, baseName, ready);
+                $.each(reforms, (_, reform) => {
+                    let reformReady = OGResults.runReady(reform);
+                    let pairReady = ready.ok ? reformReady : {ok: false, reason: 'Its baseline has no current results.'};
+                    anyReady = anyReady || reformReady.ok;
+                    rows += OGResults.treeRow(c, reform, base, OGResults.displayName(c, reform), reformReady, pairReady);
                 });
-                if (!viable.length){
-                    OGResults.showEmpty(
-                        'No completed comparison',
-                        'Complete a baseline and reform run.',
-                        { href: '#/OGRuns', label: 'Go to Run' }
-                    );
-                    return;
-                }
-                $('#ogcResultCase').html($.map(viable, item => `<option value="${esc(item.case.casename)}">${esc(item.case.casename)}</option>`).join(''));
-                OGResults.renderReformOptions(null);
             });
-    }
-
-    static currentItem(){
-        let name = $('#ogcResultCase').val();
-        return $.grep(OGResults.items, item => item.case.casename == name)[0] || null;
-    }
-
-    static currentBaseline(item){
-        if (!item) return null;
-        let complete = $.grep(item.runs, run => run.status == 'completed');
-        let bases = $.grep(complete, run => run.run_type == 'baseline' && OGResults.compatibleReforms(item, run.run_name).length);
-        return bases[0] || null;
-    }
-
-    static compatibleReforms(item, baseName){
-        let complete = $.grep(item.runs, run => run.status == 'completed');
-        let bases = $.grep(complete, run => run.run_type == 'baseline');
-        return $.grep(complete, run => run.run_type == 'reform' &&
-            (run.baseline_run == baseName || (!run.baseline_run && bases.length == 1)));
-    }
-
-    static renderReformOptions(saved){
-        let item = OGResults.currentItem();
-        let baseline = OGResults.currentBaseline(item);
-        let baseName = baseline && baseline.run_name;
-        let reforms = item ? OGResults.compatibleReforms(item, baseName) : [];
-        $('#ogcResultReform').html($.map(reforms, run => `<option value="${esc(run.run_name)}">${esc(run.run_name)}</option>`).join(''));
-        if (saved && saved.country_id == OGResults.workspace.country_id && saved.casename == (item && item.case.casename) && saved.base == baseName && $.grep(reforms, run => run.run_name == saved.reform).length){
-            $('#ogcResultReform').val(saved.reform);
-        }
-        OGResults.loadComparison();
-    }
-
-    static loadComparison(){
-        let item = OGResults.currentItem();
-        let casename = item && item.case.casename;
-        let baseline = OGResults.currentBaseline(item);
-        let baseRun = baseline && baseline.run_name;
-        let reformRun = $('#ogcResultReform').val();
-        if (!casename || !baseRun || !reformRun){
-            OGResults.showEmpty(
-                'No completed comparison',
-                'Complete a baseline and reform run.',
-                { href: '#/OGRuns', label: 'Go to Run' }
-            );
-            return;
-        }
-        $('#ogcResultEmpty, #ogcResultBody').hide();
-        $('#ogcResultLoading').show();
-        OGResults.tables = Object.create(null);
-        OGResults.activeTable = null;
-        OGResults.tableRequestID++;
-        $('#ogcTableExport').prop('disabled', true);
-        $('#ogcResultTable').empty();
-        $('#ogcTableStatus').text('Loading table…').show();
-        let requestedAt = ++OGResults.requestID;
-        Promise.all([
-            Ogc.getSSVars(OGResults.workspace.country_id, casename, baseRun),
-            Ogc.getSSVars(OGResults.workspace.country_id, casename, reformRun),
-            Ogc.getParams(OGResults.workspace.country_id, casename, baseRun).catch(() => ({params:{}})),
-            Ogc.getParams(OGResults.workspace.country_id, casename, reformRun).catch(() => ({params:{}})),
-            Ogc.getParameterSchema(OGResults.workspace.country_id, casename)
-                .then(schema => ({ schema: schema || {}, unavailable: false }))
-                .catch(() => ({ schema: {}, unavailable: true }))
-        ]).then(values => {
-            if (!OGResults.isCurrent() || requestedAt != OGResults.requestID) return;
-            OGResults.base = values[0];
-            OGResults.reform = values[1];
-            OGResults.baseParams = values[2].params || {};
-            OGResults.reformParams = values[3].params || {};
-            OGResults.schema = values[4].schema;
-            OGResults.schemaUnavailable = values[4].unavailable;
-            OGResults.selection = { casename: casename, base: baseRun, reform: reformRun };
-            OGResults.useTableCache(OGResults.selection);
-            OGResults.setDimensions();
-            OGResults.renderAll();
-            $('#ogcResultLoading').hide();
-            $('#ogcResultBody').show();
-            OGResults.loadInequalitySummary(requestedAt);
-            if ($('.ogc-result-tabs button.active').data('result-tab') == 'tables'){
-                OGResults.loadTable($('.ogc-table-pills button.active').data('table') || 'macro');
-            }
-        }).catch(error => {
-            if (!OGResults.isCurrent() || requestedAt != OGResults.requestID) return;
-            OGResults.showEmpty('Unable to load selected results', String(error));
+            if (rows) html += `<div class="ogc-rs-case" role="listitem"><div class="ogc-rs-case-name">${esc(c.casename)}</div>${rows}</div>`;
         });
-    }
-
-    static loadInequalitySummary(comparisonRequestID){
-        if (Object.prototype.hasOwnProperty.call(OGResults.tables, 'ineq')){
-            OGResults.renderInequality();
-            return;
+        if (!html){
+            html = filter
+                ? '<div class="ogc-rs-tree-empty">No runs match this filter.</div>'
+                : '<div class="ogc-rs-tree-empty">No runs yet. Create a case and run it to see results here.<br><a class="btn ogc-btn ogc-btn-sm ogc-btn-soft" href="#/OGCases">Go to Cases</a></div>';
+        }else if (!anyReady && !filter){
+            html = '<div class="ogc-rs-tree-empty">No completed runs yet.<br><a class="btn ogc-btn ogc-btn-sm ogc-btn-soft" href="#/OGRuns">Go to Run</a></div>' + html;
         }
-        let selectionKey = JSON.stringify(OGResults.selection);
-        let s = OGResults.selection;
-        Ogc.getIneqTable(OGResults.workspace.country_id, s.casename, s.base, s.reform).then(rows => {
-            if (!OGResults.isCurrent() || comparisonRequestID != OGResults.requestID || selectionKey != JSON.stringify(OGResults.selection)) return;
-            OGResults.tables.ineq = rows || [];
-            OGResults.renderInequality();
-        }).catch(() => {});
+        $('#ogcRsTree').html(html);
+        OGResults.markActive();
     }
 
-    static setDimensions(){
-        let baseParams = OGResults.baseParams || {};
-        let schema = OGResults.schema || {};
-        let sourceMatrix = null;
-        $.each(DISTRIBUTION_VARS, (_, name) => {
-            if (!sourceMatrix) sourceMatrix = rawMatrix(OGResults.base[name]);
-        });
-        let groupCount = sourceMatrix && sourceMatrix[0].length;
-        let runLambdas = validWeights(baseParams.lambdas, groupCount);
-        let schemaLambdas = validWeights(schema.lambdas && schema.lambdas.default, groupCount);
-        let lambdas = runLambdas || schemaLambdas;
-        if (!groupCount && lambdas) groupCount = lambdas.length;
-        groupCount = groupCount || 0;
-        let notes = [];
-        if (lambdas){
-            let cumulative = 0;
-            OGResults.groups = $.map(lambdas, (weight, index) => {
-                let start = Math.round(cumulative * 100);
-                cumulative += Number(weight);
-                let end = Math.round(cumulative * 100);
-                if (index === 0) return `Bottom ${end}%`;
-                if (index == lambdas.length - 1) return `Top ${100 - start}%`;
-                return `${start}–${end}%`;
-            });
+    static treeRow(c, run, base, name, ready, pairReady){
+        let isReform = !!base;
+        let attrs = `data-case="${esc(c.casename)}" data-base="${esc(isReform ? base.run_name : run.run_name)}"`;
+        let meta = [];
+        if (ready.ok){
+            meta.push(run.time_path ? 'Transition path' : 'Steady state');
+            if (run.completed_at) meta.push(new Date(run.completed_at).toLocaleDateString());
         }else{
-            OGResults.groups = $.map(Array(groupCount), (_, index) => `Group ${index + 1}`);
-            if (groupCount) notes.push('Income-group metadata is unavailable, so generic group labels are shown.');
+            meta.push(ready.reason);
         }
-        let runStartAge = firstNumber(baseParams.starting_age);
-        let schemaStartAge = firstNumber(schema.starting_age && schema.starting_age.default);
-        let startAge = runStartAge === null ? schemaStartAge : runStartAge;
-        let matrix = sourceMatrix || [];
-        OGResults.ages = $.map(matrix, (_, index) => startAge === null ? index + 1 : startAge + index + 1);
-        if (matrix.length && startAge === null) notes.push('Starting-age metadata is unavailable, so model age indices are shown.');
-        if (OGResults.schemaUnavailable) notes.unshift('Parameter metadata could not be loaded.');
-        $('#ogcDimensionNote').text(notes.join(' ')).prop('hidden', !notes.length);
+        let view = `<button type="button" class="btn ogc-btn ogc-btn-sm ogc-btn-row" data-rs-act="view" ${attrs} ${isReform ? `data-view="${esc(run.run_name)}"` : ''} title="View this run on its own"${ready.ok ? '' : ' disabled'}><i class="fa fa-eye" aria-hidden="true"></i><span class="ogc-btn-txt">View</span></button>`;
+        let compare = isReform
+            ? `<button type="button" class="btn ogc-btn ogc-btn-sm ogc-btn-soft" data-rs-act="compare" ${attrs} data-reform="${esc(run.run_name)}" title="${pairReady.ok ? 'Compare this reform with its baseline' : esc(pairReady.reason)}"${pairReady.ok ? '' : ' disabled'}><i class="fa fa-exchange" aria-hidden="true"></i> Compare</button>`
+            : '';
+        return `<div class="ogc-rs-run${isReform ? ' ogc-rs-run-reform' : ''}${ready.ok ? '' : ' ogc-rs-run-off'}" data-key="${esc(c.casename + '|' + (isReform ? base.run_name + '|' + run.run_name : run.run_name))}" data-single="${esc(c.casename + '|' + run.run_name)}">
+            <div class="ogc-rs-run-text">
+                <span class="ogc-tag ogc-tag-${isReform ? 'reform' : 'base'}">${isReform ? 'reform' : 'baseline'}</span>
+                <b title="${esc(name)}">${esc(name)}</b>
+                <small>${esc(meta.join(' · '))}</small>
+            </div>
+            <div class="ogc-rs-run-acts">${view}${compare}</div>
+        </div>`;
     }
 
-    static useTableCache(selection){
-        let key = JSON.stringify(selection);
-        OGResults.tableCache = OGResults.tableCache || Object.create(null);
-        let tables = Object.prototype.hasOwnProperty.call(OGResults.tableCache, key)
-            ? OGResults.tableCache[key]
-            : Object.create(null);
-        delete OGResults.tableCache[key];
-        OGResults.tableCache[key] = tables;
-        let keys = Object.keys(OGResults.tableCache);
-        while (keys.length > MAX_TABLE_CACHE) delete OGResults.tableCache[keys.shift()];
-        OGResults.tables = tables;
+    static markActive(){
+        $('.ogc-rs-run').removeClass('ogc-rs-run-on');
+        let sel = OGResults.selection;
+        if (!sel) return;
+        let key = sel.casename + '|' + sel.base + (sel.reform ? '|' + sel.reform : '');
+        let attr = sel.reform ? 'data-key' : 'data-single';
+        $('.ogc-rs-run').filter(function () { return $(this).attr(attr) == key; }).addClass('ogc-rs-run-on');
     }
 
-    static renderAll(){
+    static renderRecent(){
+        let country = OGResults.workspace.country_id;
+        let items = $.grep(readRecent(), item => item.country_id == country && OGResults.availability(item).ok);
+        if (!items.length){
+            $('#ogcRsRecent').hide().empty();
+            return;
+        }
+        $('#ogcRsRecent').html(`<div class="ogc-rs-recent-label">Recent</div>` + items.map(item => {
+            let label = OGResults.selectionLabel(item);
+            return `<button type="button" class="ogc-rs-recent-item" data-rs-act="recent" data-case="${esc(item.casename)}" data-base="${esc(item.base)}" data-reform="${esc(item.reform || '')}" title="${esc(label.title)}"><i class="fa fa-${item.reform ? 'exchange' : 'eye'}" aria-hidden="true"></i> ${esc(label.title)}</button>`;
+        }).join('')).show();
+    }
+
+    static remember(sel){
+        let country = OGResults.workspace.country_id;
+        let key = V.selectionKey(country, sel);
+        let list = $.grep(readRecent(), item => V.selectionKey(item.country_id, item) != key);
+        list.unshift({country_id: country, casename: sel.casename, base: sel.base, reform: sel.reform || null});
+        try { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX * 4))); } catch (e) { /* storage full: recents are optional */ }
+    }
+
+    // ── selection and loading ────────────────────────────────────────────────
+    static select(sel){
+        OGResults.selection = {casename: sel.casename, base: sel.base, reform: sel.reform || null, tab: sel.tab || 'report'};
+        OGResults.syncUrl();
+        OGResults.remember(OGResults.selection);
+        OGResults.renderRecent();
+        OGResults.markActive();
+        OGResults.load();
+    }
+
+    // Keep the selection in the address bar without re-routing the page, so a
+    // refresh, the back button or a shared link reopens the same view.
+    static syncUrl(){
+        let hash = V.selectionHash(OGResults.selection);
+        if (window.location.hash != hash) history.replaceState(null, '', hash);
+    }
+
+    static load(){
+        let sel = OGResults.selection;
+        let country = OGResults.workspace.country_id;
+        let requestID = ++OGResults.requestID;
+        const pageID = OGResults.pageID;
         OGResults.disposeCharts();
-        OGResults.renderMeta();
-        OGResults.renderPolicy();
-        OGResults.renderKpis();
-        OGResults.renderInequality();
-        OGResults.renderMacro();
-        OGResults.renderFiscal();
-        OGResults.renderDistributionControls();
-        OGResults.renderDistribution();
-        OGResults.renderProfileControls();
-        OGResults.renderProfile();
-        OGResults.renderExploreControls();
-        OGResults.renderExplore();
+        OGResults.ssData = null;
+        OGResults.tpiCache = Object.create(null);
+        OGResults.ogTables = OGResults.tablesFor(sel);
+        OGResults.ex = null;
+        $('#ogcRsIntro, #ogcRsError, #ogcRsView').hide();
+        $('#ogcRsLoading').show();
+        let params = run => Ogc.getParams(country, sel.casename, run).then(r => r.params || {}).catch(() => null);
+        Promise.all([
+            Ogc.getResultsReport(country, sel.casename, sel.base, sel.reform),
+            params(sel.base),
+            sel.reform ? params(sel.reform) : Promise.resolve(null),
+            sel.reform ? Ogc.getParameterSchema(country, sel.casename).catch(() => null) : Promise.resolve(null)
+        ]).then(([report, baseParams, reformParams, schema]) => {
+            if (!OGResults.isCurrent(pageID) || requestID != OGResults.requestID) return;
+            if (!report || report.status_code == 'running'){
+                OGResults.showError('This run is still solving. Results appear here when it finishes.');
+                return;
+            }
+            OGResults.report = report;
+            OGResults.policy = (sel.reform && baseParams && reformParams && schema)
+                ? V.policyChanges(baseParams, reformParams, schema) : null;
+            let first = HOUSEHOLD_ORDER.find(name => report.households && report.households[name]);
+            OGResults.hh = {name: first || null, view: 'avg', scenario: 'baseline', group: 0};
+            OGResults.render();
+        }).catch(error => {
+            if (!OGResults.isCurrent(pageID) || requestID != OGResults.requestID) return;
+            OGResults.showError('These results could not be loaded. ' + String(error && error.message || error));
+        });
+    }
+
+    static showIntro(){
+        OGResults.selection = null;
+        OGResults.markActive();
+        OGResults.disposeCharts();
+        $('#ogcRsLoading, #ogcRsError, #ogcRsView').hide();
+        $('#ogcRsIntro').show();
+    }
+
+    static showError(text){
+        OGResults.disposeCharts();
+        $('#ogcRsLoading, #ogcRsIntro, #ogcRsView').hide();
+        $('#ogcRsError').html(`<i class="fa fa-exclamation-circle" aria-hidden="true"></i> ${esc(text)}`).show();
+    }
+
+    // ── rendering: header and report ─────────────────────────────────────────
+    static render(){
+        let label = OGResults.selectionLabel(OGResults.selection);
+        $('#ogcRsKicker').text(label.kicker);
+        $('#ogcRsTitle').text(label.title);
+        $('#ogcRsFacts').html(OGResults.factsHtml());
+        $('#ogcRsLoading').hide();
+        $('#ogcRsView').show();
+        OGResults.renderReport();
+        OGResults.openTab(OGResults.selection.tab || 'report');
         OGResults.bindResize();
     }
 
-    static renderMeta(){
-        let item = OGResults.currentItem();
-        let reform = $.grep(item.runs, run => run.run_name == OGResults.selection.reform)[0] || {};
-        let complete = reform.completed_at ? new Date(reform.completed_at).toLocaleDateString() : '';
-        $('#ogcResultMeta').html(complete
-            ? `<span class="ogc-result-meta-label">Reform run</span><time datetime="${esc(reform.completed_at)}">${esc(complete)}</time>`
-            : '');
+    static factsHtml(){
+        let report = OGResults.report;
+        let facts = [];
+        facts.push(report.analysis == 'transition'
+            ? `<span class="ogc-rs-fact" title="Year-by-year transition and the long-run steady state"><i class="fa fa-road" aria-hidden="true"></i> Transition path + long run</span>`
+            : `<span class="ogc-rs-fact" title="Only the long-run steady state was solved"><i class="fa fa-anchor" aria-hidden="true"></i> Long run (steady state) only</span>`);
+        let c = OGResults.findCase(OGResults.selection.casename);
+        let run = OGResults.findRun(c, OGResults.selection.reform || OGResults.selection.base);
+        if (run && run.completed_at) facts.push(`<span class="ogc-rs-fact"><i class="fa fa-clock-o" aria-hidden="true"></i> ${esc(new Date(run.completed_at).toLocaleString())}</span>`);
+        let diag = [report.diagnostics.baseline, report.diagnostics.reform].filter(Boolean);
+        if (diag.length){
+            let ok = diag.every(d => d.converged);
+            let worst = Math.max(...diag.flatMap(d => Object.values(d.values)));
+            facts.push(`<span class="ogc-rs-fact ogc-rs-fact-${ok ? 'ok' : 'warn'}" title="Largest steady-state Euler / resource-constraint error: ${esc(worst.toExponential(1))}"><i class="fa fa-${ok ? 'check-circle' : 'exclamation-triangle'}" aria-hidden="true"></i> ${ok ? 'Solution converged' : 'Check solution accuracy'}</span>`);
+        }
+        return facts.join('');
     }
 
-    static renderPolicy(){
-        let names = Object.create(null);
-        $.each(OGResults.baseParams, name => { names[name] = true; });
-        $.each(OGResults.reformParams, name => { names[name] = true; });
-        let changes = [];
-        $.each(names, name => {
-            let schema = OGResults.schema[name] || {};
-            let defaultValue = schema.default;
-            let baseValue = name in OGResults.baseParams ? OGResults.baseParams[name] : defaultValue;
-            let reformValue = name in OGResults.reformParams ? OGResults.reformParams[name] : defaultValue;
-            if (!parameterEqual(baseValue, reformValue)){
-                let title = String(schema.title || '').trim();
-                changes.push({ name: name, label: title || humanize(name) });
-            }
-        });
-        changes.sort((left, right) => left.label.localeCompare(right.label));
-        if (!changes.length){
-            $('#ogcPolicyChange').html('<span class="ogc-mut">No parameter changes.</span>');
+    static section(id, title, subtitle, body){
+        return `<section class="ogc-rs-section" id="${id}">
+            <div class="ogc-rs-section-head"><h2>${esc(title)}</h2>${subtitle ? `<p>${subtitle}</p>` : ''}</div>
+            ${body}
+        </section>`;
+    }
+
+    static card(chartId, period, title, opts = {}){
+        return `<article class="ogc-rs-card${opts.wide ? ' ogc-rs-wide' : ''}">
+            <header class="ogc-rs-card-head">
+                <div><div class="ogc-rs-card-period">${esc(period)}</div><h3>${esc(title)}</h3>${opts.sub ? `<div class="ogc-rs-card-sub">${esc(opts.sub)}</div>` : ''}</div>
+                <div class="ogc-rs-card-tools">${opts.tools || ''}${chartId ? OGResults.exportMenu(chartId) : ''}</div>
+            </header>
+            ${opts.before || ''}
+            ${chartId ? `<div class="ogc-rs-chart${opts.tall ? ' ogc-rs-chart-lg' : ''}" id="${chartId}"></div>` : ''}
+            ${opts.after || ''}
+        </article>`;
+    }
+
+    static exportMenu(chartId){
+        return `<span class="ogc-action-menu"><button type="button" class="btn ogc-btn ogc-btn-sm ogc-btn-row ogc-btn-more" data-rs-act="menu" aria-haspopup="menu" aria-expanded="false" title="Download"><i class="fa fa-ellipsis-v" aria-hidden="true"></i><span class="ogc-btn-txt">Download</span></button>
+            <span class="ogc-case-menu" role="menu" aria-hidden="true">
+                <button type="button" role="menuitem" data-rs-act="export" data-chart="${chartId}" data-format="png"><i class="fa fa-file-image-o" aria-hidden="true"></i> Download PNG</button>
+                <button type="button" role="menuitem" data-rs-act="export" data-chart="${chartId}" data-format="svg"><i class="fa fa-file-code-o" aria-hidden="true"></i> Download SVG</button>
+            </span></span>`;
+    }
+
+    static renderReport(){
+        let report = OGResults.report;
+        let compare = report.mode == 'compare';
+        let sections = [];
+        let html = '';
+        let identical = compare && OGResults.policy && !OGResults.policy.length;
+        if (identical){
+            html += `<div class="ogc-rs-guard"><i class="fa fa-clone" aria-hidden="true"></i><div>
+                <b>This reform has the same parameters as its baseline.</b>
+                <p>Every result would be unchanged, so there is nothing to compare yet. Change at least one parameter in the reform, run it, and come back.</p>
+                <button type="button" class="btn ogc-btn ogc-btn-main" data-rs-act="edit-reform"><i class="fa fa-pencil" aria-hidden="true"></i> Edit reform parameters</button>
+            </div></div>`;
+            $('#ogcRsSections').empty();
+            $('[data-rs-pane="report"]').html(html);
             return;
         }
-        let itemHtml = item => `<div class="ogc-policy-item"><b>${esc(item.label)}</b><code>${esc(item.name)}</code></div>`;
-        let primary = $.map(changes.slice(0, 4), itemHtml).join('');
-        let remaining = changes.slice(4);
-        let extra = remaining.length
-            ? `<button class="ogc-policy-toggle" type="button" data-count="${remaining.length}">Show ${remaining.length} more</button><div class="ogc-policy-extra" hidden>${$.map(remaining, itemHtml).join('')}</div>`
-            : '';
-        let count = `<div class="ogc-policy-count">${changes.length} parameter${changes.length == 1 ? '' : 's'} changed</div>`;
-        $('#ogcPolicyChange').html(count + primary + extra);
+        html += OGResults.summaryHtml(); sections.push(['rs-summary', 'Summary']);
+        if (compare){ html += OGResults.policyHtml(); sections.push(['rs-policy', 'Policy']); }
+        html += OGResults.macroHtml(); sections.push(['rs-macro', 'Macroeconomy']);
+        html += OGResults.fiscalHtml(); sections.push(['rs-fiscal', 'Government']);
+        html += OGResults.householdsHtml(); sections.push(['rs-households', 'Households']);
+        html += OGResults.section('rs-table', report.transition ? 'Main results table' : 'Long-run results table',
+            report.transition
+                ? `${compare ? 'Changes' : 'Values'} in each of the first ${report.transition.budget_window} years (${esc(V.windowLabel(report.transition.years, report.transition.budget_window))}) and in the long run.`
+                : `${V.LONG_RUN}.`,
+            `<article class="ogc-rs-card"><header class="ogc-rs-card-head"><div></div><div class="ogc-rs-card-tools"><button type="button" class="btn ogc-btn ogc-btn-sm ogc-btn-soft" data-rs-act="main-csv"><i class="fa fa-download" aria-hidden="true"></i> CSV</button></div></header><div class="ogc-rs-grid" id="ogcRsMainTable"></div></article>`);
+        sections.push(['rs-table', 'Table']);
+        $('#ogcRsSections').html(sections.map(([id, name]) => `<button type="button" data-rs-act="jump" data-target="${id}">${esc(name)}</button>`).join(''));
+        $('[data-rs-pane="report"]').html(html);
+        OGResults.drawMacro();
+        OGResults.drawFiscal();
+        OGResults.drawHouseholds();
+        OGResults.drawMainTable();
     }
 
-    static renderKpis(){
-        let specs = [
-            ['Y', 'GDP', '%'], ['C', 'Consumption', '%'], ['L', 'Labor', '%'],
-            ['total_tax_revenue', 'Tax revenue', '%'], ['r', 'Real interest rate', 'pp']
-        ];
-        $('#ogcResultKpis').html($.map(specs, spec => {
-            let b = firstNumber(OGResults.base[spec[0]]), r = firstNumber(OGResults.reform[spec[0]]);
-            let delta = diff(b, r);
-            let change = spec[2] == 'pp' ? (delta === null ? null : delta * 100) : pct(b, r);
-            let baseline = spec[2] == 'pp' ? level(spec[0], b) : b;
-            let reform = spec[2] == 'pp' ? level(spec[0], r) : r;
-            let unit = spec[2] == 'pp' ? '%' : '';
-            return `<article class="ogc-result-kpi"><span>${esc(spec[1])}</span><strong>${esc(signed(change, spec[2] == 'pp' ? ' percentage points' : '%'))}</strong><small><span>Baseline ${esc(fmt(baseline))}${unit}</span><span>Reform ${esc(fmt(reform))}${unit}</span></small></article>`;
-        }).join(''));
+    static kpiCard(row, compare){
+        let flag = row.negative_baseline ? `<span class="ogc-rs-flag" title="The baseline value is negative, so a percent change would mislead.">negative baseline</span>` : '';
+        if (compare){
+            let tone = V.changeTone(row.change);
+            let icon = tone == 'up' ? 'fa-arrow-up' : tone == 'down' ? 'fa-arrow-down' : 'fa-minus';
+            let fromTo = row.value_unit == 'model units'
+                ? `${V.formatValue(row.baseline, row.value_unit)} → ${V.formatValue(row.reform, row.value_unit)} <span class="ogc-mut">model units</span>`
+                : `${V.formatValue(row.baseline, row.value_unit)} → ${V.formatValue(row.reform, row.value_unit)}`;
+            return `<article class="ogc-rs-kpi ogc-rs-${tone}">
+                <span class="ogc-rs-kpi-label">${esc(row.short)}</span>
+                <strong><i class="fa ${icon}" aria-hidden="true"></i> ${esc(V.formatChange(row.change, row.change_unit))}</strong>
+                <small>${fromTo}</small>${flag}
+            </article>`;
+        }
+        return `<article class="ogc-rs-kpi">
+            <span class="ogc-rs-kpi-label">${esc(row.short)}</span>
+            <strong>${esc(V.formatValue(row.baseline, row.value_unit))}</strong>
+            <small>${esc(V.valueUnitLabel(row.value_unit))}</small>${flag}
+        </article>`;
     }
 
-    static renderInequality(){
-        let rows = OGResults.tables.ineq || [];
-        let specs = [
-            ['Gini Coefficient', 'Consumption Gini', 'diff'],
-            ['90/10 Ratio', '90/10 ratio', 'diff'],
-            ['Top 10% Share', 'Top 10% share', 'pp']
-        ];
-        let metrics = $.map(specs, spec => {
-            let row = $.grep(rows, item => item['Inequality Measure'] == spec[0])[0];
-            if (!row) return null;
-            let baseline = Number(row.Baseline), reform = Number(row.Reform);
-            let delta = diff(baseline, reform);
-            let change = spec[2] == 'pp' && delta !== null ? delta * 100 : delta;
-            let baselineLabel = spec[2] == 'pp' ? `${fmt(baseline * 100)}%` : fmt(baseline);
-            let reformLabel = spec[2] == 'pp' ? `${fmt(reform * 100)}%` : fmt(reform);
-            return `<div class="ogc-inequality-metric"><span>${esc(spec[1])}</span><strong>${esc(signed(change, spec[2] == 'pp' ? ' percentage points' : ''))}</strong><small>${esc(baselineLabel)} → ${esc(reformLabel)}</small></div>`;
-        });
-        $('#ogcInequalityMetrics').html(metrics.join(''));
-        $('#ogcInequalitySummary').toggle(metrics.length > 0);
+    static summaryHtml(){
+        let report = OGResults.report;
+        let compare = report.mode == 'compare';
+        let rows = compare ? report.summary : D.singleSummaryRows(OGResults.report);
+        let cards = rows.map(row => OGResults.kpiCard(row, compare)).join('');
+        let note = '';
+        if (compare){
+            let tiny = report.summary.every(row => !V.finite(row.change) || Math.abs(row.change) < 0.01);
+            if (tiny) note = `<div class="ogc-rs-note"><i class="fa fa-info-circle" aria-hidden="true"></i> Every headline change is smaller than 0.01. The reform barely moves the long-run economy.</div>`;
+        }
+        let sub = compare
+            ? `${V.LONG_RUN} · reform compared with baseline. Quantities in percent, rates in percentage points, government in percentage points of GDP.`
+            : `${V.LONG_RUN} · shares of GDP and rates, which read the same in any currency. Levels are in the Explore data view.`;
+        return OGResults.section('rs-summary', 'Summary', sub, `<div class="ogc-rs-kpis">${cards}</div>${note}`);
     }
 
-    static renderMacro(){
-        let specs = [['Y','GDP'], ['C','Consumption'], ['I','Investment'], ['K','Capital'], ['L','Labor'], ['w','Wage']];
-        let labels = [], values = [];
-        $.each(specs, (_, spec) => {
-            labels.push(spec[1]);
-            values.push(pct(firstNumber(OGResults.base[spec[0]]), firstNumber(OGResults.reform[spec[0]])));
-        });
-        OGResults.setChart('ogcMacroChart', comparisonBar(labels, values, 'Percent change in macroeconomic outcomes from the selected baseline to reform.'));
+    static policyHtml(){
+        let changes = OGResults.policy;
+        let body;
+        if (!changes){
+            body = '<div class="ogc-rs-note">The parameter changes could not be read for this pair.</div>';
+        }else{
+            let item = change => `<li><div><b>${esc(change.label)}</b> <code>${esc(change.name)}</code></div><span>${esc(V.describeParameter(change.base))} <i class="fa fa-long-arrow-right" aria-hidden="true"></i> <b>${esc(V.describeParameter(change.reform))}</b></span></li>`;
+            let shown = changes.slice(0, 6).map(item).join('');
+            let rest = changes.slice(6);
+            body = `<ul class="ogc-rs-policy">${shown}</ul>` + (rest.length
+                ? `<details class="ogc-rs-more"><summary>Show ${rest.length} more</summary><ul class="ogc-rs-policy">${rest.map(item).join('')}</ul></details>` : '');
+        }
+        let count = changes ? `${changes.length} parameter${changes.length == 1 ? '' : 's'} differ between the baseline and the reform.` : '';
+        return OGResults.section('rs-policy', 'Policy changes', count, `<article class="ogc-rs-card">${body}</article>`);
     }
 
-    static renderFiscal(){
-        let rows = $.map(FISCAL_VARS, name => ({
-            label: info(name).label,
-            value: pct(firstNumber(OGResults.base[name]), firstNumber(OGResults.reform[name]))
-        })).filter(row => row.value !== null);
-        OGResults.setChart('ogcFiscalChart', comparisonBar($.map(rows, r => r.label), $.map(rows, r => r.value), 'Ranked percent changes in fiscal outcomes from baseline to reform.'));
+    static macroHtml(){
+        let report = OGResults.report;
+        let compare = report.mode == 'compare';
+        let t = report.transition;
+        if (t){
+            let names = ['Y', 'C', 'I', 'K', 'L', 'w', 'r'].filter(name => t.series[name]);
+            let cards = names.map(name => {
+                let s = t.series[name];
+                let unit = compare ? s.change_unit : s.value_unit;
+                let steady = compare ? s.steady.change : s.steady.baseline;
+                let steadyText = compare ? V.formatChange(steady, unit) : V.formatValue(steady, unit);
+                return `<article class="ogc-rs-mini">
+                    <header><h3>${esc(s.short)}</h3><span title="${esc(V.LONG_RUN)}">Long run <b>${esc(steadyText)}</b></span></header>
+                    <div class="ogc-rs-mini-unit">${esc(compare ? V.changeUnitLabel(unit) : V.valueUnitLabel(unit))}</div>
+                    <div class="ogc-rs-chart ogc-rs-chart-sm" id="rsPath_${name}"></div>
+                </article>`;
+            }).join('');
+            let sub = `${compare ? 'Change from the baseline' : 'Values'} over the transition path, ${esc(t.years[0])}–${esc(t.years[t.years.length - 1])}. The shaded band is the first ${t.budget_window} years; the dashed line is the long run.`;
+            return OGResults.section('rs-macro', 'Macroeconomy', sub, `<div class="ogc-rs-multiples">${cards}</div>`);
+        }
+        if (!compare){
+            return OGResults.section('rs-macro', 'Macroeconomy', `${V.LONG_RUN}. This run was solved for the long run only; run it with the transition path to see year-by-year effects.`,
+                OGResults.levelsTable(report.macro.concat(report.prices)));
+        }
+        let prices = report.prices.map(row => `<li><span>${esc(row.label)}</span><b class="ogc-rs-${V.changeTone(row.change)}">${esc(V.formatChange(row.change, row.change_unit))}</b><small>${esc(V.formatValue(row.baseline, '%'))} → ${esc(V.formatValue(row.reform, '%'))}</small></li>`).join('');
+        return OGResults.section('rs-macro', 'Macroeconomy',
+            `${V.LONG_RUN}. Solved for the long run only; run both with the transition path to see year-by-year effects.`,
+            `<div class="ogc-rs-two">
+                ${OGResults.card('rsMacroBars', V.LONG_RUN, 'Long-run change in output, capital, labor and wages', {sub: 'Percent change from the baseline'})}
+                ${OGResults.card(null, V.LONG_RUN, 'Long-run change in interest rates', {sub: 'Percentage points', after: `<ul class="ogc-rs-rates">${prices}</ul>`})}
+            </div>`);
     }
 
-    static matrixTransform(name, measure){
-        let base = ageGroupMatrix(OGResults.base[name]);
-        let reform = ageGroupMatrix(OGResults.reform[name]);
-        if (!compatibleMatrices(base, reform)) return null;
-        return base.map((row, i) => row.map((value, j) =>
-            measureValue(name, value, reform[i] && reform[i][j], measure)));
+    static levelsTable(rows){
+        let body = rows.map(row => `<tr><td>${esc(row.label)}</td><td class="ogc-num">${esc(V.formatValue(row.baseline, row.value_unit))}</td><td class="ogc-mut">${esc(V.valueUnitLabel(row.value_unit))}</td></tr>`).join('');
+        return `<article class="ogc-rs-card"><table class="ogc-table ogc-rs-levels"><thead><tr><th>Variable</th><th class="ogc-num">Long-run value</th><th>Unit</th></tr></thead><tbody>${body}</tbody></table></article>`;
     }
 
-    static heatOption(name, measure){
-        let matrix = OGResults.matrixTransform(name, measure);
-        if (!matrix) return { option: chartBase('No compatible matrix data.'), scale: null };
-        let values = [], transformed = [];
-        $.each(matrix, (i, row) => $.each(row, (j, value) => {
-            if (value !== null && isFinite(value)){
-                values.push([i, j, value]);
-                transformed.push(value);
+    static fiscalHtml(){
+        let report = OGResults.report;
+        let compare = report.mode == 'compare';
+        let t = report.transition;
+        let negatives = report.fiscal.filter(row => row.negative_baseline);
+        let negNote = negatives.length
+            ? `<div class="ogc-rs-note ogc-rs-note-warn"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Negative baseline: ${negatives.map(row => esc(row.label)).join(', ')}. ${negatives.length == 1 ? 'It is' : 'They are'} compared as a share of GDP, not as a percent change.</div>` : '';
+        let cards = '';
+        if (compare){
+            cards += OGResults.card('rsFiscalBars', V.LONG_RUN, 'Long-run change in government finances', {sub: 'Percentage points of GDP', tall: true});
+        }else{
+            cards += `<article class="ogc-rs-card"><header class="ogc-rs-card-head"><div><div class="ogc-rs-card-period">${esc(V.LONG_RUN)}</div><h3>Government finances as a share of GDP</h3></div></header>${OGResults.levelsTable(report.fiscal).replace(/^<article class="ogc-rs-card">|<\/article>$/g, '')}</article>`;
+        }
+        if (t && t.series.D){
+            cards += OGResults.card('rsDebtPath', `Transition path, ${t.years[0]}–${t.years[t.years.length - 1]}`, 'Government debt over the transition path', {sub: 'Share of GDP (%)'});
+        }
+        if (t && t.series.total_tax_revenue){
+            cards += OGResults.card('rsRevenuePath', `Transition path, ${t.years[0]}–${t.years[t.years.length - 1]}`, 'Tax revenue over the transition path', {sub: 'Share of GDP (%)'});
+        }
+        let sub = 'Government values are shares of each run’s own GDP, so they compare cleanly even when GDP itself changes.';
+        return OGResults.section('rs-fiscal', 'Government', sub, `${negNote}<div class="ogc-rs-two">${cards}</div>`);
+    }
+
+    static householdsHtml(){
+        let report = OGResults.report;
+        if (!report.households || !OGResults.hh.name){
+            let reason = report.households_reason || 'Household outcomes are not available for this selection.';
+            return OGResults.section('rs-households', 'Households', '', `<div class="ogc-rs-note ogc-rs-note-warn"><i class="fa fa-info-circle" aria-hidden="true"></i> ${esc(reason)}</div>`);
+        }
+        let sub = `${V.LONG_RUN}. Averages use the run’s own population weights by age and lifetime income group.`;
+        return OGResults.section('rs-households', 'Households', sub, `
+            <div class="ogc-rs-hh-controls" id="ogcRsHhControls"></div>
+            <div class="ogc-rs-two ogc-rs-two-lead">
+                ${OGResults.card('rsLifecycle', V.LONG_RUN, '', {tall: true})}
+                ${OGResults.card('rsGroups', V.LONG_RUN, '', {tall: true})}
+            </div>`);
+    }
+
+    // ── charts: report ───────────────────────────────────────────────────────
+    static drawMacro(){
+        let report = OGResults.report;
+        let compare = report.mode == 'compare';
+        let t = report.transition;
+        if (t){
+            $.each(t.series, (name, series) => {
+                OGResults.setChart('rsPath_' + name, V.pathChart(t.years, series, t.budget_window, report.mode));
+            });
+            return;
+        }
+        if (compare){
+            let rows = report.macro.map(row => ({label: row.short, value: row.change, baseline: row.baseline, reform: row.reform, valueUnit: row.value_unit, negative: row.negative_baseline}));
+            OGResults.setChart('rsMacroBars', V.divergingBars(rows, '%', 'Long-run percent change in macroeconomic aggregates'));
+        }
+    }
+
+    static drawFiscal(){
+        let report = OGResults.report;
+        let t = report.transition;
+        if (report.mode == 'compare'){
+            let rows = report.fiscal.map(row => ({label: row.short, value: row.change, baseline: row.baseline, reform: row.reform, valueUnit: row.value_unit, negative: row.negative_baseline}));
+            OGResults.setChart('rsFiscalBars', V.divergingBars(rows, 'pp of GDP', 'Long-run change in government finances, percentage points of GDP'));
+        }
+        if (t && t.series.D) OGResults.setChart('rsDebtPath', V.scenarioPathChart(t.years, t.series.D, t.budget_window, 'Government debt as a share of GDP over the transition path'));
+        if (t && t.series.total_tax_revenue) OGResults.setChart('rsRevenuePath', V.scenarioPathChart(t.years, t.series.total_tax_revenue, t.budget_window, 'Tax revenue as a share of GDP over the transition path'));
+    }
+
+    static drawHouseholds(){
+        let report = OGResults.report;
+        let hh = OGResults.hh;
+        if (!report.households || !hh.name) return;
+        let compare = report.mode == 'compare';
+        let entry = report.households[hh.name];
+        let groups = report.meta.group_labels || [];
+        let ages = report.meta.ages || [];
+        let unit = entry.value_unit;
+        let options = HOUSEHOLD_ORDER.filter(name => report.households[name])
+            .map(name => `<option value="${name}"${name == hh.name ? ' selected' : ''}>${esc(report.households[name].short)}</option>`).join('');
+        let views = [['avg', 'Population average'], ['groups', 'All income groups'], ['group', 'One income group']];
+        let controls = `<label class="ogc-rs-field"><span>Outcome</span><select id="ogcRsHhVar">${options}</select></label>
+            <div class="ogc-seg" role="group" aria-label="Household view">${views.map(([key, text]) => `<button type="button" class="btn ogc-btn" data-rs-act="hh-view" data-view="${key}" aria-pressed="${hh.view == key}">${text}</button>`).join('')}</div>`;
+        if (hh.view == 'groups' && compare){
+            controls += `<div class="ogc-seg" role="group" aria-label="Scenario">${['baseline', 'reform'].map(key => `<button type="button" class="btn ogc-btn" data-rs-act="hh-scenario" data-scenario="${key}" aria-pressed="${hh.scenario == key}">${key == 'baseline' ? 'Baseline' : 'Reform'}</button>`).join('')}</div>`;
+        }
+        if (hh.view == 'group'){
+            controls += `<label class="ogc-rs-field"><span>Income group</span><select id="ogcRsHhGroup">${groups.map((g, j) => `<option value="${j}"${j == hh.group ? ' selected' : ''}>${esc(g)}</option>`).join('')}</select></label>`;
+        }
+        $('#ogcRsHhControls').html(controls);
+
+        let lines = [];
+        let title;
+        if (hh.view == 'avg'){
+            title = `${entry.label} by age: population-weighted average`;
+            lines.push({name: 'Baseline', data: entry.by_age.baseline, color: V.COLORS.baseline});
+            if (compare) lines.push({name: 'Reform', data: entry.by_age.reform, color: V.COLORS.reform, dashed: true});
+        }else if (hh.view == 'groups'){
+            let scenario = compare ? hh.scenario : 'baseline';
+            title = `${entry.label} by age for every income group: ${scenario == 'baseline' ? 'baseline' : 'reform'}`;
+            entry.by_age_group[scenario].forEach((data, j) => lines.push({name: groups[j], data, color: V.GROUP_COLORS[j % V.GROUP_COLORS.length]}));
+        }else{
+            let j = Math.min(hh.group, groups.length - 1);
+            title = `${entry.label} by age: ${groups[j]} income group`;
+            lines.push({name: 'Baseline', data: entry.by_age_group.baseline[j], color: V.COLORS.baseline});
+            if (compare) lines.push({name: 'Reform', data: entry.by_age_group.reform[j], color: V.COLORS.reform, dashed: true});
+        }
+        $('#rsLifecycle').closest('.ogc-rs-card').find('h3').first().text(title);
+        OGResults.setChart('rsLifecycle', V.lifecycleChart(ages, lines, unit, title));
+
+        let groupCard = $('#rsGroups').closest('.ogc-rs-card');
+        if (compare){
+            let changeUnit = (entry.group_change.find(item => item.change_unit) || {}).change_unit || entry.overall.change_unit;
+            groupCard.find('h3').first().text(`Change in ${entry.short.toLowerCase()} by lifetime income group`);
+            groupCard.find('.ogc-rs-card-sub').remove();
+            groupCard.find('h3').after(`<div class="ogc-rs-card-sub">${esc(V.changeUnitLabel(changeUnit))} · population average ${esc(V.formatChange(entry.overall.change, entry.overall.change_unit))}</div>`);
+            OGResults.setChart('rsGroups', V.groupBars(groups, entry.group_change, changeUnit, `Change in ${entry.label} by lifetime income group`));
+        }else{
+            groupCard.find('h3').first().text(`Average ${entry.short.toLowerCase()} by lifetime income group`);
+            groupCard.find('.ogc-rs-card-sub').remove();
+            groupCard.find('h3').after(`<div class="ogc-rs-card-sub">${esc(V.valueUnitLabel(unit))}</div>`);
+            OGResults.setChart('rsGroups', V.groupBars(groups, entry.by_group.baseline.map(v => ({change: v})), unit, `Average ${entry.label} by lifetime income group`, true));
+        }
+    }
+
+    static drawMainTable(){
+        let report = OGResults.report;
+        let compare = report.mode == 'compare';
+        let t = report.transition;
+        let columns, data;
+        let cell = unitField => function (c){
+            let row = c.getRow().getData();
+            let value = c.getValue();
+            if (compare){
+                let el = c.getElement();
+                el.classList.remove('ogc-rs-up', 'ogc-rs-down');
+                let tone = V.changeTone(value);
+                if (tone != 'flat') el.classList.add('ogc-rs-' + tone);
+                return V.formatChange(value, row[unitField]).replace(' of GDP', '');
             }
-        }));
-        let scale = robustHeatScale(transformed);
-        let bound = scale.bound;
-        let unit = measureSuffix(name, measure);
-        let option = $.extend(true, chartBase(`${info(name).label}: ${measureLabel(name, measure).toLowerCase()} by age and lifetime-income group.`), {
-            grid: { left: 58, right: 26, top: 12, bottom: 68, containLabel: true },
-            tooltip: {
-                position: 'top', trigger: 'item',
-                formatter: p => `<b>Age ${esc(OGResults.ages[p.value[0]] || p.value[0] + 1)}</b><br>${esc(OGResults.groups[p.value[1]] || 'Group ' + (p.value[1] + 1))}<br><b>${esc(signed(p.value[2], unit))}</b>`
-            },
-            xAxis: { type: 'category', data: OGResults.ages, name: 'Age', nameLocation: 'middle', nameGap: 28, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ccd0d8' } }, axisLabel: { color: MUTED, interval: 9 } },
-            yAxis: { type: 'category', data: OGResults.groups, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: SLATE } },
-            visualMap: { min: -bound, max: bound, calculable: false, orient: 'horizontal', left: 'center', bottom: 3, precision: 2, text: ['Increase', 'Decrease'], textStyle: { color: MUTED }, inRange: { color: ['#39769f', '#d9e4ea', '#f7f7f5', '#f9d8b8', '#d9680b'] } },
-            series: [{ type: 'heatmap', data: values, progressive: 1000, emphasis: { itemStyle: { borderColor: SLATE, borderWidth: 1 } }, itemStyle: { borderColor: '#fff', borderWidth: 0.35 } }]
-        });
-        return { option: option, scale: scale };
-    }
-
-    static renderDistributionControls(){
-        let available = $.grep(DISTRIBUTION_VARS, name => shape(OGResults.base[name]).kind == 'age_group' && name in OGResults.reform);
-        $('#ogcDistributionVariable').html($.map(available, name => `<option value="${esc(name)}">${esc(info(name).short || info(name).label)}</option>`).join(''));
-        $('#ogcDistributionVariable').val($.grep(available, name => name == 'c').length ? 'c' : available[0]);
-    }
-
-    static renderDistribution(){
-        let name = $('#ogcDistributionVariable').val() || 'c';
-        let measure = $('#ogcDistributionMeasure').val() || 'pct';
-        $('#ogcDistributionTitle').text(`${info(name).label} by age and lifetime income`);
-        $('#ogcDistributionChart').attr('aria-label', `${info(name).label}, ${measureLabel(name, measure).toLowerCase()}, by age and lifetime-income group`);
-        let heat = OGResults.heatOption(name, measure);
-        let scale = heat.scale;
-        $('#ogcDistributionScale').text(scale
-            ? `Color scale ±${fmt(scale.bound)}${measureSuffix(name, measure)}${scale.clipped ? ` · ${scale.cappedPercent}% outside scale` : ''}`
-            : '');
-        OGResults.setChart('ogcDistributionChart', heat.option);
-        let chart = OGResults.charts.ogcDistributionChart;
-        chart.off('click');
-        chart.on('click', params => {
-            if (!params.value) return;
-            OGResults.openTab('explore');
-            $('#ogcExploreVariable').val(name);
-            OGResults.refreshExploreMeasures(measure);
-            $('#ogcExploreGroup').val(params.value[1]);
-            OGResults.refreshExploreViews('profile');
-            OGResults.renderExplore();
-        });
-    }
-
-    static renderProfileControls(){
-        $('#ogcProfileVariable').html($.map(PROFILE_VARS, name => `<option value="${esc(name)}">${esc(info(name).short || info(name).label)}</option>`).join(''));
-        $('#ogcProfileGroup, #ogcExploreGroup').html($.map(OGResults.groups, (label, index) => `<option value="${index}">${esc(label)}</option>`).join(''));
-        $('#ogcProfileGroup').val(Math.min(3, OGResults.groups.length - 1));
-    }
-
-    static profileOption(name, group, measure){
-        let base = ageGroupMatrix(OGResults.base[name]) || [];
-        let reform = ageGroupMatrix(OGResults.reform[name]) || [];
-        let baseValues = $.map(base, row => row[group]);
-        let reformValues = $.map(reform, row => row[group]);
-        let series = [];
-        if (measure == 'levels'){
-            baseValues = $.map(baseValues, value => level(name, value));
-            reformValues = $.map(reformValues, value => level(name, value));
-            series = [
-                { name: 'Baseline', type: 'line', data: baseValues, showSymbol: false, lineStyle: { width: 2.5, color: SLATE }, itemStyle: { color: SLATE } },
-                { name: 'Reform', type: 'line', data: reformValues, showSymbol: false, lineStyle: { width: 2.5, color: ORANGE }, itemStyle: { color: ORANGE } }
-            ];
+            return V.formatValue(value, row[unitField]).replace(' of GDP', '');
+        };
+        if (t){
+            let n = Math.min(t.budget_window, t.years.length);
+            let years = t.years.slice(0, n);
+            data = Object.keys(t.series).map(name => {
+                let s = t.series[name];
+                let values = compare ? s.change : s.baseline;
+                let row = {variable: s.label, unit: compare ? s.change_unit : s.value_unit};
+                years.forEach((year, i) => { row['y' + year] = values[i]; });
+                row.long = compare ? s.steady.change : s.steady.baseline;
+                return row;
+            });
+            columns = [
+                {title: 'Variable', field: 'variable', frozen: true, minWidth: 190, headerSort: false},
+                {title: 'Unit', field: 'unit', headerSort: false, formatter: c => compare ? V.changeUnitLabel(c.getValue()).replace(' (percentage points)', ' (pp)') : V.valueUnitLabel(c.getValue())}
+            ].concat(years.map(year => ({title: String(year), field: 'y' + year, hozAlign: 'right', headerHozAlign: 'right', headerSort: false, formatter: cell('unit')})))
+             .concat([{title: 'Long run', field: 'long', hozAlign: 'right', headerHozAlign: 'right', headerSort: false, formatter: cell('unit'), cssClass: 'ogc-rs-longcol'}]);
         }else{
-            let data = baseValues.map((value, i) => measureValue(name, value, reformValues[i], measure));
-            series = [{ name: measureLabel(name, measure), type: 'line', data: data, showSymbol: false, lineStyle: { width: 2.5, color: ORANGE }, areaStyle: { color: 'rgba(245,130,32,.08)' }, itemStyle: { color: ORANGE }, markLine: { silent: true, symbol: 'none', data: [{ yAxis: 0 }], label: { show: false }, lineStyle: { color: '#9ba1ad' } } }];
-        }
-        return $.extend(true, chartBase(`${info(name).label} by age for ${OGResults.groups[group] || 'the selected income group'}.`), {
-            color: [SLATE, ORANGE],
-            legend: { show: measure == 'levels', top: 0, right: 10, icon: 'roundRect', textStyle: { color: MUTED } },
-            grid: { left: 28, right: 28, top: measure == 'levels' ? 40 : 18, bottom: 40, containLabel: true },
-            tooltip: { trigger: 'axis', valueFormatter: v => fmt(v) + measureSuffix(name, measure) },
-            xAxis: { type: 'category', data: OGResults.ages, name: 'Age', nameLocation: 'middle', nameGap: 28, boundaryGap: false, axisTick: { show: false }, axisLine: { lineStyle: { color: '#ccd0d8' } }, axisLabel: { color: MUTED, interval: 9 } },
-            yAxis: { type: 'value', name: measureLabel(name, measure), nameTextStyle: { color: MUTED }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { lineStyle: { color: GRID } }, axisLabel: { color: MUTED, formatter: value => axisLabel(value) + measureSuffix(name, measure) } },
-            series: series
-        });
-    }
-
-    static renderProfile(){
-        let name = $('#ogcProfileVariable').val() || 'c';
-        let group = Number($('#ogcProfileGroup').val() || 0);
-        let measure = $('#ogcProfileMeasure').val() || 'levels';
-        OGResults.setChart('ogcProfileChart', OGResults.profileOption(name, group, measure));
-    }
-
-    static renderExploreControls(){
-        let names = Object.keys(CATALOG).filter(name => name in (OGResults.base || {}) && name in (OGResults.reform || {}));
-        names.sort((a, b) => (info(a).category + info(a).label).localeCompare(info(b).category + info(b).label));
-        let last = null, html = '';
-        $.each(names, (_, name) => {
-            let meta = info(name);
-            if (meta.category != last){
-                if (last !== null) html += '</optgroup>';
-                html += `<optgroup label="${esc(meta.category)}">`;
-                last = meta.category;
+            let rows = report.macro.concat(report.prices, report.fiscal);
+            data = rows.map(row => ({variable: row.label, baseline: row.baseline, reform: row.reform, change: row.change, unit: row.value_unit, change_unit: row.change_unit}));
+            columns = [{title: 'Variable', field: 'variable', frozen: true, minWidth: 220},
+                {title: compare ? 'Baseline' : 'Long-run value', field: 'baseline', hozAlign: 'right', headerHozAlign: 'right', formatter: c => V.formatValue(c.getValue(), c.getRow().getData().unit)}];
+            if (compare){
+                columns.push({title: 'Reform', field: 'reform', hozAlign: 'right', headerHozAlign: 'right', formatter: c => V.formatValue(c.getValue(), c.getRow().getData().unit)});
+                columns.push({title: 'Change', field: 'change', hozAlign: 'right', headerHozAlign: 'right', formatter: cell('change_unit'), sorter: 'number'});
             }
-            html += `<option value="${esc(name)}">${esc(meta.label)} (${esc(name)})</option>`;
+            columns.push({title: 'Unit', field: 'unit', formatter: c => V.valueUnitLabel(c.getValue())});
+        }
+        OGResults.setGrid('ogcRsMainTable', {data, columns, layout: 'fitDataStretch'});
+    }
+
+    // ── explore data ─────────────────────────────────────────────────────────
+    static openTab(tab){
+        OGResults.selection.tab = tab;
+        OGResults.syncUrl();
+        $('[data-rs-tab]').each(function () { $(this).attr('aria-selected', $(this).attr('data-rs-tab') == tab ? 'true' : 'false'); });
+        $('[data-rs-pane]').each(function () { $(this).toggle($(this).attr('data-rs-pane') == tab); });
+        $('#ogcRsSections').toggle(tab == 'report');
+        if (tab == 'explore') OGResults.enterExplore();
+        OGResults.resizeCharts();
+    }
+
+    static enterExplore(){
+        if (!OGResults.ex){
+            let first = OGResults.report.catalog.Y ? 'Y' : Object.keys(OGResults.report.catalog)[0];
+            OGResults.ex = {name: first, period: 'long', show: OGResults.report.mode == 'compare' ? 'change' : 'levels', breakdown: 'avg', scenario: 'baseline', view: 'chart'};
+            OGResults.renderVarList();
+            OGResults.renderTablePicker();
+        }
+        OGResults.loadSS().then(() => OGResults.renderExplore());
+    }
+
+    static loadSS(){
+        if (OGResults.ssData) return Promise.resolve(OGResults.ssData);
+        let sel = OGResults.selection, country = OGResults.workspace.country_id;
+        let requestID = OGResults.requestID;
+        $('#ogcRsExNote').html('<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> Loading values…').show();
+        return Promise.all([
+            Ogc.getSSVars(country, sel.casename, sel.base),
+            sel.reform ? Ogc.getSSVars(country, sel.casename, sel.reform) : Promise.resolve(null)
+        ]).then(([baseline, reform]) => {
+            if (requestID == OGResults.requestID) OGResults.ssData = {baseline, reform};
+            return OGResults.ssData;
         });
-        if (last !== null) html += '</optgroup>';
-        $('#ogcExploreVariable').html(html);
-        let saved = OGResults.readSaved();
-        if (saved && saved.country_id == OGResults.workspace.country_id && saved.variable && saved.variable in CATALOG && saved.variable in OGResults.base){
-            $('#ogcExploreVariable').val(saved.variable);
-            $('#ogcExploreGroup').val(saved.group || 0);
-        }else{
-            $('#ogcExploreVariable').val('Y');
-        }
-        OGResults.refreshExploreMeasures(saved && saved.measure);
-        OGResults.refreshExploreViews(saved && saved.view);
     }
 
-    static refreshExploreMeasures(preferred){
-        let name = $('#ogcExploreVariable').val();
-        let meta = info(name);
-        let options;
-        if (meta.rate){
-            options = [['pp', 'Percentage-point difference'], ['levels', 'Rates (%)']];
-        }else if (meta.differenceOnly || meta.category == 'Model diagnostics'){
-            options = [['diff', 'Difference'], ['levels', 'Levels']];
-        }else{
-            options = [['pct', 'Percent change'], ['diff', 'Difference'], ['levels', 'Levels']];
-        }
-        $('#ogcExploreMeasure').html($.map(options, option => `<option value="${option[0]}">${esc(option[1])}</option>`).join(''));
-        if ($.grep(options, option => option[0] == preferred).length) $('#ogcExploreMeasure').val(preferred);
+    static loadPath(name){
+        let sel = OGResults.selection, country = OGResults.workspace.country_id;
+        let key = name;
+        if (OGResults.tpiCache[key]) return OGResults.tpiCache[key];
+        let vars = name == 'Y' ? ['Y'] : [name, 'Y'];
+        OGResults.tpiCache[key] = Promise.all([
+            Ogc.getTPIVars(country, sel.casename, sel.base, vars),
+            sel.reform ? Ogc.getTPIVars(country, sel.casename, sel.reform, vars) : Promise.resolve(null)
+        ]).catch(error => { delete OGResults.tpiCache[key]; throw error; });
+        return OGResults.tpiCache[key];
     }
 
-    static refreshExploreViews(preferred){
-        let name = $('#ogcExploreVariable').val();
-        let measure = $('#ogcExploreMeasure').val();
-        let spec = shape(OGResults.base[name]);
-        let views = [];
-        if (spec.kind == 'scalar') views = [['comparison','Comparison bars'], ['table','Table']];
-        else if (spec.kind == 'age_group'){
-            if (measure != 'levels') views.push(['heatmap','Age × income heatmap']);
-            views.push(['profile','Lifecycle profile'], ['table','Table']);
-        }else if (spec.kind == 'group') views = [['comparison','Income-group bars'], ['table','Table']];
-        else if (spec.kind == 'vector') views = [['comparison','Comparison chart'], ['table','Table']];
-        else views = [['table','Table']];
-        let current = preferred || $('#ogcExploreView').val();
-        $('#ogcExploreView').html($.map(views, view => `<option value="${view[0]}">${esc(view[1])}</option>`).join(''));
-        if ($.grep(views, view => view[0] == current).length) $('#ogcExploreView').val(current);
-        $('.ogc-explore-group').toggle(spec.kind == 'age_group' && $('#ogcExploreView').val() == 'profile');
-        let shapeLabel = spec.kind == 'age_group' ? 'Age × income group' : humanize(spec.kind);
-        let dimensionLabel = spec.kind == 'age_group' && spec.dims.length == 2
-            ? `${spec.dims[0]} ages × ${spec.dims[1]} income groups`
-            : (spec.dims.length ? spec.dims.join(' × ') : 'Single value');
-        $('#ogcExploreShape').html(`<span>Dimensions</span><strong>${esc(shapeLabel)}</strong><small>${esc(dimensionLabel)}</small>`);
+    static renderVarList(){
+        let catalog = OGResults.report.catalog;
+        let filter = String($('#ogcRsVarSearch').val() || '').toLowerCase();
+        let groups = {};
+        $.each(catalog, (name, entry) => {
+            if (filter && (entry.label + ' ' + name).toLowerCase().indexOf(filter) < 0) return;
+            (groups[entry.category] = groups[entry.category] || []).push([name, entry]);
+        });
+        let dimsText = {scalar: '', age_group: 'by age & income', group: 'by income group', age: 'by age', vector: 'indexed', matrix: 'indexed'};
+        let html = CATEGORY_ORDER.concat(Object.keys(groups).filter(c => CATEGORY_ORDER.indexOf(c) < 0)).map(category => {
+            let items = groups[category];
+            if (!items) return '';
+            items.sort((a, b) => a[1].label.localeCompare(b[1].label));
+            return `<div class="ogc-rs-varcat">${esc(category)}</div>` + items.map(([name, entry]) =>
+                `<button type="button" role="option" class="ogc-rs-var${name == OGResults.ex.name ? ' ogc-rs-var-on' : ''}" data-rs-act="var" data-name="${esc(name)}" aria-selected="${name == OGResults.ex.name}">
+                    <span>${esc(entry.label)}</span><small>${esc(dimsText[entry.dims] || '')}</small></button>`).join('');
+        }).join('');
+        $('#ogcRsVarList').html(html || '<div class="ogc-rs-tree-empty">No variable matches.</div>');
+    }
+
+    static renderToolbar(){
+        let ex = OGResults.ex;
+        let shape = D.exploreShape(OGResults.report, ex.name);
+        let compare = OGResults.report.mode == 'compare';
+        let seg = (act, current, options, label) => `<div class="ogc-rs-tool"><span>${label}</span><div class="ogc-seg" role="group" aria-label="${label}">${options.map(([key, text, disabled]) =>
+            `<button type="button" class="btn ogc-btn" data-rs-act="${act}" data-value="${key}" aria-pressed="${current == key}"${disabled ? ` disabled title="${esc(disabled)}"` : ''}>${text}</button>`).join('')}</div></div>`;
+        let tools = '';
+        let pathReason = OGResults.report.analysis != 'transition'
+            ? 'This selection was solved for the long run only'
+            : (shape.pathable ? '' : 'Year-by-year values are shown for economy-wide variables');
+        tools += seg('ex-period', ex.period, [['long', 'Long run'], ['path', 'Over time', pathReason]], 'Period');
+        if (compare && shape.kind != 'diagnostic') tools += seg('ex-show', ex.show, [['change', 'Change'], ['levels', 'Baseline & reform']], 'Show');
+        if (shape.household && ex.period == 'long'){
+            tools += seg('ex-breakdown', ex.breakdown, [['avg', 'By age'], ['groups', 'By income group'], ['grid', 'Age × income']], 'Breakdown');
+            if (compare && ex.show == 'levels' && ex.breakdown == 'grid') tools += seg('ex-scenario', ex.scenario, [['baseline', 'Baseline'], ['reform', 'Reform']], 'Scenario');
+        }
+        tools += seg('ex-view', ex.view, [['chart', '<i class="fa fa-bar-chart" aria-hidden="true"></i> Chart'], ['table', '<i class="fa fa-table" aria-hidden="true"></i> Table']], 'View');
+        $('#ogcRsToolbar').html(tools);
     }
 
     static renderExplore(){
-        let name = $('#ogcExploreVariable').val();
-        let measure = $('#ogcExploreMeasure').val();
-        let view = $('#ogcExploreView').val();
-        let group = Number($('#ogcExploreGroup').val() || 0);
-        let meta = info(name);
-        let spec = shape(OGResults.base[name]);
-        $('#ogcExploreCategory').text(meta.category);
-        $('#ogcExploreTitle').text(meta.label);
-        $('#ogcExploreUnit').text(measureLabel(name, measure));
-        $('#ogcExploreChart').attr('aria-label', `${meta.label}, ${measureLabel(name, measure).toLowerCase()}, ${view}`);
-        $('.ogc-explore-group').toggle(spec.kind == 'age_group' && view == 'profile');
-        $('#ogcExploreChart').removeClass('ogc-explore-scalar ogc-explore-category ogc-explore-dense')
-            .addClass(spec.kind == 'scalar' ? 'ogc-explore-scalar' : (spec.kind == 'group' || spec.kind == 'vector' ? 'ogc-explore-category' : 'ogc-explore-dense'));
-        $('#ogcExploreTable').hide();
-        $('#ogcExploreChart').show();
-        $('.ogc-explore-output .ogc-chart-export').show();
-        if (view == 'table'){
-            $('#ogcExploreChart').hide();
-            $('.ogc-explore-output .ogc-chart-export').hide();
-            OGResults.renderExploreTable(name, measure);
-            return;
-        }
-        let option;
-        if (view == 'heatmap'){
-            let heat = OGResults.heatOption(name, measure);
-            option = heat.option;
-            let scale = heat.scale;
-            if (scale){
-                $('#ogcExploreUnit').text(`${measureLabel(name, measure)} · Color scale ±${fmt(scale.bound)}${measureSuffix(name, measure)}${scale.clipped ? ` · ${scale.cappedPercent}% outside scale` : ''}`);
+        let ex = OGResults.ex;
+        if (!ex || !OGResults.ssData) return;
+        let shape = D.exploreShape(OGResults.report, ex.name);
+        if (ex.period == 'path' && !shape.pathable) ex.period = 'long';
+        OGResults.renderToolbar();
+        $('#ogcRsExNote').hide();
+        let requestID = OGResults.requestID;
+        let done = result => {
+            if (requestID != OGResults.requestID || OGResults.ex !== ex) return;
+            $('#ogcRsExTitle').text(result.title);
+            $('#ogcRsExPeriod').text(result.period);
+            if (result.note) $('#ogcRsExNote').html(result.note).show();
+            let tableMode = ex.view == 'table' || !result.chart;
+            $('#ogcRsExChart').toggle(!tableMode);
+            $('#ogcRsExTable').toggle(tableMode);
+            $('#ogcRsExTools').html(`${tableMode ? '<button type="button" class="btn ogc-btn ogc-btn-sm ogc-btn-soft" data-rs-act="ex-csv"><i class="fa fa-download" aria-hidden="true"></i> CSV</button>' : OGResults.exportMenu('ogcRsExChart')}`);
+            if (tableMode){
+                OGResults.disposeChart('ogcRsExChart');
+                OGResults.setGrid('ogcRsExTable', {data: result.table.data, columns: result.table.columns, layout: 'fitDataStretch', maxHeight: '520px'});
+            }else{
+                OGResults.setChart('ogcRsExChart', result.chart);
             }
+        };
+        if (ex.period == 'path'){
+            OGResults.loadPath(ex.name).then(([base, reform]) => done(D.explorePath(OGResults.report, OGResults.ssData, ex, base, reform)))
+                .catch(error => { if (requestID == OGResults.requestID) $('#ogcRsExNote').text('Year-by-year values could not be loaded. ' + String(error)).show(); });
+        }else{
+            done(D.exploreLong(OGResults.report, OGResults.ssData, ex));
         }
-        else if (view == 'profile') option = OGResults.profileOption(name, group, measure);
-        else option = OGResults.comparisonOption(name, measure);
-        OGResults.setChart('ogcExploreChart', option);
     }
 
-    static comparisonOption(name, measure){
-        let base = OGResults.base[name], reform = OGResults.reform[name];
-        let spec = shape(base), labels = [], baseValues = [], reformValues = [];
-        if (spec.kind == 'scalar'){
-            labels = [info(name).short || info(name).label];
-            baseValues = [firstNumber(base)]; reformValues = [firstNumber(reform)];
-        }else{
-            let b = rank(base) > 1 ? (ageGroupMatrix(base) || []).map(firstNumber) : base;
-            let r = rank(reform) > 1 ? (ageGroupMatrix(reform) || []).map(firstNumber) : reform;
-            baseValues = $.map(b || [], firstNumber); reformValues = $.map(r || [], firstNumber);
-            labels = spec.kind == 'group' ? OGResults.groups.slice(0, baseValues.length) : $.map(baseValues, (_, i) => String(i + 1));
-        }
-        let series;
-        if (measure == 'levels'){
-            baseValues = $.map(baseValues, value => level(name, value));
-            reformValues = $.map(reformValues, value => level(name, value));
-            series = [
-                { name: 'Baseline', type: 'bar', data: baseValues, itemStyle: { color: SLATE }, barMaxWidth: 28 },
-                { name: 'Reform', type: 'bar', data: reformValues, itemStyle: { color: ORANGE }, barMaxWidth: 28 }
-            ];
-        }else{
-            let values = baseValues.map((value, i) => measureValue(name, value, reformValues[i], measure));
-            series = [{ name: measureLabel(name, measure), type: 'bar', data: values.map(v => ({value:v, itemStyle:{color:v >= 0 ? ORANGE : BLUE}})), barMaxWidth: 28, label: { show: values.length <= 12, position: 'top', color: SLATE, formatter: p => signed(p.value, measureSuffix(name, measure)) }, markLine: { silent: true, symbol: 'none', data: [{yAxis:0}], lineStyle:{color:'#9ba1ad'}, label:{show:false} } }];
-        }
-        return $.extend(true, chartBase(`${info(name).label} comparison.`), {
-            tooltip: { trigger: 'axis', valueFormatter: value => fmt(value) + measureSuffix(name, measure) },
-            legend: { show: measure == 'levels', top: 0, right: 10, textStyle: {color:MUTED} },
-            grid: { left: 24, right: 26, top: measure == 'levels' ? 40 : 24, bottom: labels.length > 10 ? 70 : 34, containLabel: true },
-            xAxis: { type: 'category', data: labels, axisTick:{show:false}, axisLine:{lineStyle:{color:'#ccd0d8'}}, axisLabel:{color:MUTED, rotate:labels.length > 10 ? 35 : 0} },
-            yAxis: { type: 'value', axisTick:{show:false}, axisLine:{show:false}, splitLine:{lineStyle:{color:GRID}}, axisLabel:{color:MUTED, formatter:v => axisLabel(v) + measureSuffix(name, measure)} },
-            series: series
-        });
+    static renderTablePicker(){
+        let first = null;
+        let html = D.OG_TABLES.map(spec => {
+            let reason = D.tableAvailable(OGResults.report, spec);
+            if (!reason && !first) first = spec.key;
+            let label = spec.baselineOnly && OGResults.report.mode == 'compare' ? `${spec.label} (baseline)` : spec.label;
+            return `<button type="button" class="btn ogc-btn" data-rs-act="og-table" data-key="${spec.key}" aria-pressed="false"${reason ? ` disabled title="${esc(reason)}"` : ''}>${esc(label)}</button>`;
+        }).join('');
+        $('#ogcRsTablePicker').html(html);
+        if (first) OGResults.loadOgTable(first);
     }
 
-    static renderExploreTable(name, measure){
-        let spec = shape(OGResults.base[name]);
-        let headers = [], rows = [];
-        if (spec.kind == 'age_group'){
-            let b = ageGroupMatrix(OGResults.base[name]), r = ageGroupMatrix(OGResults.reform[name]);
-            if (!compatibleMatrices(b, r)){
-                $('#ogcExploreTable').html('<div class="ogc-table-status">Comparable baseline and reform matrix data are unavailable.</div>').show();
+    static loadOgTable(key){
+        let spec = D.OG_TABLES.find(item => item.key == key);
+        if (!spec) return;
+        OGResults.activeOgTable = key;
+        $('[data-rs-act="og-table"]').each(function () { $(this).attr('aria-pressed', $(this).attr('data-key') == key ? 'true' : 'false'); });
+        $('[data-rs-act="table-csv"]').prop('disabled', true);
+        let render = rows => {
+            if (OGResults.activeOgTable != key) return;
+            if (key == 'macro_ss' && $.isArray(rows) && rows.length && 'Variable' in rows[0] && 'Baseline' in rows[0]) rows = D.macroLongRunRows(rows);
+            if (!$.isArray(rows) || !rows.length){
+                OGResults.destroyGrid('ogcRsOgTable');
+                $('#ogcRsTableNote').text('OG-Core returned no rows for this table.').show();
                 return;
             }
-            if (measure == 'levels'){
-                headers = ['Age'];
-                $.each(OGResults.groups, (_, label) => headers.push('Baseline: ' + label, 'Reform: ' + label));
-                rows = b.map((row, i) => [OGResults.ages[i]].concat(...row.map((value, j) => [level(name, value), level(name, r[i][j])])));
-            }else{
-                headers = ['Age'].concat(OGResults.groups);
-                let transformed = OGResults.matrixTransform(name, measure);
-                rows = transformed.map((row, i) => [OGResults.ages[i]].concat(row));
-            }
-        }else if (spec.kind == 'matrix'){
-            let pairs = [];
-            indexedPairs(OGResults.base[name], OGResults.reform[name], [], pairs);
-            if (measure == 'levels'){
-                headers = ['Index', 'Baseline', 'Reform'];
-                rows = pairs.map(item => [item.dimension, level(name, item.baseline), level(name, item.reform)]);
-            }else{
-                headers = ['Index', 'Baseline', 'Reform', measureLabel(name, measure)];
-                rows = pairs.map(item => [item.dimension, level(name, item.baseline), level(name, item.reform), measureValue(name, item.baseline, item.reform, measure)]);
-            }
-        }else{
-            let b = $.isArray(OGResults.base[name]) ? OGResults.base[name] : [OGResults.base[name]];
-            let r = $.isArray(OGResults.reform[name]) ? OGResults.reform[name] : [OGResults.reform[name]];
-            b = $.map(b, firstNumber); r = $.map(r, firstNumber);
-            if (measure == 'levels'){
-                headers = ['Dimension', 'Baseline', 'Reform'];
-                rows = b.map((value, i) => [spec.kind == 'group' ? OGResults.groups[i] : (i + 1), level(name, value), level(name, r[i])]);
-            }else{
-                headers = ['Dimension', 'Baseline', 'Reform', measureLabel(name, measure)];
-                rows = b.map((value, i) => [spec.kind == 'group' ? OGResults.groups[i] : (i + 1), level(name, value), level(name, r[i]), measureValue(name, value, r[i], measure)]);
-            }
-        }
-        $('#ogcExploreTable').html(OGResults.tableHtml(headers, rows)).show();
-    }
-
-    static tableHtml(headers, rows, label){
-        rows = $.map(rows, row => [$.map(row, resultTableCell)]);
-        let numeric = $.map(headers, (_, index) => {
-            let values = $.map(rows, row => row[index] === null || row[index] === undefined || row[index] === '' ? null : row[index]);
-            return values.length > 0 && $.grep(values, value => typeof value != 'number').length == 0;
-        });
-        return `<table class="ogc-table ogc-analysis-table" aria-label="${esc(label || 'Results table')}"><thead><tr>${$.map(headers, (header, index) => `<th scope="col"${numeric[index] ? ' class="ogc-num"' : ''}>${esc(header)}</th>`).join('')}</tr></thead><tbody>${$.map(rows, row => `<tr>${$.map(row, (cell, index) => `<td${numeric[index] ? ' class="ogc-num"' : ''}>${esc(typeof cell == 'number' ? fmt(cell) : cell)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-    }
-
-    static tableLabel(key){
-        return {
-            macro: 'Macroeconomic results',
-            ineq: 'Inequality measures',
-            gini: 'Gini detail',
-            wealth: 'Wealth moments'
-        }[key] || 'Results table';
-    }
-
-    static displayTableHeader(header){
-        if (OGResults.activeTableKey == 'wealth' && header == 'Model') return 'Baseline';
-        return {
-            'Steady-State Variable': 'Outcome',
-            'Inequality Measure': 'Measure',
-            'Gini Type': 'Gini type',
-            '% Change': 'Change (%)',
-            '% Change (or pp diff)': 'Change (% or percentage points)'
-        }[header] || header;
-    }
-
-    static loadTable(key){
-        $('.ogc-table-pills button').removeClass('active').attr('aria-selected', 'false')
-            .filter(`[data-table="${key}"]`).addClass('active').attr('aria-selected', 'true');
-        OGResults.activeTableKey = key;
-        OGResults.activeTable = null;
-        let requestedAt = ++OGResults.tableRequestID;
-        $('#ogcTableExport').prop('disabled', true);
-        if (Object.prototype.hasOwnProperty.call(OGResults.tables, key)){
-            OGResults.renderTableRows(OGResults.tables[key]);
+            $('#ogcRsTableNote').hide();
+            let fields = Object.keys(rows[0]);
+            let data = rows.map(row => Object.fromEntries(fields.map((f, i) => ['c' + i, D.plainTableText(row[f])])));
+            let columns = fields.map((f, i) => {
+                let numeric = data.every(row => row['c' + i] === null || typeof row['c' + i] == 'number');
+                return {title: String(D.plainTableText(f)), field: 'c' + i, frozen: i === 0, hozAlign: numeric ? 'right' : 'left',
+                    headerHozAlign: numeric ? 'right' : 'left', formatter: numeric ? (c => V.formatNumber(c.getValue())) : 'plaintext'};
+            });
+            OGResults.setGrid('ogcRsOgTable', {data, columns, layout: 'fitDataStretch', maxHeight: '560px'});
+            $('[data-rs-act="table-csv"]').prop('disabled', false);
+        };
+        if (OGResults.ogTables[key]){
+            render(OGResults.ogTables[key]);
             return;
         }
-        $('#ogcTableStatus').html('<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> Loading table…').show();
-        $('#ogcResultTable').empty();
-        let s = OGResults.selection;
-        let selectionKey = JSON.stringify(s);
-        let request = key == 'macro' ? Ogc.getMacroTableSS(OGResults.workspace.country_id, s.casename, s.base, s.reform)
-            : key == 'ineq' ? Ogc.getIneqTable(OGResults.workspace.country_id, s.casename, s.base, s.reform)
-            : key == 'gini' ? Ogc.getGiniTable(OGResults.workspace.country_id, s.casename, s.base, s.reform)
-            : Ogc.getWealthMomentsTable(OGResults.workspace.country_id, s.casename, s.base);
-        request.then(rows => {
-            if (!OGResults.isCurrent() || requestedAt != OGResults.tableRequestID || selectionKey != JSON.stringify(OGResults.selection)) return;
-            OGResults.tables[key] = rows;
-            OGResults.renderTableRows(rows);
-        }).catch(error => {
-            if (requestedAt == OGResults.tableRequestID && selectionKey == JSON.stringify(OGResults.selection)){
-                $('#ogcTableStatus').text(`Unable to load table. ${String(error)}`).show();
-            }
-        });
+        $('#ogcRsTableNote').html('<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> OG-Core is building this table…').show();
+        OGResults.destroyGrid('ogcRsOgTable');
+        let sel = OGResults.selection;
+        let requestID = OGResults.requestID;
+        let tables = OGResults.ogTables;
+        Ogc.getResultTable(spec.path, OGResults.workspace.country_id, sel.casename, sel.base, spec.baselineOnly ? null : sel.reform, spec.options)
+            .then(rows => {
+                tables[key] = rows;  // valid for the selection it was asked for, even if the user moved on
+                if (requestID == OGResults.requestID) render(rows);
+            })
+            .catch(error => {
+                if (requestID == OGResults.requestID && OGResults.activeOgTable == key) $('#ogcRsTableNote').text('This table could not be built. ' + String(error)).show();
+            });
     }
 
-    static renderTableRows(rows){
-        if (!$.isArray(rows) || !rows.length){
-            $('#ogcTableStatus').text('No data available.').show();
-            return;
-        }
-        let headers = Object.keys(rows[0]);
-        let preferred = [
-            'Variable', 'Steady-State Variable', 'Inequality Measure', 'Gini Type',
-            'Moment', 'Baseline', 'Reform', 'Model', '% Change', '% Change (or pp diff)'
-        ];
-        headers.sort((a, b) => {
-            let ai = preferred.indexOf(a), bi = preferred.indexOf(b);
-            return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
-        });
-        let body = rows.map(row => headers.map(header => resultTableCell(row[header])));
-        let displayHeaders = headers.map(header => OGResults.displayTableHeader(header));
-        let tableLabel = OGResults.tableLabel(OGResults.activeTableKey);
-        OGResults.activeTable = { headers: displayHeaders, rows: body };
-        $('#ogcTableStatus').hide();
-        $('#ogcResultTable').html(OGResults.tableHtml(displayHeaders, body, tableLabel));
-        $('#ogcTableExport').prop('disabled', false);
-    }
-
+    // ── chart, grid and export plumbing ──────────────────────────────────────
     static setChart(id, option){
         let el = document.getElementById(id);
         if (!el || !window.echarts) return;
+        OGResults.charts = OGResults.charts || {};
         let chart = OGResults.charts[id];
-        if (!chart || chart.isDisposed()){
+        if (!chart || chart.isDisposed() || chart.getDom() !== el){
+            if (chart && !chart.isDisposed()) chart.dispose();
             chart = window.echarts.init(el, null, {renderer: 'svg'});
             OGResults.charts[id] = chart;
         }
         chart.setOption(option, true);
-        chart.resize();
+    }
+
+    static disposeChart(id){
+        let chart = OGResults.charts && OGResults.charts[id];
+        if (chart && !chart.isDisposed()) chart.dispose();
+        if (OGResults.charts) delete OGResults.charts[id];
     }
 
     static disposeCharts(){
-        $.each(OGResults.charts || {}, (_, chart) => { if (chart && !chart.isDisposed()) chart.dispose(); });
+        $.each(OGResults.charts || {}, (id, chart) => { if (chart && !chart.isDisposed()) chart.dispose(); });
         OGResults.charts = {};
+        $.each(OGResults.grids || {}, id => OGResults.destroyGrid(id));
+        OGResults.grids = {};
+    }
+
+    static resizeCharts(){
+        $.each(OGResults.charts || {}, (id, chart) => { if (chart && !chart.isDisposed() && $(chart.getDom()).is(':visible')) chart.resize(); });
     }
 
     static bindResize(){
         $(window).off('resize.ogresults').on('resize.ogresults', () => {
-            $.each(OGResults.charts, (_, chart) => { if (chart && !chart.isDisposed()) chart.resize(); });
+            clearTimeout(OGResults.resizeTimer);
+            OGResults.resizeTimer = setTimeout(() => OGResults.resizeCharts(), 120);
         });
+    }
+
+    static setGrid(id, config){
+        OGResults.destroyGrid(id);
+        let el = document.getElementById(id);
+        if (!el || !window.Tabulator) return;
+        OGResults.grids = OGResults.grids || {};
+        OGResults.grids[id] = new window.Tabulator(el, Object.assign({
+            columnDefaults: {headerSortTristate: true, resizable: true},
+            placeholder: 'No data'
+        }, config));
+    }
+
+    static destroyGrid(id){
+        let grid = OGResults.grids && OGResults.grids[id];
+        if (grid){
+            try { grid.destroy(); } catch (e) { /* already detached */ }
+            delete OGResults.grids[id];
+        }
+    }
+
+    static fileStem(){
+        let label = OGResults.selectionLabel(OGResults.selection);
+        return ('ogcore ' + OGResults.workspace.country_id + ' ' + label.title).replace(/→/g, 'vs').replace(/[^\w.-]+/g, '-').replace(/-+/g, '-').toLowerCase();
+    }
+
+    static downloadGrid(id, suffix){
+        let grid = OGResults.grids && OGResults.grids[id];
+        if (grid) grid.download('csv', `${OGResults.fileStem()}-${suffix}.csv`, {bom: true});
+    }
+
+    static exportChart(id, format){
+        let chart = OGResults.charts && OGResults.charts[id];
+        if (!chart || chart.isDisposed()) return;
+        let card = $(chart.getDom()).closest('.ogc-rs-card, .ogc-rs-mini');
+        let title = card.find('h3').first().text() || 'Chart';
+        let period = card.find('.ogc-rs-card-period').first().text();
+        let width = chart.getWidth(), height = chart.getHeight();
+        let raw = chart.renderToSVGString ? chart.renderToSVGString() : decodeURIComponent(chart.getDataURL({type: 'svg'}).split(',')[1]);
+        let doc = new DOMParser().parseFromString(raw, 'image/svg+xml').documentElement;
+        let pad = 58;
+        let ns = doc.namespaceURI;
+        let group = document.createElementNS(ns, 'g');
+        while (doc.firstChild) group.appendChild(doc.firstChild);
+        group.setAttribute('transform', `translate(0 ${pad})`);
+        let bg = document.createElementNS(ns, 'rect');
+        bg.setAttribute('width', width); bg.setAttribute('height', height + pad); bg.setAttribute('fill', '#fff');
+        doc.appendChild(bg);
+        doc.appendChild(group);
+        [[title, 22, 16, '700', '#3a3f51'], [[period, OGResults.selectionLabel(OGResults.selection).title].filter(Boolean).join(' · '), 42, 12, '400', '#6b7188']]
+            .forEach(([text, y, size, weight, fill]) => {
+                let node = document.createElementNS(ns, 'text');
+                node.setAttribute('x', '16'); node.setAttribute('y', y);
+                node.setAttribute('font-family', 'Arial, sans-serif'); node.setAttribute('font-size', size);
+                node.setAttribute('font-weight', weight); node.setAttribute('fill', fill);
+                node.textContent = text;
+                doc.appendChild(node);
+            });
+        doc.setAttribute('width', width); doc.setAttribute('height', height + pad);
+        doc.setAttribute('viewBox', `0 0 ${width} ${height + pad}`);
+        let svg = new XMLSerializer().serializeToString(doc);
+        let name = `${OGResults.fileStem()}-${title.replace(/[^\w]+/g, '-').toLowerCase()}`;
+        let save = (href, ext) => {
+            let link = document.createElement('a');
+            link.download = `${name}.${ext}`;
+            link.href = href;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        };
+        let svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        if (format == 'svg'){
+            save(svgUrl, 'svg');
+            return;
+        }
+        let img = new Image();
+        img.onload = () => {
+            let canvas = document.createElement('canvas');
+            canvas.width = width * 2; canvas.height = (height + pad) * 2;
+            let ctx = canvas.getContext('2d');
+            ctx.scale(2, 2);
+            ctx.drawImage(img, 0, 0);
+            save(canvas.toDataURL('image/png'), 'png');
+        };
+        img.src = svgUrl;
+    }
+
+    static closeMenus(){
+        $('#ogcResultsPage .ogc-action-menu.ogc-menu-open').removeClass('ogc-menu-open')
+            .find('[data-rs-act="menu"]').attr('aria-expanded', 'false').end()
+            .find('.ogc-case-menu').attr('aria-hidden', 'true');
+    }
+
+    static editReform(){
+        let sel = OGResults.selection;
+        let c = OGResults.findCase(sel.casename);
+        let run = OGResults.findRun(c, sel.reform);
+        if (!run) return;
+        saveSelection({
+            casename: sel.casename, run_name: run.run_name, run_type: 'reform', baseline_run: run.baseline_run,
+            country_id: OGResults.workspace.country_id, display_name: OGResults.displayName(c, run),
+            baseline_display_name: OGCases.baselineDisplayName(c, run.baseline_run)
+        });
+        window.location.hash = '#/OGParameters';
+    }
+
+    // The OG-Core tables already built for a selection, most recently used last.
+    static tablesFor(selection){
+        let key = V.selectionKey(OGResults.workspace.country_id, selection);
+        let tables = OGResults.tableCache.get(key) || Object.create(null);
+        OGResults.tableCache.delete(key);
+        OGResults.tableCache.set(key, tables);
+        while (OGResults.tableCache.size > TABLE_CACHE_MAX) OGResults.tableCache.delete(OGResults.tableCache.keys().next().value);
+        return tables;
     }
 
     static teardown(){
@@ -1064,100 +991,66 @@ export default class OGResults {
         $(document).off('.ogresults');
     }
 
-    static openTab(name){
-        $('.ogc-result-tabs button').removeClass('active').attr('aria-selected', 'false');
-        $(`.ogc-result-tabs button[data-result-tab="${name}"]`).addClass('active').attr('aria-selected', 'true');
-        $('.ogc-result-pane').removeClass('active');
-        $(`.ogc-result-pane[data-result-pane="${name}"]`).addClass('active');
-        setTimeout(() => $.each(OGResults.charts, (_, chart) => { if (chart && !chart.isDisposed()) chart.resize(); }), 20);
-        if (name == 'tables') OGResults.loadTable($('.ogc-table-pills button.active').data('table') || 'macro');
-    }
-
-    static readSaved(){
-        try {
-            let countryID = OGResults.workspace.country_id;
-            let saved = JSON.parse(localStorage.getItem(`${VIEW_KEY}:${countryID}`)) || null;
-            if (saved) return saved;
-            let legacy = JSON.parse(localStorage.getItem(VIEW_KEY)) || null;
-            return legacy && legacy.country_id == countryID ? legacy : null;
-        } catch (error) { return null; }
-    }
-
-    static saveView(){
-        let saved = {
-            country_id: OGResults.workspace.country_id,
-            variable: $('#ogcExploreVariable').val(), measure: $('#ogcExploreMeasure').val(),
-            view: $('#ogcExploreView').val(), group: $('#ogcExploreGroup').val()
-        };
-        localStorage.setItem(`${VIEW_KEY}:${OGResults.workspace.country_id}`, JSON.stringify(saved));
-        $('#ogcSavedNote').text('Default view saved');
-    }
-
-    static exportChart(id){
-        let chart = OGResults.charts[id];
-        if (!chart || chart.isDisposed()) return;
-        let link = document.createElement('a');
-        let chartName = String(id || 'chart').replace(/^ogc|Chart$/g, '').replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-        link.download = `ogcore-${OGResults.selection.casename}-${OGResults.selection.reform}-${chartName}.svg`;
-        link.href = chart.getDataURL({type:'svg', pixelRatio:2, backgroundColor:'#ffffff'});
-        link.click();
-    }
-
-    static exportTable(){
-        if (!OGResults.activeTable) return;
-        let quote = value => `"${String(value == null ? '' : value).replace(/"/g, '""')}"`;
-        let lines = [OGResults.activeTable.headers].concat(OGResults.activeTable.rows)
-            .map(row => $.map(row, quote).join(','));
-        let blob = new Blob(['\ufeff' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
-        let link = document.createElement('a');
-        link.download = `ogcore-${OGResults.selection.casename}-${OGResults.selection.reform}-${OGResults.activeTableKey || 'table'}.csv`;
-        link.href = URL.createObjectURL(blob);
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-    }
-
-    static showEmpty(title, text, action){
-        $('#ogcResultLoading, #ogcResultBody').hide();
-        $('#ogcResultEmptyTitle').text(title);
-        $('#ogcResultEmptyText').text(text);
-        let link = $('#ogcResultEmptyAction');
-        if (action){
-            link.attr('href', action.href).text(action.label).show();
-        }else{
-            link.hide();
-        }
-        $('#ogcResultEmpty').show();
-    }
-
     static initEvents(){
-        $(document).off('.ogresults');
-        $(window).off('hashchange.ogresults').on('hashchange.ogresults', () => {
-            if (routePath() == '/OGResults') return;
-            OGResults.teardown();
+        // Leaving the page unbinds everything bound here, even when it never
+        // got past the loading or empty state.
+        $(window).on('hashchange.ogresults', () => { if (routePath() != '/OGResults') OGResults.teardown(); });
+        $(document).on('click.ogresults', event => {
+            if (!$(event.target).closest('#ogcResultsPage .ogc-action-menu').length) OGResults.closeMenus();
+        }).on('keydown.ogresults', event => { if (event.key == 'Escape') OGResults.closeMenus(); });
+        $('#ogcResultsPage').off('.ogresults')
+        .on('input.ogresults', '#ogcRsSearch', () => OGResults.renderTree())
+        .on('input.ogresults', '#ogcRsVarSearch', () => OGResults.renderVarList())
+        .on('change.ogresults', '#ogcRsHhVar', function () { OGResults.hh.name = $(this).val(); OGResults.drawHouseholds(); })
+        .on('change.ogresults', '#ogcRsHhGroup', function () { OGResults.hh.group = Number($(this).val()); OGResults.drawHouseholds(); })
+        .on('click.ogresults', '[data-rs-tab]', function () { OGResults.openTab($(this).attr('data-rs-tab')); })
+        .on('click.ogresults', '[data-rs-act]', function (event) {
+            let el = $(this);
+            let act = el.attr('data-rs-act');
+            if (el.prop('disabled')) return;
+            if (act == 'view'){
+                // a reform viewed on its own is addressed as the single run
+                OGResults.select({casename: el.attr('data-case'), base: el.attr('data-view') || el.attr('data-base'), reform: null,
+                    tab: OGResults.selection && OGResults.selection.tab});
+            }
+            else if (act == 'compare') OGResults.select({casename: el.attr('data-case'), base: el.attr('data-base'), reform: el.attr('data-reform'), tab: OGResults.selection && OGResults.selection.tab});
+            else if (act == 'recent') OGResults.select({casename: el.attr('data-case'), base: el.attr('data-base'), reform: el.attr('data-reform') || null});
+            else if (act == 'jump'){
+                let target = document.getElementById(el.attr('data-target'));
+                if (target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+            }
+            else if (act == 'edit-reform') OGResults.editReform();
+            else if (act == 'hh-view'){ OGResults.hh.view = el.attr('data-view'); OGResults.drawHouseholds(); }
+            else if (act == 'hh-scenario'){ OGResults.hh.scenario = el.attr('data-scenario'); OGResults.drawHouseholds(); }
+            else if (act == 'var'){
+                OGResults.ex.name = el.attr('data-name');
+                $('.ogc-rs-var').removeClass('ogc-rs-var-on').attr('aria-selected', 'false');
+                el.addClass('ogc-rs-var-on').attr('aria-selected', 'true');
+                OGResults.renderExplore();
+            }
+            else if (act.indexOf('ex-') === 0 && act != 'ex-csv'){
+                let field = {'ex-period': 'period', 'ex-show': 'show', 'ex-breakdown': 'breakdown', 'ex-scenario': 'scenario', 'ex-view': 'view'}[act];
+                if (field){ OGResults.ex[field] = el.attr('data-value'); OGResults.renderExplore(); }
+            }
+            else if (act == 'ex-csv') OGResults.downloadGrid('ogcRsExTable', OGResults.ex.name);
+            else if (act == 'main-csv') OGResults.downloadGrid('ogcRsMainTable', 'main-results');
+            else if (act == 'og-table') OGResults.loadOgTable(el.attr('data-key'));
+            else if (act == 'table-csv') OGResults.downloadGrid('ogcRsOgTable', OGResults.activeOgTable || 'table');
+            else if (act == 'menu'){
+                event.stopPropagation();
+                let menu = el.closest('.ogc-action-menu');
+                let open = !menu.hasClass('ogc-menu-open');
+                OGResults.closeMenus();
+                if (open){
+                    menu.addClass('ogc-menu-open');
+                    el.attr('aria-expanded', 'true');
+                    menu.find('.ogc-case-menu').attr('aria-hidden', 'false');
+                }
+            }
+            else if (act == 'export'){
+                OGResults.closeMenus();
+                OGResults.exportChart(el.attr('data-chart'), el.attr('data-format'));
+            }
         });
-        $(document).on('click.ogresults', '.ogc-result-tabs button', function(){ OGResults.openTab($(this).data('result-tab')); });
-        $(document).on('change.ogresults', '#ogcResultCase', () => OGResults.renderReformOptions(null));
-        $(document).on('change.ogresults', '#ogcResultReform', () => OGResults.loadComparison());
-        $(document).on('change.ogresults', '#ogcDistributionVariable, #ogcDistributionMeasure', () => OGResults.renderDistribution());
-        $(document).on('change.ogresults', '#ogcProfileVariable, #ogcProfileGroup, #ogcProfileMeasure', () => OGResults.renderProfile());
-        $(document).on('change.ogresults', '#ogcExploreVariable', () => { OGResults.refreshExploreMeasures(); OGResults.refreshExploreViews(); OGResults.renderExplore(); });
-        $(document).on('change.ogresults', '#ogcExploreMeasure', () => { OGResults.refreshExploreViews(); OGResults.renderExplore(); });
-        $(document).on('change.ogresults', '#ogcExploreView', () => { OGResults.refreshExploreViews(); OGResults.renderExplore(); });
-        $(document).on('change.ogresults', '#ogcExploreGroup', () => OGResults.renderExplore());
-        $(document).on('click.ogresults', '.ogc-table-pills button', function(){ OGResults.loadTable($(this).data('table')); });
-        $(document).on('click.ogresults', '.ogc-policy-toggle', function(){
-            let extra = $('.ogc-policy-extra');
-            let opening = extra.prop('hidden');
-            extra.prop('hidden', !opening);
-            $(this).text(opening ? 'Show less' : `Show ${$(this).data('count')} more`);
-        });
-        $(document).on('click.ogresults', '#ogcSaveView', () => OGResults.saveView());
-        $(document).on('click.ogresults', '#ogcResetView', () => {
-            localStorage.removeItem(`${VIEW_KEY}:${OGResults.workspace.country_id}`);
-            localStorage.removeItem(VIEW_KEY); $('#ogcExploreVariable').val('Y'); $('#ogcExploreMeasure').val('pct');
-            OGResults.refreshExploreMeasures('pct'); OGResults.refreshExploreViews('comparison'); OGResults.renderExplore(); $('#ogcSavedNote').text('Defaults restored');
-        });
-        $(document).on('click.ogresults', '.ogc-chart-export[data-export-chart]', function(){ OGResults.exportChart($(this).data('export-chart')); });
-        $(document).on('click.ogresults', '#ogcTableExport', () => OGResults.exportTable());
     }
 }

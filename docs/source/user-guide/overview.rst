@@ -37,7 +37,7 @@ To select a model, either click on its name in the list or use the Select Model 
    :align: center
 
 Parameters and variables
-+++++++++++++
+++++++++++++++++++++++++
 
 It displays a list of model parameters and variables, along with their associated sets, default values, and guidance on unit specification. You can update the default values and units as needed to suit the requirements of your modelling work.
 
@@ -47,7 +47,7 @@ It displays a list of model parameters and variables, along with their associate
    :align: center
    
 Configure model
-+++++++++++++
++++++++++++++++
 
 If no model is selected, the Configure model option allows you to create a new one. In this case, simply enter a model name and click Save new model.
 
@@ -111,7 +111,7 @@ This tab enables you to view all parameter data entered for a specific technolog
    :align: center
 
 Running a model
-+++++++++++++
++++++++++++++++
 
 In the Run tab, you can create a case to execute, which functions as an instance of the model. Within a case, you can select one or more scenarios that represent variations in specific parameters.
 
@@ -121,7 +121,7 @@ In the Run tab, you can create a case to execute, which functions as an instance
    :align: center
 
 Results visualization
-+++++++++++++
++++++++++++++++++++++
 
 In this tab, you can display model results (output variables) for executed cases. Users can customize the chart or table layout, apply filters, and further tailor the results view to their needs using pivot table functionality.
 

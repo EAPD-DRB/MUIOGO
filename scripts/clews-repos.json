@@ -1,0 +1,19 @@
+{
+    "_readme": [
+        "The CLEWs country register: repositories that ship portable MUIO cases, the",
+        "CLEWs mirror of the OG-Core installer's repos.json. MUIOGO reads this file from",
+        "the main branch (Config.CLEWS_CATALOG_URL) to list the countries a user can",
+        "install from the CLEWs install page; each repository describes what it ships in",
+        "its own clews-country.json. Add a repository here once it carries that file."
+    ],
+    "schema_version": 1,
+    "repos": [
+        {
+            "key": "clews-phl",
+            "owner": "EAPD-DRB",
+            "repo": "CLEWs-PHL",
+            "iso3": "PHL",
+            "description": "Philippines"
+        }
+    ]
+}
