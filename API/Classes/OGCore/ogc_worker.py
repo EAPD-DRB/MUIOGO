@@ -15,10 +15,10 @@ from it (run_meta.json, ogcParams.json, optional ogcTaxParams.pkl) and every
 output is written back into it (run_status.json for progress, results_ss.json
 and optionally results_tpi.json for results). All writes are atomic.
 
-The "run" subcommand solves a model run and owns run_status.json. Three further
+The "run" subcommand solves a model run and owns run_status.json. Four further
 subcommands are ephemeral read helpers: "tables" builds one analysis table,
-"validate" runs ogcore's parameter checks, and "taxcheck" inspects an uploaded
-tax-parameter pickle. The ephemeral modes never touch run_status.json; each takes
+"meta" rebuilds a finished run's results metadata, "validate" runs ogcore's
+parameter checks, and "taxcheck" inspects an uploaded tax-parameter pickle. The ephemeral modes never touch run_status.json; each takes
 --out and writes its result JSON there atomically. Exit codes are shared across
 all modes: 0 ok, 2 input rejection, 3 computation failure, 4 IO.
 """
@@ -337,6 +337,80 @@ def _solve(p, time_path: bool) -> None:
             pass
 
 
+# Bumped whenever run_metadata() gains fields the Results page depends on.
+RESULTS_META_VERSION = 2
+
+
+def _scalar(value):
+    """A plain Python number from an OG-Core scalar that may arrive as a 0-d or 1-element array."""
+    arr = np.asarray(value).reshape(-1)
+    return arr[0].item() if arr.size else None
+
+
+def _percent_text(value: float) -> str:
+    """Format a cumulative percentage the way ogcore's lambda_labels does."""
+    if value % 1 == 0:
+        return f"{value:.0f}"
+    if value % 0.1 == 0:
+        return f"{value:.1f}"
+    return f"{value:.2f}"
+
+
+def _group_labels(lambdas) -> list:
+    """Income-group labels for the lifetime-income (ability) types.
+
+    Uses ogcore's own lambda_labels so the page names groups exactly as OG-Core's
+    plots do. If that import fails the same rule is applied here, so a run never
+    ends up with invented "Group n" names.
+    """
+    weights = [float(x) for x in np.asarray(lambdas, dtype=float).reshape(-1)]
+    try:
+        os.environ.setdefault("MPLBACKEND", "Agg")
+        from ogcore.output_plots import lambda_labels
+
+        labels = lambda_labels(np.asarray(weights))
+        return [str(labels[i]) for i in range(len(weights))]
+    except Exception:
+        cumulative = [0.0]
+        for w in weights:
+            cumulative.append(cumulative[-1] + w * 100)
+        labels = [
+            f"{_percent_text(cumulative[i])}-{_percent_text(cumulative[i + 1])}%"
+            for i in range(len(weights) - 1)
+        ]
+        labels.append(f"Top {_percent_text(100 - cumulative[-2])}%")
+        return labels
+
+
+def run_metadata(p, time_path: bool) -> dict:
+    """Everything the Results page needs to label and weight a run's outputs.
+
+    Written with the results so group names, ages, and population weights always
+    come from the parameters the run actually used (not from calibration defaults
+    or the run's override file, which only lists changed parameters).
+    """
+    starting_age = int(_scalar(p.starting_age))
+    s_count = int(_scalar(p.S))
+    lambdas = np.asarray(p.lambdas, dtype=float).reshape(-1)
+    return {
+        "meta_version": RESULTS_META_VERSION,
+        "start_year": int(_scalar(p.start_year)),
+        "T": int(_scalar(p.T)),
+        "S": s_count,
+        "J": int(_scalar(p.J)),
+        "starting_age": starting_age,
+        "ending_age": int(_scalar(p.ending_age)),
+        # ogcore's own profile plots use this age vector
+        "ages": list(range(starting_age, starting_age + s_count)),
+        "lambdas": sanitize(lambdas),
+        "group_labels": _group_labels(lambdas),
+        # steady-state population distribution: by age (S,) or by age and group (S, J)
+        "omega_SS": sanitize(np.asarray(p.omega_SS, dtype=float)),
+        "g_y": sanitize(_scalar(p.g_y)),
+        "time_path": bool(time_path),
+    }
+
+
 def _read_and_write_results(run_dir: Path, time_path: bool, p) -> None:
     from ogcore.utils import safe_read_pickle
 
@@ -374,7 +448,7 @@ def _read_and_write_results(run_dir: Path, time_path: bool, p) -> None:
                 4,
             )
 
-    meta = {"start_year": int(p.start_year), "T": int(p.T), "S": int(p.S)}
+    meta = run_metadata(p, time_path)
     try:
         _atomic_write_json(run_dir / "results_meta.json", meta)
     except Exception as exc:
@@ -691,6 +765,28 @@ def tables_command(args) -> int:
 
 
 # ---------------------------------------------------------------------------
+# meta mode
+# ---------------------------------------------------------------------------
+# Rebuilds results_meta content from a finished run's model_params.pkl, for runs
+# solved before the worker wrote the full metadata. MUIOGO merges the result into
+# results_meta.json itself; this mode only reads.
+
+
+def meta_command(args) -> int:
+    run_dir = Path(args.run_dir)
+    if not run_dir.is_dir():
+        raise WorkerError(f"Run directory not found: {run_dir}", 2)
+    p = _dir_params(run_dir, "Run")
+    time_path = (run_dir / "TPI" / "TPI_vars.pkl").is_file()
+    try:
+        meta = run_metadata(p, time_path)
+    except Exception as exc:
+        raise WorkerError(f"Run parameters are incomplete: {exc}", 3)
+    _write_out(Path(args.out), meta)
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # validate mode
 # ---------------------------------------------------------------------------
 
@@ -821,6 +917,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     tables_parser.add_argument("--out", required=True, help="Output JSON path.")
 
+    meta_parser = subparsers.add_parser(
+        "meta", help="Rebuild a finished run's results metadata from its parameters."
+    )
+    meta_parser.add_argument("--run-dir", required=True, help="Run directory.")
+    meta_parser.add_argument("--out", required=True, help="Output JSON path.")
+
     validate_parser = subparsers.add_parser(
         "validate", help="Run ogcore's parameter warnings/errors check."
     )
@@ -845,6 +947,8 @@ def main(argv=None) -> int:
         return run_command(run_dir)
     if args.command == "tables":
         return _run_ephemeral(tables_command, args)
+    if args.command == "meta":
+        return _run_ephemeral(meta_command, args)
     if args.command == "validate":
         return _run_ephemeral(validate_command, args)
     if args.command == "taxcheck":

@@ -25,7 +25,7 @@ from flask import (
 
 from Classes.Base import Config
 from Classes.Base.FileClass import File
-from Classes.OGCore import OGSchema, OGTables
+from Classes.OGCore import OGReport, OGSchema, OGTables
 from Classes.OGCore.CalibrationRegistry import CalibrationRegistry
 from Classes.OGCore.OGCoreCase import OGCoreCase, is_safe_name
 from Classes.OGCore.OGResults import OGResults
@@ -776,6 +776,50 @@ def getResults():
             "message": message,
         }), http
     return jsonify(payload), 200
+
+
+# ── 16b. the Results report (single run or baseline vs reform) ────────────────
+@ogcore_run_api.route("/getResultsReport", methods=["POST"])
+def getResultsReport():
+    """Labelled, unit-consistent results for one run or a baseline/reform pair.
+
+    Old runs have their results metadata rebuilt once (see
+    OGTables.ensure_run_metadata); when that fails the report still returns, with
+    the household blocks replaced by a reason.
+    """
+    data = request.get_json(silent=True)
+    if data is None:
+        return _err("Request body must be valid JSON.")
+    case, err = _resolve_case(data, "base_run")
+    if err:
+        return err
+    base_run = data["base_run"]
+    reform_run = data.get("reform_run") or None
+    names = [base_run] + ([reform_run] if reform_run else [])
+    bad = _unsafe_name(*names)
+    if bad:
+        return bad
+    if not case.case_path.is_dir():
+        return _err("Case not found.", http=404)
+    loaded = []
+    for name in names:
+        gate = _results_gate(case, name)
+        if gate:
+            return gate
+        run_dir = case.res_path / name
+        ss = OGResults.load_ss(run_dir)
+        if ss is None:
+            return _err("No results - run it first", http=404)
+        meta, reason = OGTables.ensure_run_metadata(case, run_dir)
+        loaded.append({"ss": ss, "tpi": OGResults.load_tpi(run_dir), "meta": meta, "reason": reason})
+    report = OGReport.build_report(loaded[0], loaded[1] if reform_run else None)
+    reasons = [item["reason"] for item in loaded if item["reason"]]
+    if reasons and report["households"] is None:
+        report["households_reason"] = reasons[0]
+    report.update({"status_code": "success", "casename": case.casename, "base_run": base_run})
+    if reform_run:
+        report["reform_run"] = reform_run
+    return jsonify(report), 200
 
 
 # ── analysis tables: shared endpoint ─────────────────────────────────────────
