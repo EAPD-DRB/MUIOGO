@@ -72,12 +72,15 @@ def _require(csv_dir: str, stem: str) -> str:
 
 
 def _load_costs(csv_dir: str) -> pd.DataFrame:
-    """tech x year cost = Inv + FixedO&M + VarO&M (all annual $-flows on the same basis)."""
+    """region x tech x year cost = Inv + FixedO&M + VarO&M (all annual $-flows on the same basis)."""
     frames = []
     for stem in COST_STEMS:
-        df = pd.read_csv(_require(csv_dir, stem))[["t", "y", stem]].rename(columns={stem: "cost"})
-        frames.append(df)
-    return pd.concat(frames, ignore_index=True).groupby(["t", "y"], as_index=False)["cost"].sum()
+        df = pd.read_csv(_require(csv_dir, stem))
+        keys = (["r"] if "r" in df.columns else []) + ["t", "y"]
+        frames.append(df[keys + [stem]].rename(columns={stem: "cost"}))
+    costs = pd.concat(frames, ignore_index=True)
+    keys = (["r"] if "r" in costs.columns else []) + ["t", "y"]
+    return costs.groupby(keys, as_index=False, dropna=False)["cost"].sum()
 
 
 def _read_long(csv_dir: str, stem: str) -> pd.DataFrame:
@@ -119,38 +122,45 @@ def _lcoe_parts(csv_dir: str, busbar: str) -> pd.DataFrame:
     if not gen:
         raise ValueError(f"lcoe_by_year: no producers of busbar {busbar!r} in {csv_dir}")
 
-    # CHP / co-gen: electricity's share of each gen tech's USEFUL output (dumped byproduct -> 1)
-    consumed = use.groupby("f")["v"].sum()
-    used_commodities = set(consumed[consumed > 0].index)
-    gen_prod = prod[prod.t.isin(gen)].groupby(["t", "f"])["v"].sum()
-    elec_frac = {}
-    for t in gen:
-        outs = gen_prod.xs(t, level="t") if t in gen_prod.index.get_level_values("t") else pd.Series(dtype=float)
-        useful = {g: v for g, v in outs.items() if g == busbar or g in used_commodities}
-        tot = sum(useful.values())
-        elec_frac[t] = (useful.get(busbar, 0.0) / tot) if tot > 0 else 1.0
+    # Keep allocation and prices regional. A regionless export is unambiguous
+    # only when all files describe at most one region.
+    frames = (prod, use, costs, price)
+    regions = {str(r) for df in frames if "r" in df.columns
+               for r in df["r"].dropna().unique()}
+    for df in frames:
+        if "r" not in df.columns or df["r"].isna().any():
+            if len(regions) > 1:
+                raise ValueError(
+                    "lcoe: regionless rows cannot be matched to multiple regions")
+            df["r"] = df.get("r", pd.Series(index=df.index, dtype=object)).fillna(
+                next(iter(regions), ""))
+        df["r"] = df["r"].astype(str)
 
-    own = costs[costs.t.isin(gen)].copy()
-    own["w"] = own["cost"] * own["t"].map(elec_frac)
+    # CHP / co-gen: allocate using useful outputs in this region AND year.
+    plant_keys = ["r", "t", "y"]
+    consumed = use.groupby(["r", "f", "y"], as_index=False)["v"].sum()
+    consumed = consumed.loc[consumed["v"] > 0, ["r", "f", "y"]].assign(consumed=True)
+    gen_prod = prod[prod.t.isin(gen)].groupby(plant_keys + ["f"], as_index=False)["v"].sum()
+    gen_prod = gen_prod.merge(consumed, on=["r", "f", "y"], how="left", validate="many_to_one")
+    useful = gen_prod[(gen_prod["f"] == busbar) | gen_prod["consumed"].eq(True)]
+    total = useful.groupby(plant_keys)["v"].sum()
+    elec = useful[useful["f"] == busbar].groupby(plant_keys)["v"].sum()
+    fraction = (elec.reindex(total.index, fill_value=0.0)
+                .div(total.where(total > 0)).fillna(1.0)
+                .rename("elec_frac").reset_index())
+
+    own = costs[costs.t.isin(gen)].merge(
+        fraction, on=plant_keys, how="left", validate="many_to_one")
+    own["w"] = own["cost"] * own["elec_frac"].fillna(1.0)
     own_y = own.groupby("y")["w"].sum()
 
-    # Each region's plant inputs at that region's prices. Without a region column in the use file
-    # the prices must be one region's, or there is no way to know which price applies.
-    inputs = use[use.t.isin(gen)].copy()
-    keys = ["f", "y"]
-    if "r" in inputs.columns and "r" in price.columns:
-        keys = ["r", "f", "y"]
-        inputs["r"] = inputs["r"].astype(str)
-        price = price.assign(r=price["r"].astype(str))
-    elif "r" in price.columns and price["r"].nunique() > 1:
-        raise ValueError(
-            f"lcoe: {PRICE_STEM}.csv in {csv_dir} has prices for {price['r'].nunique()} regions but "
-            f"{USE_STEM}.csv has no region column, so the plants' inputs cannot be matched to their "
-            "region's prices.")
+    inputs = use[use.t.isin(gen)].merge(
+        fraction, on=plant_keys, how="left", validate="many_to_one")
+    keys = ["r", "f", "y"]
     p = price.groupby(keys, as_index=False)["v"].mean().rename(columns={"v": "p"})
     inputs = inputs.merge(p, on=keys, how="left")
     inputs["p"] = inputs["p"].fillna(0.0)                 # an unpriced input is free
-    inputs["w"] = inputs["v"] * inputs["p"] * inputs["t"].map(elec_frac)
+    inputs["w"] = inputs["v"] * inputs["p"] * inputs["elec_frac"].fillna(1.0)
     input_y = inputs.groupby("y")["w"].sum()
     top = inputs.groupby(["y", "f"])["w"].sum().reset_index().sort_values("w").groupby("y").tail(1)
     top_y = dict(zip(top["y"], top["f"]))

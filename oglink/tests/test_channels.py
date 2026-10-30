@@ -338,7 +338,7 @@ def test_health_skips_when_no_gbd_data(monkeypatch):
     import dataclasses
 
     import pandas as pd
-    monkeypatch.setattr(channels.signals, "emissions_ratio", lambda *a, **k: pd.Series([0.9] * 10))
+    monkeypatch.setattr(channels.signals, "emissions_ratio", lambda *a, **k: pd.Series([0.9] * 10, index=range(PHL.scenario.og_start_year, PHL.scenario.og_start_year + 10)))
     c = dataclasses.replace(PHL, gbd_burden_csv=None)
     ctx = ExperimentContext(country=c, concordance=CONCORDANCE, og_reform=_params(), base_tpi=_tpi(1.0))
     e0 = np.asarray(ctx.og_reform.e).copy()

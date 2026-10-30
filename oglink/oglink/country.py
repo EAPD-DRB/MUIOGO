@@ -3,6 +3,7 @@ channels and framework stay country-agnostic. PHL is the worked instance.
 """
 from __future__ import annotations
 
+import csv
 import glob
 import json
 import os
@@ -120,12 +121,27 @@ def clews_scenario_dir(which):
     return ""
 
 
-def _resolve_gbd_csv():
-    """The GBD burden CSV under the repo's IHME-GBD_2023_DATA/ (multi-country export), or None."""
+def _resolve_gbd_csv(location_name: str, year: int):
+    """Find a packaged GBD export containing the requested country and year."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    hits = [h for h in glob.glob(os.path.join(root, "IHME-GBD_2023_DATA", "*.csv"))
-            if "citation" not in os.path.basename(h).lower()]
-    return min(hits) if hits else None
+    hits = sorted(glob.glob(os.path.join(root, "IHME-GBD_2023_DATA", "*.csv")))
+    for path in hits:
+        if "citation" in os.path.basename(path).lower():
+            continue
+        with open(path, encoding="utf-8-sig", newline="") as f:
+            # A matching deaths-rate record identifies the country's mortality
+            # input. Other risks, sexes or population groups must not select a file.
+            if any(row.get("location_name") == location_name
+                   and row.get("year") == str(year)
+                   and row.get("sex_name") == "Both"
+                   and row.get("population_group_name") == "All Population"
+                   and row.get("rei_name") == "Ambient particulate matter pollution"
+                   and row.get("measure_name") == "Deaths"
+                   and row.get("metric_name") == "Rate"
+                   and row.get("cause_name") == "All causes"
+                   for row in csv.DictReader(f)):
+                return path
+    return None
 
 
 def _resolve_dose_response(name: str):
@@ -161,7 +177,7 @@ PHL = CountryConfig(
         # og_runner warns on mismatch with the loaded model's own start_year.
         og_start_year=2025,
     ),
-    gbd_burden_csv=_resolve_gbd_csv(),  # IHME-GBD_2023_DATA/*.csv if present, else None (placeholders)
+    gbd_burden_csv=_resolve_gbd_csv("Philippines", 2023),  # IHME-GBD_2023_DATA/*.csv if present, else None (health skips)
     pm25_dose_response=_resolve_dose_response("Philippines"),  # M ~= 0.082 (energy 9.8% x CRF elast 0.84)
 )
 
@@ -223,7 +239,8 @@ def config_from_dict(d: dict) -> CountryConfig:
                          f"valid fields: {sorted(known - {'units', 'scenario'})}")
     if "public_power_markers" in d:
         d["public_power_markers"] = tuple(d["public_power_markers"])
-    d.setdefault("gbd_burden_csv", _resolve_gbd_csv())
+    if "gbd_burden_csv" not in d:
+        d["gbd_burden_csv"] = _resolve_gbd_csv(name, int(d.get("gbd_year", 2023)))
     d.setdefault("pm25_dose_response", _resolve_dose_response(name))
     d["gdp_musd"] = float(d["gdp_musd"])
     return CountryConfig(units=units, scenario=scenario, **d)

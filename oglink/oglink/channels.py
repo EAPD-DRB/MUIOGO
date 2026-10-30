@@ -504,7 +504,13 @@ def health(ctx, *, enable_mortality=True, enable_morbidity=True, mortality_targe
         reason = (f"health-emissions source unavailable (species {species!r}): {e}")
         print(f"[skip] health: {reason}")
         return ctx.log("health", skipped=True, reason=reason)
-    demis = float(np.nanmean(er.values[:10])) - 1.0       # <0 == reform is cleaner
+    # Use the OG model's first decade, rather than the first rows of CLEWS history.
+    start = c.scenario.og_start_year
+    window = er.loc[(er.index >= start) & (er.index < start + 10)]
+    if window.dropna().empty:
+        raise ValueError(
+            f"health: no usable emissions ratios in the OG window {start}-{start + 9}")
+    demis = float(window.mean()) - 1.0       # <0 == reform is cleaner
     if not np.isfinite(demis):
         raise ValueError(f"health: emissions_ratio gave a non-finite change ({demis}); "
                          "check the CLEWS emissions files.")

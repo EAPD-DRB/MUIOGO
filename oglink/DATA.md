@@ -1,73 +1,82 @@
-# Data the health channel needs
+# Health-channel data and provenance
 
-The health channel applies pollution mortality via the **disease_pop method** from
-DeBacker, Evans & LaFleur, *The Macroeconomic Returns to Public Health Investments*
-(the `CostOfDisease` repo): an age-specific shock `rho(s,t) = rho0 + kappa·g_t·h(s)`,
-phased in, then the population is recomputed. Two inputs come from data:
+The health channel needs two separate country inputs:
 
-- The emissions→deaths dose-response multiplier **ships with the repo** (`M = 0.082` for the
-  Philippines, in `oglink/data/pm25_health.json`) — nothing to do.
-- The GBD burden CSV **ships with the repo** at `IHME-GBD_2023_DATA/IHME-GBD_2023_DATA-a20a92ea-1.csv` —
-  nothing to do on a fresh clone. §1 below documents its provenance and how to refresh it if a newer
-  GBD round is needed.
+- GBD 2023 ambient-PM2.5-attributable deaths and disability by age: the baseline burden and age profiles.
+- The country's emissions-to-health multiplier in `oglink/data/pm25_health.json`: the energy-sector
+  contribution to ambient PM2.5 multiplied by the approximate concentration-response elasticity.
 
-## 1. The age profile h(s) — IHME GBD (included; provenance + refresh recipe)
+The multiplier does not replace the burden CSV. The current channel stages a mortality shock and
+changes effective labour from the reform's emissions change; it does not constrain CLEWS activity.
 
-Already on disk at `IHME-GBD_2023_DATA/` in the repo root (one multi-country CSV covers PHL +
-IDN/ZAF/ETH). To refresh it or pull a newer GBD round, download from the IHME GBD Results tool as
-below and replace the export in place.
+## Bundled country coverage
 
-- Portal: https://vizhub.healthdata.org/gbd-results/
-- GBD round: **GBD 2023** (to match the HIV extract used in CostOfDisease)
-- Context/hierarchy: **Risk** (deaths attributable to a risk factor)
-- Risk (rei): **Ambient particulate matter pollution** (`rei_id 86`)
-- Cause: **All causes** (`cause_id 294`)
-- Location: **Philippines** (`location_id 16`)
-- Sex: **Both** (`sex_id 3`)
-- Measure: **Deaths** (`measure_id 1`); Metric: pull **both Rate** (`metric_id 3`, per 100,000 —
-  gives the age shape `h(s)`) **and Number** (`metric_id 1` — gives the total attributable deaths,
-  i.e. the `disease_pop` `excess_deaths` target). One export yields both inputs.
-- Age: the fine bins `<1 year`, `12-23 months`, `2-4 years`, then 5-year groups `5-9`…`90-94`, and `95+ years`
-  (the `Number` total can also come from the `All ages` row)
-- Year: latest available
+All bundled files describe 2023, Both sexes, All Population, and the risk **Ambient particulate matter
+pollution** (`rei_id=86`). They contain Deaths and YLDs, with Number, Rate and Percent metrics.
 
-Save the CSV, then build BOTH the age shape and the total (same logic as the HIV builder):
+| Country | CSV under `IHME-GBD_2023_DATA/` | Records | Multiplier |
+| --- | --- | ---: | --- |
+| Philippines | `IHME-GBD_2023_DATA-a2dc02fe-1.csv` | 1,118 | Present |
+| Indonesia | `IHME-GBD_2023_DATA-IDN.csv` | 1,118 | Present |
+| South Africa | `IHME-GBD_2023_DATA-ZAF.csv` | 1,118 | Present |
+| Ethiopia | `IHME-GBD_2023_DATA-ETH.csv` | 1,118 | Present |
+| Brazil | Deferred by user | — | Not yet calibrated |
 
-```python
-from oglink import health_profile
-kw = dict(location_name="Philippines", year=2023,
-          key_col="rei_name", key_value="Ambient particulate matter pollution")
-h = health_profile.build_profile_from_gbd("<path>/IHME-GBD_pm25_PHL.csv", **kw)   # age shape h(s), peak 1
-excess = health_profile.total_deaths_from_gbd("<path>/IHME-GBD_pm25_PHL.csv", **kw)  # total deaths = excess_deaths target
-# then run the health channel with this profile + excess_deaths target (both GBD-sourced).
+Brazil is explicitly deferred at the user's request for this change. Its estimates exist in GBD 2023,
+but a matching age-specific export has not yet been obtained. The official detailed-data endpoints
+require an IHME sign-in. Aggregate or age-standardised published
+Brazil totals cannot supply the missing age profiles or YLD inputs. No replacement country or
+synthetic burden is used. A country without a matching default CSV takes the existing health-channel
+skip path; this is not a validated estimate of zero health effects.
+
+## Source of the recovered country extracts
+
+Indonesia, South Africa and Ethiopia were recovered from the original linker's multi-country export:
+
+- Repository: <https://github.com/marcelolafleur/ogclews-link>
+- Revision: `4134763e00234cd499cd744b36e400888f228278`
+- File: `IHME-GBD_2023_DATA/IHME-GBD_2023_DATA-a20a92ea-1.csv`
+- Immutable source: <https://raw.githubusercontent.com/marcelolafleur/ogclews-link/4134763e00234cd499cd744b36e400888f228278/IHME-GBD_2023_DATA/IHME-GBD_2023_DATA-a20a92ea-1.csv>
+- Source SHA-256: `81ce2033f8fa3f5479354d12d882651754d562f5f7c8294dff76eee113da7ab1`
+
+Each new CSV retains the original header and original records byte-for-byte, selecting its country and
+Deaths/YLDs measures. Numeric text and uncertainty bounds are not reformatted or rounded. The
+Philippines CSV is unchanged: all its 1,118 records have identical values and uncertainty bounds in the
+recovered export. File hashes and record counts are in `IHME-GBD_2023_DATA/sources.json`. The source
+export's original citation is preserved in `citation.txt`.
+
+## Refreshing or adding a country
+
+Download from the [IHME GBD Results tool](https://vizhub.healthdata.org/gbd-results/), retaining the
+citation and recording the export's provenance and hashes. Use these selections for a comparable file:
+
+- GBD round and year: **GBD 2023 / 2023**.
+- Context: **Risk**; risk: **Ambient particulate matter pollution** (`rei_id=86`).
+- Population group: **All Population**; sex: **Both**.
+- Location: the exact country's name, including **Brazil** for the outstanding extract.
+- Measures: **Deaths** and **YLDs (Years Lived with Disability)**.
+- Metrics: **Number** and **Rate**; Percent may also be retained.
+- Causes: **All causes**, **Ischemic heart disease**, **Stroke**, **Chronic obstructive pulmonary
+  disease**, and **Diabetes mellitus type 2**.
+- Ages: `<1 year`, `12-23 months`, `2-4 years`, then five-year bins `5-9` through `90-94`, and `95+`.
+  `All ages` may also be retained for totals. Do not substitute age-standardised rates for age-specific
+  rates or sum overlapping summary age groups.
+
+`CountryConfig.gbd_year` selects the observation year. Automatic file discovery requires a matching
+country, year, population group, sex, risk and All-causes Deaths/Rate record. The readers subsequently
+validate the mortality age support and morbidity inputs. Explicit `gbd_burden_csv` settings, including
+`None`, override discovery. A new country's multiplier needs its own sourced calibration; the existing
+fallback to a multiplier of 1.0 is approximate and produces a warning.
+
+## Checks
+
+From the repository root, with MUIOGO's Python and declared dependencies:
+
+```sh
+PYTHONPATH=oglink .venv/bin/python -m pytest -c oglink/pytest.ini oglink/tests
 ```
 
-(A GBD *risk* export keys on `rei_name`, not `cause_name` — both readers handle that via `key_col`.
-The readers are tested against the real HIV/SA export in `tests/test_channels.py`, so they are proven
-before the PHL CSV arrives.)
-
-## 2. The dose-response and morbidity magnitudes
-
-- **Mortality total — now GBD-sourceable directly.** The `excess_deaths` target (how many PHL deaths
-  the cleaner CLEWS reform avoids) can be read straight from the GBD `Number` export above via
-  `total_deaths_from_gbd`, then scaled by the *fraction* of ambient-PM2.5 emissions the reform removes
-  (the CLEWS base→reform PM2.5 change). That replaces the old placeholder `kappa`: the magnitude is
-  GBD-anchored, and `disease_pop` solves the per-age `shock_scale` to hit it. (A finer version derives
-  the deaths change from the PM2.5 concentration-response / IER rather than scaling the GBD total
-  linearly — a refinement, not a blocker.)
-- `morbidity_response` (emissions change → effective-labor `e` productivity shift): placeholder
-  MAGNITUDE. CostOfDisease builds its labor wedge from absenteeism/impairment studies (ILO, Keogh
-  et al.); the pollution analogue would use working-age morbidity (e.g. low-birthweight,
-  cardiopulmonary work-loss).
-- `morbidity_profile` (the AGE DISTRIBUTION of that productivity shift) — the channel now accepts a
-  per-age shape for the morbidity effect, exactly as the mortality effect takes `h(s)`. Default is
-  uniform ("all active ages gain equally"); `health_profile.working_age_profile` gives an illustrative
-  prime-age-concentrated shape. A real shape needs GBD **YLD/DALY-by-age** for the relevant pollution
-  outcomes (a separate pull from the mortality `Deaths` export above), not yet on disk.
-
-## Caveat carried from the HIV study
-
-In CostOfDisease ~98% of the GDP loss came from mortality — but that is because HIV kills
-**working-age** adults. Ambient PM2.5 deaths skew **elderly**, who are mostly out of the
-workforce, so expect the mortality→GDP channel to be **weaker** and the working-age
-morbidity/productivity channel to matter relatively more. Do not carry over the 98% result.
+`test_health_data.py` checks all bundled country/year/risk identities, full-precision file hashes,
+unique record keys, finite values and uncertainty bounds, disjoint mortality age-bin totals, mortality
+and morbidity profiles, and the complete result-reading path from synthetic CLEWS emissions to real
+country mortality and labour inputs. These checks do not launch an optimizer.
