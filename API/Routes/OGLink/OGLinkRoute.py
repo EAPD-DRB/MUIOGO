@@ -1,7 +1,7 @@
 """OG-CLEWS link endpoints.
 
 All routes live under /oglink. They are session-free by design (like /run and
-/createCaseRun): the callers are headless -- the ogclews-link CLI, the post-run
+/createCaseRun): the callers are headless -- the oglink CLI, the post-run
 hook, and MUIOGO-AI over HTTP -- and every request names its case explicitly.
 No route here ever writes into a live case; patches land in case copies.
 """
@@ -110,7 +110,7 @@ def _case_dir(casename):
 
 @oglink_api.route("/status", methods=["GET"])
 def status():
-    """Is the ogclews-link installed and resolvable? The capability check the
+    """Is the OG-CLEWS linker (oglink) installed and resolvable? The capability check the
     UI reads before offering coupled-run actions. ?deep=1 additionally asks
     the link which OG models it has registered (a subprocess, ~seconds)."""
     info = PostRunHook.status()
