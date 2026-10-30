@@ -40,8 +40,8 @@ Philippines.
    unchanged. If its default differs from 25%, see :ref:`og-tax-example`.
 5. Keep all other values. Click **Save**.
 
-**Check:** with **Compare against** set to the baseline, the page shows
-**1 change**. For a 25% baseline, this is a cut of five percentage points.
+**Check** that the top of the page says "**1 change** vs Default Baseline".
+If you select **Show only changed**, you should see the tax cut.
 
 5. Run the comparison
 ---------------------
