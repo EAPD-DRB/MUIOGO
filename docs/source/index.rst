@@ -9,8 +9,8 @@ Then choose the user manual for your model.
 
 .. include:: _includes/install-and-open.rst
 
-User manuals
-------------
+2. User manuals
+---------------
 
 .. toctree::
    :maxdepth: 2
