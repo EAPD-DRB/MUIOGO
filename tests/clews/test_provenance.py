@@ -50,7 +50,8 @@ def test_import_zip_writes_sidecar(clews_storage, tmp_path):
     sidecar = Provenance.read("WithProv")
     assert sidecar["source"]["iso3"] == "PHL"
     assert sidecar["archive"]["verified"] is True
-    assert sidecar["case_version"] == "5.6"
+    # A 5.6 archive is migrated on import, so the case on disk is current.
+    assert sidecar["case_version"] == CURRENT_CASE_VERSION
 
 
 def test_import_zip_default_source_is_upload(clews_storage, tmp_path):

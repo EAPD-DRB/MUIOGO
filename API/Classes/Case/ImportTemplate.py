@@ -188,7 +188,7 @@ class ImportTemplate():
         ]
         return defaultDtb
      
-    def defaultComm(self, name, desc="Default commodity", unit="PJ", first=False):
+    def defaultComm(self, name, desc="Default commodity", balance_level="Ts", unit="PJ", first=False):
         if(first):
             id = 'COM_0'
         else:
@@ -199,6 +199,7 @@ class ImportTemplate():
                 "CommId": id,
                 "Comm":name,
                 "Desc": desc,
+                "BalanceLevel": balance_level,
                 "UnitId": unit
             }
         ]
@@ -670,10 +671,14 @@ class ImportTemplate():
                         unit = obj['UNIT']
                     else:
                         unit = "PJ"
-                    if i==0:
-                        comms.append(self.defaultComm(com, desc, unit, True)[0])
+                    if obj.get('BALANCE_LEVEL') is not None:
+                        balance_level = obj['BALANCE_LEVEL']
                     else:
-                        comms.append(self.defaultComm(com, desc, unit)[0])
+                        balance_level = "Ts"
+                    if i==0:
+                        comms.append(self.defaultComm(com, desc, balance_level, unit, True)[0])
+                    else:
+                        comms.append(self.defaultComm(com, desc, balance_level, unit)[0])
 
             emis = []
             if not emisArray:

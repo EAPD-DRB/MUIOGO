@@ -117,7 +117,7 @@ export class JqxSources {
         return srcTs;
     }
 
-    static srcComm(commodities) {
+    static srcComm(commodities, daBalanceLevels) {
         var srcComm = {
             localdata: commodities,
             datatype: "json",
@@ -126,10 +126,26 @@ export class JqxSources {
                     { name: 'CommId', type: 'string' },
                     { name: 'Comm', type: 'string' },
                     { name: 'Desc', type: 'string' },
+                    { name: 'BalanceLevel', type: 'string' },
+                    { name: 'BalanceLevelName', value: 'BalanceLevel', values: { source: daBalanceLevels, value: 'id', name: 'name' } },
                     { name: 'UnitId', type: 'string' }
                 ],
         }
         return srcComm;
+    }
+
+    
+    static srcBalanceLevel(levels) {
+        var srcLevels = {
+            localdata: levels,
+            datatype: "json",
+            datafields:
+                [
+                    { name: 'id', type: 'string' },
+                    { name: 'name', type: 'string' }
+                ],
+        };
+        return srcLevels;
     }
 
     static srcEmi(emissions) {

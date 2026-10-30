@@ -9,7 +9,7 @@ On success the finished environment is written to the installed registry, which 
 hand-off the run layer later uses (python_path).
 """
 import threading
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, UTC
 
 from Classes.Base import Config
 from Classes.Base.CustomThreadClass import CustomThread
@@ -33,7 +33,7 @@ _STAGE_LABELS = {
 
 
 def _now_iso():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class InstallJob:

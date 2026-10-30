@@ -266,6 +266,12 @@ export const UNITS =
 
 ];
 
+export const BALANCE_LEVELS =
+[
+    {id:"Ts", name:"Timeslice"},
+    {id:"Se", name:"Season"},
+    {id:"An", name:"Annual"}
+]
 export const TAGS =
 [
     {id:1, name:"Equality"},

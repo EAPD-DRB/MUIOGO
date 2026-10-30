@@ -1,3 +1,9 @@
+# Repository workflow
+
+Use the existing checkout at `/Users/sato/Documents/GitHub/MUIOGO` on `main`.
+Never create additional Git worktrees for this repository.
+Do not create additional branches unless the user explicitly requests one.
+
 # MUIOGO model-change protocol
 
 These instructions apply whenever changing or validating an OSeMOSYS case in this repository.
