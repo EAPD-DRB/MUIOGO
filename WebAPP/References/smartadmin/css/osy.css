@@ -827,7 +827,7 @@ li {
 }
 
 /* Results field panel: preserve the compact two-column layout of the former MUIO panel. */
-/* Checkbox dropdown replacing the Wijmo MultiSelect in the RES viewer. */
+/* Technology selection dropdown in the RES viewer. */
 .muio-multiselect { position: relative; display: inline-block; text-align: left; }
 .muio-multiselect-toggle { min-width: 170px; padding: 5px 10px; border: 1px solid #c4cad4; border-radius: 2px; background: #fff; color: #2d3340; font-size: 12px; text-align: left; }
 .muio-multiselect-toggle:after { content: ''; float: right; margin: 6px 0 0 8px; border: 4px solid transparent; border-top-color: #6b7484; }
@@ -896,7 +896,6 @@ li {
 .result-field-settings .modal-footer { padding: 10px 15px 12px; border-top: 0; }
 .result-field-settings [hidden] { display: none; }
 
-/*wijmo solution for green check boxes*/
   
   
   
@@ -1257,7 +1256,7 @@ jqx-menu-vertical-material .jqx-menu-item-top-selected-material, .jqx-grid-selec
 #pivotGrid .tabulator-row .result-grid-row-field.result-grid-group-first-cell { border-top: 1px solid #bdc4cf; }
 /* Separator on value cells only; on the row it would cut through the field columns. */
 #pivotGrid .result-grid-group-start .tabulator-cell:not(.result-grid-row-field) { border-top: 1px solid #bdc4cf; }
-/* Totals read as tinted grid rows/columns with the same thin rules as the body, matching Wijmo. */
+/* Totals use the same thin grid rules as the body. */
 #pivotGrid .tabulator-row.result-grid-total,
 #pivotGrid .tabulator-row.result-grid-total:nth-child(even) { background: #fff; font-weight: 700; }
 /* Tint value cells only, top rule only: stacked totals would otherwise double their rules. */
@@ -1294,7 +1293,7 @@ jqx-menu-vertical-material .jqx-menu-item-top-selected-material, .jqx-grid-selec
 #pivotGrid .tabulator-tableholder::-webkit-scrollbar-thumb:hover { background: #8994a3; }
 #pivotGrid .tabulator-tableholder { scrollbar-color: #a9b2c0 #eef1f5; }
 #pivotGrid .tabulator-header .result-grid-sortable .tabulator-col-content { cursor: pointer; }
-/* Selected range mirrored onto the column headers, like Wijmo's selected-header highlight. */
+/* Mirror the selected range onto its column headers. */
 #pivotGrid .tabulator-header .tabulator-col.result-grid-range-header { background: #628da8; color: #fff; }
 .tabulator-menu .fa { width: 16px; margin-right: 6px; text-align: center; }
 .result-grid-detail-dialog.in { display: flex !important; align-items: center; padding: 20px !important; }
