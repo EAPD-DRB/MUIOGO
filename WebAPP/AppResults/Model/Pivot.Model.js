@@ -3,9 +3,10 @@ import { DataModel } from "../../Classes/DataModel.Class.js";
 
 export class Model {
 
-    constructor(casename, genData, resData, VARIABLES, INDICATORS, DUALS, DATA, VIEW) {
-        let group = 'RYT';
-        let param = 'ANC';
+    // `start` is the remembered group and variable; taken as a pair, so they always match the data that was fetched.
+    constructor(casename, genData, resData, VARIABLES, INDICATORS, DUALS, DATA, VIEW, start = null) {
+        let group = start ? start.group : 'RYT';
+        let param = start ? start.param : 'ANC';
 
         // MUIOGO: `|| []` guards pre-v5.6 cases that have no osy-indicators
         let CUSTOM_INDICATORS = DataModelResult.mergeAllIndicatorsGrouped(INDICATORS, genData['osy-indicators'] || []);
@@ -51,12 +52,12 @@ export class Model {
         let VIEWS = DataModelResult.getAllViews(VIEW['osy-views']);
 
         let ChartTypes = [
-            { name: 'Column', value: wijmo.olap.PivotChartType.Column },
-            { name: 'Bar', value: wijmo.olap.PivotChartType.Bar },
-            { name: 'Scatter', value: wijmo.olap.PivotChartType.Scatter },
-            { name: 'Line', value: wijmo.olap.PivotChartType.Line },
-            { name: 'Area', value: wijmo.olap.PivotChartType.Area },
-            { name: 'Pie', value: wijmo.olap.PivotChartType.Pie },
+            { name: 'Column', value: 'column' },
+            { name: 'Bar', value: 'bar' },
+            { name: 'Scatter', value: 'scatter' },
+            { name: 'Line', value: 'line' },
+            { name: 'Area', value: 'area' },
+            { name: 'Pie', value: 'pie' },
         ];
 
         var colorSchemes = 

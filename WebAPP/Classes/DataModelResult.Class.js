@@ -267,6 +267,7 @@ export class DataModelResult{
                     $.each(genData['osy-tech'], function (id, tObj) {
                         unitData[group][obj.id][tObj.Tech] = {};
                         unitData[group][obj.id][tObj.Tech]['years'] = 'years';
+                        unitData[group][obj.id][tObj.Tech]['number'] = 'number';
                         unitData[group][obj.id][tObj.Tech]['percent'] = '%';
                         unitData[group][obj.id][tObj.Tech]['divide'] = '/';
                         unitData[group][obj.id][tObj.Tech]['multiply'] = '*';
@@ -582,26 +583,29 @@ export class DataModelResult{
                                 let rule =
                                 paramById[group][param]?.unitRule ??
                                 paramById[group][param]?.indicator_type?.unitRule;
+                                // Emission units belong to this record, so never read the shared dataE.
+                                const currentDataE = (obj.Emi && obj.Emi in emiData)
+                                    ? unitData[group][param][obj.Emi] : {};
                                 if(techData[obj.Tech].TG.length != 0){
                                     $.each(techData[obj.Tech].TG, function (id, tg) {
                                         let tmp = {};
                                         tmp = JSON.parse(JSON.stringify(chunk));
-                                        tmp['Tech'] = obj.Tech;  
+                                        tmp['Tech'] = obj.Tech;
                                         tmp['TechGroup'] = techGroupNames[tg];
                                         tmp['TechDesc'] = techData[obj.Tech]["Desc"];
                                         tmp['TechGroupDesc'] = techGroupData[tg]["Desc"];
                                         dataT = unitData[group][param][obj.Tech];
-                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT});
+                                        tmp['Unit'] = jsonLogic.apply(rule, {...dataT, ...currentDataE});
                                         pivotData.push(tmp);
                                     })
                                 }else{
-                                    chunk['Tech'] = obj.Tech;  
+                                    chunk['Tech'] = obj.Tech;
                                     chunk['TechGroup'] = 'No group';
                                     chunk['TechDesc'] = techData[obj.Tech]["Desc"];
                                     chunk['TechGroupDesc'] = 'No group';
                                     dataT = unitData[group][param][obj.Tech];
-    
-                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT});
+
+                                    chunk['Unit'] = jsonLogic.apply(rule, {...dataT, ...currentDataE});
                                     pivotData.push(chunk);
                                 }
     

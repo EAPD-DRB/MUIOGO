@@ -70,6 +70,33 @@ shows one run, "Compare" a reform against its baseline. The choice is kept in
 the route's optional query (`#/OGResults?case=...&base=...&reform=...`), which
 the page updates in place so refresh and shared links reopen the same view.
 
+#### CLEWS results
+
+The Results page uses MUIOGO-owned aggregation and layout state, with Tabulator,
+Apache ECharts and jQuery UI for its table, chart and field panel. The RES Viewer
+uses `MultiSelect.Class.js`. Vendored libraries live under `WebAPP/References/`
+with their licences.
+
+- `ResultAggregator.Class.js` groups records, applies filters and calculates
+  totals. Show As calculations transform both detail cells and totals from a
+  snapshot of their raw values. Percentage denominators include detail cells
+  only; differences and running totals compare siblings at the same hierarchy
+  depth, with grand totals left blank for those calculations.
+- `ResultLayoutState.Class.js` serialises layouts and reads both legacy Wijmo
+  saved views and the versioned MUIOGO format. Changing variables resets both
+  value and condition filters before capturing the new default layout.
+- `ResultPanel.Class.js` and `ResultFieldSettings.Class.js` edit the layout.
+  `ResultGrid.Class.js` renders the table, clipboard selection and detail view.
+- `AppResults/Controller/Pivot.js` coordinates the renderers. Case switching
+  captures the remembered variable once and uses its group for both fetching
+  result data and constructing the model.
+
+Run the frontend regressions with `node --test tests/frontend/*.test.mjs`.
+`tests/e2e/test_clews_results_page.py` exercises the real renderers and controls
+with synthetic results, including percentages, CSV/SVG exports, original detail
+records, filter resets, remembered views and the RES Viewer multiselect. These
+checks do not write model inputs or launch a solver.
+
 ### Runtime data and outputs
 
 CLEWS continues to use:

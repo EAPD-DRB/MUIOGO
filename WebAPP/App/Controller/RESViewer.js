@@ -7,6 +7,7 @@ import { DEF } from "../../Classes/Definition.Class.js";
 import { MessageSelect } from "./MessageSelect.js";
 import { Chart } from "../../Classes/Chart.Class.js";
 import { DataModel } from "../../Classes/DataModel.Class.js";
+import { MultiSelect } from "../../Classes/MultiSelect.Class.js";
 
 export default class RESViewer {
     static onLoad() {
@@ -162,18 +163,16 @@ export default class RESViewer {
 
 
         if(typeof(model.cmbTechs) != 'undefined'){
-            wijmo.input.MultiSelect.disposeAll('#osy-activityTechs');
+            model.cmbTechs.destroy();
         }
 
-        model.cmbTechs = new wijmo.input.MultiSelect('#osy-activityTechs', {
+        model.cmbTechs = new MultiSelect('#osy-activityTechs', {
             placeholder: 'Technologies',
             headerFormat: '{count:n0} Technology',
             displayMemberPath: 'Tech',
             itemsSource: model.RES.Techs,
             showSelectAllCheckbox: true,
             showFilterInput: true,
-            autoExpandSelection: false,
-            checkOnFilter: false,
             checkedItemsChanged: (sender) => {
                 model.selectedTechs = [];
                 let html = '';

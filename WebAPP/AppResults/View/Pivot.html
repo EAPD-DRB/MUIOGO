@@ -28,15 +28,15 @@
 								</button>
 							</div>
 							<div class="btn-group pull-right">
-								<button type="button" class="btn btn-white btn-default" id="xlsExport" data-toggle="tooltip"
-									data-placement="top" title="Export xls">
-									<i class="ace-icon fa fa-file-excel-o fa-lg default"></i>
+								<button type="button" class="btn btn-white btn-default" id="csvExport" data-toggle="tooltip"
+									data-placement="top" title="Export CSV">
+									<i class="ace-icon fa fa-file-text-o fa-lg default"></i>
 								</button>
 							</div>
 							
 							<div class="btn-group pull-right">
-								<button type="button" class="btn btn-white btn-default" id="pngExport" data-toggle="tooltip"
-									data-placement="top" title="Export png">
+								<button type="button" class="btn btn-white btn-default" id="svgExport" data-toggle="tooltip"
+									data-placement="top" title="Export SVG">
 									<i class="ace-icon fa fa-file-image-o fa-lg default"></i>
 								</button>
 							</div>
@@ -54,11 +54,13 @@
 							</div>
 							<div class="btn-group pull-right">
 								<!-- <select id="osy-views" name="osy-views" class="form-control inline"></select> -->
-								<div id="cmbViews"></div>
+								<label class="sr-only" for="cmbViews">Saved view</label>
+								<select id="cmbViews" class="form-control"></select>
 							</div>
 							<div class="btn-group">
 								<!-- <select id="osy-params" name="osy-params" class="form-control inline"></select> -->
-								<div id="cmbParams" style="width: 290px;"></div>
+								<label class="sr-only" for="cmbParams">Variable</label>
+								<select id="cmbParams" class="form-control" style="width: 290px;"></select>
 							</div>
 						</div>
 					</div>
@@ -75,26 +77,39 @@
 		<div id="pivotPanel"></div>
 	</div>
 	<div class="col-md-10" id="pivotControls">
-		<div id="cmbChartType" style="width: 150px;"></div>
-		<div id="cmbStackedChart" style="width: 150px;"></div>
+		<label class="sr-only" for="cmbChartType">Chart type</label>
+		<select id="cmbChartType" class="form-control pivot-chart-select"></select>
+		<label class="sr-only" for="cmbStackedChart">Stacking</label>
+		<select id="cmbStackedChart" class="form-control pivot-chart-select">
+			<option value="normal">Stacked</option>
+			<option value="percent">Stacked 100%</option>
+			<option value="none">None</option>
+		</select>
+		<label class="sr-only" for="cmbPieSeries">Pie series</label>
+		<select id="cmbPieSeries" class="form-control pivot-chart-select" hidden></select>
 		<!-- <div id="showLegend" style="width: 150px;"></div> -->
 
-		<div class="wj-labeled-input pull-right">
+		<div class="osy-labeled-input pull-right">
 			<input id="hideLegend" type="checkbox" />
 			<label for="hideLegend">Hide Legend</label>
 		</div>
 
-		<div class="wj-labeled-input pull-right">
+		<div class="osy-labeled-input pull-right">
+			<input id="hideTable" type="checkbox" />
+			<label for="hideTable">Hide Table</label>
+		</div>
+
+		<div class="osy-labeled-input pull-right">
 			<input id="showRowTotals" type="checkbox" />
 			<label for="showRowTotals">Show Row Totals</label>
 		</div>
 
-		<div class="wj-labeled-input pull-right">
+		<div class="osy-labeled-input pull-right">
 			<input id="showColumnTotals" type="checkbox" />
 			<label for="showColumnTotals">Show Column Totals</label>
 		</div>
 
-		<div id="pivotChart"></div>
+		<div id="pivotChart" role="img" aria-label="Results chart"></div>
 	</div>
 </div>
 <div class="row">

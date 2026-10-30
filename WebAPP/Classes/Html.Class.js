@@ -113,7 +113,7 @@ export class Html {
                         </b>   
                     </div>
                     <div class="col-md-1">
-                    <div class="wj-labeled-input pull-right">
+                    <div class="osy-labeled-input pull-right">
                         <input id="chb${value.Case}" name="type" value="${value.Case}" type="checkbox" class="checkbox" />
                         <label for="chb${value.Case}"></label>
                     </div>
