@@ -100,7 +100,7 @@ class ImportTemplate():
         else:
             id = self.getId('TEC')
         
-        defaultObj = [
+        return [
             {
                 "TechId": id,
                 "Tech":name,
@@ -114,7 +114,6 @@ class ImportTemplate():
                 "ITCR": [],
             }
         ]
-        return defaultObj
 
     def defaultTechGroup(self, name, desc="Default technology group", first=False):
         if(first):
@@ -122,14 +121,13 @@ class ImportTemplate():
         else:
             id = self.getId('TG')
             
-        defaultObj = [
+        return [
             {
                 "TechGroup": name,
                 "TechGroupId":id,
                 "Desc": desc,
             }
         ]
-        return defaultObj
         
     def defaultTs(self, name, desc="Default timeslice", first=False):
         if(first):
@@ -137,7 +135,7 @@ class ImportTemplate():
         else:
             id = self.getId('TS')
         
-        defaultTs = [
+        return [
             {
                 "TsId": id,
                 "Ts":name,
@@ -147,7 +145,6 @@ class ImportTemplate():
                 "DTB": "DTB_0"
             }
         ]
-        return defaultTs
     
     def defaultSe(self, name, desc="Default season", first=False):
         if(first):
@@ -155,14 +152,13 @@ class ImportTemplate():
         else:
             id = self.getId('SE')
         
-        defaultSe = [
+        return [
             {
                 "SeId": id,
                 "Se":name,
                 "Desc": desc
             }
         ]
-        return defaultSe
 
     def defaultDt(self, name, desc="Default day type", first=False):
         if(first):
@@ -170,14 +166,13 @@ class ImportTemplate():
         else:
             id = self.getId('DT')
         
-        defaultDt = [
+        return [
             {
                 "DtId": id,
                 "Dt":name,
                 "Desc": desc
             }
         ]
-        return defaultDt
 
     def defaultDtb(self, name, desc="Default daily time bracket", first=False):
         if(first):
@@ -185,14 +180,13 @@ class ImportTemplate():
         else:
             id = self.getId('DTB')
         
-        defaultDtb = [
+        return [
             {
                 "DtbId": id,
                 "Dtb":name,
                 "Desc": desc
             }
         ]
-        return defaultDtb
      
     def defaultComm(self, name, desc="Default commodity", balance_level="Ts", unit="PJ", first=False):
         if(first):
@@ -200,7 +194,7 @@ class ImportTemplate():
         else:
             id = self.getId('COM')
         
-        defaultComm = [
+        return [
             {
                 "CommId": id,
                 "Comm":name,
@@ -209,7 +203,6 @@ class ImportTemplate():
                 "UnitId": unit
             }
         ]
-        return defaultComm
 
     def defaultEmi(self, name, desc="Default emission", unit="Ton", first=False):
         if(first):
@@ -217,7 +210,7 @@ class ImportTemplate():
         else:
             id = self.getId('EMI')
         
-        defaultEmi = [
+        return [
             {
                 "EmisId": id,
                 "Emis":name,
@@ -225,7 +218,6 @@ class ImportTemplate():
                 "UnitId": unit
             }
         ]
-        return defaultEmi
 
     def defaultStg(self, name, desc="Default storage", unit="MW", first=False):
         if(first):
@@ -233,7 +225,7 @@ class ImportTemplate():
         else:
             id = self.getId('STG')
         
-        defaultStg = [
+        return [
             {
                 "StgId": id,
                 "Stg":name,
@@ -244,11 +236,10 @@ class ImportTemplate():
                 "Operation": "Yearly"
             }
         ]
-        return defaultStg
     
     def defaultUnit(self):
         id = self.getId('UT')
-        defaultUnit = [
+        return [
             {
                 "UnitId": id,
                 "Unitname":id,
@@ -259,7 +250,6 @@ class ImportTemplate():
                 "Fuel": "Lignite"
             }
         ]
-        return defaultUnit
         
     def defaultScenario(self, first=False):
         if(first):
@@ -267,7 +257,7 @@ class ImportTemplate():
         else:
             id = self.getId('SC')
         
-        defaultObj = [
+        return [
             {
                 "ScenarioId": id,
                 "Scenario":id,
@@ -275,7 +265,6 @@ class ImportTemplate():
                 "Active": True
             }
         ]
-        return defaultObj
 
     def defaultConstraint(self, first=False):
         if(first):
@@ -284,7 +273,7 @@ class ImportTemplate():
             id = self.getId('CO')
         
         emptyArray = ['TEC_0']
-        defaultObj = [
+        return [
             {
                 "ConId": id,
                 "Con":id,
@@ -293,7 +282,6 @@ class ImportTemplate():
                 "CM": emptyArray
             }
         ]
-        return defaultObj
         
     def defaultCase(self, first=False):
         if(first):
@@ -301,7 +289,7 @@ class ImportTemplate():
         else:
             id = self.getId('CS')
         
-        defaultObj = [
+        return [
             {
                 "Case": id,
                 "CaseId":id,
@@ -309,7 +297,6 @@ class ImportTemplate():
                 "Scenarios": []
             }
         ]
-        return defaultObj
 
     def refR(self, xlsObj):
         outObj = {}
@@ -510,7 +497,6 @@ class ImportTemplate():
             #TECHNOLOGY TO AND FROM STORAGE
             tfs_xls = df_sheet_all['TechnologyFromStorage']
             tts_xls = df_sheet_all['TechnologyToStorage']
-
 
             techs_xls.rename(columns = {'VALUE':'TECHNOLOGY'}, inplace = True)
             comms_xls.rename(columns = {'VALUE':'COMMODITY'}, inplace = True)
@@ -723,8 +709,6 @@ class ImportTemplate():
                         stgs.append(self.defaultStg(stg, desc, unit, True)[0])
                     else:
                         stgs.append(self.defaultStg(stg, desc, unit)[0])
-                
-
 
             # #populate IAR and OAR
             # stgId = self.getStgByName(stgs)
@@ -762,21 +746,9 @@ class ImportTemplate():
 
             for tts in ttsArray:
                 ttsObj[tts['STORAGE']] = techId[tts['TECHNOLOGY']]
-                # if tts['STORAGE'] not in ttsObj:
-                #     ttsObj[tts['STORAGE']] = []
-                # if techId[tts['TECHNOLOGY']] not in ttsObj[tts['STORAGE']]:
-                #     ttsObj[tts['STORAGE']].append(techId[tts['TECHNOLOGY']])
 
             for tfs in tfsArray:
                 tfsObj[tfs['STORAGE']] = techId[tfs['TECHNOLOGY']]
-                # if tfs['STORAGE'] not in tfsObj:
-                #     tfsObj[tfs['STORAGE']] = []
-                # if techId[tfs['TECHNOLOGY']] not in tfsObj[tfs['STORAGE']]:
-                #     tfsObj[tfs['STORAGE']].append(techId[tfs['TECHNOLOGY']])
-
-
-
-
 
             for tech in techsArray:
                 ##if 'TECHGROUP' in tech:
@@ -784,13 +756,7 @@ class ImportTemplate():
                     techgroupObj[tech['TECHNOLOGY']] = []
                 if 'TECHGROUP' in tech:
                     if tech['TECHGROUP'] is not None:
-                        #techgroupObj[tech['TECHNOLOGY']].append(tgId[tech['TECHGROUP']])
-                        #######################################################################3
-                        # tg_list = tech['TECHGROUP'].split(",")
-                        # for tg in tg_list:
-                        #     techgroupObj[tech['TECHNOLOGY']].append(tgId[tg])
                         techgroupObj[tech['TECHNOLOGY']] = [tgId[x.strip()] for x in tech['TECHGROUP'].split(',')]
-
 
             for tech in techs:
                 if tech['Tech'] in iarObj:
@@ -840,7 +806,6 @@ class ImportTemplate():
             for group, lists in self.VARIABLES.items():
                 for list in lists:
                     viewDef[list['id']] = []
-
 
             if not os.path.exists(Path(Config.DATA_STORAGE,casename)):
                 os.makedirs(Path(Config.DATA_STORAGE,casename))
@@ -1112,13 +1077,12 @@ class ImportTemplate():
             print('IMPOERT FINISHED WITH DATA!')
             print("--- %s seconds ---" % (time.time() - start_time))
             txtOut = txtOut + ("IMPORT FINISHED WITH DATA IN  --- {} seconds ---{}".format( time.time() - start_time, '\n'))
-            response = {
+            return {
                 "message": "Import process finished!",
                 "status_code": "success",
                 "output": txtOut
             }  
 
-            return response
         except(IOError, IndexError):
             #raise IndexError
             response = {
@@ -1132,4 +1096,4 @@ class ImportTemplate():
                 "message": IOError,
                 "status_code": "error",
                 "output": IndexError
-            }  
+            }

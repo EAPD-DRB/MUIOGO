@@ -43,7 +43,6 @@ export default class RYTM {
 
     static initPage(model) {
         Message.clearMessages();
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS['RYTM'], model.param);
     
@@ -118,10 +117,8 @@ export default class RYTM {
                 delete obj.ScId;
             });
 
-
             Osemosys.updateData(saveData, param, "RYTM.json")
                 .then(response => {
-                    //model.gridData[model.param] = JSON.parse(RYTmodel);
                     Message.bigBoxSuccess('Model message', response.message, 3000);
                     //sync S3
                     if (Base.AWS_SYNC == 1) {

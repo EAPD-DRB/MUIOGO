@@ -14,7 +14,7 @@ an error -- plenty of perfectly good cases predate this file.
 """
 import hashlib
 import json
-from datetime import datetime, timezone, UTC
+from datetime import datetime, UTC
 from pathlib import Path
 
 from Classes.Base import Config

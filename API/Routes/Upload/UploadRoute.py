@@ -9,8 +9,7 @@ from flask import Blueprint, request, jsonify, send_file
 from zipfile import ZipFile, ZIP_DEFLATED
 from pathlib import Path, PurePosixPath
 from werkzeug.utils import secure_filename
-import os, json, glob
-
+import os, glob
 
 from Classes.Base import Config
 from Classes.Base.FileClass import File
@@ -26,12 +25,10 @@ def allowed_filename(filename):
 def allowed_filename_xls(filename):
     return '.' in filename and filename.rsplit('.',1)[1] in Config.ALLOWED_EXTENSIONS_XLS
 
-
 def _validate_upload_name(name):
     """Archive labels and chunk IDs are single portable names, never case paths."""
     if not name or name in ('.', '..') or any(char in name for char in ('/', '\\', '\x00', ':')):
         raise PermissionError("Invalid upload name")
-
 
 def download_dir(prefix, local, bucket, client):
     """
@@ -95,7 +92,6 @@ def upload_dir(s3, localDir, awsInitDir, bucketName, tag, prefix=os.sep):
     for mydir in mydirs:
         fileNames = glob.glob(os.path.join(mydir, tag))
         fileNames = [f for f in fileNames if not Path(f).is_dir()]
-        #rows = len(fileNames)
         for i, FullfileName in enumerate(fileNames):
             #dobijemo ime file npr, genData.json
             fileName = str(FullfileName).replace(str(localDir), '')
@@ -131,12 +127,9 @@ def updateTimeslices_OnlyTs(casename):
     RYCTsPath = Path(Config.DATA_STORAGE, casename, 'RYCTs.json')
     RYCTsPath.write_text(RYCTsPath.read_text().replace('Timeslice', 'TsId'))
 
-
 @upload_api.route("/backupCase", methods=['GET'])
 def backupCase():
     try:    
-        #case = request.form['case']
-        #case = request.json['casename']
         case = request.args.get('case')
 
         casePath = Path(Config.validate_path(Config.DATA_STORAGE, case))
@@ -215,7 +208,6 @@ def uploadCaseUnchunked_old():
         return jsonify({"error": "Invalid path"}), 400
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
-
 
 def handle_full_zip(file, filepath=None):
     """HTTP wrapper around CaseImporter.import_zip: save/validate the upload, run the

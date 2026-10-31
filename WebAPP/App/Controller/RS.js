@@ -8,7 +8,6 @@ import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { GROUPNAMES } from "../../Classes/Const.Class.js";
 import { DEF } from "../../Classes/Definition.Class.js";
 import { MessageSelect } from "./MessageSelect.js";
-// import { Sidebar } from "./Sidebar.js";
 
 export default class RS {
     static onLoad(group, param) {
@@ -176,12 +175,10 @@ export default class RS {
             var sc = $("#osy-scenarios").val();
             var param = $("#osy-ryt").val();
             Html.lblScenario(sc);
-            // let group = $divGrid.jqxGrid('getgroup', 0);
             Grid.applyRSFilter($divGrid, model.stgs, sc, model.PARAMNAMES[param]);
             Message.smallBoxInfo('Info', 'Scenario data opened!', 2000);
         });
 
-        
         $("#osy-hideScData").off('click');
         $("#osy-hideScData").on('click', function (e) {
             e.preventDefault();
@@ -202,14 +199,12 @@ export default class RS {
             $.each(rows, function (id, obj) {
                 if (obj.Sc == sc && obj.Param == model.PARAMNAMES[model.param]) {
                     $.each(model.stgs, function (i, stg) {
-                        //$divGrid.jqxGrid('setcellvalue', obj.uid, tech.TechId, null);
                         model.gridData[model.param][id][stg.StgId] = null;
                     });
                 }
             });
             model.srcGrid.localdata = model.gridData;
             $divGrid.jqxGrid('updatebounddata');
-
 
             let chartData = [];
             $.each(model.stgs, function (id, stg) {
@@ -222,7 +217,6 @@ export default class RS {
                 chartData.push(chunk);
                 model.chartData[model.param] = chartData;
             });
-
 
             var configChart = $divChart.jqxChart('getInstance');
             configChart.source.records = model.chartData[model.param];
@@ -277,7 +271,6 @@ export default class RS {
             }
         }).on('cellvaluechanged', function (event) {
             if (!pasteEvent) {
-                //Pace.restart();
                 var args = event.args;
                 var stg = event.args.datafield;
                 var rowBoundIndex = args.rowindex;

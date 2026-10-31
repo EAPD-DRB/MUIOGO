@@ -4,7 +4,7 @@ import { Ogc } from "../../Classes/Ogc.Class.js";
 import { escapeHtml as esc } from "../../Classes/Html.Class.js";
 import { Model } from "../Model/OGParameters.Model.js";
 import { FLAG_ISO2, loadSelection, loadWorkspace } from "./OGCases.js";
-import { FREQUENT_PARAMETERS, GROUPS, TIER } from "../Model/OGParams.Overlay.js";
+import { FREQUENT_PARAMETERS, TIER } from "../Model/OGParams.Overlay.js";
 import { OGTableEditor } from "./OGTableEditor.js";
 
 const TIER_LABEL = {};

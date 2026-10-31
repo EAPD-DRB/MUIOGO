@@ -178,4 +178,4 @@ def _first_n(values: list, n: int) -> list:
 
 def _all_scalar(values: list) -> bool:
     """True when every entry is a number or None (a plottable 1-D path)."""
-    return all(v is None or isinstance(v, (int, float)) for v in values)
+    return all(v is None or isinstance(v, int | float) for v in values)

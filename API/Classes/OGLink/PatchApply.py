@@ -27,10 +27,9 @@ Rules (docs: .claude/OGLINK-HANDOFF.md):
     after the patch and a changed line count is a reported finding (the patch
     silently added/dropped rows), not something to patch around.
 """
-import json
 import random
 import shutil
-from datetime import datetime, timezone, UTC
+from datetime import datetime, UTC
 from pathlib import Path
 
 from Classes.Base import Config

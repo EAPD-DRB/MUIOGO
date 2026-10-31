@@ -38,34 +38,13 @@ export default class RESViewer {
 		mermaid.init(undefined, document.querySelectorAll(".mermaid"));
 	}
 
-
     static initPage(model) {
         Message.clearMessages();
         mermaid.initialize({startOnLoad:false, maxTextSize: 900000});
 
-   
-        //loadScript("References/mermaid/mermaid.min.js");
-        //mermaid.initialize({ startOnLoad: true });
-
-        // mermaid.mermaidAPI.initialize({ startOnLoad:false }); 
-        // $(function(){ 
-        //     element = document.querySelector("#graphDiv"); 
-        //     var insertSvg = function(svgCode, bindFunctions){
-        //         element.innerHTML = svgCode; 
-        //     }; 
-        //     var graphDefinition = 'graph TB\na-->b'; 
-        //     var graph = mermaid.mermaidAPI.render('graphDiv', graphDefinition, insertSvg); 
-        // });
-
-
         $('.mermaid').removeAttr('data-processed');
         $('.mermaid').empty();
         $('.mermaid').append(model.graphString);
-
-        
-        // mermaid.flowchartConfig = {
-        //     width: '100%'
-        // }
 
         this.renderMermaid();
 

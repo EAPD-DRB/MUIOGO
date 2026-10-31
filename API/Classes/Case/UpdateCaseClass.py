@@ -5,7 +5,6 @@ or null scenario overrides; rows for removed entities are omitted.
 """
 
 import os
-from Classes.Base import Config
 from Classes.Base.FileClass import File
 from Classes.Case.OsemosysClass import Osemosys
 from Classes.Case.CaseClass import Case

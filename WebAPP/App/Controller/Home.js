@@ -57,7 +57,6 @@ export default class Home {
         if (loadID !== undefined && !Home.isCurrent(loadID)) return;
         Message.clearMessages();
         Navbar.initPage(model.casename);
-        // Sidebar.Load(model.genData, model.PARAMETERS, model.VARIABLES);
         Sidebar.Reload(model.casename);
         Html.renderModels(model.cases, model.casename);
         Home.initEvents(model);
@@ -94,15 +93,11 @@ export default class Home {
             e.preventDefault();
             e.stopImmediatePropagation();
             var casename = $(this).attr('data-ps');
-            //Html.updateCasePicker(casename);
-            //Sidebar.Load(casename, model.genData, model.PARAMETERS);
             Osemosys.getData(casename, 'genData.json')
             .then(genData => {
-                //console.log('genData ', genData["osy-version"])
                 Home.refreshPage(casename);
                 Message.smallBoxInfo("Case selection", casename + " is selected!", 3000);
                 if(parseFloat(genData["osy-version"]) < 4.5){
-                    //console.log('manje od 4.5')
                     Message.bigBoxWarning("Warning", "You have selected a model created in a earlier version of this UI. In order to update to the current version click <b>Update model</b> on the configuration page.", 10000);
                 }
             })
@@ -165,7 +160,6 @@ export default class Home {
         //get description
         $("#cases").off('click.homeDescription', '.descriptionPS');
         $("#cases").on('click.homeDescription', '.descriptionPS', function(e){
-            //e.stopImmediatePropagation();
             var titleps = $(this).attr('data-ps');
             Base.getCaseDesc(titleps)
             .then(response => {
@@ -221,7 +215,6 @@ export default class Home {
                     Message.bigBoxInfo("Confirmation message", "You pressed No...", 3000)
                 }
             });
-            //e.preventDefault();
             e.stopImmediatePropagation();
         });
 
@@ -229,7 +222,6 @@ export default class Home {
         $('#CaseSearch').off('keyup.homeSearch');
         $('#CaseSearch').on('keyup.homeSearch', function () {
             var query = $.trim($('#CaseSearch').val()).toLowerCase();
-            //console.log('query ', query)
             $('.selectCS').each(function () {
                 var $this = $(this);
                 if ($this.text().toLowerCase().indexOf(query) === -1)

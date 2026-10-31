@@ -4,20 +4,9 @@ export class Model {
     
     constructor (casename, genData, RYTCMdata) {
 
-        //let ActivityTechs = DataModel.activityTechs(techs);
         let ActivityComms = DataModel.activityComms(genData);
         let TechNames = DataModel.TechName(genData);
         let CommNames = DataModel.CommName(genData);
-
-        // let TechUnits = DataModel.getTechUnits(genData);
-        // let CommUnits = DataModel.getCommUnits(genData);
-
-        //console.log('RYTCMdata ', RYTCMdata);
-        //console.log('ActivityTechs ', ActivityTechs);
-        //console.log('ActivityComms ', ActivityComms);
-        // console.log('TechNames ', TechNames);
-        // console.log('TechUnits ', TechUnits);
-        // console.log('CommUnits ', CommUnits);
 
         let index = 0;
         let labelIndex = {};
@@ -28,9 +17,7 @@ export class Model {
             $.each(obj, function (tech, array) {
                 if (typeof labelIndex[tech] === "undefined" ){
                     labelIndex[tech] = index;
-                    //label.push(TechNames[tech]);
                     index++;
-                    //color.push('#3a3f51');
                 }
             });
         });

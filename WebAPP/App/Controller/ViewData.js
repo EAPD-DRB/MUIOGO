@@ -8,6 +8,14 @@ import { DEF } from "../../Classes/Definition.Class.js";
 import { MessageSelect } from "./MessageSelect.js";
 
 export default class ViewData {
+    static sameCell(record, selected) {
+        // jqx modes are strings; source modes are numbers. Empty optional IDs
+        // identify an absent dimension, while every present index must match.
+        const normalize = value => value == null || value === '' ? null : String(value);
+        return ['ScId', 'groupId', 'param', 'TechId', 'CommId', 'EmisId', 'TsId', 'MoId', 'ConId']
+            .every(key => normalize(record[key]) === normalize(selected[key]));
+    }
+
     static onLoad() {
         Message.loaderStart('Loading data...');
         Base.getSession()
@@ -24,8 +32,6 @@ export default class ViewData {
                     promise.push(viewTEData);
                     const PARAMETERS = Osemosys.getParamFile();
                     promise.push(PARAMETERS);
-                    // const RTdata = Osemosys.getData(casename, 'RT.json');
-                    // promise.push(RTdata); 
                     return Promise.all(promise);
                     ;
                 } else {
@@ -90,7 +96,6 @@ export default class ViewData {
             })
             .catch(error => {
                 Message.loaderEnd();
-                //$('#loadermain').hide(); 
                 Message.warning(error);
             });
     }
@@ -169,8 +174,6 @@ export default class ViewData {
         $("#osy-techs").off('change');
         $('#osy-techs').on('change', function () {
             Pace.restart();
-            //$('#loadermain h4').text("Changing dispatch order" )
-            //$('#loadermain').show(); 
             let tech = this.value;
             model.srcGrid.root = tech;
             $divGrid.jqxGrid('updatebounddata');
@@ -181,7 +184,6 @@ export default class ViewData {
             Grid.applyTEviewDataFilter($divTEGrid);
 
             Message.smallBoxConfirmation("Confirmation!", "Technology <b>" + model.TechName[tech] + "</b> selected!", 3500);
-            //$('#loadermain').hide(); 
 
             res = !res;
             if (!res) {
@@ -239,6 +241,10 @@ export default class ViewData {
                 var EmisId = $divGrid.jqxGrid('getcellvalue', rowBoundIndex, 'EmisId');
                 var TsId = $divGrid.jqxGrid('getcellvalue', rowBoundIndex, 'TsId');
                 var TechId = $divGrid.jqxGrid('getcellvalue', rowBoundIndex, 'TechId');
+                var MoId = $divGrid.jqxGrid('getcellvalue', rowBoundIndex, 'MoId');
+                var ConId = $divGrid.jqxGrid('getcellvalue', rowBoundIndex, 'ConId');
+                const selected = {ScId, groupId: GroupId, param: ParamId, TechId, CommId, EmisId,
+                    TsId, MoId, ConId};
                 let dataType = $('input[type=radio][name=bytype]:checked').val();
 
                 let object;
@@ -253,12 +259,7 @@ export default class ViewData {
                 }
                 //update model grid
                 $.each(object, function (id, obj) {
-                    if (obj.ScId === ScId &&
-                        obj.groupId === GroupId &&
-                        obj.param === ParamId &&
-                        obj.CommId === CommId &&
-                        obj.EmisId === EmisId &&
-                        obj.TsId === TsId) {
+                    if (ViewData.sameCell(obj, selected)) {
                         if (value) {
                             obj[year] = value;
                         } else {
@@ -267,7 +268,8 @@ export default class ViewData {
                     }
                 });
 
-                Osemosys.updateViewData(model.casename, year, ScId, GroupId, ParamId, TechId, CommId, EmisId, TsId, value)
+                Osemosys.updateViewData(model.casename, year, ScId, GroupId, ParamId, TechId, CommId, EmisId, TsId,
+                    value, MoId, ConId)
                     .then(response => {
                         Message.bigBoxSuccess('Model message', response.message, 3000);
                         //sync S3
@@ -380,14 +382,6 @@ export default class ViewData {
             res = !res;
         });
 
-        // $("#xlsAll").off('click');
-        // $("#xlsAll").click(function (e) {
-        //     e.preventDefault();
-        //     $divGrid.jqxGrid('exportdata', 'xls', 'View data by sets (time dependant)');
-        //     setTimeout(function(){$divTEGrid.jqxGrid('exportdata', 'xls', 'View data by sets');}, 1000)
-            
-        // });
-
         $("#xlsAll").off('click');
         $("#xlsAll").click(function (e) {
             e.preventDefault();
@@ -404,7 +398,6 @@ export default class ViewData {
                 Message.bigBoxDanger('Error message', error, null);
             })
         });
-
 
         $("#decUp").off('click');
         $("#decUp").on('click', function (e) {

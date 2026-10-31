@@ -70,20 +70,7 @@ export default class RESViewer {
             });
     }
 
-
     static sankeySize(model){
-        //console.log('model.labelCount ', model.labelCount)
-        // if(model.labelCount <= 20){
-        //     model.height = 620;
-        // }else if(model.labelCount > 20 && model.labelCount <= 50){
-        //     model.height = 1000;
-        // }else if(model.labelCount > 50 && model.labelCount <= 100){
-        //     model.height = 2000;
-        // }else if(model.labelCount > 100 && model.labelCount <= 150){
-        //     model.height = 3000;
-        // }else if(model.labelCount > 150 ){
-        //     model.height = 6000;
-        // }
 
         if(model.labelCount <= 2){
             model.height = 250;
@@ -148,19 +135,15 @@ export default class RESViewer {
         }else if(model.labelCount > 425 ){
             model.height = 6000;
         }
-        //$('#labelCount').html(model.labelCount + ' - ' +  model.height)
-        //console.log('tech count, height' , model.labelCount, model.height)
     }
     
     static initPage(model) {
 
-        //console.log('model js ', model)
         Message.clearMessages();
         let $div = 'osy-RESViewer';
 
         Html.title(model.casename, 'RES Viewer', 'Reference Energy System');
         Html.ResStats(model);
-
 
         if(typeof(model.cmbTechs) != 'undefined'){
             model.cmbTechs.destroy();
@@ -177,11 +160,9 @@ export default class RESViewer {
                 model.selectedTechs = [];
                 let html = '';
                 sender.checkedItems.forEach((item) => {
-                    //console.log('item ', item)
                     html += `<li><a><small><b>${item.Tech}</b> - ${item.TechDesc}</small></a> <p class="divider"></p></li>`;
                     model.selectedTechs.push(item.TechId);
                 });
-                //console.log('model created in cmbTech ', model)
                 document.querySelector('#selectedTechs').innerHTML = html;
                 
             }
@@ -207,8 +188,6 @@ export default class RESViewer {
         $("#renderSankey").off('click');
         $("#renderSankey").on('click', function (e) {  
             Message.loaderStart('Preparing RES...'); 
-            // console.log('model.selectedTechs ', model.selectedTechs);
-            // console.log('model.selectedTechs.length ', model.selectedTechs.length);
 
             if(model.selectedTechs.length >=2){
                 $('#undoSankey').show();
@@ -216,11 +195,9 @@ export default class RESViewer {
             let settings = {};
             settings.Colors = $("#useColors").is(":checked");
             settings.Desc = $("#useDesc").is(":checked");
-            //console.log('model.selectedTechs ', model.selectedTechs)
       
             let modelNew = new Model(model.casename, model.genData, model.DemandComms, settings, model.selectedTechs);
 
-            //console.log('modelNew ', modelNew)
             Html.ResStats(modelNew);
             RESViewer.sankeySize(modelNew);
             Chart.RESChart($div, modelNew);
@@ -237,8 +214,6 @@ export default class RESViewer {
 
             model.selectedTechs.pop();
 
-            // console.log('model.selectedTechs ', model.selectedTechs)
-      
             let modelNew = new Model(model.casename, model.genData, model.DemandComms, settings, model.selectedTechs);
 
             //update drop down liste tehnologija
@@ -278,13 +253,6 @@ export default class RESViewer {
         myPlot.on('plotly_click', function(data){
             Message.loaderStart('Preparing RES...');
 
-            // var pts = '';
-            // for(var i=0; i < data.points.length; i++){
-            //     // pts = 'x = '+data.points[i].x +'\ny = '+ data.points[i].y.toPrecision(4) + '\n\n';
-            //     pts = 'x = '+data.points[i].x1 +'\ny = '+ data.points[i].y1 + '\n\n';
-            // }
-            //alert('Closest point clicked:\n\n'+pts);
-
             let msgData = data.points[0];
             let msg;
             if ('source' in msgData && 'target' in msgData){
@@ -323,7 +291,6 @@ export default class RESViewer {
                 }
                 if (msgData.targetLinks !== undefined || msgData.targetLinks.length != 0) {
                     for(var i=0; i < msgData.targetLinks.length; i++){
-                        //targetData.push(msgData.targetLinks[i].label);
                         if (!targetData.includes(msgData.targetLinks[i].label)){
                             targetData.push(msgData.targetLinks[i].label)
                         }
@@ -338,7 +305,6 @@ export default class RESViewer {
                 if (sourceData.length == 0 && targetData.length != 0 ) {
                     msg = `<i class="fa fa-cog fa-lg osy-second-color-d"></i> <b>TECHNOLOGY:</b> ${msgData.label} <br /> <i class="fa fa-sign-in fa-lg osy-second-color"></i> <b>INPUT COMMODITY:</b> ${targetData}`;
                 }          
-                //console.log('model on plotly click ', model)
 
                 let tech = msgData.label.split('-')[0];
                 let techId = model.TechIdByName[tech]    
@@ -355,8 +321,7 @@ export default class RESViewer {
                 settings.Desc = $("#useDesc").is(":checked");
     
                 let modelNew = new Model(model.casename, model.genData, model.DemandComms, settings, model.selectedTechs);
-            
-    
+
                 $.each(modelNew.RES.Techs, function (id, obj) {
                     if(model.selectedTechs.includes(obj.TechId)){ 
                         obj.$checked = true;
@@ -383,7 +348,6 @@ export default class RESViewer {
         let value = element.getBoundingClientRect().width / element.offsetWidth;
         let indexofArr = 9;
         document.querySelector('#zoomIn').addEventListener('click',()=>{
-        //console.log('value of index zoomin is',indexofArr)
         if(indexofArr < zoomArr.length-1){
             indexofArr += 1;
             value = zoomArr[indexofArr];
@@ -392,7 +356,6 @@ export default class RESViewer {
         })
 
         document.querySelector('#zoomOut').addEventListener('click',()=>{
-        //console.log('value of index  zoom out is',indexofArr)
         if(indexofArr > 0){
             indexofArr -= 1;
             value = zoomArr[indexofArr];

@@ -1,5 +1,4 @@
 import { DataModel } from "../../Classes/DataModel.Class.js";
-import { GROUPNAMES } from "../../Classes/Const.Class.js";
 
 export class Model {
 
@@ -33,7 +32,6 @@ export class Model {
 
             let scClass = {};
 
-            //datafieldsChart.push({ name: 'TechId', type:'string' });
             datafieldsChart.push({ name: 'Emi', type: 'string' });
             datafieldsChart.push({ name: 'EmiId', type: 'string' });
 
@@ -126,7 +124,6 @@ export class Model {
             };
 
             this.casename = casename;
-            //this.years = years;
             this.emis = emis;
             this.emiIds = emiIds;
             this.emiNames = DataModel.EmiName(genData);
@@ -149,8 +146,6 @@ export class Model {
             this.casename = null;
             this.years = null;
             this.techs = null;
-            // this.datafields = null; 
-            // this.datafieldsChart = null; 
             this.columns = null;
             this.series = null;
             this.gridData = null;

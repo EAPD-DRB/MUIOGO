@@ -1,14 +1,10 @@
 import { DataModel } from "../../Classes/DataModel.Class.js";
-import { Functions } from "../../Classes/Functions.Class.js";
 
 export class Model {
 
     constructor(casename, genData, RYSdata, group, PARAMETERS, param) {
 
         let paramData = DataModel.getParamData(PARAMETERS);
-        // let decimal = Functions.getDecimalPlaces(paramData[group][param]['default']);
-        // this.d = decimal;
-        // this.decimal = 'd' + this.d;
 
         this.d = 3;
         this.decimal = 'd' + this.d;
@@ -53,7 +49,6 @@ export class Model {
             }
 
             let cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties) {
-                //console.log('value ', value)
                 
                 if (value === null || value === '') {
                     return '<span style="margin: 4px; float:right; ">n/a</span>';
@@ -70,7 +65,6 @@ export class Model {
                     editor.jqxNumberInput({ decimalDigits: this.d, spinButtons: false, allowNull: true }); //symbol: ' GWh', symbolPosition: 'right'
                     $('#' + editor[0].id + ' input').keydown(function (event) {
                         if (event.keyCode === 46 || event.keyCode === 8) {
-                            //$('#' + editor[0].id).val(null);
                             editor.jqxNumberInput('val',null); 
                         }
                     })
@@ -121,7 +115,6 @@ export class Model {
             this.columns = columns;
             this.gridData = RYSgrid;
             this.genData = genData;
-            // this.param = param;
             this.paramData = paramData;
             this.PARAMNAMES = PARAMNAMES;
             this.group = group;

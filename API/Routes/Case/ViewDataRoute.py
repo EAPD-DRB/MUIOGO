@@ -4,10 +4,17 @@ Despite the route names, these views edit model inputs, not solved results.
 """
 
 from flask import Blueprint, jsonify, request
+from Classes.Base import Config
 from Classes.Case.OsemosysClass import Osemosys
 from utils import validate_json_fields
 
 viewdata_api = Blueprint('ViewDataRoute', __name__)
+
+
+def _validate_edit_fields(*fields):
+    if not isinstance(request.get_json(silent=True), dict):
+        return jsonify({'error': 'Request body must be a JSON object.'}), 400
+    return validate_json_fields(*fields)
 
 @viewdata_api.route("/viewData", methods=['POST'])
 def viewData():
@@ -51,24 +58,27 @@ def viewTEData():
 @viewdata_api.route("/updateViewData", methods=['POST'])
 def updateViewData():
     try:
-        err, code = validate_json_fields('casename', 'year', 'ScId', 'groupId', 'paramId', 'TechId', 'CommId', 'EmisId', 'Timeslice', 'value')
+        # The cell resolver requires the applicable dimension IDs. Others may be
+        # null or omitted; the shared validator remains strict for every caller.
+        err, code = _validate_edit_fields('casename', 'year', 'ScId', 'groupId', 'paramId', 'value')
         if err:
             return err, code
         casename = request.json['casename']
-        #updateType = request.json['updateType']
+        Config.validate_case_name(casename)
         year = request.json['year']
         ScId = request.json['ScId']
         groupId = request.json['groupId']
         paramId = request.json['paramId']
-        TechId = request.json['TechId']
-        CommId = request.json['CommId']
-        EmisId = request.json['EmisId']
-        Timeslice = request.json['Timeslice']
+        TechId = request.json.get('TechId')
+        CommId = request.json.get('CommId')
+        EmisId = request.json.get('EmisId')
+        Timeslice = request.json.get('Timeslice')
         value = request.json['value']
 
         if casename != None:
             osy = Osemosys(casename)
-            osy.updateViewData(casename, year, ScId, groupId, paramId, TechId, CommId, EmisId, Timeslice, value)
+            osy.updateViewData(casename, year, ScId, groupId, paramId, TechId, CommId, EmisId, Timeslice, value,
+                               MoId=request.json.get('MoId'), ConId=request.json.get('ConId'))
             response = {
                 "message": "You have updated view data!",
                 "status_code": "success"
@@ -80,26 +90,29 @@ def updateViewData():
             }
        
         return jsonify(response), 200
+    except (ValueError, PermissionError) as exc:
+        return jsonify({'error': str(exc)}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404
 
 @viewdata_api.route("/updateTEViewData", methods=['POST'])
 def updateTEViewData():
     try:
-        err, code = validate_json_fields('casename', 'scId', 'groupId', 'paramId', 'techId', 'emisId', 'value')
+        err, code = _validate_edit_fields('casename', 'scId', 'groupId', 'paramId', 'value')
         if err:
             return err, code
         casename = request.json['casename']
+        Config.validate_case_name(casename)
         scId = request.json['scId']
         groupId = request.json['groupId']
         paramId = request.json['paramId']
-        techId = request.json['techId']
-        emisId = request.json['emisId']
+        techId = request.json.get('techId')
+        emisId = request.json.get('emisId')
         value = request.json['value']
 
         if casename != None:
             osy = Osemosys(casename)
-            data = osy.updateTEViewData(casename, scId, groupId, paramId, techId, emisId, value)
+            osy.updateTEViewData(casename, scId, groupId, paramId, techId, emisId, value)
             response = {
                 "message": "You have updated view data!",
                 "status_code": "success"
@@ -111,5 +124,7 @@ def updateTEViewData():
             }
        
         return jsonify(response), 200
+    except (ValueError, PermissionError) as exc:
+        return jsonify({'error': str(exc)}), 400
     except(IOError):
         return jsonify('No existing cases!'), 404

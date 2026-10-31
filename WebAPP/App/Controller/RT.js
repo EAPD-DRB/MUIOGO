@@ -8,7 +8,6 @@ import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { GROUPNAMES } from "../../Classes/Const.Class.js";
 import { DEF } from "../../Classes/Definition.Class.js";
 import { MessageSelect } from "./MessageSelect.js";
-// import { Sidebar } from "./Sidebar.js";
 
 export default class RT {
     static onLoad(group, param) {
@@ -149,12 +148,10 @@ export default class RT {
             model.srcGrid.root = this.value;
             let newParam = this.value;
 
-           
             if(this.value == 'OL'){
                 model.d=0;
                 model.decimal = 'n0';
                 $('#decBtns').hide();
-                //$divGrid.jqxGrid('refresh');
             }else{
                 model.d=2;
                 model.decimal = 'd' + model.d;
@@ -194,12 +191,10 @@ export default class RT {
             var sc = $("#osy-scenarios").val();
             var param = $("#osy-ryt").val();
             Html.lblScenario(sc);
-            // let group = $divGrid.jqxGrid('getgroup', 0);
             Grid.applyRTFilter($divGrid, model.techs, sc, model.PARAMNAMES[param]);
             Message.smallBoxInfo('Info', 'Scenario data opened!', 2000);
         });
 
-        
         $("#osy-hideScData").off('click');
         $("#osy-hideScData").on('click', function (e) {
             e.preventDefault();
@@ -220,14 +215,12 @@ export default class RT {
             $.each(rows, function (id, obj) {
                 if (obj.Sc == sc && obj.Param == model.PARAMNAMES[model.param]) {
                     $.each(model.techs, function (i, tech) {
-                        //$divGrid.jqxGrid('setcellvalue', obj.uid, tech.TechId, null);
                         model.gridData[model.param][id][tech.TechId] = null;
                     });
                 }
             });
             model.srcGrid.localdata = model.gridData;
             $divGrid.jqxGrid('updatebounddata');
-
 
             let chartData = [];
             $.each(model.techs, function (id, tech) {
@@ -240,7 +233,6 @@ export default class RT {
                 chartData.push(chunk);
                 model.chartData[model.param] = chartData;
             });
-
 
             var configChart = $divChart.jqxChart('getInstance');
             configChart.source.records = model.chartData[model.param];
@@ -281,11 +273,9 @@ export default class RT {
                                 chunk[rtDataObj.ScId] = rtDataObj[tech.TechId];
                             }
                             else{
-                                //console.log('decimals digits ',rtDataObj[tech.TechId],  rtDataObj[tech.TechId].countDecimals())
                                 chunk[rtDataObj.ScId] = rtDataObj[tech.TechId];
                             }
 
-                            
                         });
                         chartData.push(chunk);
                         model.chartData[param] = chartData;
@@ -303,7 +293,6 @@ export default class RT {
             }
         }).on('cellvaluechanged', function (event) {
             if (!pasteEvent) {
-                //Pace.restart();
                 var args = event.args;
                 var tech = event.args.datafield;
                 var rowBoundIndex = args.rowindex;
@@ -385,11 +374,6 @@ export default class RT {
             res = !res;
         });
 
-        // $("#xlsAll").click(function (e) {
-        //     e.preventDefault();
-        //     $divGrid.jqxGrid('exportdata', 'xls', 'RT');
-        // });
-
         $("#xlsAll").off('click');
         $("#xlsAll").click(function (e) {
             e.preventDefault();
@@ -431,9 +415,6 @@ export default class RT {
                 model.decimal = 'd' + parseInt(model.d);
                 $divGrid.jqxGrid('updatebounddata');
             }
-            // model.d++;
-            // model.decimal = 'd' + parseInt(model.d);
-            // $divGrid.jqxGrid('updatebounddata');
         });
 
         $("#decDown").off('click');

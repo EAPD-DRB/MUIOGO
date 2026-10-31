@@ -13,7 +13,6 @@ export class Model {
         let menuCondition = {}
         let menuGroup = ['IAR', 'OAR', 'EAR', 'INCR', 'ITCR', 'CCM', 'CNCM', 'CAM', 'UCC', 'OLS', 'SLS', 'CCS', 'RSC', 'MSC', 'TTS', 'TFS', 'DS','DIDT'];
 
-                                                                                          
         menuCondition.IAR = false;
         menuCondition.OAR = false;
         menuCondition.INCR = false;
@@ -61,7 +60,6 @@ export class Model {
  
         this.menuCondition = menuCondition;
         this.menuGroup = menuGroup;
-        //this.pageId = pageId;
       }else{
         this.menu = false;
         this.menuCondition = false;

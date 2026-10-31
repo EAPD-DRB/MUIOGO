@@ -125,16 +125,6 @@ export class Routes {
             }
         });
 
-        // crossroads.addRoute('/Settings', function() {
-        //     $('#content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
-        //     import('../App/Controller/Settings.js')
-        //     .then(Settings => {
-        //         $( "#osy-demo" ).load( 'App/View/Settings.html', function() {
-        //             Settings.default.Load();
-        //         });
-        //     });
-        // }); 
-
         crossroads.addRoute('/Config', function() {
             enterModel('clews');
             let version = beginView();

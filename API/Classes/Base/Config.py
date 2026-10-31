@@ -38,9 +38,9 @@ def validate_path(base_dir, user_input):
     base_raw = os.fspath(base_dir)
     user_raw = "" if user_input is None else os.fspath(user_input)
 
-    if isinstance(base_raw, (bytes, bytearray)):
+    if isinstance(base_raw, bytes | bytearray):
         base_raw = base_raw.decode("utf-8", "surrogateescape")
-    if isinstance(user_raw, (bytes, bytearray)):
+    if isinstance(user_raw, bytes | bytearray):
         user_raw = user_raw.decode("utf-8", "surrogateescape")
 
     if "\x00" in base_raw or "\x00" in user_raw:

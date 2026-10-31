@@ -66,3 +66,6 @@ WebAPP/References/wijmoOLD/
 WebAPP/References/wijmo/DistributionKey.txt
 WebAPP/References/wijmo/licence.js
 app.spec
+
+# Generated solver artifacts stay local; validation summaries are tracked.
+output/cleanup-validation-2026-10-30/runtime-evidence.zip

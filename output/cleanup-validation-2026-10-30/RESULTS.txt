@@ -1,0 +1,51 @@
+Real model and cleanup validation — 2026-10-30
+
+100/100 changed source files executed.
+72/72 affected Python functions and 192/192 affected JavaScript functions called.
+65/65 added or modified executable Python statement lines covered.
+This measures the retained functions affected by cleanup, not every possible branch.
+
+Vietnam: two real CBC optimizations, both optimal.
+Control objective: 720171.53636732; archived benchmark: 720171.53636731.
+Sensitivity: PWRTRNIMP variable cost +1% in all 2020–2050 years.
+Sensitivity objective: 720249.41710689 (+0.0108142%).
+Source-diff, physical capacity screens, generated sets, matrix dimensions,
+read-only primal/dual residual checks, CSV extraction and viewer publication passed.
+Some activity allocations changed substantially under the small price shock;
+these test solves establish execution and feasibility, not country calibration
+or a unique/smooth dispatch. Detailed changes are retained in the bundle.
+
+OG-ZAF: two real full-dimension steady-state solves, both converged.
+Dimensions retained: S=80, T=320, J=7, M=1, I=1.
+Baseline GDP, capital, labor, consumption, interest rate and wage exactly match
+retained results. CIT 27% -> 26% increases steady-state GDP by 0.206042%.
+Result report, steady-state tables, parameter validation and backup passed.
+Transition paths were not run.
+
+Real browser parameter edit/save/reload/restore passed for both engines.
+All 23 parameter editor groups rendered, with extra legacy groups enabled only
+in the temporary fixture. Structure, run, input-view, RES viewer, import and
+settings workflows executed. Chart, filtering, formula and error paths exercised.
+Regression suites: 662 backend tests + 19 subtests; 119 browser tests; 78 JS tests.
+
+Two pre-existing issues remain:
+- /updateViewData and /updateTEViewData reject null dimension IDs required by
+  their editing logic. Identical failures reproduced from pre-cleanup source.
+  Handler follow-through was tested separately with that validator substituted.
+- Unused Osemosys.getData_ returns undefined for valid JSON. Its executable code
+  is identical before/after cleanup; active data loading uses getData.
+
+S3 transports and client-only destructive/solve request wrappers were isolated;
+no cloud requests or extra optimizations were made for their coverage checks.
+Temporary instrumentation/static-path/payload setup mistakes were corrected;
+no product changes were made to accommodate the tests. One directory-layout
+regression initially conflicted with the test storage override; the final full
+suite passed using the normal app layout.
+
+Four model solves total: two CBC and two OG-ZAF. Original archive/cases and all
+100 cleaned code files retain their recorded hashes. No live case was promoted.
+Concurrency and coverage overhead make these timings unsuitable as benchmarks.
+
+See summary.json, function-coverage.json and edit-fixes.json for tracked
+validation records. Full solver artifacts, scripts and screenshots are retained
+locally in runtime-evidence.zip, which is excluded from Git.

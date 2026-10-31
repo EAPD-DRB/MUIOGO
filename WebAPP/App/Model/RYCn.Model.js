@@ -75,7 +75,6 @@ export class Model {
 
             columns.push({ text: 'Scenario', datafield: 'Sc', pinned: true, editable: false, align: 'left', cellclassname: cellclass, filterable: false, menu:false }); // minWidth: 75, maxWidth: 150,
             columns.push({ text: 'Contraint', datafield: 'Con', pinned: true, editable: false, align: 'left', cellclassname: cellclass,  filterable: true });
-            //columns.push({ text: 'Unit', datafield: 'UnitId', pinned:true, editable: false, align: 'center',cellsalign: 'center', cellclassname: cellclass });
 
             $.each(years, function (id, year) {
                 datafields.push({ name: year, type: 'number' });

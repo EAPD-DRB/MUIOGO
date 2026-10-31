@@ -11,7 +11,6 @@ partial download can never appear in the case picker. Name collisions are not
 resolved here: an existing case reports already_exists (same as an upload) and is
 left untouched; replacing a case is the user's own deliberate delete + reinstall.
 """
-import os
 import shutil
 from pathlib import Path
 
@@ -22,9 +21,7 @@ from Classes.Case.CaseImporter import (
     CaseImporter,
 )
 from Classes.Clews.CountryManifest import (
-    CountrySource,
     InstallCancelled,
-    ManifestError,
     select_cases,
     select_vintage,
 )

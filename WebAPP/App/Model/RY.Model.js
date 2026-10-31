@@ -4,7 +4,6 @@ export class Model {
 
     constructor(casename, genData, RYdata, group, PARAMETERS, param) {
 
-
         this.d = 3;
         this.decimal = 'd' + this.d;
 
@@ -29,7 +28,6 @@ export class Model {
             datafields.push({ name: 'Sc', type: 'string' });
             datafields.push({ name: 'UnitId', type: 'string' });
             datafields.push({ name: 'ScDesc', type: 'string' });
-
 
             $.each(scenarios, function (id, obj) {
                 scClass[obj.ScenarioId] = 'SC_' + id;
@@ -97,7 +95,6 @@ export class Model {
 
             datafieldsChart.push({ name: 'Year', type: 'string' });
             datafieldsChart.push({ name: 'Param', type: 'number' });
-            //series.push({ dataField: 'Param', displayText: PARAMNAMES[param] });
 
             let srcGrid = {
                 datatype: "json",

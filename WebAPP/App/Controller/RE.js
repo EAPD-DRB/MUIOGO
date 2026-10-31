@@ -8,7 +8,6 @@ import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { GROUPNAMES } from "../../Classes/Const.Class.js";
 import { DEF } from "../../Classes/Definition.Class.js";
 import { MessageSelect } from "./MessageSelect.js";
-// import { Sidebar } from "./Sidebar.js";
 
 export default class RE {
     static onLoad(group, param){
@@ -179,14 +178,12 @@ export default class RE {
             $.each(rows, function (id, obj) {
                 if (obj.Sc == sc && obj.Param == model.PARAMNAMES[model.param]) {
                     $.each(model.emis, function (i, emi) {
-                        //$divGrid.jqxGrid('setcellvalue', obj.uid, tech.TechId, null);
                         model.gridData[model.param][id][emi.EmisId] = null;
                     });
                 }
             });
             model.srcGrid.localdata = model.gridData;
             $divGrid.jqxGrid('updatebounddata');
-
 
             let chartData = [];
             $.each(model.emis, function (id, emi) { 
@@ -203,7 +200,6 @@ export default class RE {
             var configChart = $divChart.jqxChart('getInstance');
             configChart.source.records = model.chartData[model.param];
             configChart.update();
-            
 
             Html.lblScenario( model.scenariosCount);
             Grid.applyREFilter( $divGrid, model.emis );
@@ -240,7 +236,6 @@ export default class RE {
             }
         }).on('cellvaluechanged', function (event) {
             if (!pasteEvent) {
-                //Pace.restart();
                 var args = event.args;
                 var emi = event.args.datafield;
                 var rowBoundIndex = args.rowindex;
@@ -316,11 +311,6 @@ export default class RE {
             }
             res = !res;        
         });
-    
-        // $("#xlsAll").click(function (e) {
-        //     e.preventDefault();
-        //     $divGrid.jqxGrid('exportdata', 'xls', 'RE');
-        // });
 
         $("#xlsAll").off('click');
         $("#xlsAll").click(function (e) {

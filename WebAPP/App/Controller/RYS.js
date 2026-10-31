@@ -25,7 +25,6 @@ export default class RYS {
                     const RYTdata = Osemosys.getData(casename, 'RYS.json');
                     promise.push(RYTdata);
                     promise.push(start);
-                    //console.log('performance get data from API ', performance.now() - start);
 
                     return Promise.all(promise);
                 } else {
@@ -35,13 +34,9 @@ export default class RYS {
             })
             .then(data => {
                 let [casename, genData, PARAMETERS, RYSdata, start] = data;
-                //console.log('performance read data from promise ', performance.now() - start);
                 let model = new Model(casename, genData, RYSdata, group, PARAMETERS, param);
-                //console.log('performance model ', performance.now() - start);
                 this.initPage(model);
-                //console.log('performance idit page ', performance.now() - start);
                 this.initEvents(model);
-                //console.log('performance events ', performance.now() - start);
             })
             .catch(error => {
                 Message.loaderEnd();
@@ -49,14 +44,11 @@ export default class RYS {
             });
     }
 
-
     static initPage(model) {
         Message.clearMessages();
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS[model.group], model.param);
-        
-        
+
         let $divGrid = $('#osy-gridRYS');
         var daGrid = new $.jqx.dataAdapter(model.srcGrid);
         Grid.Grid($divGrid, daGrid, model.columns, {filterable: true, sortable:true});
@@ -187,7 +179,6 @@ export default class RYS {
             $.each(rows, function (id, obj) {
                 if (obj.Sc == sc) {
                     $.each(model.years, function (i, year) {
-                        //$divGrid.jqxGrid('setcellvalue', obj.uid, year, null);
                         model.gridData[model.param][id][year] = null;
                     });
                 }

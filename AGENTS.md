@@ -1,6 +1,6 @@
 # Repository workflow
 
-Use the existing checkout at `/Users/sato/Documents/GitHub/MUIOGO` on `main`.
+Use the existing checkout at `/Users/sato/GitHub/MUIOGO` on `main`.
 Never create additional Git worktrees for this repository.
 Do not create additional branches unless the user explicitly requests one.
 

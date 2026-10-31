@@ -30,8 +30,6 @@ export default class RYTE {
                         "status_code": "CaseError"
                     }
                     return Promise.reject(er);
-                    //throw new Error(JSON.stringify(er));
-                    //MessageSelect.init(RYTE.refreshPage.bind(RYTE));
                 }
             })
             .then(data => {
@@ -62,7 +60,6 @@ export default class RYTE {
 
     static initPage(model) {
         Message.clearMessages();
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS['RYTE'], model.param);
         Html.ddlTechs(model.techs, model.techs[0]['TechId']);
@@ -337,8 +334,6 @@ export default class RYTE {
                 configChart.seriesGroups[0].labels.angle = 0;
             }
             configChart.update();
-            // $('button a').switchClass( "green", "grey" );
-            // $('#'+chartType).switchClass( "grey", "green" );
         });
 
         $(".toggleLabels").off('click');

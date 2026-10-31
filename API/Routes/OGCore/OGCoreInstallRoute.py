@@ -6,7 +6,7 @@ these endpoints and the backend either wraps the OG-Core universal installer
 """
 import os
 import re
-from datetime import datetime, timezone, UTC
+from datetime import datetime, UTC
 from pathlib import Path
 from urllib.parse import urlparse
 

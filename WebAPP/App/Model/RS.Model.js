@@ -1,11 +1,9 @@
 import { DataModel } from "../../Classes/DataModel.Class.js";
-import { GROUPNAMES } from "../../Classes/Const.Class.js";
 
 export class Model {
 
     constructor(casename, genData, RSdata, group, PARAMETERS, param) {
         this.d = 0;
-        //this.decimal = 'd' + this.d;
         this.decimal = "n0";
 
         if (casename) {
@@ -35,7 +33,6 @@ export class Model {
 
             let scClass = {};
 
-            //datafieldsChart.push({ name: 'TechId', type:'string' });
             datafieldsChart.push({ name: 'Stg', type: 'string' });
 
             $.each(scenarios, function (id, obj) {
@@ -71,11 +68,6 @@ export class Model {
                     return '<span style="margin: 4px; float:right; ">n/a</span>';
                 } else {
                     var formattedValue = $.jqx.dataFormat.formatnumber(value, this.decimal);
-
-                    // if(columnfield == 'TEC_0' && row == 0){
-                    //     console.log('cellsrenderer ', value)
-                    //     console.log('formattedValue ', formattedValue)
-                    // }
 
                     return '<span style="margin: 4px; float:right; ">' + formattedValue + '</span>';
                 }
@@ -136,8 +128,6 @@ export class Model {
             };
 
             this.casename = casename;
-            // this.param = param;
-            //this.years = years;
             this.stgs = stgs;
             this.stgIds = stgIds;
             this.stgCount = stgs.length
@@ -158,8 +148,6 @@ export class Model {
             this.casename = null;
             this.years = null;
             this.stgs = null;
-            // this.datafields = null; 
-            // this.datafieldsChart = null; 
             this.columns = null;
             this.series = null;
             this.gridData = null;

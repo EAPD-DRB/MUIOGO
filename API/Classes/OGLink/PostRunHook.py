@@ -30,7 +30,7 @@ import re
 import subprocess
 import sys
 import threading
-from datetime import datetime, timezone, UTC
+from datetime import datetime, UTC
 from pathlib import Path
 
 from Classes.Base import Config

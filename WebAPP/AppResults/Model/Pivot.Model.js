@@ -23,31 +23,9 @@ export class Model {
           console.log('VARIABLEOBJECT ', VARIABLEOBJECT)
         let VARNAMES = DataModel.AllParamName(VARIABLES);
 
-   
-        /////////////////////////////////////////////
-        // let VARGROUPS = DataModelResult.getVarById(VARIABLES);
-
-        // let INDGROUPS =  DataModelResult.getVarById(CUSTOM_INDICATORS);
-        // let DUALGROUPS =  DataModelResult.getVarById(DUALS);
-        // VARGROUPS = {...VARGROUPS, ...DUALGROUPS, ...INDGROUPS,}
-        // let VARIABLEOBJECT = DataModelResult.getVarialblesObject(VARIABLES, genData['osy-indicators']);
-        // let CUSTOM_INDICATORS = DataModelResult.mergeAllIndicatorsGrouped(INDICATORS, genData['osy-indicators']);
-        // let VARNAMES = DataModel.AllParamName(VARIABLES);
-        // let INDNAMES = DataModel.AllParamName(CUSTOM_INDICATORS);
-        // let DUALNAMES = DataModel.AllParamName(DUALS);
-        // VARNAMES = DataModelResult.mergeGroups(VARNAMES, INDNAMES);
-        // VARNAMES = DataModelResult.mergeGroups(VARNAMES, DUALNAMES);
         console.log('VARNAMES ', VARNAMES)
-        /////////////////////////////////////////////////// 
-
-
-        //let pivotData = DataModelResult.getPivot(DATA, genData, VARIABLES, DUALS, CUSTOM_INDICATORS, group, param);
 
         let pivotData = DataModelResult.getPivot(DATA, genData, VARIABLES, group, param);
-
-        //let VIEWS = DataModelResult.getViews(VIEW['osy-views']);
-
-        // console.log('pivotData ', pivotData)
 
         let VIEWS = DataModelResult.getAllViews(VIEW['osy-views']);
 

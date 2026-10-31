@@ -1,5 +1,4 @@
 import { DataModel } from "../../Classes/DataModel.Class.js";
-import { DataModelResult} from "../../Classes/DataModelResult.Class.js"
 import { GROUPNAMES, PARAMORDER, UNITDEFINITION, RESULTGROUPNAMES } from "../../Classes/Const.Class.js";
 
 export class Model {
@@ -21,13 +20,10 @@ export class Model {
         let paramById = DataModel.getParamById(PARAMETERS);
         let paramNames = DataModel.getParamData(PARAMETERS);
 
-        //let varById = DataModelResult.getVarById(VARIABLES);
         let varNames = DataModel.getParamData(VARIABLES);
 
         let dualData = DataModel.getParamData(DUALS);
         let indicatorData = DataModel.getParamData(INDICATORS );
-
-
 
         ///////////////////////////////// PARAMS
         let gridParamData = []
@@ -51,8 +47,6 @@ export class Model {
             });
         });
 
-
-        // console.log('gridParamData ', gridParamData)
         var cellsrendererbutton = function (row, column, value) { 
             return '<span style="padding:5px; width:100%;" data-toggle="modal" href="#osy-unitRule" class="btn btn-white btn-default updateRule" data-id='+ row+' ><i class="fa fa-pencil-square-o  fa-lg primary"></i>Update rule</span>';
         }
@@ -110,10 +104,6 @@ export class Model {
             });
         });
 
-        // var cellsrendererbuttonVar = function (row, column, value) {
-        //     return '<span style="padding:5px; width:100%;" data-toggle="modal" href="#osy-unitRule" class="btn btn-white btn-default updateVarRule" data-id='+ row+' ><i class="fa fa-pencil-square-o fa-lg success"></i>Update rule</span>';
-        // }
-
         datafieldsVar.push({ name: 'groupId', type:'string' });
         datafieldsVar.push({ name: 'groupName', type:'string' });        
         datafieldsVar.push({ name: 'id', type:'string' }); 
@@ -156,22 +146,6 @@ export class Model {
                 gridDualData.push(tmp);
             });
         });
-
-        // datafieldsDual.push({ name: 'groupId', type:'string' });
-        // datafieldsDual.push({ name: 'groupName', type:'string' });        
-        // datafieldsDual.push({ name: 'id', type:'string' }); 
-        // datafieldsDual.push({ name: 'value', type:'string' }); 
-        // datafieldsDual.push({ name: 'name', type:'string' }); 
-        // datafieldsDual.push({ name: 'unit', type:'string' });    
-        // datafieldsDual.push({ name: 'unitRule' });   
-
-        // columnsDual.push({ text: 'groupId', datafield: 'groupId', editable: false, align: 'left',  hidden: true, sortable:false})
-        // columnsDual.push({ text: 'VARIABLE GROUP', datafield: 'groupName', editable: false, align: 'left', width: '25%', menu: false})
-        // columnsDual.push({ text: 'id', datafield: 'id', editable: false, align: 'left',  hidden: true, sortable:false})
-        // columnsDual.push({ text: 'VARIABLE NAME', datafield: 'value', editable: false, align: 'left', width: '50%'});
-        // columnsDual.push({ text: 'name', datafield: 'name', editable: false, align: 'left',  hidden: true, menu: false, sortable:false})
-        // columnsDual.push({ text: 'UNIT', datafield: 'unit', editable: false, align: 'center', cellsalign: 'center', width: '15%', menu: false, sortable:false}),
-        // columnsDual.push({ text: 'UNIT RULE', datafield: 'Unit rule',  align: 'center', width: '10%',  cellsrenderer: cellsrendererbuttonVar, editable:false, sortable:false, menu: false  })
 
         let srcDualGrid = {
             datatype: "json",
@@ -268,6 +242,5 @@ export class Model {
         this.RESULTGROUPNAMES = RESULTGROUPNAMES;
         this.paramNames =paramNames;
         this.varNames = varNames;
-        //this.unitIdByVal = unitIdByVal;
     }
 }

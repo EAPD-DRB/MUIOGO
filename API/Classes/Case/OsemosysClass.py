@@ -9,9 +9,15 @@ from pathlib import Path
 import os
 import platform
 import shutil
+import math
 from Classes.Base import Config
 from Classes.Base.FileClass import File
 from Classes.Case.HelpersClass import Helpers
+
+_VIEW_INDEX_FIELDS = {
+    't': 'TechId', 'f': 'CommId', 'e': 'EmisId',
+    'l': 'TsId', 'm': 'MoId', 'cn': 'ConId',
+}
 
 class Osemosys():
     # The OSeMOSYS model file every solve uses. The model-file page
@@ -40,8 +46,6 @@ class Osemosys():
         #Case.__init__(self, case)
         self.zipPath = self.storagePath / (case + '.zip')
 
-        #self.genData = Path(Config.DATA_STORAGE,case,'genData.json')
-
         self.rPath = self.casePath / 'R.json'
         self.ryPath = self.casePath / 'RY.json'
         self.rtPath = self.casePath / 'RT.json'
@@ -66,7 +70,6 @@ class Osemosys():
         self.rytePath = self.casePath / 'RYTE.json'
         self.rytemPath = self.casePath / 'RYTEM.json'
 
-
         self.osemosysFile = Path(Config.SOLVERs_FOLDER, self.MODEL_FILE_NAME)
         self.osemosysFileOriginal = Path(Config.SOLVERs_FOLDER,'osemosys.txt')
         self._glpkFolder = None
@@ -78,14 +81,6 @@ class Osemosys():
         self.viewFolderPath = self.casePath / 'view'
 
         self.resDataPath = self.viewFolderPath / 'resData.json'
-
-        # self.resPath = Path(Config.DATA_STORAGE,case,'res', 'csv')
-        
-        #self.dataFile = Path(Config.DATA_STORAGE,case, 'res','data.txt')
-        # self.resFile = Path(Config.DATA_STORAGE,case, 'res','results.txt')
-        # self.lpFile = Path(Config.DATA_STORAGE,case, 'res','lp.lp')
-        # self.resCBCPath = Path('..', '..', '..', '..', 'WebAPP', 'DataStorage', case, 'res')
-        # self.resPath = Path('..', '..', '..', '..', 'WebAPP', 'DataStorage', case, 'res', 'csv')
 
         self.PARAM = Helpers.build_param(self.PARAMETERS)
         self.VARS = Helpers.build_vars(self.VARIABLES)
@@ -254,21 +249,16 @@ class Osemosys():
         return True
         
     def getYears(self):
-        years = self.genData['osy-years']
-        return years
+        return self.genData['osy-years']
 
     def getTsIds(self):
-        tsIds = [ ts['TsId'] for ts in self.genData["osy-ts"]]
-        return tsIds
+        return [ ts['TsId'] for ts in self.genData["osy-ts"]]
 
     def getTsMap(self):
-        timeslices = {tech['TsId']: tech['Ts'] for tech in self.genData["osy-ts"] }
-        return timeslices
+        return {tech['TsId']: tech['Ts'] for tech in self.genData["osy-ts"] }
 
     def getTsNames(self):
-        tsIds = [ ts['Ts'] for ts in self.genData["osy-ts"]]
-        return tsIds    
-
+        return [ ts['Ts'] for ts in self.genData["osy-ts"]]
 
     def getMods(self):
         mo = int(self.genData['osy-mo'])+1
@@ -277,54 +267,41 @@ class Osemosys():
             mods.append(m)
         return mods 
 
-
     def getTechIds(self):
-        techIds = [ tech['TechId'] for tech in self.genData["osy-tech"]]
-        return techIds
+        return [ tech['TechId'] for tech in self.genData["osy-tech"]]
 
     def getTechNames(self):
-        techIds = [ tech['Tech'] for tech in self.genData["osy-tech"]]
-        return techIds
+        return [ tech['Tech'] for tech in self.genData["osy-tech"]]
 
     def getTechs(self):
-        techs = [ {tech['TechId']:tech['Tech']} for tech in self.genData["osy-tech"]]
-        return techs
+        return [ {tech['TechId']:tech['Tech']} for tech in self.genData["osy-tech"]]
 
     def getTechsMap(self):
-        techs = {tech['TechId']: tech['Tech'] for tech in self.genData["osy-tech"] }
-        return techs
+        return {tech['TechId']: tech['Tech'] for tech in self.genData["osy-tech"] }
     
     def getEmiIds(self):
-        emiIds = [ tech['EmisId'] for tech in self.genData["osy-emis"]]
-        return emiIds
+        return [ tech['EmisId'] for tech in self.genData["osy-emis"]]
 
     def getEmiNames(self):
-        emiIds = [ tech['Emis'] for tech in self.genData["osy-emis"]]
-        return emiIds
+        return [ tech['Emis'] for tech in self.genData["osy-emis"]]
     
     def getEmis(self):
-        emis = [ {tech['EmisId']: tech['Emis']} for tech in self.genData["osy-emis"]]
-        return emis
+        return [ {tech['EmisId']: tech['Emis']} for tech in self.genData["osy-emis"]]
 
     def getEmisMap(self):
-        emis = {tech['EmisId']: tech['Emis'] for tech in self.genData["osy-emis"] }
-        return emis
+        return {tech['EmisId']: tech['Emis'] for tech in self.genData["osy-emis"] }
 
     def getStgs(self):
-        stgs = [ {stg['StgId']: stg['Stg']} for stg in self.genData["osy-stg"]]
-        return stgs
+        return [ {stg['StgId']: stg['Stg']} for stg in self.genData["osy-stg"]]
     
     def getStgNames(self):
-        stgs = [ stg['Stg'] for stg in self.genData["osy-stg"]]
-        return stgs
+        return [ stg['Stg'] for stg in self.genData["osy-stg"]]
     
     def getStgIds(self):
-        stgIds = [ stg['StgId'] for stg in self.genData["osy-stg"]]
-        return stgIds
+        return [ stg['StgId'] for stg in self.genData["osy-stg"]]
     
     def getStgMap(self):
-        stgs = {stg['StgId']: stg['Stg'] for stg in self.genData["osy-stg"] }
-        return stgs
+        return {stg['StgId']: stg['Stg'] for stg in self.genData["osy-stg"] }
     
     def getStgByType(self):
         stgByType = {}
@@ -335,44 +312,34 @@ class Osemosys():
         return stgByType
 
     def getSeIds(self):
-        seIds = [ se['SeId'] for se in self.genData["osy-se"]]
-        return seIds
+        return [ se['SeId'] for se in self.genData["osy-se"]]
     
     def getSeMap(self):
-        ses = { se['SeId']: se['Se'] for se in self.genData["osy-se"] }
-        return ses
+        return { se['SeId']: se['Se'] for se in self.genData["osy-se"] }
 
     def getDtIds(self):
-        seIds = [ se['DtId'] for se in self.genData["osy-dt"]]
-        return seIds
+        return [ se['DtId'] for se in self.genData["osy-dt"]]
     
     def getDtMap(self):
-        ses = { se['DtId']: se['Dt'] for se in self.genData["osy-dt"] }
-        return ses
+        return { se['DtId']: se['Dt'] for se in self.genData["osy-dt"] }
 
     def getDtbIds(self):
-        seIds = [ se['DtbId'] for se in self.genData["osy-dtb"]]
-        return seIds
+        return [ se['DtbId'] for se in self.genData["osy-dtb"]]
     
     def getDtbMap(self):
-        ses = { se['DtbId']: se['Dtb'] for se in self.genData["osy-dtb"] }
-        return ses
+        return { se['DtbId']: se['Dtb'] for se in self.genData["osy-dtb"] }
 
     def getCommIds(self):
-        commIds = [ tech['CommId'] for tech in self.genData["osy-comm"]]
-        return commIds
+        return [ tech['CommId'] for tech in self.genData["osy-comm"]]
     
     def getCommNames(self):
-        commIds = [ tech['Comm'] for tech in self.genData["osy-comm"]]
-        return commIds
+        return [ tech['Comm'] for tech in self.genData["osy-comm"]]
 
     def getComms(self):
-        comms = [ {tech['CommId']: tech['Comm']} for tech in self.genData["osy-comm"]]
-        return comms
+        return [ {tech['CommId']: tech['Comm']} for tech in self.genData["osy-comm"]]
 
     def getCommsMap(self):
-        comms = {tech['CommId']: tech['Comm'] for tech in self.genData["osy-comm"] }
-        return comms
+        return {tech['CommId']: tech['Comm'] for tech in self.genData["osy-comm"] }
     
     #23052026 - dodali smo funkciju koja vraca sve comm liste, jednu sa svim comm, a ostale po levelu Blaancing levels
 
@@ -400,21 +367,13 @@ class Osemosys():
 
         return result
 
-    
     def getConIds(self):
-        conIds = [ tech['ConId'] for tech in self.genData["osy-constraints"]]
-        return conIds
+        return [ tech['ConId'] for tech in self.genData["osy-constraints"]]
 
     def getConsMap(self):
-        cons = {con['ConId']: con['Con'] for con in self.genData["osy-constraints"] }
-        return cons
-
-    # def getScIds(self):
-    #     scIds = [ sc['ScenarioId'] for sc in self.genData["osy-scenarios"]]
-    #     return scIds
+        return {con['ConId']: con['Con'] for con in self.genData["osy-constraints"] }
 
     def getScenariosByCase(self):
-        #scIds = [ sc['ScenarioId'] for sc in self.genData["osy-scenarios"]]
         scBycs = {}
         for case in self.resData["osy-cases"]:
             scBycs[case['Case']] = []
@@ -428,10 +387,8 @@ class Osemosys():
 
     def getScOrder(self, caserunname):
         """Return the stored scenario order; later active non-null values win."""
-        #scIds = [ {'ScId': sc['ScenarioId'], 'Sc': sc['Scenario'], 'Active': sc['Active']} for sc in self.genData["osy-scenarios"]]
         scenarioBycase = self.getScenariosByCase()
-        scIds = scenarioBycase[caserunname]
-        return scIds
+        return scenarioBycase[caserunname]
 
     def getStorageTechIds(self):
         techIds = {}
@@ -441,11 +398,6 @@ class Osemosys():
                 if stg[param['id']]: 
                     techIds[param['id']][stg['StgId']]=[]
                     techIds[param['id']][stg['StgId']].append(stg[param['id']])
-                    # if techIds[param['id']][stg['StgId']]: 
-                    #     techIds[param['id']][stg['StgId']].append(stg[param['id']])
-                    # else:
-                    #     techIds[param['id']][stg['StgId']]=[]
-                    #     techIds[param['id']][stg['StgId']].append(stg[param['id']])
         return techIds
     
     #output actTech['IAR'] = ['Tech_1', 'Tech_2'...]
@@ -594,13 +546,6 @@ class Osemosys():
                 for obj in array:
                     for value, val in obj.items():
                         if (value != 'TechId' and value != 'StgId' and value != 'MoId'):
-                            # if value not in RTSM[param][sc]:
-                            #     RTSM[param][sc][year] = {}
-                            # if obj['StgId'] not in RTSM[param][sc][year]:
-                            #     RTSM[param][sc][year][obj['StgId']] = {}
-                            # if obj['TechId'] not in RTSM[param][sc][year][obj['StgId']]:
-                            #     RTSM[param][sc][year][obj['StgId']][obj['TechId']] = {}
-                            # RTSM[param][sc][year][obj['StgId']][obj['TechId']][obj['MoId']] = val
 
                             if obj['StgId'] not in RTSM[param][sc]:
                                 RTSM[param][sc][obj['StgId']] = {}
@@ -1019,31 +964,81 @@ class Osemosys():
                                 data[tech['EmisId']].append(byEmi.copy())
         return data
 
-    def updateViewData(self, casename, year, ScId, GroupId, ParamId, TechId, CommId, EmisId, Timeslice, value):
-        try:
-            jsonPath = Path(Config.DATA_STORAGE,casename, GroupId+'.json')
-            jsonData = File.readFile(jsonPath)
+    def _save_view_cell(self, group, param, scenario, ids, value, year=None):
+        """Resolve one source cell; an unused dimension is not a wildcard.
 
-            for obj in jsonData[ParamId][ScId]:
-                if ((obj['TechId'] == TechId if TechId is not None else True) and 
-                    (obj['CommId'] == CommId if CommId is not None else True) and 
-                    (obj['EmisId'] == EmisId if EmisId is not None else True) and
-                    (obj['TsId'] == Timeslice if Timeslice is not None else True)):
-                    obj[year] = value
-            File.writeFile( jsonData, jsonPath)
-        except(IOError):
-            raise IOError
+        Parameters.json defines the indices. Reject incomplete or ambiguous
+        selections before writing, including modes and user-defined constraints.
+        """
+        if not all(isinstance(key, str) and key for key in (group, param, scenario)):
+            raise ValueError('Group, parameter and scenario must be identifiers.')
+        allowed = (Config.TECH_GROUPS + Config.COMM_GROUPS + Config.EMIS_GROUPS
+                   if year is not None else Config.SINGLE_TECH_GROUPS + Config.SINGLE_EMIS_GROUPS)
+        if group not in allowed:
+            raise ValueError('This parameter group cannot be edited in this view.')
+        definition = next((p for p in self.PARAMETERS.get(group, []) if p['id'] == param), None)
+        if definition is None:
+            raise ValueError('Unknown parameter or parameter group.')
+        dimensions = set(definition['setrelation'])
+        if dimensions - {'r', 'y'} - _VIEW_INDEX_FIELDS.keys() or ('y' in dimensions) != (year is not None):
+            raise ValueError('Unsupported parameter dimensions.')
+        required = {_VIEW_INDEX_FIELDS[d] for d in dimensions if d in _VIEW_INDEX_FIELDS}
+        selected = {key: val for key, val in ids.items() if val is not None}
+        if selected.keys() != required:
+            raise ValueError('Supply exactly the IDs required by this parameter.')
+        for key, val in selected.items():
+            if key == 'MoId':
+                # jqx declares this grid field as a string; source modes are integers.
+                if isinstance(val, str) and val.isascii() and val.isdecimal():
+                    val = int(val)
+                if type(val) is not int or val not in self.getMods():
+                    raise ValueError('Invalid mode ID.')
+                selected[key] = val
+            elif not isinstance(val, str) or not val:
+                raise ValueError(f'Invalid {key}.')
+        if scenario not in {s['ScenarioId'] for s in self.genData['osy-scenarios']}:
+            raise ValueError('Unknown scenario.')
+        if year is not None:
+            if type(year) not in (str, int) or str(year) not in {str(y) for y in self.getYears()}:
+                raise ValueError('Unknown model year.')
+            year = str(year)
+        try:
+            finite_value = type(value) in (int, float) and math.isfinite(value)
+        except OverflowError:
+            finite_value = False
+        if not finite_value:
+            raise ValueError('The parameter value must be a finite number.')
+
+        # The group is from the configured catalog, never an arbitrary file path.
+        path = self.casePath / f'{group}.json'
+        data = File.readFile(path)
+        rows = data.get(param, {}).get(scenario)
+        if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
+            raise ValueError('The source parameter or scenario is missing.')
+        if year is not None:
+            matches = [row for row in rows if all(row.get(key) == val for key, val in selected.items())]
+            column = year
+        else:
+            # RT/RE use entity IDs as dictionary keys rather than row index fields.
+            if len(selected) != 1:
+                raise ValueError('Select one technology or emission.')
+            column = next(iter(selected.values()))
+            matches = [row for row in rows if column in row]
+        if len(matches) != 1 or column not in matches[0]:
+            raise ValueError('The edit must identify exactly one existing cell.')
+        matches[0][column] = value
+        File.writeFile(data, path)
+
+    def updateViewData(self, casename, year, ScId, GroupId, ParamId, TechId, CommId, EmisId, Timeslice, value,
+                       MoId=None, ConId=None):
+        if casename != self.case:
+            raise ValueError('Case identity mismatch.')
+        self._save_view_cell(GroupId, ParamId, ScId, {
+            'TechId': TechId, 'CommId': CommId, 'EmisId': EmisId,
+            'TsId': Timeslice, 'MoId': MoId, 'ConId': ConId,
+        }, value, year=year)
 
     def updateTEViewData(self, casename, ScId, GroupId, ParamId, TechId, EmisId, value):
-        try:
-            jsonPath = Path(Config.DATA_STORAGE,casename, GroupId+'.json')
-            jsonData = File.readFile(jsonPath)
-
-            for obj in jsonData[ParamId][ScId]:
-                for k,v in obj.items():
-                    if ((k == TechId if TechId is not None else True) and 
-                        (k == EmisId if EmisId is not None else True)):
-                        obj[k] = value
-            File.writeFile( jsonData, jsonPath)
-        except(IOError):
-            raise IOError
+        if casename != self.case:
+            raise ValueError('Case identity mismatch.')
+        self._save_view_cell(GroupId, ParamId, ScId, {'TechId': TechId, 'EmisId': EmisId}, value)

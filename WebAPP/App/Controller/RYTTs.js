@@ -25,7 +25,6 @@ export default class RYTTs {
                     const RYTTsdata = Osemosys.getData(casename, "RYTTs.json");
                     promise.push(RYTTsdata);
                     promise.push(start);
-                    //console.log('performance get data from API ', performance.now() - start);
                     return Promise.all(promise);
                 } else {
                     Message.loaderEnd();
@@ -34,13 +33,9 @@ export default class RYTTs {
             })
             .then(data => {
                 let [casename, genData, PARAMETERS, RYTTsdata, start] = data;
-                //console.log('performance read data from promise ', performance.now() - start);
                 let model = new Model(casename, genData, RYTTsdata, group, PARAMETERS, param);
-                //console.log('performance model ', performance.now() - start);
                 this.initPage(model);
-                //console.log('performance idit page ', performance.now() - start);
                 this.initEvents(model);
-                //console.log('performance events ', performance.now() - start);
             })
             .catch(error => {
                 Message.loaderEnd();
@@ -50,7 +45,6 @@ export default class RYTTs {
 
     static initPage(model) {
         Message.clearMessages();
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS['RYTTs'], model.param);
 
@@ -126,12 +120,8 @@ export default class RYTTs {
                 //delete obj.ScId;
             });
 
-            // console.log('data preparation for save ', performance.now() - start);
-
             Osemosys.updateData(saveData, param, "RYTTs.json")
                 .then(response => {
-                    //console.log('response from api ', performance.now() - start);
-                    //model.gridData[model.param] = JSON.parse(RYTmodel);
                     Message.bigBoxSuccess('Model message', response.message, 3000);
                     //sync S3
                     if (Base.AWS_SYNC == 1) {
@@ -151,12 +141,6 @@ export default class RYTTs {
             model.param = this.value;
             $divGrid.jqxGrid('updatebounddata');
 
-
-            // var configChart = $divChart.jqxChart('getInstance');
-            // var tech = $("#osy-techs").val();
-            // var ts = $("#osy-timeslices1").val();
-            // configChart.source.records = model.chartData[this.value][tech][ts];
-            // configChart.update();
             $('#definition').html(`${DEF[model.group][model.param].definition}`);
         });
 
@@ -196,7 +180,6 @@ export default class RYTTs {
             $.each(rows, function (id, obj) {
                 if (obj.Sc == sc) {
                     $.each(model.years, function (i, year) {
-                        //$divGrid.jqxGrid('setcellvalue', obj.uid, year, null);
                         model.gridData[model.param][id][year] = null;
                     });
                 }
@@ -226,7 +209,6 @@ export default class RYTTs {
             }
         }).on('cellvaluechanged', function (event) {
             if (!pasteEvent) {
-                //Pace.restart();
                 pasteEvent = false;
                 var args = event.args;
                 var year = event.args.datafield;

@@ -12,7 +12,6 @@ export class Model {
 
             let PARAMNAMES = DataModel.ParamName(PARAMETERS[group]);
             let RYCTsgrid = DataModel.RYCTsgrid(genData, RYCTsdata, PARAMETERS);
-            //let timeslices = DataModel.Timeslices(genData);
 
             let years = genData['osy-years'];
             let comms = genData['osy-comm'];
@@ -105,7 +104,6 @@ export class Model {
             this.casename = casename;
             this.years = years;
             this.comms = comms;
-            //this.timeslices = timeslices;
             this.scenarios = scenarios;
             this.scenariosCount = scenarios.length;
             this.datafields = datafields;

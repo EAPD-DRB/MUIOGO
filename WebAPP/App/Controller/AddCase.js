@@ -101,8 +101,6 @@ export default class AddCase {
 
     static initPage(model) {
         Message.clearMessages();
-        //$('a[href="#tabComms"]').click();
-        //Navbar.initPage(model.casename, model.pageId);
         
         Html.title(model.casename, model.title, "create & edit");
         Html.genData(model);
@@ -238,7 +236,6 @@ export default class AddCase {
             // Check for unsaved changes before starting a new model
             NavigationGuard.requestLeave(() => {
                 AddCase.refreshPage(null);
-                //Sidebar.Load(null, null)
                 Sidebar.Reload(null);
 
                 $divTech.jqxGrid({ pagesizeoptions:['10', '25', '50', '100', '250', '500', '750', '1000']});
@@ -359,7 +356,6 @@ export default class AddCase {
                 // console.log('model.techs TECH ',model.techs[id].Tech)
                 // console.log("TG ", model.techs[rowid].TG.length)
 
-
                 //provjera da brisemo tacnu tehnologiju
                 //console.log('techIds ', model.techs[id].TechId,techId, htmltechId,    model.techNames[techId],   model.techNames[model.techs[id].TechId],    model.techNames[htmltechId])
                 if(model.techs[id].TechId != techId ||techId != htmltechId){
@@ -381,7 +377,6 @@ export default class AddCase {
                     $.each(model.constraints, function (id, conObj) {
                         conObj['CM'] = conObj['CM'].filter(item => item !== techId);
                     });
-
 
                     //izbirsati iz modela za tech nz indicators eventualne tehnologijel koje smo izbrisali
                     $.each(model.indicators, function (id, indObj) {
@@ -483,11 +478,9 @@ export default class AddCase {
         //TIMESLICES GRID AND EVENTS
         $('#osy-caseForm').undelegate("#osy-addTs", "click");
         $('#osy-caseForm').delegate("#osy-addTs", "click", function (event) {
-            //console.log('add timeslice')
             event.preventDefault();
             event.stopImmediatePropagation();
             let defaultTs = DefaultObj.defaultTs();
-            //console.log('defaultTs ',defaultTs)
             model.timeslices.push(JSON.parse(JSON.stringify(defaultTs[0], ['TsId', 'Ts', 'Desc', 'SE', 'DT', 'DTB'])));
 
             //update commnames
@@ -518,13 +511,10 @@ export default class AddCase {
 
         $divTs.on('cellvaluechanged', function (event) {
             var args = event.args;
-            //console.log('arsg ', args)  
             var column = event.args.datafield;
             var rowBoundIndex = args.rowindex;
             var value = args.newvalue.trim();
             model.timeslices[rowBoundIndex][column] = value;
-
-            //console.log('columnd ', column)
 
             if (column == 'Timeslice') {
                 var tsId = $divTs.jqxGrid('getcellvalue', rowBoundIndex, 'TsId');
@@ -535,11 +525,9 @@ export default class AddCase {
         //SESONS GRID AND EVENTS
         $('#osy-caseForm').undelegate("#osy-addSe", "click");
         $('#osy-caseForm').delegate("#osy-addSe", "click", function (event) {
-            //console.log('add season')
             event.preventDefault();
             event.stopImmediatePropagation();
             let defaultSe = DefaultObj.defaultSe(false, model.seCount);
-            //console.log('defaultSe ',defaultSe)
             model.seasons.push(JSON.parse(JSON.stringify(defaultSe[0], ['SeId', 'Se', 'Desc'])));
 
             //update commnames
@@ -783,7 +771,6 @@ export default class AddCase {
                 $("#dtbCount").text(model.dtbCount);
             }
 
-
         }); 
         
         $divDtb.on('cellvaluechanged', function (event) {
@@ -936,7 +923,6 @@ export default class AddCase {
         //STORAGE GRID AND EVENTS
         $('#osy-caseForm').undelegate("#osy-addStg", "click");
         $('#osy-caseForm').delegate("#osy-addStg", "click", function (event) {
-            //console.log('add season')
             event.preventDefault();
             event.stopImmediatePropagation();
             let defaultStg = DefaultObj.defaultStg();
@@ -979,7 +965,6 @@ export default class AddCase {
             }
         });
 
-
         //SCENARIOS GRID AND EVENTS
         $('#osy-caseForm').undelegate("#osy-addScenario", "click");
         $('#osy-caseForm').delegate("#osy-addScenario", "click", function (event) {
@@ -1010,7 +995,6 @@ export default class AddCase {
                     let scId = model.scenarios[id]['ScenarioId'];
                     Osemosys.deleteScenarioCaseRuns(model.casename, scId)
                     .then(response=>{
-                        //console.log('delete ', response)
                         var rowid = $divScenario.jqxGrid('getrowid', id);
                         $divScenario.jqxGrid('deleterow', rowid);
                         model.scenarios.splice(id, 1);
@@ -1046,7 +1030,6 @@ export default class AddCase {
             $divConstraint.jqxGrid('updatebounddata', 'data');
             model.constraintsCount++;
             $("#constraintsCount").text(model.constraintsCount);
-            //$divConstraint.jqxGrid('refresh');
         });
 
         $('#osy-caseForm').undelegate(".deleteConstraint", "click");
@@ -1076,13 +1059,11 @@ export default class AddCase {
             var args = event.args;
             var column = event.args.datafield;
             var rowBoundIndex = args.rowindex;
-            //console.log('newvalue ', args.newvalue)
             if(typeof args.newvalue !== 'object'){
                 var value = args.newvalue.trim();
             }else{
                 var value = args.newvalue;
             }
-            
 
             if (column != 'CM' && column != 'Tag') {
                 model.constraints[rowBoundIndex][column] = value;
@@ -1097,7 +1078,6 @@ export default class AddCase {
                 }
                 model.constraints[rowBoundIndex][column] = array;
             } else if (column == 'Tag') {
-                //console.log('eqyuality ', value)
                 model.constraints[rowBoundIndex][column] = value.value;
             }
         });
@@ -1114,7 +1094,6 @@ export default class AddCase {
             $divIndicator.jqxGrid('updatebounddata', 'data');
             model.indicatorsCount++;
             $("#indicatorsCount").text(model.indicatorsCount);
-            //$divConstraint.jqxGrid('refresh');
         });
 
         $('#osy-caseForm').undelegate(".deleteIndicator", "click");
@@ -1167,7 +1146,6 @@ export default class AddCase {
             // console.log('tab id ', id)
             //update tech grid to update IAR OAR EAR with new added or removed comms and emis
             if (id == 'Techs') {
-                //Grid.techsGrid(model.techs, model.commodities, model.emissions, model.commNames, model.emiNames);
                 $("#osy-gridTech" ).ready(function() {
                     $divTech.jqxGrid('updatebounddata');
                 });   
@@ -1238,8 +1216,4 @@ export default class AddCase {
         });
     }
 }
-
-
-
-
 

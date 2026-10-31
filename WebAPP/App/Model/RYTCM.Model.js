@@ -8,12 +8,10 @@ export class Model {
         if (casename) {
 
             let datafields = [];
-            //let datafieldsChart = [];
             let columns = [];
             let series = [];
 
             let years = genData['osy-years'];
-            //let comms = genData['osy-comm'];
             let techs = genData['osy-tech'];
             let scenarios = genData['osy-scenarios'];
 
@@ -27,11 +25,8 @@ export class Model {
 
             let scClass = {};
 
-            //datafieldsChart.push({ name: 'Year', type: 'string' });
             $.each(scenarios, function (id, obj) {
                 scClass[obj.ScenarioId] = 'SC_' + id;
-                //datafieldsChart.push({ name: obj.ScenarioId, type: 'number' });
-                //series.push({ dataField: obj.ScenarioId, displayText: obj.Scenario });
             });
 
             var cellclass = function (row, columnfield, value, data) {
@@ -56,7 +51,6 @@ export class Model {
             columns.push({ text: 'MoO', datafield: 'MoId', pinned: true, editable: false, align: 'center', cellsalign: 'center', cellclassname: cellclass, filterable: false, menu:false  });
             columns.push({ text: 'Unit', datafield: 'UnitId', pinned: true, editable: false, align: 'center', cellsalign: 'center', cellclassname: cellclass, sortable:false, filterable: false, menu:false  });
 
-
             let validation = function (cell, value) {
                 if (value < 0) {
                     return { result: false, message: 'Value must be positive!' };
@@ -64,8 +58,6 @@ export class Model {
                     return true;
                 }
             }
-
-
 
             let cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties) {
                 if (value === null || value === '') {
@@ -76,7 +68,6 @@ export class Model {
                 }
 
             }.bind(this);
-
 
             let initeditor = function (row, cellvalue, editor, data) {
                 
@@ -120,13 +111,6 @@ export class Model {
                 datafields: datafields,
             };
 
-            // var srcChart = {
-            //     datatype: "json",
-            //     localdata: RYTCMchart,
-            //     root: param + '>' + ActivityTechs[param][0]['TechId'] + '>' + ActivityComms[param][ActivityTechs[param][0]['TechId']][0]['CommId'] + '>' + mods[0],
-            //     datafields: datafieldsChart,
-            // };
-
             this.casename = casename;
             this.cases = cases;
             this.years = years;
@@ -137,18 +121,14 @@ export class Model {
             this.comms = ActivityComms;
             this.techIds = techIds;
             this.datafields = datafields;
-            //this.datafieldsChart = datafieldsChart;
             this.columns = columns;
-            //this.series = series;
             this.RYTCMdata = RYTCMdata;
             this.gridData = RYTCMgrid;
-            //this.chartData = RYTCMchart;
             this.genData = genData;
             this.param = param;
             this.PARAMNAMES = PARAMNAMES;
             this.group = group;
             this.srcGrid = srcGrid;
-            //this.srcChart = srcChart;
             this.PARAMETERS = PARAMETERS;
         } else {
             this.casename = null;
@@ -159,18 +139,14 @@ export class Model {
             this.comms = null;
             this.techIds = null;
             this.datafields = null;
-            //this.datafieldsChart = null;
             this.columns = null;
-            //this.series = null;
             this.RYTCMdata = null;
             this.gridData = null;
-            //this.chartData = null;
             this.genData = null;
             this.param = null;
             this.PARAMNAMES = null;
             this.group = group;
             this.srcGrid = null;
-            //this.srcChart = null;
             this.PARAMETERS = null;
         }
 

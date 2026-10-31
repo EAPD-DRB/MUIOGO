@@ -313,7 +313,6 @@ export default class Config {
                 unitRule = model.gridDualData[id]['unitRule'];
             }
 
-
             $('#unitTitle').html(
                 `<h6 id="paramId" data-paramId ="${paramId}" style="display: inline-block;">
                     <i class="fa-fw fa fa-tags"></i><strong>RULE</strong>
@@ -393,15 +392,12 @@ export default class Config {
                 Message.smallBoxInfo('Rule updated for ', model.indicatorData[groupId][paramId], 3000);
             }
 
-
             $('#osy-unitRule').modal('toggle');
              
         });
 
         $('#osy-unitRuleSort2').on('stop', function () { 
             let rule = $("#osy-unitRuleSort2").jqxSortable("toArray");
-            // let paramId = $('#paramId').attr("data-paramId");
-            // let groupId = $('#groupId').attr("data-groupId") 
 
             let arrayRule ='';
             $.each(rule, function (id, rule) {
@@ -413,8 +409,6 @@ export default class Config {
 
         $('#osy-unitRuleSort2').on('receive', function () { 
             let rule = $("#osy-unitRuleSort2").jqxSortable("toArray");
-            // let paramId = $('#paramId').attr("data-paramId");
-            // let groupId = $('#groupId').attr("data-groupId") 
 
             let arrayRule ='';
             $.each(rule, function (id, rule) {
@@ -441,8 +435,6 @@ export default class Config {
             name = model.indicatorData[groupId][paramId].value;
             groupname = model.RESULTGROUPNAMES[groupId];    
             formulaRule = model.gridIndicatorData[id]['formulaRule'];
- 
-
 
             $('#indTitle').html(
                 `<h6 id="paramId" data-paramId ="${paramId}" style="display: inline-block;">
@@ -465,8 +457,6 @@ export default class Config {
 
             let arrayRule = name +' = ';
             $.each(rule, function (id, r) {
-                //arrayRule += UNITDEFINITION[r]['name'];
-                //console.log('arrayRule ',arrayRule);
                 arrayRule +=  model.indicatorDef[r]['name'];
             });
             $('#formulaView').html(`<p>${arrayRule}</p>`);
@@ -478,7 +468,6 @@ export default class Config {
         $("#btnSaveFormula").off('click');
         $("#btnSaveFormula").on('click', function (event) {
             let rule = $("#osy-indFormulaSort2").jqxSortable("toArray")
-
 
             let paramId = $('#paramId').attr("data-paramId");
             let groupId = $('#groupId').attr("data-groupId") 
@@ -501,41 +490,13 @@ export default class Config {
             model.srcIndicatorGrid.localdata = model.gridIndicatorData;
             $divIndicatorGrid.jqxGrid('updatebounddata');
             Message.smallBoxInfo('Rule updated for ', model.indicatorData[groupId][paramId].value, 3000);
-        
-
-            // if(model.tab == 'Params'){
-            //     $.each(model.gridParamData, function (id, obj) {
-            //         if (obj.id == paramId && obj.groupId == groupId){
-            //             obj.unit =jsonLogic.apply(unitRule, model.unitsDef);
-            //             obj.unitRule = unitRule;
-            //         }
-            //     });
-            //     model.srcParamGrid.localdata = model.gridParamData;
-            //     $divParamGrid.jqxGrid('updatebounddata');
-            //     Message.smallBoxInfo('Rule updated for ', model.paramNames[groupId][paramId], 3000);
-            // }
-            // else if(model.tab == 'Vars'){
-            //     $.each(model.gridVarData, function (id, obj) {
-            //         if (obj.id == paramId && obj.groupId == groupId){
-            //             obj.unit =jsonLogic.apply(unitRule, model.unitsDef);
-            //             obj.unitRule = unitRule;
-            //         }
-            //     });
-            //     model.srcVarGrid.localdata = model.gridVarData;
-            //     $divVarGrid.jqxGrid('updatebounddata');
-            //     Message.smallBoxInfo('Rule updated for ', model.varNames[groupId][paramId], 3000);
-            // }
-
 
             $('#osy-indicatorFormulaModal').modal('toggle');
              
         });
 
-
         $('#osy-indFormulaSort2').on('stop', function () { 
                 let rule = $("#osy-indFormulaSort2").jqxSortable("toArray");
-                // let paramId = $('#paramId').attr("data-paramId");
-                // let groupId = $('#groupId').attr("data-groupId") 
 
                 let arrayRule ='';
                 $.each(rule, function (id, rule) {
@@ -547,8 +508,6 @@ export default class Config {
 
         $('#osy-indFormulaSort2').on('receive', function () { 
                 let rule = $("#osy-indFormulaSort2").jqxSortable("toArray");
-                // let paramId = $('#paramId').attr("data-paramId");
-                // let groupId = $('#groupId').attr("data-groupId") 
 
                 let arrayRule ='';
                 $.each(rule, function (id, rule) {

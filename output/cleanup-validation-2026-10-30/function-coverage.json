@@ -1,0 +1,2725 @@
+{
+  "python": {
+    "API/Classes/Base/Config.py": {
+      "executed": true,
+      "functions": {
+        "validate_path": {
+          "called": true,
+          "range": {
+            "start": 31,
+            "end": 103
+          }
+        }
+      }
+    },
+    "API/Classes/Base/CustomThreadClass.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Classes/Base/SyncS3.py": {
+      "executed": true,
+      "functions": {
+        "SyncS3.uploadSync": {
+          "called": true,
+          "range": {
+            "start": 83,
+            "end": 114
+          }
+        }
+      }
+    },
+    "API/Classes/Case/DataFileClass.py": {
+      "executed": true,
+      "functions": {
+        "DataFile.generateCSVfromCBC": {
+          "called": true,
+          "range": {
+            "start": 2310,
+            "end": 2639
+          }
+        },
+        "DataFile.readDataFile": {
+          "called": true,
+          "range": {
+            "start": 1100,
+            "end": 1114
+          }
+        },
+        "DataFile.batchRun": {
+          "called": true,
+          "range": {
+            "start": 1993,
+            "end": 2059
+          }
+        },
+        "DataFile.validateInputs": {
+          "called": true,
+          "range": {
+            "start": 1212,
+            "end": 1544
+          }
+        },
+        "DataFile.generateResultsViewer": {
+          "called": true,
+          "range": {
+            "start": 2641,
+            "end": 3042
+          }
+        },
+        "DataFile.generateDatafile": {
+          "called": true,
+          "range": {
+            "start": 670,
+            "end": 834
+          }
+        },
+        "DataFile.run": {
+          "called": true,
+          "range": {
+            "start": 2101,
+            "end": 2308
+          }
+        },
+        "DataFile.gen_RYTs": {
+          "called": true,
+          "range": {
+            "start": 223,
+            "end": 241
+          }
+        },
+        "DataFile.gen_RYDtb": {
+          "called": true,
+          "range": {
+            "start": 243,
+            "end": 261
+          }
+        }
+      }
+    },
+    "API/Classes/Case/ImportTemplate.py": {
+      "executed": true,
+      "functions": {
+        "ImportTemplate.importProcess": {
+          "called": true,
+          "range": {
+            "start": 451,
+            "end": 1099
+          }
+        },
+        "ImportTemplate.defaultTechGroup": {
+          "called": true,
+          "range": {
+            "start": 118,
+            "end": 130
+          }
+        },
+        "ImportTemplate.defaultUnit": {
+          "called": true,
+          "range": {
+            "start": 240,
+            "end": 252
+          }
+        },
+        "ImportTemplate.defaultTs": {
+          "called": true,
+          "range": {
+            "start": 132,
+            "end": 147
+          }
+        },
+        "ImportTemplate.defaultScenario": {
+          "called": true,
+          "range": {
+            "start": 254,
+            "end": 267
+          }
+        },
+        "ImportTemplate.defaultSe": {
+          "called": true,
+          "range": {
+            "start": 149,
+            "end": 161
+          }
+        },
+        "ImportTemplate.defaultConstraint": {
+          "called": true,
+          "range": {
+            "start": 269,
+            "end": 284
+          }
+        },
+        "ImportTemplate.defaultDt": {
+          "called": true,
+          "range": {
+            "start": 163,
+            "end": 175
+          }
+        },
+        "ImportTemplate.defaultCase": {
+          "called": true,
+          "range": {
+            "start": 286,
+            "end": 299
+          }
+        },
+        "ImportTemplate.defaultDtb": {
+          "called": true,
+          "range": {
+            "start": 177,
+            "end": 189
+          }
+        },
+        "ImportTemplate.defaultComm": {
+          "called": true,
+          "range": {
+            "start": 191,
+            "end": 205
+          }
+        },
+        "ImportTemplate.defaultEmi": {
+          "called": true,
+          "range": {
+            "start": 207,
+            "end": 220
+          }
+        },
+        "ImportTemplate.defaultTech": {
+          "called": true,
+          "range": {
+            "start": 97,
+            "end": 116
+          }
+        },
+        "ImportTemplate.defaultStg": {
+          "called": true,
+          "range": {
+            "start": 222,
+            "end": 238
+          }
+        }
+      }
+    },
+    "API/Classes/Case/OsemosysClass.py": {
+      "executed": true,
+      "functions": {
+        "Osemosys.__init__": {
+          "called": true,
+          "range": {
+            "start": 21,
+            "end": 87
+          }
+        },
+        "Osemosys.RTSM": {
+          "called": true,
+          "range": {
+            "start": 534,
+            "end": 549
+          }
+        },
+        "Osemosys.getYears": {
+          "called": true,
+          "range": {
+            "start": 245,
+            "end": 246
+          }
+        },
+        "Osemosys.getTsIds": {
+          "called": true,
+          "range": {
+            "start": 248,
+            "end": 249
+          }
+        },
+        "Osemosys.getTsMap": {
+          "called": true,
+          "range": {
+            "start": 251,
+            "end": 252
+          }
+        },
+        "Osemosys.getTsNames": {
+          "called": true,
+          "range": {
+            "start": 254,
+            "end": 255
+          }
+        },
+        "Osemosys.getTechIds": {
+          "called": true,
+          "range": {
+            "start": 264,
+            "end": 265
+          }
+        },
+        "Osemosys.getTechNames": {
+          "called": true,
+          "range": {
+            "start": 267,
+            "end": 268
+          }
+        },
+        "Osemosys.getTechs": {
+          "called": true,
+          "range": {
+            "start": 270,
+            "end": 271
+          }
+        },
+        "Osemosys.getTechsMap": {
+          "called": true,
+          "range": {
+            "start": 273,
+            "end": 274
+          }
+        },
+        "Osemosys.getEmiIds": {
+          "called": true,
+          "range": {
+            "start": 276,
+            "end": 277
+          }
+        },
+        "Osemosys.getEmiNames": {
+          "called": true,
+          "range": {
+            "start": 279,
+            "end": 280
+          }
+        },
+        "Osemosys.getEmis": {
+          "called": true,
+          "range": {
+            "start": 282,
+            "end": 283
+          }
+        },
+        "Osemosys.getEmisMap": {
+          "called": true,
+          "range": {
+            "start": 285,
+            "end": 286
+          }
+        },
+        "Osemosys.getStgs": {
+          "called": true,
+          "range": {
+            "start": 288,
+            "end": 289
+          }
+        },
+        "Osemosys.getStgNames": {
+          "called": true,
+          "range": {
+            "start": 291,
+            "end": 292
+          }
+        },
+        "Osemosys.getStgIds": {
+          "called": true,
+          "range": {
+            "start": 294,
+            "end": 295
+          }
+        },
+        "Osemosys.getStgMap": {
+          "called": true,
+          "range": {
+            "start": 297,
+            "end": 298
+          }
+        },
+        "Osemosys.getSeIds": {
+          "called": true,
+          "range": {
+            "start": 308,
+            "end": 309
+          }
+        },
+        "Osemosys.getSeMap": {
+          "called": true,
+          "range": {
+            "start": 311,
+            "end": 312
+          }
+        },
+        "Osemosys.getDtIds": {
+          "called": true,
+          "range": {
+            "start": 314,
+            "end": 315
+          }
+        },
+        "Osemosys.getDtMap": {
+          "called": true,
+          "range": {
+            "start": 317,
+            "end": 318
+          }
+        },
+        "Osemosys.getDtbIds": {
+          "called": true,
+          "range": {
+            "start": 320,
+            "end": 321
+          }
+        },
+        "Osemosys.getDtbMap": {
+          "called": true,
+          "range": {
+            "start": 323,
+            "end": 324
+          }
+        },
+        "Osemosys.getCommIds": {
+          "called": true,
+          "range": {
+            "start": 326,
+            "end": 327
+          }
+        },
+        "Osemosys.getCommNames": {
+          "called": true,
+          "range": {
+            "start": 329,
+            "end": 330
+          }
+        },
+        "Osemosys.getComms": {
+          "called": true,
+          "range": {
+            "start": 332,
+            "end": 333
+          }
+        },
+        "Osemosys.getCommsMap": {
+          "called": true,
+          "range": {
+            "start": 335,
+            "end": 336
+          }
+        },
+        "Osemosys.getConIds": {
+          "called": true,
+          "range": {
+            "start": 364,
+            "end": 365
+          }
+        },
+        "Osemosys.getConsMap": {
+          "called": true,
+          "range": {
+            "start": 367,
+            "end": 368
+          }
+        },
+        "Osemosys.getScenariosByCase": {
+          "called": true,
+          "range": {
+            "start": 370,
+            "end": 380
+          }
+        },
+        "Osemosys.getScOrder": {
+          "called": true,
+          "range": {
+            "start": 382,
+            "end": 385
+          }
+        },
+        "Osemosys.getStorageTechIds": {
+          "called": true,
+          "range": {
+            "start": 387,
+            "end": 395
+          }
+        }
+      }
+    },
+    "API/Classes/Case/UpdateCaseClass.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Classes/Clews/ClewsInstallJob.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Classes/Clews/ClewsInstaller.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Classes/Clews/CountryRegistry.py": {
+      "executed": true,
+      "functions": {
+        "_now_iso": {
+          "called": true,
+          "range": {
+            "start": 241,
+            "end": 243
+          }
+        }
+      }
+    },
+    "API/Classes/Clews/Provenance.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Classes/OGCore/InstallJob.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Classes/OGCore/OGReport.py": {
+      "executed": true,
+      "functions": {
+        "_num": {
+          "called": true,
+          "range": {
+            "start": 197,
+            "end": 203
+          }
+        }
+      }
+    },
+    "API/Classes/OGCore/OGResults.py": {
+      "executed": true,
+      "functions": {
+        "_all_scalar": {
+          "called": true,
+          "range": {
+            "start": 179,
+            "end": 181
+          }
+        }
+      }
+    },
+    "API/Classes/OGCore/OGSchema.py": {
+      "executed": true,
+      "functions": {
+        "_is_number": {
+          "called": true,
+          "range": {
+            "start": 152,
+            "end": 154
+          }
+        }
+      }
+    },
+    "API/Classes/OGCore/ogc_worker.py": {
+      "executed": true,
+      "functions": {
+        "sanitize": {
+          "called": true,
+          "range": {
+            "start": 133,
+            "end": 156
+          }
+        }
+      }
+    },
+    "API/Classes/OGLink/PatchApply.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Classes/OGLink/PostRunHook.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Routes/Case/CaseRoute.py": {
+      "executed": true,
+      "functions": {
+        "resultsExists": {
+          "called": true,
+          "range": {
+            "start": 192,
+            "end": 211
+          }
+        },
+        "saveCase": {
+          "called": true,
+          "range": {
+            "start": 293,
+            "end": 457
+          }
+        },
+        "downloadCSV": {
+          "called": true,
+          "range": {
+            "start": 489,
+            "end": 499
+          }
+        }
+      }
+    },
+    "API/Routes/Case/ViewDataRoute.py": {
+      "executed": true,
+      "functions": {
+        "updateViewData": {
+          "called": true,
+          "range": {
+            "start": 52,
+            "end": 83
+          }
+        },
+        "updateTEViewData": {
+          "called": true,
+          "range": {
+            "start": 86,
+            "end": 114
+          }
+        }
+      }
+    },
+    "API/Routes/Clews/ClewsRoute.py": {
+      "executed": true,
+      "functions": {
+        "checkCountryUpdate": {
+          "called": true,
+          "range": {
+            "start": 198,
+            "end": 260
+          }
+        }
+      }
+    },
+    "API/Routes/DataFile/DataFileRoute.py": {
+      "executed": true,
+      "functions": {
+        "downloadDataFile": {
+          "called": true,
+          "range": {
+            "start": 217,
+            "end": 232
+          }
+        }
+      }
+    },
+    "API/Routes/OGCore/OGCoreInstallRoute.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Routes/OGCore/OGCoreRunRoute.py": {
+      "executed": true,
+      "functions": {}
+    },
+    "API/Routes/Upload/UploadRoute.py": {
+      "executed": true,
+      "functions": {
+        "upload_dir": {
+          "called": true,
+          "range": {
+            "start": 72,
+            "end": 104
+          }
+        },
+        "backupCase": {
+          "called": true,
+          "range": {
+            "start": 131,
+            "end": 194
+          }
+        }
+      }
+    },
+    "API/app.py": {
+      "executed": true,
+      "functions": {}
+    }
+  },
+  "javascript": {
+    "WebAPP/App/Controller/AddCase.js": {
+      "executed": true,
+      "functions": {
+        "AddCase.initPage": {
+          "called": true,
+          "range": {
+            "start": 4243,
+            "end": 5861,
+            "startLine": 102,
+            "endLine": 138
+          }
+        },
+        "AddCase.initEvents": {
+          "called": true,
+          "range": {
+            "start": 5867,
+            "end": 55704,
+            "startLine": 140,
+            "endLine": 1217
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/Config.js": {
+      "executed": true,
+      "functions": {
+        "Config.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3778,
+            "end": 22735,
+            "startLine": 87,
+            "endLine": 524
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/DataFile.js": {
+      "executed": true,
+      "functions": {
+        "DataFile.initPage": {
+          "called": true,
+          "range": {
+            "start": 1680,
+            "end": 2596,
+            "startLine": 42,
+            "endLine": 60
+          }
+        },
+        "DataFile.refreshPage": {
+          "called": true,
+          "range": {
+            "start": 2602,
+            "end": 4044,
+            "startLine": 62,
+            "endLine": 96
+          }
+        },
+        "DataFile.initEvents": {
+          "called": true,
+          "range": {
+            "start": 4050,
+            "end": 37395,
+            "startLine": 98,
+            "endLine": 873
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/Home.js": {
+      "executed": true,
+      "functions": {
+        "Home.initPage": {
+          "called": true,
+          "range": {
+            "start": 1976,
+            "end": 2386,
+            "startLine": 56,
+            "endLine": 64
+          }
+        },
+        "Home.initEvents": {
+          "called": true,
+          "range": {
+            "start": 2932,
+            "end": 9604,
+            "startLine": 85,
+            "endLine": 242
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/LegacyImport.js": {
+      "executed": true,
+      "functions": {
+        "LegacyImport.initEvents": {
+          "called": true,
+          "range": {
+            "start": 1193,
+            "end": 5606,
+            "startLine": 39,
+            "endLine": 149
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/Navbar.js": {
+      "executed": true,
+      "functions": {
+        "Navbar.initPage": {
+          "called": true,
+          "range": {
+            "start": 239,
+            "end": 557,
+            "startLine": 7,
+            "endLine": 17
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/OGParameters.js": {
+      "executed": true,
+      "functions": {}
+    },
+    "WebAPP/App/Controller/R.js": {
+      "executed": true,
+      "functions": {
+        "R.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3395,
+            "end": 13741,
+            "startLine": 89,
+            "endLine": 352
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RE.js": {
+      "executed": true,
+      "functions": {
+        "RE.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3389,
+            "end": 14830,
+            "startLine": 87,
+            "endLine": 369
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RESViewer.js": {
+      "executed": true,
+      "functions": {
+        "RESViewer.sankeySize": {
+          "called": true,
+          "range": {
+            "start": 3022,
+            "end": 6115,
+            "startLine": 73,
+            "endLine": 138
+          }
+        },
+        "RESViewer.initPage": {
+          "called": true,
+          "range": {
+            "start": 6125,
+            "end": 7316,
+            "startLine": 140,
+            "endLine": 173
+          }
+        },
+        "RESViewer.initEvents": {
+          "called": true,
+          "range": {
+            "start": 7322,
+            "end": 16237,
+            "startLine": 175,
+            "endLine": 376
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RESViewerMermaid.js": {
+      "executed": true,
+      "functions": {
+        "RESViewer.initPage": {
+          "called": true,
+          "range": {
+            "start": 1551,
+            "end": 1906,
+            "startLine": 41,
+            "endLine": 52
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RS.js": {
+      "executed": true,
+      "functions": {
+        "RS.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3947,
+            "end": 15672,
+            "startLine": 97,
+            "endLine": 385
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RT.js": {
+      "executed": true,
+      "functions": {
+        "RT.initEvents": {
+          "called": true,
+          "range": {
+            "start": 4029,
+            "end": 17663,
+            "startLine": 101,
+            "endLine": 441
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RTSM.js": {
+      "executed": true,
+      "functions": {
+        "RTSM.onLoad": {
+          "called": true,
+          "range": {
+            "start": 523,
+            "end": 2770,
+            "startLine": 12,
+            "endLine": 63
+          }
+        },
+        "RTSM.initPage": {
+          "called": true,
+          "range": {
+            "start": 2776,
+            "end": 3450,
+            "startLine": 65,
+            "endLine": 81
+          }
+        },
+        "RTSM.initEvents": {
+          "called": true,
+          "range": {
+            "start": 5440,
+            "end": 14208,
+            "startLine": 128,
+            "endLine": 340
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RY.js": {
+      "executed": true,
+      "functions": {
+        "RY.initPage": {
+          "called": true,
+          "range": {
+            "start": 1750,
+            "end": 2610,
+            "startLine": 43,
+            "endLine": 63
+          }
+        },
+        "RY.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3571,
+            "end": 14138,
+            "startLine": 89,
+            "endLine": 354
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYC.js": {
+      "executed": true,
+      "functions": {
+        "RYC.initPage": {
+          "called": true,
+          "range": {
+            "start": 1719,
+            "end": 2392,
+            "startLine": 45,
+            "endLine": 59
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYCTs.js": {
+      "executed": true,
+      "functions": {
+        "RYCTs.initPage": {
+          "called": true,
+          "range": {
+            "start": 1749,
+            "end": 2420,
+            "startLine": 42,
+            "endLine": 56
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYCn.js": {
+      "executed": true,
+      "functions": {
+        "RYCn.initPage": {
+          "called": true,
+          "range": {
+            "start": 1759,
+            "end": 2507,
+            "startLine": 44,
+            "endLine": 63
+          }
+        },
+        "RYCn.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3478,
+            "end": 10905,
+            "startLine": 89,
+            "endLine": 283
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYDtb.js": {
+      "executed": true,
+      "functions": {
+        "RYDtb.initPage": {
+          "called": true,
+          "range": {
+            "start": 1782,
+            "end": 2422,
+            "startLine": 43,
+            "endLine": 57
+          }
+        },
+        "RYDtb.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3485,
+            "end": 11088,
+            "startLine": 85,
+            "endLine": 280
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYE.js": {
+      "executed": true,
+      "functions": {
+        "RYE.initPage": {
+          "called": true,
+          "range": {
+            "start": 1831,
+            "end": 2502,
+            "startLine": 45,
+            "endLine": 59
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYS.js": {
+      "executed": true,
+      "functions": {
+        "RYS.onLoad": {
+          "called": true,
+          "range": {
+            "start": 521,
+            "end": 1899,
+            "startLine": 12,
+            "endLine": 45
+          }
+        },
+        "RYS.initPage": {
+          "called": true,
+          "range": {
+            "start": 1905,
+            "end": 2560,
+            "startLine": 47,
+            "endLine": 61
+          }
+        },
+        "RYS.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3613,
+            "end": 11411,
+            "startLine": 89,
+            "endLine": 284
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYSeDt.js": {
+      "executed": true,
+      "functions": {
+        "RYSeDt.initPage": {
+          "called": true,
+          "range": {
+            "start": 1758,
+            "end": 2431,
+            "startLine": 42,
+            "endLine": 56
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYT.js": {
+      "executed": true,
+      "functions": {
+        "RYT.onLoad": {
+          "called": true,
+          "range": {
+            "start": 521,
+            "end": 1899,
+            "startLine": 12,
+            "endLine": 45
+          }
+        },
+        "RYT.initPage": {
+          "called": true,
+          "range": {
+            "start": 1905,
+            "end": 2560,
+            "startLine": 47,
+            "endLine": 61
+          }
+        },
+        "RYT.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3613,
+            "end": 11522,
+            "startLine": 89,
+            "endLine": 289
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYTC.js": {
+      "executed": true,
+      "functions": {
+        "RYTC.onLoad": {
+          "called": true,
+          "range": {
+            "start": 523,
+            "end": 2692,
+            "startLine": 12,
+            "endLine": 61
+          }
+        },
+        "RYTC.initPage": {
+          "called": true,
+          "range": {
+            "start": 4834,
+            "end": 5485,
+            "startLine": 113,
+            "endLine": 127
+          }
+        },
+        "RYTC.initEvents": {
+          "called": true,
+          "range": {
+            "start": 5491,
+            "end": 16292,
+            "startLine": 129,
+            "endLine": 381
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYTCM.js": {
+      "executed": true,
+      "functions": {
+        "RYTCM.onLoad": {
+          "called": true,
+          "range": {
+            "start": 525,
+            "end": 2782,
+            "startLine": 12,
+            "endLine": 63
+          }
+        },
+        "RYTCM.initPage": {
+          "called": true,
+          "range": {
+            "start": 2788,
+            "end": 3462,
+            "startLine": 65,
+            "endLine": 81
+          }
+        },
+        "RYTCM.initEvents": {
+          "called": true,
+          "range": {
+            "start": 5465,
+            "end": 14318,
+            "startLine": 128,
+            "endLine": 342
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYTCn.js": {
+      "executed": true,
+      "functions": {
+        "RYTCn.onLoad": {
+          "called": true,
+          "range": {
+            "start": 525,
+            "end": 2558,
+            "startLine": 12,
+            "endLine": 58
+          }
+        },
+        "RYTCn.initPage": {
+          "called": true,
+          "range": {
+            "start": 2564,
+            "end": 3257,
+            "startLine": 60,
+            "endLine": 74
+          }
+        },
+        "RYTCn.initEvents": {
+          "called": true,
+          "range": {
+            "start": 5059,
+            "end": 14966,
+            "startLine": 118,
+            "endLine": 359
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYTE.js": {
+      "executed": true,
+      "functions": {
+        "RYTE.onLoad": {
+          "called": true,
+          "range": {
+            "start": 577,
+            "end": 2600,
+            "startLine": 13,
+            "endLine": 59
+          }
+        },
+        "RYTE.initPage": {
+          "called": true,
+          "range": {
+            "start": 2606,
+            "end": 3785,
+            "startLine": 61,
+            "endLine": 83
+          }
+        },
+        "RYTE.initEvents": {
+          "called": true,
+          "range": {
+            "start": 5575,
+            "end": 16889,
+            "startLine": 127,
+            "endLine": 401
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYTEM.js": {
+      "executed": true,
+      "functions": {
+        "RYTEM.onLoad": {
+          "called": true,
+          "range": {
+            "start": 525,
+            "end": 2463,
+            "startLine": 12,
+            "endLine": 60
+          }
+        },
+        "RYTEM.initPage": {
+          "called": true,
+          "range": {
+            "start": 2469,
+            "end": 3138,
+            "startLine": 62,
+            "endLine": 74
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYTM.js": {
+      "executed": true,
+      "functions": {
+        "RYTM.initPage": {
+          "called": true,
+          "range": {
+            "start": 1818,
+            "end": 2492,
+            "startLine": 44,
+            "endLine": 59
+          }
+        },
+        "RYTM.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3552,
+            "end": 11197,
+            "startLine": 87,
+            "endLine": 282
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYTSM.js": {
+      "executed": true,
+      "functions": {
+        "RYTSM.onLoad": {
+          "called": true,
+          "range": {
+            "start": 525,
+            "end": 2782,
+            "startLine": 12,
+            "endLine": 63
+          }
+        },
+        "RYTSM.initPage": {
+          "called": true,
+          "range": {
+            "start": 2788,
+            "end": 3462,
+            "startLine": 65,
+            "endLine": 81
+          }
+        },
+        "RYTSM.initEvents": {
+          "called": true,
+          "range": {
+            "start": 5465,
+            "end": 14221,
+            "startLine": 128,
+            "endLine": 339
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYTTs.js": {
+      "executed": true,
+      "functions": {
+        "RYTTs.onLoad": {
+          "called": true,
+          "range": {
+            "start": 525,
+            "end": 1920,
+            "startLine": 12,
+            "endLine": 44
+          }
+        },
+        "RYTTs.initPage": {
+          "called": true,
+          "range": {
+            "start": 1926,
+            "end": 2597,
+            "startLine": 46,
+            "endLine": 60
+          }
+        },
+        "RYTTs.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3664,
+            "end": 11364,
+            "startLine": 88,
+            "endLine": 290
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/RYTs.js": {
+      "executed": true,
+      "functions": {
+        "RYTs.initPage": {
+          "called": true,
+          "range": {
+            "start": 1777,
+            "end": 2433,
+            "startLine": 43,
+            "endLine": 57
+          }
+        },
+        "RYTs.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3493,
+            "end": 11083,
+            "startLine": 85,
+            "endLine": 280
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/Settings.js": {
+      "executed": true,
+      "functions": {
+        "Settings.initPage": {
+          "called": true,
+          "range": {
+            "start": 352,
+            "end": 2012,
+            "startLine": 12,
+            "endLine": 51
+          }
+        },
+        "Settings.initEvents": {
+          "called": true,
+          "range": {
+            "start": 2018,
+            "end": 6683,
+            "startLine": 53,
+            "endLine": 175
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/Sidebar.js": {
+      "executed": true,
+      "functions": {
+        "Sidebar.initAppRoutes": {
+          "called": true,
+          "range": {
+            "start": 1153,
+            "end": 10310,
+            "startLine": 31,
+            "endLine": 191
+          }
+        },
+        "Sidebar.initEvents": {
+          "called": true,
+          "range": {
+            "start": 10316,
+            "end": 11183,
+            "startLine": 193,
+            "endLine": 217
+          }
+        }
+      }
+    },
+    "WebAPP/App/Controller/ViewData.js": {
+      "executed": true,
+      "functions": {
+        "ViewData.onLoad": {
+          "called": true,
+          "range": {
+            "start": 472,
+            "end": 1893,
+            "startLine": 11,
+            "endLine": 44
+          }
+        },
+        "ViewData.refreshPage": {
+          "called": true,
+          "range": {
+            "start": 2658,
+            "end": 3815,
+            "startLine": 64,
+            "endLine": 93
+          }
+        },
+        "ViewData.initEvents": {
+          "called": true,
+          "range": {
+            "start": 3821,
+            "end": 17784,
+            "startLine": 95,
+            "endLine": 424
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/AddCase.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 150,
+            "end": 4425,
+            "startLine": 5,
+            "endLine": 110
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/Config.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 198,
+            "end": 13442,
+            "startLine": 6,
+            "endLine": 245
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/DataFile.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 26,
+            "end": 1976,
+            "startLine": 3,
+            "endLine": 62
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/Home.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 30,
+            "end": 337,
+            "startLine": 3,
+            "endLine": 15
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/Navbar.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 30,
+            "end": 138,
+            "startLine": 3,
+            "endLine": 6
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RE.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 6503,
+            "startLine": 5,
+            "endLine": 162
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RESViewer.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 8094,
+            "startLine": 5,
+            "endLine": 211
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RESViewerMermaid.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 93,
+            "end": 1322,
+            "startLine": 5,
+            "endLine": 40
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RS.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 6541,
+            "startLine": 5,
+            "endLine": 164
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RT.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 7039,
+            "startLine": 5,
+            "endLine": 176
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RTSM.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 6155,
+            "startLine": 5,
+            "endLine": 142
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RY.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 5964,
+            "startLine": 5,
+            "endLine": 145
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYCTs.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 5989,
+            "startLine": 5,
+            "endLine": 132
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYCn.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 5280,
+            "startLine": 5,
+            "endLine": 128
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYDtb.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 5161,
+            "startLine": 5,
+            "endLine": 128
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYS.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 5739,
+            "startLine": 5,
+            "endLine": 137
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYT.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 5890,
+            "startLine": 5,
+            "endLine": 140
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYTC.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 5939,
+            "startLine": 5,
+            "endLine": 144
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYTCM.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 6815,
+            "startLine": 5,
+            "endLine": 153
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYTM.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 6230,
+            "startLine": 5,
+            "endLine": 142
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYTSM.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 6417,
+            "startLine": 5,
+            "endLine": 151
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYTTs.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 5555,
+            "startLine": 5,
+            "endLine": 134
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/RYTs.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 89,
+            "end": 5153,
+            "startLine": 5,
+            "endLine": 128
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/Sidebar.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 25,
+            "end": 2222,
+            "startLine": 2,
+            "endLine": 67
+          }
+        }
+      }
+    },
+    "WebAPP/App/Model/ViewData.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 148,
+            "end": 16759,
+            "startLine": 6,
+            "endLine": 309
+          }
+        }
+      }
+    },
+    "WebAPP/AppResults/Controller/Pivot.js": {
+      "executed": true,
+      "functions": {
+        "Pivot.onLoad": {
+          "called": true,
+          "range": {
+            "start": 34909,
+            "end": 37298,
+            "startLine": 683,
+            "endLine": 730
+          }
+        },
+        "Pivot.refreshPage": {
+          "called": true,
+          "range": {
+            "start": 37304,
+            "end": 39299,
+            "startLine": 732,
+            "endLine": 772
+          }
+        },
+        "Pivot.initEvents": {
+          "called": true,
+          "range": {
+            "start": 43240,
+            "end": 48716,
+            "startLine": 862,
+            "endLine": 1000
+          }
+        },
+        "Pivot.updateParam": {
+          "called": true,
+          "range": {
+            "start": 48722,
+            "end": 51281,
+            "startLine": 1002,
+            "endLine": 1052
+          }
+        },
+        "Pivot.updateView": {
+          "called": true,
+          "range": {
+            "start": 51287,
+            "end": 53011,
+            "startLine": 1054,
+            "endLine": 1089
+          }
+        }
+      }
+    },
+    "WebAPP/AppResults/Model/Pivot.Model.js": {
+      "executed": true,
+      "functions": {
+        "Model.constructor": {
+          "called": true,
+          "range": {
+            "start": 281,
+            "end": 5044,
+            "startLine": 7,
+            "endLine": 97
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/Base.Class.js": {
+      "executed": true,
+      "functions": {}
+    },
+    "WebAPP/Classes/Calculate.Class.js": {
+      "executed": true,
+      "functions": {
+        "Calculate.normalizePattern": {
+          "called": true,
+          "range": {
+            "start": 75,
+            "end": 829,
+            "startLine": 5,
+            "endLine": 24
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/Chart.Class.js": {
+      "executed": true,
+      "functions": {
+        "Chart.Chart": {
+          "called": true,
+          "range": {
+            "start": 106,
+            "end": 4481,
+            "startLine": 6,
+            "endLine": 117
+          }
+        },
+        "Chart.RESChart": {
+          "called": true,
+          "range": {
+            "start": 4487,
+            "end": 5539,
+            "startLine": 119,
+            "endLine": 159
+          }
+        },
+        "Chart.SankeyChart": {
+          "called": true,
+          "range": {
+            "start": 5545,
+            "end": 6510,
+            "startLine": 161,
+            "endLine": 197
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/DataModel.Class.js": {
+      "executed": true,
+      "functions": {
+        "DataModel.getDemandComms": {
+          "called": true,
+          "range": {
+            "start": 19690,
+            "end": 20485,
+            "startLine": 557,
+            "endLine": 578
+          }
+        },
+        "DataModel.RESData": {
+          "called": true,
+          "range": {
+            "start": 20491,
+            "end": 23537,
+            "startLine": 580,
+            "endLine": 658
+          }
+        },
+        "DataModel.Rgrid": {
+          "called": true,
+          "range": {
+            "start": 28022,
+            "end": 29197,
+            "startLine": 798,
+            "endLine": 824
+          }
+        },
+        "DataModel.RYgrid": {
+          "called": true,
+          "range": {
+            "start": 30230,
+            "end": 31415,
+            "startLine": 858,
+            "endLine": 884
+          }
+        },
+        "DataModel.RTgrid": {
+          "called": true,
+          "range": {
+            "start": 32470,
+            "end": 33787,
+            "startLine": 920,
+            "endLine": 948
+          }
+        },
+        "DataModel.RSgrid": {
+          "called": true,
+          "range": {
+            "start": 35112,
+            "end": 36423,
+            "startLine": 987,
+            "endLine": 1015
+          }
+        },
+        "DataModel.REgrid": {
+          "called": true,
+          "range": {
+            "start": 37682,
+            "end": 38996,
+            "startLine": 1053,
+            "endLine": 1081
+          }
+        },
+        "DataModel.RYTgrid": {
+          "called": true,
+          "range": {
+            "start": 40478,
+            "end": 41624,
+            "startLine": 1124,
+            "endLine": 1149
+          }
+        },
+        "DataModel.RYSgrid": {
+          "called": true,
+          "range": {
+            "start": 43265,
+            "end": 44401,
+            "startLine": 1194,
+            "endLine": 1219
+          }
+        },
+        "DataModel.RYTMgrid": {
+          "called": true,
+          "range": {
+            "start": 45066,
+            "end": 46359,
+            "startLine": 1239,
+            "endLine": 1268
+          }
+        },
+        "DataModel.RYCgrid": {
+          "called": true,
+          "range": {
+            "start": 48038,
+            "end": 49331,
+            "startLine": 1315,
+            "endLine": 1342
+          }
+        },
+        "DataModel.RYCngrid": {
+          "called": true,
+          "range": {
+            "start": 50696,
+            "end": 51985,
+            "startLine": 1382,
+            "endLine": 1412
+          }
+        },
+        "DataModel.RYEgrid": {
+          "called": true,
+          "range": {
+            "start": 53468,
+            "end": 54606,
+            "startLine": 1455,
+            "endLine": 1479
+          }
+        },
+        "DataModel.RYTsgrid": {
+          "called": true,
+          "range": {
+            "start": 55978,
+            "end": 56764,
+            "startLine": 1519,
+            "endLine": 1539
+          }
+        },
+        "DataModel.RYSeDtgrid": {
+          "called": true,
+          "range": {
+            "start": 57577,
+            "end": 58818,
+            "startLine": 1563,
+            "endLine": 1594
+          }
+        },
+        "DataModel.RYTschart": {
+          "called": true,
+          "range": {
+            "start": 58824,
+            "end": 59785,
+            "startLine": 1596,
+            "endLine": 1617
+          }
+        },
+        "DataModel.RYTCgrid": {
+          "called": true,
+          "range": {
+            "start": 60449,
+            "end": 61614,
+            "startLine": 1637,
+            "endLine": 1664
+          }
+        },
+        "DataModel.RYTCMgrid": {
+          "called": true,
+          "range": {
+            "start": 63743,
+            "end": 65413,
+            "startLine": 1713,
+            "endLine": 1746
+          }
+        },
+        "DataModel.RTSMgrid": {
+          "called": true,
+          "range": {
+            "start": 67519,
+            "end": 68958,
+            "startLine": 1794,
+            "endLine": 1824
+          }
+        },
+        "DataModel.RYTSMgrid": {
+          "called": true,
+          "range": {
+            "start": 69796,
+            "end": 71244,
+            "startLine": 1846,
+            "endLine": 1875
+          }
+        },
+        "DataModel.RYTEgrid": {
+          "called": true,
+          "range": {
+            "start": 71908,
+            "end": 73106,
+            "startLine": 1895,
+            "endLine": 1921
+          }
+        },
+        "DataModel.RYTCngrid": {
+          "called": true,
+          "range": {
+            "start": 74891,
+            "end": 76091,
+            "startLine": 1966,
+            "endLine": 1993
+          }
+        },
+        "DataModel.RYTEMgrid": {
+          "called": true,
+          "range": {
+            "start": 78057,
+            "end": 79721,
+            "startLine": 2040,
+            "endLine": 2073
+          }
+        },
+        "DataModel.RYTTsgrid": {
+          "called": true,
+          "range": {
+            "start": 81685,
+            "end": 82651,
+            "startLine": 2119,
+            "endLine": 2142
+          }
+        },
+        "DataModel.RYCTsgrid": {
+          "called": true,
+          "range": {
+            "start": 84414,
+            "end": 85814,
+            "startLine": 2188,
+            "endLine": 2218
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/DataModelResult.Class.js": {
+      "executed": true,
+      "functions": {
+        "DataModelResult.getVarById": {
+          "called": true,
+          "range": {
+            "start": 351,
+            "end": 709,
+            "startLine": 9,
+            "endLine": 19
+          }
+        },
+        "DataModelResult.getVarialblesObject": {
+          "called": true,
+          "range": {
+            "start": 1018,
+            "end": 1461,
+            "startLine": 32,
+            "endLine": 45
+          }
+        },
+        "DataModelResult.getUnitData": {
+          "called": true,
+          "range": {
+            "start": 3442,
+            "end": 8300,
+            "startLine": 123,
+            "endLine": 201
+          }
+        },
+        "DataModelResult.getPivot": {
+          "called": true,
+          "range": {
+            "start": 11117,
+            "end": 24487,
+            "startLine": 292,
+            "endLine": 518
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/Grid.Class.js": {
+      "executed": true,
+      "functions": {
+        "Grid.seGrid": {
+          "called": true,
+          "range": {
+            "start": 478,
+            "end": 3079,
+            "startLine": 15,
+            "endLine": 68
+          }
+        },
+        "Grid.dtGrid": {
+          "called": true,
+          "range": {
+            "start": 3085,
+            "end": 5597,
+            "startLine": 70,
+            "endLine": 122
+          }
+        },
+        "Grid.dtbGrid": {
+          "called": true,
+          "range": {
+            "start": 5603,
+            "end": 8187,
+            "startLine": 124,
+            "endLine": 176
+          }
+        },
+        "Grid.tsGrid": {
+          "called": true,
+          "range": {
+            "start": 8193,
+            "end": 15137,
+            "startLine": 178,
+            "endLine": 310
+          }
+        },
+        "Grid.techsGrid": {
+          "called": true,
+          "range": {
+            "start": 15143,
+            "end": 27118,
+            "startLine": 312,
+            "endLine": 531
+          }
+        },
+        "Grid.techGroupGrid": {
+          "called": true,
+          "range": {
+            "start": 27124,
+            "end": 29555,
+            "startLine": 533,
+            "endLine": 583
+          }
+        },
+        "Grid.commGrid": {
+          "called": true,
+          "range": {
+            "start": 29561,
+            "end": 33642,
+            "startLine": 585,
+            "endLine": 665
+          }
+        },
+        "Grid.emisGrid": {
+          "called": true,
+          "range": {
+            "start": 33648,
+            "end": 37178,
+            "startLine": 667,
+            "endLine": 745
+          }
+        },
+        "Grid.stgGrid": {
+          "called": true,
+          "range": {
+            "start": 37184,
+            "end": 42730,
+            "startLine": 747,
+            "endLine": 852
+          }
+        },
+        "Grid.scenarioGrid": {
+          "called": true,
+          "range": {
+            "start": 42736,
+            "end": 45146,
+            "startLine": 854,
+            "endLine": 904
+          }
+        },
+        "Grid.constraintGrid": {
+          "called": true,
+          "range": {
+            "start": 45152,
+            "end": 50722,
+            "startLine": 906,
+            "endLine": 1025
+          }
+        },
+        "Grid.indicatorGrid": {
+          "called": true,
+          "range": {
+            "start": 50728,
+            "end": 59717,
+            "startLine": 1027,
+            "endLine": 1209
+          }
+        },
+        "Grid.Grid": {
+          "called": true,
+          "range": {
+            "start": 59723,
+            "end": 63330,
+            "startLine": 1211,
+            "endLine": 1300
+          }
+        },
+        "Grid.VirtualGrid": {
+          "called": true,
+          "range": {
+            "start": 63336,
+            "end": 66914,
+            "startLine": 1302,
+            "endLine": 1397
+          }
+        },
+        "Grid.applyRFilter": {
+          "called": true,
+          "range": {
+            "start": 68243,
+            "end": 69476,
+            "startLine": 1434,
+            "endLine": 1467
+          }
+        },
+        "Grid.applyRTFilter": {
+          "called": true,
+          "range": {
+            "start": 69482,
+            "end": 71326,
+            "startLine": 1469,
+            "endLine": 1513
+          }
+        },
+        "Grid.applyRSTMFilter": {
+          "called": true,
+          "range": {
+            "start": 71336,
+            "end": 73077,
+            "startLine": 1515,
+            "endLine": 1555
+          }
+        },
+        "Grid.applyRSFilter": {
+          "called": true,
+          "range": {
+            "start": 73083,
+            "end": 74922,
+            "startLine": 1557,
+            "endLine": 1601
+          }
+        },
+        "Grid.applyREFilter": {
+          "called": true,
+          "range": {
+            "start": 74927,
+            "end": 76768,
+            "startLine": 1602,
+            "endLine": 1647
+          }
+        },
+        "Grid.applyRYFilter": {
+          "called": true,
+          "range": {
+            "start": 76904,
+            "end": 78202,
+            "startLine": 1650,
+            "endLine": 1685
+          }
+        },
+        "Grid.applyRYCFilter": {
+          "called": true,
+          "range": {
+            "start": 78208,
+            "end": 80043,
+            "startLine": 1687,
+            "endLine": 1732
+          }
+        },
+        "Grid.applyRYCnFilter": {
+          "called": true,
+          "range": {
+            "start": 80049,
+            "end": 81881,
+            "startLine": 1734,
+            "endLine": 1779
+          }
+        },
+        "Grid.applyRYEFilter": {
+          "called": true,
+          "range": {
+            "start": 81887,
+            "end": 83719,
+            "startLine": 1781,
+            "endLine": 1826
+          }
+        },
+        "Grid.applyRYTFilter": {
+          "called": true,
+          "range": {
+            "start": 83725,
+            "end": 85560,
+            "startLine": 1828,
+            "endLine": 1873
+          }
+        },
+        "Grid.applyRYTMFilter": {
+          "called": true,
+          "range": {
+            "start": 85566,
+            "end": 87933,
+            "startLine": 1875,
+            "endLine": 1931
+          }
+        },
+        "Grid.applyRYTsFilter": {
+          "called": true,
+          "range": {
+            "start": 87939,
+            "end": 89774,
+            "startLine": 1933,
+            "endLine": 1978
+          }
+        },
+        "Grid.applyRYTTsFilter": {
+          "called": true,
+          "range": {
+            "start": 89780,
+            "end": 92153,
+            "startLine": 1980,
+            "endLine": 2036
+          }
+        },
+        "Grid.applyRYTCFilter": {
+          "called": true,
+          "range": {
+            "start": 92159,
+            "end": 94532,
+            "startLine": 2038,
+            "endLine": 2094
+          }
+        },
+        "Grid.applyRYTCnFilter": {
+          "called": true,
+          "range": {
+            "start": 94538,
+            "end": 96907,
+            "startLine": 2096,
+            "endLine": 2151
+          }
+        },
+        "Grid.applyRYTEFilter": {
+          "called": true,
+          "range": {
+            "start": 96913,
+            "end": 99282,
+            "startLine": 2153,
+            "endLine": 2208
+          }
+        },
+        "Grid.applyRYCTsFilter": {
+          "called": true,
+          "range": {
+            "start": 99288,
+            "end": 101661,
+            "startLine": 2210,
+            "endLine": 2266
+          }
+        },
+        "Grid.applyTEviewDataFilter": {
+          "called": true,
+          "range": {
+            "start": 102398,
+            "end": 103060,
+            "startLine": 2290,
+            "endLine": 2307
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/Html.Class.js": {
+      "executed": true,
+      "functions": {
+        "Html.apendModel": {
+          "called": true,
+          "range": {
+            "start": 1040,
+            "end": 4794,
+            "startLine": 29,
+            "endLine": 83
+          }
+        },
+        "Html.apendCase": {
+          "called": true,
+          "range": {
+            "start": 4962,
+            "end": 8084,
+            "startLine": 92,
+            "endLine": 149
+          }
+        },
+        "Html.renderDataFile": {
+          "called": true,
+          "range": {
+            "start": 8994,
+            "end": 9522,
+            "startLine": 180,
+            "endLine": 194
+          }
+        },
+        "Html.genData": {
+          "called": true,
+          "range": {
+            "start": 11128,
+            "end": 12262,
+            "startLine": 234,
+            "endLine": 264
+          }
+        },
+        "Html.enableImportProcess": {
+          "called": true,
+          "range": {
+            "start": 12837,
+            "end": 13251,
+            "startLine": 284,
+            "endLine": 293
+          }
+        },
+        "Html.newImportProcess": {
+          "called": true,
+          "range": {
+            "start": 13257,
+            "end": 13739,
+            "startLine": 295,
+            "endLine": 308
+          }
+        },
+        "Html.years": {
+          "called": true,
+          "range": {
+            "start": 23718,
+            "end": 24289,
+            "startLine": 587,
+            "endLine": 600
+          }
+        },
+        "Html.renderScOrder": {
+          "called": true,
+          "range": {
+            "start": 25629,
+            "end": 27864,
+            "startLine": 631,
+            "endLine": 673
+          }
+        },
+        "Html.renderIndicatorFormula": {
+          "called": true,
+          "range": {
+            "start": 29832,
+            "end": 31776,
+            "startLine": 724,
+            "endLine": 773
+          }
+        },
+        "Html.ResStats": {
+          "called": true,
+          "range": {
+            "start": 31782,
+            "end": 35099,
+            "startLine": 775,
+            "endLine": 837
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/Message.Class.js": {
+      "executed": true,
+      "functions": {
+        "Message.SmartMessageBoxDDL": {
+          "called": true,
+          "range": {
+            "start": 7075,
+            "end": 7776,
+            "startLine": 188,
+            "endLine": 203
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/Osemosys.Class.js": {
+      "executed": true,
+      "functions": {
+        "Osemosys.saveCase": {
+          "called": true,
+          "range": {
+            "start": 2590,
+            "end": 3282,
+            "startLine": 69,
+            "endLine": 87
+          }
+        },
+        "Osemosys.generateDataFile": {
+          "called": true,
+          "range": {
+            "start": 4800,
+            "end": 5561,
+            "startLine": 129,
+            "endLine": 147
+          }
+        },
+        "Osemosys.createCaseRun": {
+          "called": true,
+          "range": {
+            "start": 5567,
+            "end": 6342,
+            "startLine": 149,
+            "endLine": 167
+          }
+        },
+        "Osemosys.updateCaseRun": {
+          "called": true,
+          "range": {
+            "start": 7123,
+            "end": 7948,
+            "startLine": 189,
+            "endLine": 207
+          }
+        },
+        "Osemosys.run": {
+          "called": true,
+          "range": {
+            "start": 7954,
+            "end": 8792,
+            "startLine": 209,
+            "endLine": 228
+          }
+        },
+        "Osemosys.batchRun": {
+          "called": true,
+          "range": {
+            "start": 8798,
+            "end": 9637,
+            "startLine": 230,
+            "endLine": 249
+          }
+        },
+        "Osemosys.cleanUp": {
+          "called": true,
+          "range": {
+            "start": 9643,
+            "end": 10424,
+            "startLine": 251,
+            "endLine": 270
+          }
+        },
+        "Osemosys.readDataFile": {
+          "called": true,
+          "range": {
+            "start": 11686,
+            "end": 12439,
+            "startLine": 312,
+            "endLine": 330
+          }
+        },
+        "Osemosys.validateInputs": {
+          "called": true,
+          "range": {
+            "start": 12445,
+            "end": 13202,
+            "startLine": 332,
+            "endLine": 350
+          }
+        },
+        "Osemosys.getData": {
+          "called": true,
+          "range": {
+            "start": 13926,
+            "end": 14330,
+            "startLine": 372,
+            "endLine": 383
+          }
+        },
+        "Osemosys.getData_": {
+          "called": true,
+          "range": {
+            "start": 14336,
+            "end": 14795,
+            "startLine": 385,
+            "endLine": 398
+          }
+        },
+        "Osemosys.getResultData": {
+          "called": true,
+          "range": {
+            "start": 14801,
+            "end": 15221,
+            "startLine": 400,
+            "endLine": 411
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/SmartAdmin.Class.js": {
+      "executed": true,
+      "functions": {
+        "SmartAdmin.rangeSlider": {
+          "called": true,
+          "range": {
+            "start": 72,
+            "end": 1164,
+            "startLine": 5,
+            "endLine": 39
+          }
+        }
+      }
+    },
+    "WebAPP/Classes/SyncS3.Class.js": {
+      "executed": true,
+      "functions": {
+        "SyncS3.updateSync": {
+          "called": true,
+          "range": {
+            "start": 68,
+            "end": 796,
+            "startLine": 5,
+            "endLine": 23
+          }
+        },
+        "SyncS3.uploadSync": {
+          "called": true,
+          "range": {
+            "start": 1517,
+            "end": 2225,
+            "startLine": 45,
+            "endLine": 63
+          }
+        },
+        "SyncS3.deleteSync": {
+          "called": true,
+          "range": {
+            "start": 2231,
+            "end": 2939,
+            "startLine": 65,
+            "endLine": 83
+          }
+        }
+      }
+    },
+    "WebAPP/Routes/Routes.Class.js": {
+      "executed": true,
+      "functions": {
+        "Routes.getRoutes": {
+          "called": true,
+          "range": {
+            "start": 1135,
+            "end": 15528,
+            "startLine": 30,
+            "endLine": 349
+          }
+        }
+      }
+    }
+  }
+}

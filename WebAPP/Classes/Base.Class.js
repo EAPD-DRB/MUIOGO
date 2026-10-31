@@ -218,8 +218,6 @@ export class Base {
         });
     }
 
-  
-
     static prepareCSV(casename, jsonData) {
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -240,9 +238,6 @@ export class Base {
             });
         });
     }
-
-
-
 
     static uploadFunction = function () {
         Dropzone.autoDiscover = false;
@@ -282,7 +277,6 @@ export class Base {
             retryChunks: true,
             retryChunksLimit: 5,
             timeout: null,                // Large uploads may outlast an ordinary request timeout.
-
 
             acceptedFiles: "application/zip, .zip",
             dictDefaultMessage: `
@@ -327,7 +321,6 @@ export class Base {
 
     static uploadXls = function () {
             var casename = $("#osy-casename").val().trim();
-            //console.log('casename ', casename)
             var MyDropzone = new Dropzone("div#importDropzone", {
                 //url: "http://127.0.0.1:5000/upload",
                 url: Base.apiUrl() + "uploadXls",
@@ -347,7 +340,6 @@ export class Base {
                 dictRemoveFile: `Remove Case!`,
                 dictInvalidFileType: "Not valid .xlsx file!",
                 success: function (file, response) {
-                    //console.log('file ',file )
                     console.log('response ', response)
                     console.log('response ', response.template)
                     console.log('file ', file.name)

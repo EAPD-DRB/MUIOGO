@@ -42,10 +42,8 @@ export default class RYDtb {
 
     static initPage(model) {
         Message.clearMessages();
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS[model.group], model.param);
-        //Html.ddlTimeslices($('#osy-timeslices1'), model.timeslices);
 
         let $divGrid = $('#osy-gridRYDtb');
         var daGrid = new $.jqx.dataAdapter(model.srcGrid);
@@ -87,7 +85,6 @@ export default class RYDtb {
     static initEvents(model) {
 
         let $divGrid = $('#osy-gridRYDtb');
-        //let $divChart = $('#osy-chartRYTs');
 
         $("#casePicker").off('click');
         $("#casePicker").on('click', '.selectCS', function (e) {
@@ -117,10 +114,8 @@ export default class RYDtb {
                 delete obj.ScId;
             });
 
-
             Osemosys.updateData(saveData, param, "RYDtb.json")
                 .then(response => {
-                    //model.gridData[model.param] = JSON.parse(daRYTsData);
                     Message.bigBoxSuccess('Model message', response.message, 3000);
                     //sync S3
                     if (Base.AWS_SYNC == 1) {

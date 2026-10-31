@@ -196,7 +196,6 @@ export class Message {
             options: casesArr,
             //options : "[Costa Rica][United States][Autralia][Spain]"
         }, function (ButtonPress, Value) {
-            // html.updateCasePicker(Value);
             Html.updateCasePicker(Value);
             init_f(Value);
             //alert(ButtonPress + " " + Value);

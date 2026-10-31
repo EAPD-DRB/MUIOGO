@@ -11,7 +11,6 @@ export class Model {
             let columns = [];
 
             let years = genData['osy-years'];
-            //let comms = genData['osy-comm'];
             let techs = genData['osy-tech'];
             let scenarios = genData['osy-scenarios'];
             let mods = DataModel.Mods(genData);
@@ -25,11 +24,8 @@ export class Model {
             let PARAMNAMES = DataModel.ParamName(PARAMETERS[group]);
             
             let scClass = {};
-            //datafieldsChart.push({ name: 'Year', type: 'string' });
             $.each(scenarios, function (id, obj) {
                 scClass[obj.ScenarioId] = 'SC_' + id;
-                //datafieldsChart.push({ name: obj.ScenarioId, type: 'number' });
-                //series.push({ dataField: obj.ScenarioId, displayText: obj.Scenario });
             });
 
             datafields.push({ name: 'ScId', type: 'string' });
@@ -49,7 +45,6 @@ export class Model {
             columns.push({ text: 'Storage', datafield: 'Stg', pinned: true, editable: false, align: 'center', cellclassname: cellclass  });
             columns.push({ text: 'MoO', datafield: 'MoId', pinned: true, editable: false, align: 'center', cellsalign: 'center', cellclassname: cellclass, filterable: false  });
             columns.push({ text: 'Unit', datafield: 'UnitId', pinned: true, editable: false, align: 'center', cellsalign: 'center', cellclassname: cellclass, filterable: false  });
-
 
             let validation = function (cell, value) {
                 if (value < 0) {
@@ -72,7 +67,6 @@ export class Model {
                 }
 
             }.bind(this);
-
 
             let initeditor = function (row, cellvalue, editor, data) {
                 
@@ -122,9 +116,6 @@ export class Model {
             this.mods = mods;
             this.scenarios = scenarios;
             this.scenariosCount = scenarios.length;
-            // this.techs = ActivityTechs;
-            // this.stgs = ActivityComms;
-            // this.techIds = techIds;
             this.datafields = datafields;
             this.columns = columns;
 
@@ -142,10 +133,6 @@ export class Model {
             this.years = null;
             this.scenarios = null;
             this.scenariosCount = null;
-            // this.techs = null;
-            // this.stgs = null;
-            // this.techIds = null;
-            // this.datafields = null;
 
             this.columns = null;
 

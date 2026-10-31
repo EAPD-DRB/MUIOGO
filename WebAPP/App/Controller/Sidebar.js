@@ -1,4 +1,4 @@
-import { GROUPNAMES, PARAMORDER, PARAMCOLORS, RESULTPARAMORDER, RESULTPARAMCOLORS, RESULTGROUPNAMES } from "../../Classes/Const.Class.js";
+import { GROUPNAMES, PARAMORDER, PARAMCOLORS } from "../../Classes/Const.Class.js";
 import { Model } from "../Model/Sidebar.Model.js";
 import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { Message } from "../../Classes/Message.Class.js";
@@ -34,11 +34,8 @@ export class Sidebar {
         $('.dynamicRoutesRES').hide();
         $('.dynamicResults').hide();
 
-        //console.log('model menu ', model)
-
         if (model.menu) {
 
-            //Routes.addRoutes(model.PARAMETERS);
             $('.dynamicRoutesLink').show();
             //RES prikazi samo ako ima IAR ili OAR
             if ( model.menuCondition.IAR || model.menuCondition.OAR) {
@@ -54,14 +51,11 @@ export class Sidebar {
             </label>`;
             $('#dynamicRoutes').append(res);
 
-            //console.log('model sidebar ', model)
-
             $.each(PARAMORDER, function (id, group) {
                 $.each(model.PARAMETERS[group], function (id, obj) {
                     //da li ima parametara definisanih za grupu
                     if (model.PARAMETERS[group] !== undefined || model.PARAMETERS[group].length != 0) {
                         if (obj.menu) {
-                            // console.log('obj.id ', obj.id)
                             if (obj.id == 'IAR' && model.menuCondition.IAR) {
                                 let res = `
                                 <li  class="">
@@ -200,14 +194,12 @@ export class Sidebar {
         $('#Navi > li').click(function (e) {
             e.stopPropagation();
             $('li').removeClass('active');
-            //$(selector).removeClass('open');
             $(this).addClass('active');
         });
 
         $('#Navi > li >ul>li').click(function (e) {
             e.stopPropagation();
             $('li').removeClass('active');
-            //$(selector).removeClass('open');
             $(this).parent().closest("li").addClass('active');
             $(this).addClass('active');
         });

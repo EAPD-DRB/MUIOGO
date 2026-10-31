@@ -34,11 +34,8 @@ if not (SUPPORTED_PYTHON_MIN <= sys.version_info[:2] < SUPPORTED_PYTHON_MAX):
 from flask import Flask, jsonify, request, session, render_template
 from flask_cors import CORS
 from datetime import timedelta
-# from pathlib import Path
 
-#import json
 from Classes.Base import Config
-# from API.Classes.Base.SyncS3 import SyncS3
 from Routes.Upload.UploadRoute import upload_api
 from Routes.Case.CaseRoute import case_api
 from Routes.Case.SyncS3Route import syncs3_api
@@ -96,7 +93,6 @@ def _configure_logging():
     _configure_logging._log_path = log_path
     return log_path
 
-
 RUNTIME_LOG_PATH = _configure_logging()
 
 template_dir = str(Config.WEBAPP_PATH)
@@ -148,7 +144,6 @@ def home():
     #     syncS3.downloadSync('Parameters.json', Config.DATA_STORAGE, Config.S3_BUCKET)
     return render_template('index.html', api_base_url=Config.API_BASE_URL)
 
-
 @app.route("/getSession", methods=['GET'])
 def getSession():
     try:
@@ -171,7 +166,6 @@ def getVersion():
         "status_code": "success",
     }), 200
 
-
 @app.route("/setSession", methods=['POST'])
 def setSession():
     try:
@@ -187,7 +181,6 @@ def setSession():
         return jsonify(response), 200
     except KeyError:
         return jsonify('No selected parameters!'), 404
-
 
 def _stop_inflight_installs():
     """Cancel any in-flight OG install and wait briefly for it to tear down.
@@ -214,7 +207,6 @@ def _stop_inflight_installs():
         # Shutdown cleanup must never raise out of a signal handler or atexit.
         pass
 
-
 def _stop_inflight_run():
     """Stop a model run the same way, so its worker tree is not orphaned either.
 
@@ -228,7 +220,6 @@ def _stop_inflight_run():
     except Exception:
         pass
 
-
 def _stop_inflight_work():
     """Shutdown cleanup for both long-running OG subprocesses.
 
@@ -238,7 +229,6 @@ def _stop_inflight_work():
     """
     _stop_inflight_run()
     _stop_inflight_installs()
-
 
 def _install_shutdown_handlers():
     """Run install and run cleanup on Ctrl+C / SIGTERM and at normal interpreter exit.
@@ -272,7 +262,6 @@ def _install_shutdown_handlers():
         except (ValueError, OSError):
             # Not the main thread, or a platform without this signal: skip.
             pass
-
 
 if __name__ == '__main__':
 # if __name__ == 'app':

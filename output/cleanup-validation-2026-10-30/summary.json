@@ -1,0 +1,266 @@
+{
+  "date": "2026-10-30",
+  "result": "Real solver runs and cleanup regression checks passed; pre-existing application limitations identified",
+  "coverage": {
+    "changed_files_executed": 100,
+    "changed_files_total": 100,
+    "affected_python_functions_called": 72,
+    "affected_python_functions_total": 72,
+    "affected_javascript_functions_called": 192,
+    "affected_javascript_functions_total": 192,
+    "new_or_modified_python_executable_lines_covered": 65,
+    "new_or_modified_python_executable_lines_total": 65,
+    "scope": "Function entry coverage for retained functions whose source was changed; this is not 100% branch coverage."
+  },
+  "solver_runs": {
+    "CBC": 2,
+    "OG_ZAF_steady_state": 2,
+    "additional_optimizer_runs": 0
+  },
+  "vietnam": {
+    "VNM_Cleanup_Control": {
+      "objective": 720171.53636732,
+      "infeasible_marked_rows": 0,
+      "activity_rows": 34224,
+      "matrix": {
+        "rows": 170124,
+        "columns": 135800,
+        "nonzeros": 936255
+      },
+      "timeslice_balance_rows": 15128
+    },
+    "VNM_Cleanup_Cost": {
+      "objective": 720249.41710689,
+      "infeasible_marked_rows": 0,
+      "activity_rows": 34224,
+      "matrix": {
+        "rows": 170124,
+        "columns": 135800,
+        "nonzeros": 936255
+      },
+      "timeslice_balance_rows": 15128
+    },
+    "comparison": {
+      "archived_objective": 720171.53636731,
+      "control_delta_from_archive": 1.0011717677116394e-08,
+      "cost_change": 77.88073957001325,
+      "cost_change_percent": 0.010814192957808721,
+      "old_solution_evaluated_price_premium": 78.28222495282061,
+      "objective_bound_test": true,
+      "noncost_activity_max_difference": 2744.3338400000002
+    },
+    "optimizer_runs": 2
+  },
+  "og_zaf": {
+    "baseline_macro": {
+      "C": 0.5127186792111235,
+      "K": 2.4701597375506017,
+      "L": 0.3543325155073386,
+      "Y": 0.8854247084012791,
+      "r": 0.11054406355916059,
+      "w": 1.3202937310482608
+    },
+    "reform_macro": {
+      "C": 0.5143208619043241,
+      "K": 2.4830682249735188,
+      "L": 0.3540643902683329,
+      "Y": 0.8872490555346497,
+      "r": 0.1107504755261542,
+      "w": 1.3240159808983063
+    },
+    "Y_percent_change": 0.2060420401712948,
+    "baseline_cit_rate": 0.27,
+    "reform_cit_rate": 0.26,
+    "dimensions": {
+      "S": 80,
+      "T": 320,
+      "J": 7,
+      "M": 1,
+      "I": 1
+    },
+    "baseline_matches_retained_macro_exactly": true,
+    "transition_path_tested": false
+  },
+  "browser_parameter_roundtrips": {
+    "CLEWS_grid_save_reload_restore": {
+      "status": "passed",
+      "original": 0,
+      "test_value": 0.25
+    },
+    "OG_ZAF_field_save_reload_restore": {
+      "status": "passed",
+      "initial_display": 0.27,
+      "test_display": 0.26,
+      "stored_test": [
+        [
+          0.26
+        ]
+      ],
+      "stored_after_restore": {}
+    }
+  },
+  "regressions": {
+    "backend_passed": 662,
+    "backend_subtests_passed": 19,
+    "browser_passed": 119,
+    "frontend_passed": 78,
+    "ruff": "passed",
+    "git_diff_check": "passed"
+  },
+  "preexisting_issues": {
+    "cross_parameter_edit_validation": {
+      "before": {
+        "/updateViewData": {
+          "http": 400,
+          "body": {
+            "error": "Required field cannot be null: TechId"
+          }
+        },
+        "/updateTEViewData": {
+          "http": 400,
+          "body": {
+            "error": "Required field cannot be null: emisId"
+          }
+        }
+      },
+      "after": {
+        "/updateViewData": {
+          "http": 400,
+          "body": {
+            "error": "Required field cannot be null: TechId"
+          }
+        },
+        "/updateTEViewData": {
+          "http": 400,
+          "body": {
+            "error": "Required field cannot be null: emisId"
+          }
+        }
+      }
+    },
+    "unused_legacy_getData_": {
+      "file": "WebAPP/Classes/Osemosys.Class.js",
+      "function": "Osemosys.getData_",
+      "before_after_executable_AST_identical": true,
+      "observed_result": "undefined for a valid JSON response",
+      "repository_callers": 0
+    }
+  },
+  "test_boundaries": {
+    "cloud_transports": "Mocked locally; no AWS requests sent. Both retained upload path-formatting routines executed with assertions.",
+    "client_solve_delete_and_cloud_wrappers": "Executed with isolated HTTP responses; actual solver pipelines were tested separately with the four real runs.",
+    "nullable_edit_handler_followthrough": "Real handler and persistence code checked with only the pre-existing non-null validator substituted. Public endpoint failures remain documented.",
+    "legacy_dimension_editors": "RY, RYTE, RYTSM enabled only in a non-solved fixture catalog. Production catalog unchanged.",
+    "runtime": "Concurrent and instrumented; not an exact solve-time benchmark."
+  },
+  "preservation": {
+    "original_vietnam_archive_sha256": "4d0f5b38c1c713c413c41d9fe4f738e7ef32c6bac1b87767e6495327db2ade49",
+    "existing_og_case_files": "all recorded hashes matched",
+    "cleaned_source_files": "all 100 recorded hashes matched",
+    "production_model_parameters_modified": false,
+    "product_code_modified_during_runtime_testing": false,
+    "model_promotion_performed": false
+  },
+  "tested_source_sha256": {
+    "API/Classes/Base/Config.py": "40ac1c63bb8c1f1bcaf9aead3a33423abc68347e34c0addbf47bf31d8a7804b6",
+    "API/Classes/Base/CustomThreadClass.py": "e6bfed123f9c22e4383bbc72c3eee827b5540e01f94c19bcd41ade16a74c7930",
+    "API/Classes/Base/SyncS3.py": "3673eecb35477c8c098659bef3e3be391865241a0518096e07575b3c9ea429dc",
+    "API/Classes/Case/DataFileClass.py": "25899c99c165ad7d2589a38226b36a371616e04182036d8630807316f6b1a99d",
+    "API/Classes/Case/ImportTemplate.py": "b7d6d3e16c9b507e734b8fc34634514dda1c69e6efa8ff34b6f86f345a2d18c0",
+    "API/Classes/Case/OsemosysClass.py": "b28a4b15b5d4c5f1f62900f521c3f983773e887aa44a58e2bedee32676ae9f98",
+    "API/Classes/Case/UpdateCaseClass.py": "f1753246f804fd59b1f41ca855714b9579a611238d44587b0d7a7388a73bb8a3",
+    "API/Classes/Clews/ClewsInstallJob.py": "b04277f24fe025ab8eb8fb566bdad0636ad157a81f2a94f0ce73337a919a4106",
+    "API/Classes/Clews/ClewsInstaller.py": "58d299a93ae0ff88a0e2c52a4a1eaa0a0f1f326e3e454623ef1142f5f1548c28",
+    "API/Classes/Clews/CountryRegistry.py": "5b3244b8f95f84cb6bfe421fde127d4d9b7ec223473f3a38ce274bb080464ded",
+    "API/Classes/Clews/Provenance.py": "2c556deb48c0083b333e2d527dbe3979aeb2cc7b80b8f7bc2ba1596d322af252",
+    "API/Classes/OGCore/InstallJob.py": "28f9ebbb30bbae427cfc3ddb58d2e65db5eced7fc1c1af2e63226c254cb79f80",
+    "API/Classes/OGCore/OGReport.py": "cb5a94475c8de04cd3d439c0a1b58fa7f0b58f79e5d25cfc2b857a30816a0dd9",
+    "API/Classes/OGCore/OGResults.py": "b8064dc94db530c327bcbd5dab1930d147589d816cffd70fccc7c9c32e26ed96",
+    "API/Classes/OGCore/OGSchema.py": "8f5d7fae7fef7d38a77cf5dd655e3890477957027a91cd670c2cc05a4fe52410",
+    "API/Classes/OGCore/ogc_worker.py": "91599ccea89963939645c7216eaaddc5a29490c3fb73a1dc803cce6bcb810d49",
+    "API/Classes/OGLink/PatchApply.py": "a28b5695f6e25cf2a5b5f76e0c6c30755569123629c4785f00b8418fdf9609f4",
+    "API/Classes/OGLink/PostRunHook.py": "e9677216e849dbac1ff326399b0b8f8ba15a26d3283e541f74140e0d270163cc",
+    "API/Routes/Case/CaseRoute.py": "c47c626c170c190404d3fc199c9fc68be15f31dbf1f7466bb9337f4515f53b0b",
+    "API/Routes/Case/ViewDataRoute.py": "2fdb03f226ec01ef1e171d2298446abc91ffa7fc2ca8cedaefefc90e8506c02e",
+    "API/Routes/Clews/ClewsRoute.py": "2b3b4979959db3779b3407040d5877a7a5dad9ce0b5a8181bce087b442b402c0",
+    "API/Routes/DataFile/DataFileRoute.py": "1bbe606fbc37ca13964cdabda309081d418dc7da711a74aee82e80eafc862cb7",
+    "API/Routes/OGCore/OGCoreInstallRoute.py": "7bc968f15d39b643db1315e1f2c2b034d860113377ff8e1e4b1039a6bac3065f",
+    "API/Routes/OGCore/OGCoreRunRoute.py": "d58e0aea159f267b8c722f7b399a8b4f0b92efd993ab0dc0664617ae630104e5",
+    "API/Routes/Upload/UploadRoute.py": "faeb12fcb0b824370b695f53576680410582b61a4276d8d5e3dbd38d083dbaec",
+    "API/app.py": "766df73e449d55998318100594d58519c12f7b0b5841871219abc6b9c3330c10",
+    "WebAPP/App/Controller/AddCase.js": "906026b7c3ce67e156b353aee79d6ab0fc9c2a02e5fad65eaf7d317a9017741e",
+    "WebAPP/App/Controller/Config.js": "1451dfed13af999a0029335451f739649fa933ec09564c5a46c975c19cb50669",
+    "WebAPP/App/Controller/DataFile.js": "f2bd347423d96084c1952c7ca6c9c1d42f7d908aa408bb5f678db3049833d981",
+    "WebAPP/App/Controller/Home.js": "861ca99f57ce634f34c988aea42e19e8889082b8e6e2e1ab527bc51bd376aa5d",
+    "WebAPP/App/Controller/LegacyImport.js": "9a0de0a728688689095d330ad934cbbdada54d3e3d63c8d15e86d61cad8f8930",
+    "WebAPP/App/Controller/Navbar.js": "921e050d42da5f3e756cc799522c55a50210b3f5fbc15ec7001b6d742a67b2b0",
+    "WebAPP/App/Controller/OGParameters.js": "cbe29d20fee4edeed762302ded6f39cd3470add8972a45c45e543905afa04b74",
+    "WebAPP/App/Controller/R.js": "6f23d7e72b379ff3399b3a4694e81bdaf833ce13124a175f3269e6f8ec8c8517",
+    "WebAPP/App/Controller/RE.js": "f6d6fe185c84399a688a21c912a6e6c58919faa73ca440c243effa3105e4f14f",
+    "WebAPP/App/Controller/RESViewer.js": "2eba2a25b05e20d9fb511add173fecde29afc4dc63461ca183d2cb53499d2147",
+    "WebAPP/App/Controller/RESViewerMermaid.js": "d8e7c7ae7d0c1c50bdc7eddf415ea437c9996fdfc81928fa9a3a57dd26257400",
+    "WebAPP/App/Controller/RS.js": "bf6dc878e9ca244fd794860b66fcf82483bc73a5984a5173154375d658b72806",
+    "WebAPP/App/Controller/RT.js": "dd684e94f47db8e569530ccc8c4b4ccba917e388e15ea59af0b076bca707203d",
+    "WebAPP/App/Controller/RTSM.js": "5fe7ee3c87931f2c71d7ee7d00dd901e8bc2b7eebd88e686f01fd7d39db5a692",
+    "WebAPP/App/Controller/RY.js": "9b68a708c2f566b55acc9224bd75a90df4eb0d4865864050b67fe3f361a8a068",
+    "WebAPP/App/Controller/RYC.js": "6bb966b4f45bc08840dfbaeaf8b54e77747780d6f74690a30da17123bd609c77",
+    "WebAPP/App/Controller/RYCTs.js": "9ebcfb990a0eaf56e42f8af9ca7d17fa02ae466936eaf091a85b9b0e0fd7bc0d",
+    "WebAPP/App/Controller/RYCn.js": "c3c0fd08981bb96283eedc0c154ed85419ac60d679dd769307b55ea0afeb095b",
+    "WebAPP/App/Controller/RYDtb.js": "49e3fd85db84804adbc0137a4ed4de679e5a8c0be49a820dd2214049066cb0ac",
+    "WebAPP/App/Controller/RYE.js": "49f865a68165ec2cf6f588ddce47e53a333b7cc0811cd534fad09c3cc440ea59",
+    "WebAPP/App/Controller/RYS.js": "e188454900aead3394de6906fc4cd0a4edb37781a1301798862ca3c380fdb23b",
+    "WebAPP/App/Controller/RYSeDt.js": "0c5ca88ca11d981cf511082ff9314462db3389448800ffd3769acc1cea74d2f6",
+    "WebAPP/App/Controller/RYT.js": "e7feb2ab6fcb2c532aa9f9e32713e8b15465cb4dcad99e9d98869b98bb781f60",
+    "WebAPP/App/Controller/RYTC.js": "7d3e3320ae9b97b56b3be0b698c7fa63b1e26052cd195e50ef0f456d44371294",
+    "WebAPP/App/Controller/RYTCM.js": "f8137c08efb3bafd45343d0fb0b591d1461b19a7cb6d7e88fe6b80b68939f0e6",
+    "WebAPP/App/Controller/RYTCn.js": "8ee5545515a4bdeb23d05504216e798095015e8e3f8312a002ca3c4c05f05b12",
+    "WebAPP/App/Controller/RYTE.js": "7d1bd29b150ed7b8ef08828f2dc374c8aad285cf4cd0f2791d1a8a71aabb4a50",
+    "WebAPP/App/Controller/RYTEM.js": "09ce0ff620be7ad4ce7de3f85f5df2cad4e15c7e993a819050d6f93583ece600",
+    "WebAPP/App/Controller/RYTM.js": "ec938f73f96ec91f00e96486db885d982bed931e1b6bc9152d6f3268f2b5189a",
+    "WebAPP/App/Controller/RYTSM.js": "ed19599e67fc2d84b217a599b3776170b801b4d8ac618bd66a7cf63ec2b4f7ce",
+    "WebAPP/App/Controller/RYTTs.js": "fb174a7e4797ba9335eec640eb9a2930126b9626a7aeb45cfaecb4e42f1938ab",
+    "WebAPP/App/Controller/RYTs.js": "7e90d53c39803ce8cef8fc345ebdcd14a904bf68a1342d71dc9d3c41e3bbe15f",
+    "WebAPP/App/Controller/Settings.js": "9b1ea027229cfac15b1fb4bc52a77eb9820eb41fb4361d1d82fd4bb0e47f0042",
+    "WebAPP/App/Controller/Sidebar.js": "3b1d9d8f16b7f398df5cb30c80915cedc164bbc92d793e18ab45c41238f8cc35",
+    "WebAPP/App/Controller/ViewData.js": "2cb23ca1bbb11428b05180d163a93a3f98302be64482d3b35b9eab434f9cfed6",
+    "WebAPP/App/Model/AddCase.Model.js": "f868f3c7d5ff4f523decb7ceb5db1821efee7136208505dfd61ce4aee2ff62c2",
+    "WebAPP/App/Model/Config.Model.js": "303768765bb1cd38b27274b1478a811a7c4a99a73c23f49185a60bd45eaedaa2",
+    "WebAPP/App/Model/DataFile.Model.js": "1bc2bfa34ad63c6236088755f63fef58b083949c1dd1dec8904ad8ad4c1cdd08",
+    "WebAPP/App/Model/Home.Model.js": "a47e2efba747a8e53b8fc8829b6076f3f76b559edd3896a0b1dd4faca782cc01",
+    "WebAPP/App/Model/Navbar.Model.js": "e53d4fbfacf6681ee6ddcc6ee1c0559af7ab6116f794cf8786657e5e1ab00d46",
+    "WebAPP/App/Model/RE.Model.js": "102b9fe6f31ce465e4522c6444ea6da241fc8b7613327a1a67088393fd7f50db",
+    "WebAPP/App/Model/RESViewer.Model.js": "090cfe145f0c6f0e8f8819a80928eafb573b0e58e370d8ed7f166d26a20d3fb1",
+    "WebAPP/App/Model/RESViewerMermaid.Model.js": "cfa9b42deda14af08a1af1e7372f93b0d3c5d8cab5ab0b1a790bb3658343df3b",
+    "WebAPP/App/Model/RS.Model.js": "6a2ed83233ee943297b9e7d52759b4edac53c66b1c27920c3b3df3d154854a81",
+    "WebAPP/App/Model/RT.Model.js": "1277d12d799c5aee62f1286a4b62ae6fb8e6e88d75a7086d944da1a302bda4ef",
+    "WebAPP/App/Model/RTSM.Model.js": "b6fbd81db849e51f6bf8b2d43432ca0e549f84018f0e94210c658a5875eebd05",
+    "WebAPP/App/Model/RY.Model.js": "28824d5cac0efdd41515d6984025341382a2a76c52af145e79dfc2b5c465a075",
+    "WebAPP/App/Model/RYCTs.Model.js": "a27c8ce9994c9a0728d45cdd4f219634cc8747f8aa3b145046bc1a4b41fadb3e",
+    "WebAPP/App/Model/RYCn.Model.js": "7e3de4cd6b6f5fecaddfcaa5157b5a25728c9caec0754048d22107ac1d53b630",
+    "WebAPP/App/Model/RYDtb.Model.js": "f7e4eda93e76fbe3bbb1b29ea0c50aba76ff340e64a8eb08c0638be14576fea9",
+    "WebAPP/App/Model/RYS.Model.js": "7ab9b2fd4e5cf27ad3e105e5d756ec9b7d4ed1965cb5cf883482c7985736c43f",
+    "WebAPP/App/Model/RYT.Model.js": "cedea7b8caab466c638b2f57ea9dc021f96aae1a93fc41405d36a3f0071fc0fe",
+    "WebAPP/App/Model/RYTC.Model.js": "bb90419685f88c456a173ccf1b5e01ea85a44e151c112344042351997820c1d1",
+    "WebAPP/App/Model/RYTCM.Model.js": "dffaac4442bd089c33afd19a1cbdc29764e53f43d235844a9ffb6abe24982263",
+    "WebAPP/App/Model/RYTM.Model.js": "828122dcdd331197769dbaebaee579d52c484c015f586cc63313b86bd91791c3",
+    "WebAPP/App/Model/RYTSM.Model.js": "1b8d60be22f80b2ac7185ad7270a4ecd154ec789f46eaf29c00624af51aac2fe",
+    "WebAPP/App/Model/RYTTs.Model.js": "5dd7e91bf84f2f25aeaef8b6c8946ddc65f4e5c1faba9af518cf903bf7c3f533",
+    "WebAPP/App/Model/RYTs.Model.js": "456ee67316ee7c07fb708d948125eb5336c217b380bcf3bfe92ff4e218793c5e",
+    "WebAPP/App/Model/Sidebar.Model.js": "05ffceab6bbaac192efb856625f0181f73ba97e92da1572aae1b8cd0646dada1",
+    "WebAPP/App/Model/ViewData.Model.js": "a3c7539a26577ff458c24d4e206738efb75b1cf34f9f0469bb24711825df25b6",
+    "WebAPP/AppResults/Controller/Pivot.js": "2a0d04c688915ab4efe9cde8fc7db2b87934b93fe148ae3e0698507aca923a08",
+    "WebAPP/AppResults/Model/Pivot.Model.js": "4a48566049596e5667e38b78fec38acabb7e35e3f29e67318fd3d1bce6907f76",
+    "WebAPP/Classes/Base.Class.js": "b5650359a35307c09ae6c25bec1ae75b7878496c0d7ae840fad785ef17d4dd4b",
+    "WebAPP/Classes/Calculate.Class.js": "51fc42a6e2782ce5b3675f23606b187410e0a6ec3df6991178ef7f4b18dab467",
+    "WebAPP/Classes/Chart.Class.js": "55440e6aa84198753a89beb876cd23928599cf6b8e1750f1b53e71c89ac30d3c",
+    "WebAPP/Classes/DataModel.Class.js": "8b6f8203c54c0838962250b0d3a94fc47bbb800a2a2c78962214a65f7798b939",
+    "WebAPP/Classes/DataModelResult.Class.js": "a2c0795ad1009608f39be9dd8393e1b5ca127cf77bbb7a2a68bd0c7a2e4f2d57",
+    "WebAPP/Classes/Grid.Class.js": "71f8af5ac9fa38ac44c80ffdb8e409250d82b14049ae9de5f14049f00959e7f9",
+    "WebAPP/Classes/Html.Class.js": "3f097f64cc84b1c7ee94fc749e40f63810054b51fd9236f2ed35ced1cb023a82",
+    "WebAPP/Classes/Message.Class.js": "2d7d433f83ab6d62de80cbf6e460d22a5bc692d6eb2ce5f3f0f4f21b6c12f549",
+    "WebAPP/Classes/Osemosys.Class.js": "c633216705dc692371db50060d5fb17a2bc2050c5f238147b15b3e7d60d76bd5",
+    "WebAPP/Classes/SmartAdmin.Class.js": "f38e24c54b2c87b8beacd4a9ca5710398114aabda2abf5e077db2c481fbd54d2",
+    "WebAPP/Classes/SyncS3.Class.js": "7703ee37c9e246f8b7f51d0fbc916320c7668b65e10368161a4970ef34e1bff6",
+    "WebAPP/Routes/Routes.Class.js": "9913dec3a8c93443dd34f2df9398a7f131189516a54b65127c70718dcd2bc5a4"
+  }
+}

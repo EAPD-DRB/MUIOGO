@@ -5,13 +5,9 @@ export class Model {
     constructor (casename, genData, DemandComms, settings, techSelect=null) {
 
         let TechIdByName = DataModel.TechIdByName(genData);
-        // let CommNames = DataModel.CommName(genData); 
-        // let DemandComms = DataModel.getDemandComms(RYCdata, genData['osy-years']);
         let resData = DataModel.RESData(genData, DemandComms);
         let techData = DataModel.getTechData(genData);
         let commData = DataModel.getCommData(genData);
-        
-
 
         let index = 0;
         let labelIndex = {};
@@ -54,7 +50,6 @@ export class Model {
             selectedTechs.push(obj.TechId);
         });
 
-
         //let osyScheme= ['#b3d9ff','#ecc6c6','#d1d1e0','#d1e0e0','#ffecb3','#ffb3b3','#e0e0d1','#ecc6d9','#ffd9b3','#ccffff','#f2d9e6','#d6e0f5','#ffffcc','#e5e5cc', '#f2d9d9', '#ffecb3','#ebebe0','#e6e6e6', '#ccf5ff'];
         //let osyScheme= ['#1B2B32', '#37646F', '#a0a8ac', '#71a06a', '#B22E2F', '#cccccc', '#999966', '#cc9900'];
         let osyScheme= ['#1B2B3270', '#37646F70', '#a0a8ac70', '#71a06a70', '#B22E2F70', '#cccccc70', '#99996670', '#cc990070']  
@@ -95,7 +90,6 @@ export class Model {
                             }
                             source.push(labelIndex[idOAR]);
                             target.push(labelIndex[idIAR]);
-                            //labelLink.push(CommNames[CommId]);
                             if(settings.Desc){
                                 labelLink.push(commData[CommId].Comm + '-' + commData[CommId].Desc );
                             }
@@ -119,17 +113,12 @@ export class Model {
                         if (!(dispayedTechs.includes(techId))){
                             dispayedTechs.push(techId);
                         }
-                        // if (!(dispayedTechs.includes(techId))){
-                        //     dispayedTechs.push(techId);
-                        // }
                         if (!(dispayedComms.includes(CommId))){
                             dispayedComms.push(CommId);
                         }
 
                         source.push(labelIndex['DS']);
                         target.push(labelIndex[techId]);
-                        //labelLink.push(CommNames[CommId]);
-                        //labelLink.push(commData[CommId].Comm + '-' + commData[CommId].Desc );
                         if(settings.Desc){
                             labelLink.push(commData[CommId].Comm + '-' + commData[CommId].Desc );
                         }
@@ -152,18 +141,12 @@ export class Model {
                         if (!(dispayedTechs.includes(techId))){
                             dispayedTechs.push(techId);
                         }
-                        // if (!(dispayedTechs.includes(techId))){
-                        //     dispayedTechs.push(techId);
-                        // }
                         if (!(dispayedComms.includes(CommId))){
                             dispayedComms.push(CommId);
                         }
 
-
                         source.push(labelIndex[techId]);
                         target.push(labelIndex['DT']);   
-                        //labelLink.push(CommNames[CommId]);
-                        //labelLink.push(commData[CommId].Comm + '-' + commData[CommId].Desc );
                         if(settings.Desc){
                             labelLink.push(commData[CommId].Comm + '-' + commData[CommId].Desc );
                         }
@@ -180,18 +163,12 @@ export class Model {
                         if (!(dispayedTechs.includes(techId))){
                             dispayedTechs.push(techId);
                         }
-                        // if (!(dispayedTechs.includes(techId))){
-                        //     dispayedTechs.push(techId);
-                        // }
                         if (!(dispayedComms.includes(CommId))){
                             dispayedComms.push(CommId);
                         }
 
-
                         source.push(labelIndex[techId]);
                         target.push(labelIndex['FD']);   
-                        //labelLink.push(CommNames[CommId]);
-                        //labelLink.push(commData[CommId].Comm + '-' + commData[CommId].Desc );
                         if(settings.Desc){
                             labelLink.push(commData[CommId].Comm + '-' + commData[CommId].Desc );
                         }
@@ -204,9 +181,6 @@ export class Model {
                 }
             }); 
         });
-
-
-
 
         let labelCount = source.length;
         this.selectedTechs = selectedTechs;

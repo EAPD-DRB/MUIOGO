@@ -13,7 +13,7 @@ the case appears in the registry when it lands (the job's success path reconcile
 """
 import shutil
 import threading
-from datetime import date, datetime, timezone, UTC
+from datetime import date, datetime, UTC
 
 from Classes.Base import Config
 from Classes.Base.CustomThreadClass import CustomThread

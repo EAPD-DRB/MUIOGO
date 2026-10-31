@@ -22,7 +22,6 @@ from Classes.Clews.CountryCatalog import CountryCatalog
 from Classes.Clews.CountryManifest import (
     CountrySource,
     ManifestError,
-    parse_github_url,
     select_vintage,
 )
 from Classes.Clews.CountryRegistry import CountryRegistry
@@ -243,7 +242,7 @@ def checkCountryUpdate():
                     f"{archive['name']} in vintage {src['vintage']}.", http=404)
 
     update_available = published != known
-    from datetime import datetime, timezone
+    from datetime import datetime
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     record = CountryRegistry.get(casename)
     if record is not None:

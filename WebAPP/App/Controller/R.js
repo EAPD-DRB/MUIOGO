@@ -170,7 +170,6 @@ export default class R {
             Message.smallBoxInfo('Info', 'Scenario data hidden!', 2000);
         });
 
-
         $("#osy-removeScData").off('click');
         $("#osy-removeScData").on('click', function(e) {
             e.preventDefault();
@@ -231,7 +230,6 @@ export default class R {
             }
         }).on('cellvaluechanged', function (event) {
             if (!pasteEvent) {
-                //Pace.restart();
                 var args = event.args;
                 var tech = event.args.datafield;
                 var rowBoundIndex = args.rowindex;
@@ -298,7 +296,6 @@ export default class R {
         $("#resizeColumns").off('click');
         $("#resizeColumns").click(function () {
             if(res){
-                //$divGrid.jqxGrid('refresh');
                 $divGrid.jqxGrid('autoresizecolumn', 'Sc');
                 $divGrid.jqxGrid('autoresizecolumn', 'Param');
                 $divGrid.jqxGrid('autoresizecolumn', 'UnitId');
@@ -309,12 +306,6 @@ export default class R {
             }
             res = !res;        
         });
-    
-        // $("#xlsAll").off('click');
-        // $("#xlsAll").click(function (e) {
-        //     e.preventDefault();
-        //     $divGrid.jqxGrid('exportdata', 'xls', 'R');
-        // });
 
         $("#xlsAll").off('click');
         $("#xlsAll").click(function (e) {

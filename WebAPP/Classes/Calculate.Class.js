@@ -12,9 +12,6 @@ export class Calculate {
                 data: JSON.stringify({ "casename": casename }),
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },

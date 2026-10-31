@@ -8,7 +8,6 @@ import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { GROUPNAMES } from "../../Classes/Const.Class.js";
 import { DEF } from "../../Classes/Definition.Class.js";
 import { MessageSelect } from "./MessageSelect.js";
-// import { Sidebar } from "./Sidebar.js";
 
 export default class RY {
     static onLoad(group, param) {
@@ -43,8 +42,6 @@ export default class RY {
 
     static initPage(model) {
         Message.clearMessages();
-        // Sidebar.Load(model.PARAMETERS);
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS[model.group], model.param);
 
@@ -173,7 +170,6 @@ export default class RY {
             Message.smallBoxInfo('Info', 'Scenario data hidden!', 2000);
         });
 
-
         $("#osy-removeScData").off('click');
         $("#osy-removeScData").on('click', function (e) {
             e.preventDefault();
@@ -184,7 +180,6 @@ export default class RY {
             $.each(rows, function (id, obj) {
                 if (obj.Sc == sc && obj.Param == model.PARAMNAMES[model.param]) {
                     $.each(model.years, function (i, year) {
-                        //$divGrid.jqxGrid('setcellvalue', obj.uid, year, null);
                         model.gridData[model.param][id][year] = null;
                     });
                 }
@@ -192,7 +187,6 @@ export default class RY {
 
             model.srcGrid.localdata = model.gridData;
             $divGrid.jqxGrid('updatebounddata');
-
 
             let chartData = [];
             $.each(model.years, function (idY, year) {

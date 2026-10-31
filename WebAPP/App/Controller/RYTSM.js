@@ -33,13 +33,10 @@ export default class RYTSM {
                     }
                     Message.loaderEnd();
                     return Promise.reject(er);
-                    // MessageSelect.init(RYTSM.refreshPage.bind(RYTSM));
-                    // throw new Error('No Model selected');
                 }
             })
             .then(data => {
                 let [casename, genData, PARAMETERS, RYTSMdata, cases] = data;
-                //console.log('RYTSMdata ', RYTSMdata)
                 if (RYTSMdata[param]['SC_0'].length == 0) {
                     let er = {
                         "message": 'There is no activity defined!',
@@ -67,9 +64,7 @@ export default class RYTSM {
 
     static initPage(model) {
         Message.clearMessages();
-        
 
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS['RYTSM'], model.param);
 
@@ -80,9 +75,6 @@ export default class RYTSM {
         if (model.scenariosCount > 1) {
             Html.lblScenario( model.scenariosCount);
             Html.ddlScenarios(model.scenarios, model.scenarios[1]['ScenarioId']);
-            // Html.ddlTechNames(model.techs[model.param], model.techs[model.param][0]['StgId']);
-            // Html.ddlCommNames(model.comms[model.param][model.techs[model.param][0]['StgId']], model.comms[model.param][model.techs[model.param][0]['TechId']][0]['StgId']);
-            //Grid.applyRYTCFilter($divGrid, model.years);
 
             Grid.applyGridFilter($divGrid, model.years);
         }
@@ -182,7 +174,6 @@ export default class RYTSM {
             Message.clearMessages();
             if (model.RYTSMdata[this.value]['SC_0'].length === 0) {
                 MessageSelect.activity(RYTSM.refreshPage.bind(RYTSM), model.casename);
-                //Message.warning(`There is no data definded for ${model.PARAMNAMES[this.value]} for Model ${model.casename}!`);
             } else {
                 Html.title(model.casename, model.PARAMNAMES[this.value], GROUPNAMES[model.group]);
                 model.srcGrid.root = this.value;
@@ -203,7 +194,6 @@ export default class RYTSM {
             e.preventDefault();
             e.stopImmediatePropagation();
         });
-
 
         $("#osy-openScData").off('click');
         $("#osy-openScData").on('click', function (e) {
@@ -230,17 +220,6 @@ export default class RYTSM {
             e.stopImmediatePropagation();
             Message.loaderStart('Removing scenario data...');
             var sc = $("#osy-scenarios").val();
-            // var comm = $("#osy-commNames").val();
-            // var tech = $("#osy-techNames").val();
-            // var rows = $divGrid.jqxGrid('getdisplayrows');
-            // $.each(rows, function (id, obj) {
-            //     if (obj.Sc == sc && obj.Stg == comm && obj.Tech == tech) {
-            //         $.each(model.years, function (i, year) {
-            //             $divGrid.jqxGrid('setcellvalue', obj.uid, year, null);
-            //         });
-            //     }
-            // });
-            // Grid.applyRYTCFilter($divGrid, model.years);
 
             var rows = $divGrid.jqxGrid('getdisplayrows');
             $.each(rows, function (id, obj) {

@@ -18,13 +18,6 @@ export class Model {
 
             let RTSMgrid = DataModel.RTSMgrid(genData, RTSMdata, PARAMETERS);
 
-
-            // let techIds = DataModel.TechId(genData);
-            // let ActivityTechs = DataModel.activityTechs(techs);
-            // let ActivityComms = DataModel.activityComms(genData);
-
-            
-            
             let scClass = {};
             $.each(scenarios, function (id, obj) {
                 scClass[obj.ScenarioId] = 'SC_' + id;
@@ -49,8 +42,6 @@ export class Model {
             columns.push({ text: 'MoO', datafield: 'MoId', pinned: true, editable: false, align: 'center', cellsalign: 'center', cellclassname: cellclass, filterable: false, width: '10%', menu:false  });
             columns.push({ text: 'Unit', datafield: 'UnitId', pinned: true, editable: false, align: 'center', cellsalign: 'center', cellclassname: cellclass,sortable:false, filterable: false, width: '10%' , menu:false });
 
-
-
             let validation = function (cell, value) {
                 if (value < 0) {
                     return { result: false, message: 'Value must be positive!' };
@@ -72,7 +63,6 @@ export class Model {
                 }
 
             }.bind(this);
-
 
             let initeditor = function (row, cellvalue, editor, data) {
                 
@@ -104,21 +94,6 @@ export class Model {
             cellclassname: cellclass,
             geteditorvalue: geteditorvalue, menu:false  });
 
-            // $.each(years, function (id, year) {
-            //     datafields.push({ name: year, type: 'number' });
-            //     columns.push({
-            //         text: year, datafield: year, cellsalign: 'right', align: 'center', columntype: 'numberinput', cellsformat: this.decimal, minWidth: 55, maxWidth: 110,
-            //         groupable: false,
-            //         filterable: false,
-            //         sortable: false,
-            //         initeditor: initeditor,
-            //         validation: validation,
-            //         cellsrenderer: cellsrenderer,
-            //         cellclassname: cellclass,
-            //         geteditorvalue: geteditorvalue
-            //     });
-            // }.bind(this));
-
             var srcGrid = {
                 datatype: "json",
                 localdata: RTSMgrid,
@@ -132,9 +107,6 @@ export class Model {
             this.mods = mods;
             this.scenarios = scenarios;
             this.scenariosCount = scenarios.length;
-            // this.techs = ActivityTechs;
-            // this.stgs = ActivityComms;
-            // this.techIds = techIds;
             this.datafields = datafields;
             this.columns = columns;
 
@@ -152,10 +124,6 @@ export class Model {
             this.years = null;
             this.scenarios = null;
             this.scenariosCount = null;
-            // this.techs = null;
-            // this.stgs = null;
-            // this.techIds = null;
-            // this.datafields = null;
 
             this.columns = null;
 

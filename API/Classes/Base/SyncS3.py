@@ -10,7 +10,6 @@ import glob
 from pathlib import Path
 from collections.abc import Iterable 
 
-# from Classes.Base.S3 import S3
 from Classes.Base import Config
 
 class SyncS3():
@@ -104,7 +103,6 @@ class SyncS3():
         for mydir in mydirs:
             dirNames = glob.glob(os.path.join(mydir, tag))
             fileNames = [f for f in dirNames if not Path(f).is_dir()]
-            #rows = len(fileNames)
             for i, FullfileName in enumerate(fileNames):
                 #dobijemo ime file npr, genData.json
                 fileName = str(FullfileName).replace(str(localDir), '')

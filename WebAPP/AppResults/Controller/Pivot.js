@@ -710,8 +710,6 @@ export default class Pivot {
                         "status_code": "CaseError"
                     }
                     return Promise.reject(er);
-                    // MessageSelect.init(Pivot.refreshPage.bind(Pivot));
-                    // throw new Error('No model selected');
                 }
             })
             .then(data => {
@@ -759,7 +757,6 @@ export default class Pivot {
                     start);
                 model.refreshPage = true;
                 this.initPage(model);
-                //this.initEvents(model);
             })
             .catch(error => {
                 setTimeout(function () {
@@ -864,8 +861,6 @@ export default class Pivot {
 
     static initEvents(model, app) {
 
-
-        //console.log('model ', model)
         $("#casePicker").off('click');
         $("#casePicker").on('click', '.selectCS', function (e) {
             e.preventDefault();
@@ -922,8 +917,6 @@ export default class Pivot {
                 Message.bigBoxSuccess('Model message', response.message, 3000);
                 POSTDATA['osy-varId'] = param;
                 model.VIEWS.push(POSTDATA);
-                // Html.ddlViews(model.VIEWS[model.param]);
-                //Html.ddlViews(model.VIEWS);
                 Pivot.fillSelect('#cmbViews', model.VIEWS, 'osy-viewId', 'osy-viewname', document.querySelector('#cmbViews').value);
                 $('#createView').modal('toggle');
             })
@@ -949,7 +942,6 @@ export default class Pivot {
                         viewUpdate.push(obj);
                     }
                 });
-                // Html.ddlViews(model.VIEWS[model.param]);
                 Pivot.fillSelect('#cmbViews', model.VIEWS, 'osy-viewId', 'osy-viewname', 'null');
                 Osemosys.updateViews(model.casename, viewUpdate, model.param)
                 .then(response => {
@@ -1015,7 +1007,6 @@ export default class Pivot {
         model.param = param;
         Osemosys.getResultData(model.casename, model.group+'.json')
         .then(DATA => {
-            //console.log('DATA ', DATA, model.group)
             if (DATA !== null && model.param in DATA && Object.getOwnPropertyNames(DATA[model.param]).length != 0){
                 let pivotData = DataModelResult.getPivot(DATA, model.genData, model.VARIABLES, model.group, model.param);
                 model.pivotData = pivotData;
@@ -1072,10 +1063,6 @@ export default class Pivot {
             $.each(model.VIEWS, function (id, obj) {
                 if(obj['osy-viewId'] == model.VIEW){
                     let param = obj['osy-varId'];
-                    // console.log('model.VIEW ', model.VIEW)
-                    // console.log('model.VIEWS ', model.VIEWS)
-                    // console.log('obj ', obj)
-                    // console.log('param ', param)
                     if (model.VAR_IDS.includes(param)){
 
                         if(param != model.param){
@@ -1085,7 +1072,6 @@ export default class Pivot {
                             Pivot.updateParam(param, app, model, obj);
                         }
                         else{
-                            //console.log('OVDJE RADI HTML!!!')
                             app.state.apply(obj['osy-viewdef']);
                             app.state.pruneFilterValues(model.pivotData);
                             Pivot.reportLayoutWarnings(app.state);

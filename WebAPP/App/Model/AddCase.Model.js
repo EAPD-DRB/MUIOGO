@@ -41,7 +41,6 @@ export class Model {
       // key. Without it, opening any older case throws a JS error.
       this.indicators = genData['osy-indicators'] || [];
 
-
       this.techCount = genData['osy-tech'].length;
       this.stgCount = genData['osy-stg'].length;
       this.techGroupCount = genData['osy-techGroups'].length;
@@ -70,13 +69,9 @@ export class Model {
       this.caserunByScenario = {'SC_0': []};
 
       this.tsNames = { 'TS_0': 'TS_0' };
-      // this.seNames = { 'SE_0': 'SE_0' };
-      // this.dtNames = { 'DT_0': 'DT_0' };
-      // this.dtbNames = { 'DTB_0': 'DTB_0' };
       this.seNames = { 'SE_0': 1 };
       this.dtNames = { 'DT_0': 1 };
       this.dtbNames = { 'DTB_0': 1 };
-
 
       this.title = "Model configuration";
       this.desc = null;
@@ -96,7 +91,6 @@ export class Model {
       this.dailytimebrackets = DefaultObj.defaultDtb(true);
       this.indicatorTypes = DataModel.getIndicatorTypes(INDICATORS);
 
-      
       this.constraints = [];
       this.indicators = [];
       this.techCount = 1;

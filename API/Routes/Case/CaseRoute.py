@@ -206,7 +206,6 @@ def resultsExists():
                 response = False
         else:
             response = False
-        #response = True
         return jsonify(response), 200
     except(IOError):
         return jsonify('No existing cases!'), 404
@@ -317,7 +316,6 @@ def saveCase():
         configPath = Path(Config.DATA_STORAGE, 'Variables.json')
         vars = File.readParamFile(configPath)
 
-        
         # viewDef = {}
         # for group, lists in vars.items():
         #     for list in lists:
@@ -336,7 +334,6 @@ def saveCase():
         #         else:
         #             viewDef[list['id']] = viewDefExisting["osy-views"][list['id']]
 
-
         #ako je izabran case, edit mode
         if case != None and case != '':
             genDataPath = Path(Config.DATA_STORAGE, case, "genData.json")
@@ -347,7 +344,6 @@ def saveCase():
             resDataPath = Path(Config.DATA_STORAGE,case,'view','resData.json')
             viewDataPath = Path(Config.DATA_STORAGE,case,'view','viewDefinitions.json')
 
-            # viewDataPathExisting = Path(Config.DATA_STORAGE,casename,'view','viewDefinitions.json')
             viewDefExisting = File.readParamFile(viewDataPath)
             viewDef = {}
             for group, lists in vars.items():
@@ -371,9 +367,6 @@ def saveCase():
                     "osy-cases":[]
                 }
                 File.writeFile( resData, resDataPath)
-
-
-
 
             #edit case sa istim imenom
             if case == casename:
@@ -500,7 +493,6 @@ def downloadCSV():
             return jsonify({'message': 'No active session. Please select a model first.', 'status_code': 'error'}), 400
         dataFile = Path(Config.DATA_STORAGE,casename,'export.csv')
         
-        dir = Path(Config.DATA_STORAGE,casename)
         return send_file(dataFile.resolve(), as_attachment=True,mimetype='application/csv', max_age=0)
         #return send_from_directory(dir, 'export.csv', as_attachment=True)
     except(IOError):
@@ -518,123 +510,3 @@ def run():
         return jsonify('No existing cases!'), 404
     except(IndexError):
         return jsonify('No existing cases!'), 404
-
-
-####################################################################################OBSOLETE AND SyncS3###################################################
-
-# @case_api.route("/getData", methods=['POST'])
-# def getData():
-#     try:
-#         start = time.time()
-#         casename = request.json['casename']
-#         dataJson = request.json['dataJson']
-#         if casename != None:
-#             dataPath = Path(Config.DATA_STORAGE,casename,dataJson)
-#             data = File.readFile(dataPath)
-#             diff = time.time() - start
-#             print('get data time ', diff)
-#             response = data   
-
-#         else:  
-#             response = None     
-#         return jsonify(response), 200
-#     except(IOError):
-#         return jsonify('No existing cases!'), 404
-
-# @case_api.route("/deleteResultsPreSync", methods=['POST'])
-# def deleteResultsPreSync():
-#     try:        
-#         case = request.json['casename']
-        
-#         resPath = Path(Config.DATA_STORAGE, case, 'res')
-#         dataPath = Path(Config.DATA_STORAGE, case, 'data.txt')
-#         shutil.rmtree(resPath)
-#         os.remove(dataPath)
-
-#         response = {
-#             "message": 'Case <b>'+ case + '</b> deleted!',
-#             "status_code": "success"
-#         }
-#         return jsonify(response), 200
-#     except(IOError):
-#         return jsonify('No existing cases!'), 404
-#     except OSError:
-#         raise OSError
-
-
-# @case_api.route("/uploadSync", methods=['POST'])
-# def uploadSync():
-#     try:        
-#         case = request.json['casename']
-
-#         s3 = SyncS3()
-#         localDir = Path(Config.DATA_STORAGE, case)
-#         s3.uploadSync(localDir, case, Config.S3_BUCKET, '*')
-
-#         response = {
-#             "message": 'Case <b>'+ case + '</b> syncronized!',
-#             "status_code": "success"
-#         }
-#         return jsonify(response), 200
-#     except(IOError):
-#         return jsonify('No existing cases!'), 404
-#     except OSError:
-#         raise OSError
-
-# @case_api.route("/deleteSync", methods=['POST'])
-# def deleteSync():
-#     try:        
-#         case = request.json['casename']
-
-#         s3 = SyncS3()
-#         s3.deleteCase(case)
-
-#         response = {
-#             "message": 'Case <b>'+ case + '</b> deleted!',
-#             "status_code": "success"
-#         }
-#         return jsonify(response), 200
-#     except(IOError):
-#         return jsonify('No existing cases!'), 404
-#     except OSError:
-#         raise OSError
-
-# @case_api.route("/updateSync", methods=['POST'])
-# def updateSync():
-#     try:        
-#         case = request.json['casename']
-#         filename = request.json['file']
-
-#         s3 = SyncS3()
-#         localDir = Path(Config.DATA_STORAGE, case, str(filename))
-#         s3.updateSync(localDir, case, Config.S3_BUCKET)
-
-#         response = {
-#             "message": 'Case <b>'+ case + '</b> deleted!',
-#             "status_code": "success"
-#         }
-#         return jsonify(response), 200
-#     except(IOError):
-#         return jsonify('No existing cases!'), 404
-#     except OSError:
-#         raise OSError
-
-# @case_api.route("/updateSyncParamFile", methods=['GET'])
-# def updateSyncParamFile():
-#     try:        
-
-#         case = ''
-#         s3 = SyncS3()
-#         localDir = Path(Config.DATA_STORAGE, "Parameters.json")
-
-#         s3.updateSync(localDir, case, Config.S3_BUCKET)
-
-#         response = {
-#             "message": 'Case <b>'+ case + '</b> deleted!',
-#             "status_code": "success"
-#         }
-#         return jsonify(response), 200
-#     except(IOError):
-#         return jsonify('No existing cases!'), 404
-#     except OSError:
-#         raise OSError

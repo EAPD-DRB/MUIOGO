@@ -239,5 +239,5 @@ class CountryRegistry:
 
 
 def _now_iso():
-    from datetime import datetime, timezone
+    from datetime import datetime
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")

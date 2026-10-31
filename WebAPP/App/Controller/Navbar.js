@@ -9,7 +9,6 @@ export class Navbar {
         .then(cases => {
             let model = new Model(cases, casename);
             Html.renderCasePicker(model.cases, model.casename);
-            //Html.title(model.casename);
             this.initEvents();
         })
         .catch(error =>{ 

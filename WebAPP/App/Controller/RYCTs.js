@@ -3,7 +3,6 @@ import { Base } from "../../Classes/Base.Class.js";
 import { Html } from "../../Classes/Html.Class.js";
 import { Model } from "../Model/RYCTs.Model.js";
 import { Grid } from "../../Classes/Grid.Class.js";
-import { Chart } from "../../Classes/Chart.Class.js";
 import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { GROUPNAMES } from "../../Classes/Const.Class.js";
 import { DEF } from "../../Classes/Definition.Class.js";
@@ -42,7 +41,6 @@ export default class RYCTs {
 
     static initPage(model) {
         Message.clearMessages();
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS['RYCTs'], model.param);
         let $divGrid = $('#osy-gridRYCTs');

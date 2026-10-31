@@ -4,7 +4,6 @@ import { UNITS, TAGS, STORAGE_OPERATIONS, BALANCE_LEVELS } from './Const.Class.j
 import { Message } from "./Message.Class.js";
 import { JqxSources } from "./JqxSources.Class.js";
 
-
 export class Grid {
 
     static theme() {
@@ -13,24 +12,10 @@ export class Grid {
     }
     static themeMaterial = "material";
 
-    // static scrollToRow($divGrid, rowIndex) {
-    //     var rowHeight = $divGrid.jqxGrid('rowsheight');
-    //     console.log('rowHeight ', rowHeight)
-    //     var gridTopOffset = $divGrid.offset().top;
-    //     var scrollToPosition = gridTopOffset + (rowIndex * rowHeight) -25;
-    //     console.log('gridTopOffset ',gridTopOffset,rowIndex, scrollToPosition)
-    //     //scrollTop: scrollToPosition
-    //     $('html, body').animate({
-    //         scrollTop: scrollToPosition
-    //     }, 100); // Adjust the duration as needed
-    // }
-
     static seGrid(seasons) {
 
         let srcSe = JqxSources.srcSe(seasons);
         var daSe = new $.jqx.dataAdapter(srcSe);
-
-        //console.log('daSe ', daSe)
 
         var validation_1 = function (cell, value) {
             var validationResult = true;
@@ -52,7 +37,6 @@ export class Grid {
         }
 
         var cellsrendererbutton = function (row, column, value) {
-            // var id = $("#osy-gridComm").jqxGrid('getrowid', row);
             if (row == 0) {
                 return '';
             }
@@ -107,7 +91,6 @@ export class Grid {
         }
 
         var cellsrendererbutton = function (row, column, value) {
-            // var id = $("#osy-gridComm").jqxGrid('getrowid', row);
             if (row == 0) {
                 return '';
             }
@@ -162,7 +145,6 @@ export class Grid {
         }
 
         var cellsrendererbutton = function (row, column, value) {
-            // var id = $("#osy-gridComm").jqxGrid('getrowid', row);
             if (row == 0) {
                 return '';
             }
@@ -269,7 +251,6 @@ export class Grid {
         }
 
         var cellsrendererbutton = function (row, column, value) {
-            // var id = $("#osy-gridComm").jqxGrid('getrowid', row);
             if (row == 0) {
                 return '';
             }
@@ -344,7 +325,6 @@ export class Grid {
             autoBind: true
         });
 
-
         this.srcTechs = JqxSources.srcTech(techs);
         this.srcTechGroups = JqxSources.srcTechGroup(techGroups);
         this.srcComms = JqxSources.srcComm(commodities, daBalanceLevels.records);
@@ -371,7 +351,6 @@ export class Grid {
         }.bind(this);
 
         var ddlTechGroups = function (row, value, editor) {
-            // let data = this.daComms.records;
             let data = techGroups;
             editor.jqxDropDownList({
                 source: this.daTechGroups, displayMember: 'TechGroup', valueMember: 'TechGroupId', checkboxes: true,theme: this.themeMaterial,filterHeight:30,
@@ -385,15 +364,12 @@ export class Grid {
         }.bind(this);
 
         var ddlComms = function (row, value, editor) {
-            // let data = this.daComms.records;
             let data = commodities;
             editor.jqxDropDownList({
                 source: this.daComms, displayMember: 'Comm', valueMember: 'CommId', checkboxes: true,theme: this.themeMaterial,filterHeight:30,
                 renderer: function (index, label, value) {
                     let tootltipValue = label;
                     let tooltipContent = `<div data-toggle="tooltip" data-placement="top" title="${data[index]['Desc']}">${tootltipValue}</div>`;
-                    // $(`#${tootltipValue}`).jqxTooltip({ content: tooltipContent });
-                    // $(`#${tootltipValue}`).jqxTooltip('open', 15, 15);
                     return tooltipContent
                 }
                 , filterable: true 
@@ -401,7 +377,6 @@ export class Grid {
         }.bind(this);
 
         var ddlEmis = function (row, value, editor) {
-            // let data = this.daEmi.records;
             let data = emissions;
             editor.jqxDropDownList({
                 source: this.daEmi, displayMember: 'Emis', valueMember: 'EmisId', checkboxes: true,theme: this.themeMaterial,filterHeight:30,
@@ -409,8 +384,6 @@ export class Grid {
                 renderer: function (index, label, value) {
                     let tootltipValue = label;
                     let tooltipContent = `<div data-toggle="tooltip" data-placement="top" title="${data[index]['Desc']}">${tootltipValue}</div>`;
-                    // $(`#${tootltipValue}`).jqxTooltip({ content: tooltipContent });
-                    // $(`#${tootltipValue}`).jqxTooltip('open', 15, 15);
                     return tooltipContent
                 }.bind(this)
                 , filterable: true 
@@ -445,7 +418,6 @@ export class Grid {
         var validation_1 = function (cell, value) {
             var validationResult = true;
             var rows = $('#osy-gridTech').jqxGrid('getboundrows');
-            //console.log('rows ', rows)
             var currentRowId = String($('#osy-gridTech').jqxGrid('getrowid', cell.row));
             for (var i = 0; i < rows.length; i++) {
                 if (rows[i].Tech.trim() == value.trim() && String(rows[i].uid) !== currentRowId) {
@@ -462,10 +434,6 @@ export class Grid {
         }
 
         var deleteBtnRender = function (row, column, value) {
-            //console.log(row, column, value)
-            // if (row == 0) {
-            //     return '';
-            // }
             return '<span style="padding:10px; width:100%; border:none" class="btn btn-default deleteTech" data-techId='+value+' data-id='+row+'><i class="fa  fa-times danger"></i>Delete</span>';
         }
 
@@ -484,7 +452,6 @@ export class Grid {
 
         var cellsrendererComms = function (row, columnfield, value, defaulthtml, columnproperties) {
             let valueNames = [];
-            // console.log('value ', value)
             if (Array.isArray(value)) {
                 var values = value;
             } else {
@@ -494,7 +461,6 @@ export class Grid {
                 valueNames.push(commNames[commId])
             });
 
-            // console.log('valueNames ', valueNames)
             return `<div class='jqx-grid-cell-middle-align' style="margin-top: 8.5px;">${valueNames} </div>`;
         }.bind(this);
 
@@ -525,10 +491,7 @@ export class Grid {
             // //     'OL': 'Operational Life'
             // // }
             $(element).parent().jqxTooltip({ position: 'mouse', content: id, theme: this.themeMaterial });
-            //return '<div style="text-align: center; margin-top: 12px; word-wrap:wrap;white-space:normal;">' + element + '</div>';
-            //$("#filmPicture1").jqxTooltip({ content: '<b>Title:</b> <i>The Amazing Spider-man</i><br /><b>Year:</b> 2012', position: 'mouse', name: 'movieTooltip'});
         }
-
 
         let height = $(window).height() - 370;
         $("#osy-gridTech").jqxGrid({
@@ -591,7 +554,6 @@ export class Grid {
         }
 
         var cellsrendererbutton = function (row, column, value) {
-            // var id = $("#osy-gridComm").jqxGrid('getrowid', row);
             if (row == 0) {
                 return '';
             }
@@ -671,10 +633,6 @@ export class Grid {
         }
 
         var cellsrendererbutton = function (row, column, value) {
-            // var id = $("#osy-gridComm").jqxGrid('getrowid', row);
-            // if (row == 0) {
-            //     return '';
-            // }
             return '<span style="padding:10px; width:100%; border:none" class="btn btn-default deleteComm" data-commId=' + value + ' data-id=' + row + ' ><i class="fa fa-times danger"></i>Delete</span>';
         }
 
@@ -747,7 +705,6 @@ export class Grid {
         }
 
         var cellsrendererbutton = function (row, column, value) {
-            //var id = $("#osy-gridEmis").jqxGrid('getrowid', row);
             if (row == 0) {
                 return '';
             }
@@ -762,7 +719,6 @@ export class Grid {
             }
             $(element).parent().jqxTooltip({ position: 'mouse', content: tooltip[id] });
 
-            //$("#filmPicture1").jqxTooltip({ content: '<b>Title:</b> <i>The Amazing Spider-man</i><br /><b>Year:</b> 2012', position: 'mouse', name: 'movieTooltip'});
         }
 
         $("#osy-gridEmis").jqxGrid({
@@ -806,11 +762,9 @@ export class Grid {
 
         var daStg = new $.jqx.dataAdapter(srcStg);
         var daUnits = new $.jqx.dataAdapter(srcUnits);
-        // var daStgOperations = new $.jqx.dataAdapter(srcStgOperations);
         this.daTechs = new $.jqx.dataAdapter(this.srcTechs, {
             autoBind: true
         });
-
 
         var ddlEditor = function (row, value, editor) {
             editor.jqxDropDownList({ source: daUnits, displayMember: 'name', valueMember: 'id', groupMember: 'group', filterable: true,theme: this.themeMaterial,filterHeight:30 });
@@ -833,16 +787,6 @@ export class Grid {
         }.bind(this);
 
         var cellsrendererTechs = function (row, columnfield, value, defaulthtml, columnproperties) {
-            // let valueNames = [];
-            // if (Array.isArray(value)) {
-            //     var values = value;
-            // } else {
-            //     var values = value.split(/,\s*/);
-            // }
-            // $.each(values, function (id, techId) {
-            //     valueNames.push(techNames[techId])
-            // });
-            // return `<div class='jqx-grid-cell-middle-align' style="margin-top: 8.5px;">${valueNames} </div>`;
 
             return `<div class='jqx-grid-cell-middle-align' style="margin-top: 8.5px;">${techNames[value]} </div>`;
         }.bind(this);
@@ -931,7 +875,6 @@ export class Grid {
         }
 
         var cellsrendererbutton = function (row, column, value) {
-            // var id = $("#osy-gridComm").jqxGrid('getrowid', row);
             if (row == 0) {
                 return '';
             }
@@ -976,20 +919,16 @@ export class Grid {
         this.daConstraint = new $.jqx.dataAdapter(this.srcConstraint);
 
         var ddlTechs = function (row, value, editor) {
-            // let data = this.daTech.records;
             let data = techs;
             editor.jqxDropDownList({
                 source: this.daTech, displayMember: 'Tech', valueMember: 'TechId', checkboxes: true,theme: this.themeMaterial,filterHeight:30,
                 renderer: function (index, label, value) {
                     let tootltipValue = label;
                     let tooltipContent = `<div data-toggle="tooltip" data-placement="top" title="${data[index]['Desc']}">${tootltipValue}</div>`;
-                    // $(`#${tootltipValue}`).jqxTooltip({ content: tooltipContent });
-                    // $(`#${tootltipValue}`).jqxTooltip('open', 15, 15);
                     return tooltipContent
                 }
                 , filterable: true 
             }).bind(this);
-
 
         }.bind(this);
 
@@ -1016,10 +955,6 @@ export class Grid {
         }
 
         var getEditorValue = function (row, cellvalue, editor) {
-            // let tootltipValue =cellvalue;
-            // let tooltipContent = "<div>" + tootltipValue + "</div>";
-            // editor.jqxTooltip({ content: tooltipContent });
-            // editor.jqxTooltip('open', 15, 15);
             return editor.val();
         }
 
@@ -1089,9 +1024,7 @@ export class Grid {
         });
     }
 
-    
     static indicatorGrid(techs, comms, indicators, indicatorTypes, techNames, commNames) {
-
 
         let srcBalanceLevels = JqxSources.srcBalanceLevel(JSON.stringify(BALANCE_LEVELS));
         var daBalanceLevels = new $.jqx.dataAdapter(srcBalanceLevels, {
@@ -1101,8 +1034,6 @@ export class Grid {
         this.srcTechs = JqxSources.srcTech(techs);
         this.srcComms = JqxSources.srcComm(comms, daBalanceLevels.records);
         this.srcType = JqxSources.srcIndType(indicatorTypes);
-
-
 
         this.daTech = new $.jqx.dataAdapter(this.srcTechs, {
             autoBind: true
@@ -1193,10 +1124,6 @@ export class Grid {
         }
 
         var getEditorValue = function (row, cellvalue, editor) {
-            // let tootltipValue =cellvalue;
-            // let tooltipContent = "<div>" + tootltipValue + "</div>";
-            // editor.jqxTooltip({ content: tooltipContent });
-            // editor.jqxTooltip('open', 15, 15);
             return editor.val();
         }
 
@@ -1325,7 +1252,6 @@ export class Grid {
             // rendergridrows: rendergridrows,
             cellhover: function (element, pageX, pageY, record) {
 
-                //var cellValue = $(element.innerHTML).find('span').html(); // you can remove if any element not required in tooltip here
                 var cellValue = $(element.innerHTML).text();
 
                 let tootltipValue;
@@ -1424,7 +1350,6 @@ export class Grid {
             rendergridrows: rendergridrows,
             cellhover: function (element, pageX, pageY, record) {
 
-                //var cellValue = $(element.innerHTML).find('span').html(); // you can remove if any element not required in tooltip here
                 var cellValue = $(element.innerHTML).text();
 
                 let tootltipValue;
@@ -1507,8 +1432,6 @@ export class Grid {
     }
 
     static applyRFilter($divGrid, sc = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1544,8 +1467,6 @@ export class Grid {
     }
 
     static applyRTFilter($divGrid, techs, sc = null, param = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1592,8 +1513,6 @@ export class Grid {
     }
     
     static applyRSTMFilter($divGrid, sc = null, param = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1636,8 +1555,6 @@ export class Grid {
     }
 
     static applyRSFilter($divGrid, stgs, sc = null, param = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1683,8 +1600,6 @@ export class Grid {
         $divGrid.jqxGrid('applyfilters');
     }
     static applyREFilter($divGrid, emis, sc = null, param = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1733,8 +1648,6 @@ export class Grid {
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////Legacy filters
     static applyRYFilter($divGrid, years, sc = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1772,8 +1685,6 @@ export class Grid {
     }
 
     static applyRYCFilter($divGrid, years, sc = null, comm = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1821,8 +1732,6 @@ export class Grid {
     }
 
     static applyRYCnFilter($divGrid, years, sc = null, con = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1870,8 +1779,6 @@ export class Grid {
     }
 
     static applyRYEFilter($divGrid, years, sc = null, emi = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1919,8 +1826,6 @@ export class Grid {
     }
 
     static applyRYTFilter($divGrid, years, sc = null, tech = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -1968,8 +1873,6 @@ export class Grid {
     }
 
     static applyRYTMFilter($divGrid, years, sc = null, tech = null, mo = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -2028,8 +1931,6 @@ export class Grid {
     }
 
     static applyRYTsFilter($divGrid, years, sc = null, ts = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -2077,8 +1978,6 @@ export class Grid {
     }
 
     static applyRYTTsFilter($divGrid, years, sc = null, tech = null, ts = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -2137,8 +2036,6 @@ export class Grid {
     }
 
     static applyRYTCFilter($divGrid, years, sc = null, tech = null, comm = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -2197,8 +2094,6 @@ export class Grid {
     }
 
     static applyRYTCnFilter($divGrid, years, sc = null, tech = null, con = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -2256,8 +2151,6 @@ export class Grid {
     }
 
     static applyRYTEFilter($divGrid, years, sc = null, tech = null, emi = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -2315,8 +2208,6 @@ export class Grid {
     }
 
     static applyRYCTsFilter($divGrid, years, sc = null, comm = null, ts = null) {
-        //$('#jqxLoader').jqxLoader('open');
-        //$("#jqxLoader").jqxLoader({theme: 'darkblue', imagePosition:"top", isModal:true,width: 500, height: 70, text: "Uploading Hourly Data Paterns..." });
         $divGrid.jqxGrid('clearfilters');
 
         //filter column 2
@@ -2413,6 +2304,5 @@ export class Grid {
 
         // // apply the filters.
         $divGrid.jqxGrid('applyfilters');
-        //$('#loadermain').hide(); 
     }
 }

@@ -1,5 +1,4 @@
 import { DataModel } from "../../Classes/DataModel.Class.js";
-import { GROUPNAMES } from "../../Classes/Const.Class.js";
 
 export class Model {
 
@@ -41,7 +40,6 @@ export class Model {
 
             let scClass = {};
 
-            //datafieldsChart.push({ name: 'TechId', type:'string' });
             datafieldsChart.push({ name: 'Tech', type: 'string' });
 
             $.each(scenarios, function (id, obj) {
@@ -90,7 +88,6 @@ export class Model {
                 var scId = $('#osy-gridRT').jqxGrid('getcellvalue', row, 'ScId');
                 if (scId !== 'SC_0') {
                     editor.jqxNumberInput({ decimalDigits: this.d, spinButtons: true, allowNull: true }); 
-                    //editor.jqxNumberInput({ spinButtons: true, allowNull: true }); 
                     $('#' + editor[0].id + ' input').keydown(function (event) {
                         if (event.keyCode === 46 || event.keyCode === 8) {
                             $('#' + editor[0].id).val(null);
@@ -98,7 +95,6 @@ export class Model {
                     })
                 }else{
                     editor.jqxNumberInput({ decimalDigits: this.d, spinButtons: false, allowNull: false }); 
-                    //editor.jqxNumberInput({  spinButtons: false, allowNull: false }); 
                     editor.val(cellvalue);
                 }
 
@@ -165,8 +161,6 @@ export class Model {
             this.casename = null;
             this.years = null;
             this.techs = null;
-            // this.datafields = null; 
-            // this.datafieldsChart = null; 
             this.columns = null;
             this.series = null;
             this.gridData = null;

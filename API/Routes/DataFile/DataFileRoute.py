@@ -6,7 +6,7 @@ and owns res/<caserunname>. DataFile handles the generation and solver phases.
 
 from flask import Blueprint, Response, jsonify, request, send_file, session
 from pathlib import Path
-import shutil, datetime, time, os, logging
+import shutil, time, os, logging
 from Classes.Case.DataFileClass import DataFile
 from Classes.Base import Config
 from utils import validate_json_fields
@@ -183,7 +183,6 @@ def readModelFile():
     text = model_path.read_text(encoding="utf-8", errors="replace")
     return Response(text, mimetype="text/plain; charset=utf-8")
 
-
 @datafile_api.route("/readLogFile", methods=['GET'])
 def readLogFile():
     try:
@@ -217,16 +216,6 @@ def validateInputs():
 @datafile_api.route("/downloadDataFile", methods=['GET'])
 def downloadDataFile():
     try:
-        #casename = request.json['casename']
-        #casename = 'DEMO CASE'
-        # txtFile = DataFile(casename)
-        # downloadPath = txtFile.downloadDataFile()
-        # response = {
-        #     "message": "You have downloaded data.txt to "+ str(downloadPath) +"!",
-        #     "status_code": "success"
-        # }         
-        # return jsonify(response), 200
-        #path = "/Examples.pdf"
         case = session.get('osycase', None)
         if case is None:
             return jsonify({'message': 'No active session. Please select a model first.', 'status_code': 'error'}), 400

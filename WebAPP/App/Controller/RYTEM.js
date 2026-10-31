@@ -30,8 +30,6 @@ export default class RYTEM {
                     "status_code": "CaseError"
                 }
                 return Promise.reject(er);
-                //throw new Error(JSON.stringify(er));
-                //MessageSelect.init(RYTEM.refreshPage.bind(RYTEM));
             }
         })
         .then(data => {
@@ -63,7 +61,6 @@ export default class RYTEM {
 
     static initPage(model) {
         Message.clearMessages();
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS['RYTEM'], model.param);
         let $divGrid = $('#osy-gridRYTEM');

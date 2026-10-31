@@ -31,7 +31,7 @@ import json
 import math
 import os
 import sys
-from datetime import datetime, timezone, UTC
+from datetime import datetime, UTC
 from pathlib import Path
 
 import numpy as np
@@ -140,7 +140,7 @@ def sanitize(obj):
     """
     if isinstance(obj, np.ndarray):
         return sanitize(obj.tolist())
-    if isinstance(obj, (np.floating, np.integer, np.bool_)):
+    if isinstance(obj, np.floating | np.integer | np.bool_):
         v = obj.item()
         if isinstance(v, float) and not math.isfinite(v):
             return None
@@ -149,9 +149,9 @@ def sanitize(obj):
         return obj if math.isfinite(obj) else None
     if isinstance(obj, dict):
         return {k: sanitize(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple)):
+    if isinstance(obj, list | tuple):
         return [sanitize(v) for v in obj]
-    if isinstance(obj, (str, int, bool)) or obj is None:
+    if isinstance(obj, str | int | bool) or obj is None:
         return obj
     return str(obj)
 

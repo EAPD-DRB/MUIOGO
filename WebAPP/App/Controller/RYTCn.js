@@ -3,7 +3,6 @@ import { Base } from "../../Classes/Base.Class.js";
 import { Html } from "../../Classes/Html.Class.js";
 import { Model } from "../Model/RYTCn.Model.js";
 import { Grid } from "../../Classes/Grid.Class.js";
-import { Chart } from "../../Classes/Chart.Class.js";
 import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { GROUPNAMES } from "../../Classes/Const.Class.js";
 import { DEF } from "../../Classes/Definition.Class.js";
@@ -30,8 +29,6 @@ export default class RYTCn {
                         "status_code": "CaseError"
                     }
                     return Promise.reject(er);
-                    //throw new Error(JSON.stringify(er));
-                    //MessageSelect.init(RYTCn.refreshPage.bind(RYTCn));
                 }
             })
             .then(data => {
@@ -62,11 +59,8 @@ export default class RYTCn {
 
     static initPage(model) {
         Message.clearMessages();
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS['RYTCn'], model.param);
-        // Html.ddlTechs(model.techs[model.cons[0]['ConId']], model.techs[model.cons[0]['ConId']][0]['TechId']);
-        // Html.ddlCons(model.cons, model.cons[0]['ConId']);
 
         let $divGrid = $('#osy-gridRYTCn');
         var daGrid = new $.jqx.dataAdapter(model.srcGrid);
@@ -178,26 +172,6 @@ export default class RYTCn {
             $('#definition').html(`${DEF[model.group][model.param].definition}`);
         });
 
-        // $("#osy-cons").off('change');
-        // $('#osy-cons').on('change', function () {
-        //     var param = $("#osy-ryt").val();
-        //     Html.ddlTechs(model.techs[this.value], model.techs[this.value][0]['TechId']);
-        //     //var con = $( "#osy-cons" ).val();
-        //     var configChart = $divChart.jqxChart('getInstance');
-        //     configChart.source.records = model.chartData[param][model.techs[this.value][0]['TechId']][this.value];
-        //     configChart.update();
-        // });
-
-        // $("#osy-techs").off('change');
-        // $('#osy-techs').on('change', function () {
-        //     var param = $("#osy-ryt").val();
-        //     var con = $("#osy-cons").val();
-        //     var configChart = $divChart.jqxChart('getInstance');
-        //     configChart.source.records = model.chartData[param][this.value][con];
-        //     configChart.update();
-        // });
-
-
         $("#osy-scenarios").off('click');
         $("#osy-scenarios").on('click', function (e) {
             e.preventDefault();
@@ -233,7 +207,6 @@ export default class RYTCn {
             $.each(rows, function (id, obj) {
                 if (obj.Sc == sc) {
                     $.each(model.years, function (i, year) {
-                        //$divGrid.jqxGrid('setcellvalue', obj.uid, year, null);
                         model.gridData[model.param][id][year] = null;
                     });
                 }
@@ -329,40 +302,6 @@ export default class RYTCn {
             }
         });
 
-        // $(".switchChart").off('click');
-        // $(".switchChart").on('click', function (e) {
-        //     e.preventDefault();
-        //     var configChart = $divChart.jqxChart('getInstance');
-        //     var chartType = $(this).attr('data-chartType');
-        //     configChart.seriesGroups[0].type = chartType;
-        //     if (chartType == 'column') {
-        //         configChart.seriesGroups[0].labels.angle = 90;
-        //     } else {
-        //         configChart.seriesGroups[0].labels.angle = 0;
-        //     }
-        //     configChart.update();
-        //     // $('button a').switchClass( "green", "grey" );
-        //     // $('#'+chartType).switchClass( "grey", "green" );
-        // });
-
-        // $(".toggleLabels").off('click');
-        // $(".toggleLabels").on('click', function (e) {
-        //     e.preventDefault();
-        //     var configChart = $divChart.jqxChart('getInstance');
-        //     if (configChart.seriesGroups[0].type == 'column') {
-        //         configChart.seriesGroups[0].labels.angle = 90;
-        //     } else {
-        //         configChart.seriesGroups[0].labels.angle = 0;
-        //     }
-        //     configChart.seriesGroups[0].labels.visible = !configChart.seriesGroups[0].labels.visible;
-        //     configChart.update();
-        // });
-
-        // $("#exportPng").off('click');
-        // $("#exportPng").click(function () {
-        //     $divChart.jqxChart('saveAsPNG', 'RYTCn.png', 'https://www.jqwidgets.com/export_server/export.php');
-        // });
-
         let res = true;
         $("#resizeColumns").off('click');
         $("#resizeColumns").click(function () {
@@ -377,13 +316,6 @@ export default class RYTCn {
             res = !res;
         });
 
-        // $("#xlsAll").off('click');
-        // $("#xlsAll").click(function (e) {
-        //     e.preventDefault();
-        //     $divGrid.jqxGrid('exportdata', 'xls', 'RYTCn');
-        // });
-
-        
         $("#xlsAll").off('click');
         $("#xlsAll").click(function (e) {
             e.preventDefault();

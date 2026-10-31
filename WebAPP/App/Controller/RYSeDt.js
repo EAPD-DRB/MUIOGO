@@ -41,7 +41,6 @@ export default class RYSeDt {
 
     static initPage(model) {
         Message.clearMessages();
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS['RYSeDt'], model.param);
         let $divGrid = $('#osy-gridRYSeDt');

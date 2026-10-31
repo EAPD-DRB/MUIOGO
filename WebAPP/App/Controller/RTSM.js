@@ -33,13 +33,10 @@ export default class RTSM {
                     }
                     Message.loaderEnd();
                     return Promise.reject(er);
-                    // MessageSelect.init(RTSM.refreshPage.bind(RTSM));
-                    // throw new Error('No Model selected');
                 }
             })
             .then(data => {
                 let [casename, genData, PARAMETERS, RTSMdata, cases] = data;
-                //console.log('RTSMdata ', RTSMdata)
                 if (RTSMdata[param]['SC_0'].length == 0) {
                     let er = {
                         "message": 'There is no activity defined!',
@@ -67,9 +64,7 @@ export default class RTSM {
 
     static initPage(model) {
         Message.clearMessages();
-        
 
-        //Navbar.initPage(model.casename);
         Html.title(model.casename, model.PARAMNAMES[model.param], GROUPNAMES[model.group]);
         Html.ddlParams(model.PARAMETERS['RTSM'], model.param);
 
@@ -80,9 +75,6 @@ export default class RTSM {
         if (model.scenariosCount > 1) {
             Html.lblScenario( model.scenariosCount);
             Html.ddlScenarios(model.scenarios, model.scenarios[1]['ScenarioId']);
-            // Html.ddlTechNames(model.techs[model.param], model.techs[model.param][0]['StgId']);
-            // Html.ddlCommNames(model.comms[model.param][model.techs[model.param][0]['StgId']], model.comms[model.param][model.techs[model.param][0]['TechId']][0]['StgId']);
-            //Grid.applyRYTCFilter($divGrid, model.years);
 
             Grid.applyRSTMFilter($divGrid);
         }
@@ -182,7 +174,6 @@ export default class RTSM {
             Message.clearMessages();
             if (model.RTSMdata[this.value]['SC_0'].length === 0) {
                 MessageSelect.activity(RTSM.refreshPage.bind(RTSM), model.casename);
-                //Message.warning(`There is no data definded for ${model.PARAMNAMES[this.value]} for Model ${model.casename}!`);
             } else {
                 Html.title(model.casename, model.PARAMNAMES[this.value], GROUPNAMES[model.group]);
                 model.srcGrid.root = this.value;
@@ -205,7 +196,6 @@ export default class RTSM {
             e.preventDefault();
             e.stopImmediatePropagation();
         });
-
 
         $("#osy-openScData").off('click');
         $("#osy-openScData").on('click', function (e) {

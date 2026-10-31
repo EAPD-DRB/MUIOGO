@@ -9,7 +9,6 @@ export class Chart {
             title: "",
             description: "",
             theme: this.theme(),
-            //legendLayout: { left: 45, bottom: 10, width: '100%', height: 200, flow: 'horizontal' },
             enableAnimations: true,
             showLegend: true,
             padding: { left: 5, top: 5, right: 5, bottom: 5 },
@@ -144,14 +143,6 @@ export class Chart {
                 color: model.color
             },
             link: linkData
-            // link: {
-            //     arrowlen: 20,
-            //     source: model.source,
-            //     target: model.target,
-            //     value:  model.value,
-            //     label:  model.labelLink,
-            //     color: model.colorLink
-            // }
         }];        
         var layout = {
             title: "",
@@ -162,36 +153,12 @@ export class Chart {
             font: {
                 size: 12
             },
-            // annotations:[
-            //     {
-            //         x: c[1,0],
-            //         y: 0.5,
-            //         xshift: c[25, -25],
-            //         text: c["Text 1", "Text 2"],
-            //         font: {
-            //           size: 14
-            //         },
-            //         showarrow: true,
-            //         textangle: [90, -90]
-            //     },
-            //     {
-            //         x:1,
-            //         y:1,
-            //         text:'11',
-            //         showarrow:true
-            //     }
-            // ]
         }
         
         Plotly.react($div, data, layout)
     }
 
     static SankeyChart($div, model){
-
-        // console.log( ' source ', model.source[model.sc][model.year]);
-        // console.log( ' target ', model.target[model.sc][model.year]);
-        // console.log( ' value ', model.value[model.sc][model.year]);
-        // console.log( ' labelLink ', model.labelLink[model.sc][model.year]);
 
         var data = [{
             type: "sankey",
@@ -217,9 +184,7 @@ export class Chart {
                 label:  model.labelLink[model.sc][model.year]
             }
         }];
-          
-        //var data = [data]
-        
+
         var layout = {
             title: "",
             showlegend: true,

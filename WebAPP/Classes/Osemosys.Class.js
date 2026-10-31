@@ -75,9 +75,6 @@ export class Osemosys {
                 dataType: 'json',
                 data: JSON.stringify({ "data": data }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -138,9 +135,6 @@ export class Osemosys {
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename, 'caserunname': caserunname }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -161,9 +155,6 @@ export class Osemosys {
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename, 'caserunname': caserunname, 'data': data }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -204,9 +195,6 @@ export class Osemosys {
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename, 'caserunname': caserunname, 'oldcaserunname': oldcaserunname, 'data': data }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -227,9 +215,6 @@ export class Osemosys {
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename, "solver": solver, 'caserunname': caserunname  }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -251,9 +236,6 @@ export class Osemosys {
                 dataType: 'json',
                 data: JSON.stringify({ "modelname": modelname, 'cases': cases, "solver": solver  }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -275,9 +257,6 @@ export class Osemosys {
                 dataType: 'json',
                 data: JSON.stringify({ "modelname": modelname }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -289,21 +268,6 @@ export class Osemosys {
             });
         });
     }
-
-    // static readModelFile() {
-    //     return fetch(Base.apiUrl() + "readModelFile", {cache: "no-store"}) 
-    //         .then((response) => {
-    //             if (response.ok) {
-    //                 //                     console.log('response1 ', response)
-    //                 // console.log('data ', response.text())
-    //             return response;
-    //             }
-    //             throw new Error('No casename selecetd');
-    //         })
-    //         .then(response => response.text())
-    //         .catch(error => null);
-    // }
-
 
     static readModelFile() {
         return fetch(Base.apiUrl() + "readModelFile", {
@@ -354,9 +318,6 @@ export class Osemosys {
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename, 'caserunname': caserunname }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -377,9 +338,6 @@ export class Osemosys {
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename, 'caserunname': caserunname }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -411,22 +369,11 @@ export class Osemosys {
         });
     }
 
-    // static getData(casename, dataJson) {
-    //     return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"})  // return this promise
-    //     .then(response => response.json())
-    //     .catch(error => error);
-    // }
-
     static getData(casename, dataJson) {
-        // return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"})
-        // .then(response => response.json())
-        // .catch(error => error);
 
         return fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"}) 
             .then((response) => {
                 if (response.ok) {
-                    //console.log('response1 ', response)
-                    //console.log('data ', response.json())
                 return response;
                 }
                 throw new Error('No casename selecetd');
@@ -436,40 +383,14 @@ export class Osemosys {
     }
 
     static getData_(casename, dataJson) {
-        return  fetch('../../DataStorage/'+casename+'/'+dataJson, {cache: "no-store"})
-        .then((response) => {
-            if (response.status !== 200) {
-              //console.log('Looks like there was a problem. Status Code: ' + response.status);
-              return response;
-            }
-            // Examine the text in the response
-            response.json().then(function(data) {
-              //console.log(data);
-            });
-        })
-        .then(response => response.json())
-        .catch(function(err) {
-          //console.log('Fetch Error :-S', err);
-        });
+        return this.getData(casename, dataJson);
     }
 
     static getResultData(casename, dataJson) {
-        // return new Promise((resolve, reject) => {
-        //     fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
-        //     .then(DATA => {
-        //         DATA = DATA.json();
-        //         resolve(DATA);
-        //     })
-        //     .catch(error => {
-        //         if(error == 'UNKNOWN'){ error =  xhr.responseJSON.message }
-        //         reject(error);
-        //     });
-        // });
 
         return fetch('../../DataStorage/'+casename+'/view/' +dataJson, {cache: "no-store"})
             .then((response) => {
                 if (response.ok) {
-                    //console.log('response1 ', response)
                     return response;
                 }
                 throw new Error('No casename selecetd');
@@ -518,21 +439,6 @@ export class Osemosys {
         });
     }
 
-    // static viewData(casename) {
-    //     return fetch(Base.apiUrl() + "viewData", {
-    //         cache: "no-store",
-    //         method: 'POST',
-    //         headers: {
-    //             'Accept': 'application/json',
-    //             'Content-Type': 'application/json'
-    //           },
-    //         body: JSON.stringify({ "casename": casename })
-    //     })  // return this promise
-    //     .then(response => response.json())
-    //     .catch(error => error);
-    // }
-
-
     static viewTEData(casename) {
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -553,7 +459,9 @@ export class Osemosys {
         });
     }
 
-    static updateViewData(casename, year, ScId, groupId, paramId, TechId, CommId, EmisId, Timeslice, value) {
+    static updateViewData(casename, year, ScId, groupId, paramId, TechId, CommId, EmisId, Timeslice, value,
+                          MoId = null, ConId = null) {
+        const optionalId = id => id == null || id === '' ? null : id;
         return new Promise((resolve, reject) => {
             $.ajax({
                 url:Base.apiUrl() + "updateViewData",
@@ -561,7 +469,9 @@ export class Osemosys {
                 type: 'POST',
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename, year: year, ScId: ScId,
-                 groupId: groupId, paramId: paramId, TechId: TechId, CommId: CommId, EmisId:EmisId, Timeslice: Timeslice, value: value}),
+                 groupId: groupId, paramId: paramId, TechId: optionalId(TechId), CommId: optionalId(CommId),
+                 EmisId: optionalId(EmisId), Timeslice: optionalId(Timeslice),
+                 MoId: optionalId(MoId), ConId: optionalId(ConId), value: value}),
                 contentType: 'application/json; charset=utf-8',
                 success: function (result) {             
                     resolve(result);
@@ -575,6 +485,7 @@ export class Osemosys {
     }
 
     static updateTEViewData(casename, ScId, GroupId, ParamId, TechId, EmisId, value) {
+        const optionalId = id => id == null || id === '' ? null : id;
         return new Promise((resolve, reject) => {
             $.ajax({
                 url:Base.apiUrl() + "updateTEViewData",
@@ -582,7 +493,8 @@ export class Osemosys {
                 type: 'POST',
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename, scId:ScId,
-                 groupId: GroupId, paramId: ParamId, techId: TechId, emisId: EmisId, value: value}),
+                 groupId: GroupId, paramId: ParamId,
+                 techId: optionalId(TechId), emisId: optionalId(EmisId), value: value}),
                 contentType: 'application/json; charset=utf-8',
                 success: function (result) {             
                     resolve(result);

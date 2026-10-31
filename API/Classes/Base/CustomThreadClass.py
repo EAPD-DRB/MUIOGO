@@ -1,9 +1,7 @@
 """Thread wrapper that returns the target's value or re-raises its failure on join."""
 
 import sys
-from collections.abc import Callable, Iterable, Mapping
 from threading import Thread
-from typing import Any
 
 
 class CustomThread(Thread):

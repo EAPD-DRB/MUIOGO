@@ -198,7 +198,7 @@ def _num(value):
     """A finite float from a number or a one-element nested list, else None."""
     while isinstance(value, list) and len(value) == 1:
         value = value[0]
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
+    if isinstance(value, bool) or not isinstance(value, int | float):
         return None
     return float(value) if math.isfinite(value) else None
 

@@ -9,27 +9,6 @@ export default class Settings {
 
     }
 
-    // static refreshPage() {
-    //     let UnitsSettings = JSON.parse(localStorage.getItem("osy-units"));
-    //     UnitsSettings.forEach(function (item) {
-    //         $("#dllSettingUnits").jqxDropDownList('checkItem', item.id);
-    //     });
-    //     let pagesize = localStorage.getItem("osy-pagesize");
-    //     if(pagesize){
-    //         $("#ddlGridPageSize").jqxDropDownList('selectItem', pagesize);   
-    //     }
-    //     else{
-    //         $("#ddlGridPageSize").jqxDropDownList('uncheckAll'); 
-    //     }
-    //     let decimalpoint = localStorage.getItem("osy-decimalpoints");
-    //     if(decimalpoint){
-    //         $("#ddlPivotDecimalPoints").jqxDropDownList('selectItem', decimalpoint);   
-    //     }
-    //     else{
-    //         $("#ddlPivotDecimalPoints").jqxDropDownList('uncheckAll');  
-    //     }
-    // }
-
     static initPage(model) {
 
         let srcUnits = JqxSources.srcUnit(JSON.stringify(model.units));
@@ -52,22 +31,6 @@ export default class Settings {
                 }
             });
 
-        // $("#ddlGridPageSize").jqxDropDownList(
-        //     { source: ['20', '100', '250', '500', '750', '1000'], 
-        //         placeHolder: "Select default grid page size", 
-        //         theme:"material",  
-        //         width: '100%', 
-        //         height: 30,
-        //         itemHeight: 25,
-        //         autoDropDownHeight: true,
-        //         ready: function () {
-        //             let pagesize = localStorage.getItem("osy-pagesize");
-        //             if(pagesize){
-        //                 $("#ddlGridPageSize").jqxDropDownList('selectItem', pagesize);
-        //             }
-        //         }
-        //     });
-        
         $("#ddlPivotDecimalPoints").jqxDropDownList(
             { source: ['n0', 'n1', 'n2', 'n3', 'n4'], 
                 placeHolder: "Select pivot default decimal points", 
@@ -88,8 +51,6 @@ export default class Settings {
     }
 
     static initEvents(model){
-
-        //console.log('settings model ', model);
 
         $("#demo-setting").off('click');
         $("#demo-setting").on('click', function () {
@@ -121,8 +82,6 @@ export default class Settings {
             }
 
             let pageId = localStorage.getItem("osy-pageId");
-            // console.log('pageId ', pageId);
-   
 
             if(pageId !='Pivot' && pageId !='AddCase'){
                 import(`./${pageId}.js`)
@@ -145,18 +104,6 @@ export default class Settings {
                     console.error('Error importing module:', error);
                 }); 
             }else if(pageId =='AddCase'){
-                // let $divTech = $("#osy-gridTech");
-                // let $divTechGroup = $("#osy-gridTechGroup");
-                // let $divStg = $("#osy-gridStg");
-                // let $divComm = $("#osy-gridComm");
-                // let $divTs = $("#osy-gridTs");
-                // let $divSe = $("#osy-gridSe");
-                // let $divDt = $("#osy-gridDt");
-                // let $divDtb = $("#osy-gridDtb");
-                // let $divEmi = $("#osy-gridEmis");
-                // console.log('pageId updatedatabound ', pageId);
-                // $divComm.jqxGrid('updatebounddata');
-                // $divTech.jqxGrid('updatebounddata');
                             Message.loaderStart();
             location.reload();
             }
@@ -184,23 +131,17 @@ export default class Settings {
 
             Message.smallBoxInfo("Info!", "MUIO settings have been saved successfully!", 5000);
             $(".demo").toggleClass("activate");
-            // Message.loaderStart();
-            // location.reload();
-        
-                
+
         });
 
         $("#osy-resetSettings").off('click');
         $("#osy-resetSettings").on('click', function () {
             localStorage.clear();
             $("#dllSettingUnits").jqxDropDownList('uncheckAll');
-            //$("#ddlGridPageSize").jqxDropDownList('clearSelection'); 
             $("#ddlPivotDecimalPoints").jqxDropDownList('clearSelection');  
             Message.smallBoxInfo("Info!", "You have reset MUIO settings!", 5000);
             $(".demo").toggleClass("activate");
 
-            // Message.loaderStart();
-            // location.reload(); 
         });
 
         $("#osy-sounds").off('click');

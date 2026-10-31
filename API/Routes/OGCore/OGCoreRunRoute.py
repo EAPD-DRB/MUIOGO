@@ -10,7 +10,7 @@ import os
 import shutil
 import tempfile
 import zipfile
-from datetime import datetime, timezone, UTC
+from datetime import datetime, UTC
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -29,7 +29,6 @@ from Classes.OGCore import OGReport, OGSchema, OGTables
 from Classes.OGCore.CalibrationRegistry import CalibrationRegistry
 from Classes.OGCore.OGCoreCase import OGCoreCase, is_safe_name
 from Classes.OGCore.OGResults import OGResults
-from Classes.OGCore.OGRunner import kill_worker_tree
 from Classes.OGCore.RunJob import RunJob
 
 ogcore_run_api = Blueprint("OGCoreRunRoute", __name__, url_prefix="/ogc")

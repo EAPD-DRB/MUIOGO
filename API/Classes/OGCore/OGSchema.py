@@ -151,7 +151,7 @@ def load_defaults(path) -> dict | None:
 
 def _is_number(x) -> bool:
     """True for a real int/float, excluding bool (a subclass of int)."""
-    return isinstance(x, (int, float)) and not isinstance(x, bool)
+    return isinstance(x, int | float) and not isinstance(x, bool)
 
 
 def _leaf_count(v) -> int:

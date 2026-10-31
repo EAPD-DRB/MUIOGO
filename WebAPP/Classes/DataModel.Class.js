@@ -136,7 +136,6 @@ export class DataModel{
         return indDef;
     }
 
-
     static getIndicatorTypes(INDICATORS){
         let indTypes = [];
         $.each(INDICATORS, function (group, array) {
@@ -182,21 +181,7 @@ export class DataModel{
         return techNames;
     }
 
-    static getStgData(genData){
-        let stgNames = {};
-        $.each(genData['osy-stg'], function (id, obj) {
-            stgNames[obj['StgId']] = obj;
-        });
-        return stgNames;
-    }
 
-    static StgName(genData){
-        let stgNames = {};
-        $.each(genData['osy-stg'], function (id, obj) {
-            stgNames[obj.StgId] = obj['Stg'];
-        });
-        return stgNames;
-    }
     
     static getTsData(genData){
         let tsNames = {};
@@ -339,7 +324,6 @@ export class DataModel{
         return tsNames;
     }
 
-
     static SeName(genData){
         let seNames = {};
         $.each(genData['osy-se'], function (id, obj) {
@@ -426,19 +410,6 @@ export class DataModel{
         });
         return ParamName;
     }
-
-    // static Timeslices(genData){
-    //     let ts = [];
-    //     let ns = parseInt(genData['osy-ns'])
-    //     let nd = parseInt(genData['osy-dt'])
-
-    //     for (let i = 1; i <= ns; i++) {
-    //         for (let j = 1; j <= nd; j++) {
-    //             ts.push('S'+i.toString()+j.toString())
-    //         }
-    //     }
-    //     return ts;
-    // }
 
     static Mods(genData){
         let mods = [];
@@ -585,22 +556,14 @@ export class DataModel{
     //////////////////////////////////////////////////RES DATA
     static getDemandComms(RYCdata, years){
         let demandComms = [];
-        //console.log('years ', years)
         $.each(RYCdata, function (param, obj) {
            
             if(param == 'AAD' || param == 'SAD'){
                 $.each(obj, function (sc, array) {
-                    //console.log('param ', param, ' sc ', sc)
                     $.each(array, function (id, objC) {
                         $.each(years, function (i, year) {
       
-                            //console.log(i, year)
-                            //console.log('objC[year] ',objC[year])
                             if(objC[year] != 0 && objC[year]!=null){
-                                // if(param =='SAD'){
-                                //     console.log(objC.CommId, year)
-                                //     console.log('objC[year] ',objC[year])
-                                // }
                                 if(!demandComms.includes(objC.CommId)){
                                     demandComms.push(objC.CommId);
                                 }
@@ -666,15 +629,11 @@ export class DataModel{
         RES.Singles['IAR'] = [];
         RES.Singles['OAR'] = [];
         RES.Singles['FD'] = [];
-       // RES.Data['IAR']['DS'] = [];
-        //RES.Data['OAR']['DT'] = [];
         $.each(arrays.IAR, function (id, iarComm) {
             if(!arrays.OAR.includes(iarComm)){
-                //RES.Data['IAR']['DS'].push(iarComm);
                 RES.Singles['IAR'].push(iarComm)
             }
         });
-
 
         RES.Singles['FD'] = demandComms;
         $.each(arrays.OAR, function (id, oarComm) {
@@ -698,57 +657,6 @@ export class DataModel{
         return RES;
     }
 
-    // static activityCommsArray(genData){
-    //     let ActivityComms = {};
-
-    //     let techs = genData['osy-tech'];
-    //     let comms = genData['osy-comm'];
-
-    //     ActivityComms['IAR'] = [];
-    //     ActivityComms['OAR'] = [];
-    //     $.each(techs, function (idT, objT) {
-    //         if (objT.IAR.length != 0 ) {  
-    //             $.each(comms, function (idC, objC) {
-    //                 if(objT.IAR.includes(objC.CommId)){
-    //                     if(!ActivityComms.IAR.includes(objC.CommId)){
-    //                         ActivityComms['IAR'].push(objC.CommId);
-    //                     }
-                        
-    //                 }
-    //             });
-    //         }
-    //         if ( objT.OAR.length != 0) {  
-    //             $.each(comms, function (idC, objC) {
-    //                 if(objT.OAR.includes(objC.CommId)){
-    //                     if(!ActivityComms.OAR.includes(objC.CommId)){
-    //                         ActivityComms['OAR'].push(objC.CommId);
-    //                     }
-    //                 }
-    //             });
-    //         }
-    //     });
-    //     return ActivityComms;
-    // }
-
-    // static RESSingles(genData){
-    //     let activityCommsarray = DataModel.activityCommsArray(genData);
-    //     let Singles = {};
-    //     Singles['IAR'] = [];
-    //     Singles['OAR'] = [];
-    //     $.each(activityCommsarray.IAR, function (id, iarComm) {
-    //         if(!activityCommsarray.OAR.includes(iarComm)){
-    //             Singles['IAR'].push(iarComm)
-    //         }
-    //     });
-    //     $.each(activityCommsarray.OAR, function (id, oarComm) {
-    //         if(!activityCommsarray.IAR.includes(oarComm)){
-    //             Singles['OAR'].push(oarComm)
-    //         }
-    //     });
-    //     return Singles;
-    // }
-
-    //////////////////////////////////////////INCR ITCR
     static inputCapTechs(techs){
         let ActivityTechs = {};
         ActivityTechs['INCR'] = [];
@@ -888,7 +796,6 @@ export class DataModel{
     }
 
     static Rgrid(genData, Rdata, PARAMETERS){
-        // let scName = this.ScName(genData);
         let scData = this.getScData(genData);
         let paramName = this.ParamName(PARAMETERS['R']);
         let unitData = this.getUnitData(genData, PARAMETERS);
@@ -949,7 +856,6 @@ export class DataModel{
     }
 
     static RYgrid(genData, RYdata, PARAMETERS){
-        // let scName = this.ScName(genData);
         let scData = this.getScData(genData);
         let paramName = this.ParamName(PARAMETERS['RY']);
         const cloneData = JSON.parse(JSON.stringify(RYdata));
@@ -1012,7 +918,6 @@ export class DataModel{
     }
 
     static RTgrid(genData, RTdata, PARAMETERS){
-        // let scName = this.ScName(genData);
         let scData = this.getScData(genData);
         let paramName = this.ParamName(PARAMETERS['RT']);
         let unitData = this.getUnitData(genData, PARAMETERS);
@@ -1080,13 +985,10 @@ export class DataModel{
     }
 
     static RSgrid(genData, RSdata, PARAMETERS){
-        // let scName = this.ScName(genData);
         let scData = this.getScData(genData);
         let paramName = this.ParamName(PARAMETERS['RS']);
         let unitData = this.getUnitData(genData, PARAMETERS);
-        //console.log('unitData ', unitData)
         let paramById = this.getParamById(PARAMETERS);
-        //console.log('paramById ', paramById)
         const cloneData = JSON.parse(JSON.stringify(RSdata));
         let RSgrid = {};
         $.each(cloneData, function (param, paramObj) {
@@ -1149,7 +1051,6 @@ export class DataModel{
     }
 
     static REgrid(genData, REdata, PARAMETERS){
-        //let scName = this.ScName(genData);
         let scData = this.getScData(genData);
         let paramName = this.ParamName(PARAMETERS['RE']);
         let unitData = this.getUnitData(genData, PARAMETERS);
@@ -1221,9 +1122,7 @@ export class DataModel{
     }
 
     static RYTgrid(genData, RYTdata, PARAMETERS){
-        // let techName = this.TechName(genData);
         let techData = this.getTechData(genData);
-        // let scName = this.ScName(genData);
         let scData = this.getScData(genData);
         let unitData = this.getUnitData(genData, PARAMETERS);
         let paramById = this.getParamById(PARAMETERS);
@@ -1298,8 +1197,6 @@ export class DataModel{
         let unitData = this.getUnitData(genData, PARAMETERS);
         let paramById = this.getParamById(PARAMETERS);
 
-        //console.log('unitData grid ', unitData)
-
         const cloneData = JSON.parse(JSON.stringify(RYSdata));
         let RYSgrid = {};
         $.each(cloneData, function (param, paramObj) {
@@ -1313,10 +1210,7 @@ export class DataModel{
                     obj['ScDesc'] = scData[sc]['Desc'];
                     let rule = paramById['RYS'][param]['unitRule'];
                     let data = unitData['RYS'][param][obj.StgId];
-                    // console.log('rule ', rule)
-                    // console.log('data ', data)
                     obj['UnitId'] = jsonLogic.apply(rule, data);
-                    //console.log('obj[UnitId ', obj['UnitId'] )
                     RYSgrid[param].push(obj);
                 }); 
             });
@@ -1343,8 +1237,6 @@ export class DataModel{
     }
 
     static RYTMgrid(genData, RYTMdata, PARAMETERS){
-        // let techName = this.TechName(genData);
-        // let scName = this.ScName(genData);
         let techData = this.getTechData(genData);
         let scData = this.getScData(genData);
 
@@ -1421,8 +1313,6 @@ export class DataModel{
     }
 
     static RYCgrid(genData, RYCdata, PARAMETERS){
-        // let commName = this.CommName(genData);
-        // let scName = this.ScName(genData);
         let commData = this.getCommData(genData);
         let scData = this.getScData(genData);
         let unitData = this.getUnitData(genData, PARAMETERS);
@@ -1490,8 +1380,6 @@ export class DataModel{
     }
 
     static RYCngrid(genData, RYCndata, PARAMETERS){
-        // let conName = this.ConName(genData);
-        // let scName = this.ScName(genData);
 
         let conData = this.getConData(genData);
         let scData = this.getScData(genData);
@@ -1565,8 +1453,6 @@ export class DataModel{
     }
 
     static RYEgrid(genData, RYEdata, PARAMETERS){
-        // let emiName = this.EmiName(genData);
-        // let scName = this.ScName(genData);
         let emiData = this.getEmiData(genData);
         let scData = this.getScData(genData);
         let unitData = this.getUnitData(genData, PARAMETERS);
@@ -1636,7 +1522,6 @@ export class DataModel{
         let cloneData = JSON.parse(JSON.stringify(RYTsdata));
         let RYTsgrid = {};
 
-        //console.log('tsData ',tsData)
         $.each(cloneData, function (param, paramObj) {
             RYTsgrid[param] = [];
             $.each(paramObj, function (sc, array) {
@@ -1683,12 +1568,9 @@ export class DataModel{
         let unitData = this.getUnitData(genData, PARAMETERS);
         let paramById = this.getParamById(PARAMETERS);
 
-
         let cloneData = JSON.parse(JSON.stringify(RYSeDtdata));
         let RYSeDtgrid = {};
 
-        // console.log('unitData ',unitData)
-        // console.log('cloneData ',cloneData)
         $.each(cloneData, function (param, obj) {
             RYSeDtgrid[param] = [];
             $.each(obj, function (sc, array) {
@@ -1718,7 +1600,6 @@ export class DataModel{
             let chartData = []
             $.each(obj1, function (sc, array) {        
                 $.each(array, function (id, obj) {
-                    //if(!chartData[obj.YearSplit]){ chartData[obj.YearSplit] = []; }
                     chartData[obj.YearSplit] = [];  
                     $.each(genData['osy-years'], function (idY, year) {                  
                         let chunk = {};
@@ -1754,9 +1635,6 @@ export class DataModel{
     }
 
     static RYTCgrid(genData, RYTCdata){
-        // let techName = this.TechName(genData);
-        // let commName = this.CommName(genData);
-        // let scName = this.ScName(genData);
         let techData = this.getTechData(genData);
         let commData = this.getCommData(genData);
         let scData = this.getScData(genData);
@@ -1833,9 +1711,6 @@ export class DataModel{
     }
 
     static RYTCMgrid(genData, RYTCMdata, PARAMETERS){
-        // let techName = this.TechName(genData);
-        // let commName = this.CommName(genData);
-        // let scName = this.ScName(genData);
         let techData = this.getTechData(genData);
         let commData = this.getCommData(genData);
         let scData = this.getScData(genData);
@@ -1917,16 +1792,12 @@ export class DataModel{
     }
 
     static RTSMgrid(genData, RTSMdata, PARAMETERS){
-        // let techName = this.TechName(genData);
-        // let commName = this.CommName(genData);
-        // let scName = this.ScName(genData);
         let techData = this.getTechData(genData);
         let stgData = this.getStgData(genData);
         let scData = this.getScData(genData);
         let unitData = this.getUnitData(genData, PARAMETERS);
         let paramById = this.getParamById(PARAMETERS);
         let cloneData = JSON.parse(JSON.stringify(RTSMdata));
-        //console.log('cloneData ', cloneData)
 
         let RTSMgrid = {};
         $.each(cloneData, function (param, obj) {
@@ -1973,16 +1844,12 @@ export class DataModel{
     }
 
     static RYTSMgrid(genData, RYTSMdata, PARAMETERS){
-        // let techName = this.TechName(genData);
-        // let commName = this.CommName(genData);
-        // let scName = this.ScName(genData);
         let techData = this.getTechData(genData);
         let stgData = this.getStgData(genData);
         let scData = this.getScData(genData);
         let unitData = this.getUnitData(genData, PARAMETERS);
         let paramById = this.getParamById(PARAMETERS);
         let cloneData = JSON.parse(JSON.stringify(RYTSMdata));
-        //console.log('cloneData ', cloneData)
         let RYTSMgrid = {};
         $.each(cloneData, function (param, obj) {
             RYTSMgrid[param] = [];
@@ -2026,9 +1893,6 @@ export class DataModel{
     }
 
     static RYTEgrid(genData, RYTEdata){
-        // let techName = this.TechName(genData);
-        // let emiName = this.EmiName(genData);
-        // let scName = this.ScName(genData);
         let techData = this.getTechData(genData);
         let emiData = this.getEmiData(genData);
         let scData = this.getScData(genData);
@@ -2100,9 +1964,6 @@ export class DataModel{
     }
 
     static RYTCngrid(genData, RYTCndata){
-        // let techName = this.TechName(genData);
-        // let conName = this.ConName(genData);
-        // let scName = this.ScName(genData);
         let techData = this.getTechData(genData);
         let conData = this.getConData(genData);
         let scData = this.getScData(genData);
@@ -2177,9 +2038,6 @@ export class DataModel{
     }
 
     static RYTEMgrid(genData, RYTEMdata, PARAMETERS){
-        // let techName = this.TechName(genData);
-        // let emiName = this.EmiName(genData);
-        // let scName = this.ScName(genData);
         let techData = this.getTechData(genData);
         let emiData = this.getEmiData(genData);
         let scData = this.getScData(genData);
@@ -2259,8 +2117,6 @@ export class DataModel{
     }
 
     static RYTTsgrid(genData, RYTTsdata){
-        // let techName = this.TechName(genData);
-        // let scName = this.ScName(genData);
         let techData = this.getTechData(genData);
         let tsData = this.getTsData(genData);
         let scData = this.getScData(genData);
@@ -2330,8 +2186,6 @@ export class DataModel{
     }
 
     static RYCTsgrid(genData, RYCTsdata, PARAMETERS){
-        // let commName = this.CommName(genData);
-        // let scName = this.ScName(genData);
         let commData = this.getCommData(genData);
         let scData = this.getScData(genData);
         let tsData = this.getTsData(genData);
@@ -2369,7 +2223,6 @@ export class DataModel{
         let timeslices = this.Timeslices(genData);
 
         let RYCTschart = {};
-
 
         $.each(RYCTsdata, function (param, obj1) {
             let chartData = {}

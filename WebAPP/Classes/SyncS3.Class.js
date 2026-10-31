@@ -11,9 +11,6 @@ export class SyncS3 {
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename, "file": file }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -54,9 +51,6 @@ export class SyncS3 {
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },
@@ -77,9 +71,6 @@ export class SyncS3 {
                 dataType: 'json',
                 data: JSON.stringify({ "casename": casename }),
                 contentType: 'application/json; charset=utf-8',
-                // credentials: 'include',
-                // xhrFields: { withCredentials: true},
-                // crossDomain: true,
                 success: function (result) {             
                     resolve(result);
                 },

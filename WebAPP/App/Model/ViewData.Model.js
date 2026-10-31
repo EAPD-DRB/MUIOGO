@@ -24,7 +24,6 @@ export class Model {
             let EmiName = DataModel.EmiName(genData);
             let ConName = DataModel.ConName(genData);
             let ScName = DataModel.ScName(genData);
-            //let mods = DataModel.Mods(genData); 
             let unitData = DataModel.getUnitData(genData, PARAMETERS);
             let paramById = DataModel.getParamById(PARAMETERS);
 
@@ -105,7 +104,6 @@ export class Model {
             datafields.push({ name: 'EmisName', type: 'string' });
             datafields.push({ name: 'ConId', type: 'string' });
             datafields.push({ name: 'ConName', type: 'string' });
-            // datafields.push({ name: 'Timeslice', type: 'string' });
 
             datafields.push({ name: 'MoId', type: 'string' });
             datafields.push({ name: 'UnitId', type: 'string' });

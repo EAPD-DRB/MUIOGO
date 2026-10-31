@@ -15,7 +15,6 @@ export class Model {
             let scenarios = genData['osy-scenarios'];
 
             let RYTTsgrid = DataModel.RYTTsgrid(genData, RYTTsdata);
-            // let timeslices = DataModel.Timeslices(genData);
             let scClass = {};
 
             $.each(scenarios, function (id, obj) {
@@ -52,7 +51,6 @@ export class Model {
                 }
 
             }.bind(this);
-
 
             let initeditor = function (row, cellvalue, editor, data) {
 
@@ -107,7 +105,6 @@ export class Model {
             this.casename = casename;
             this.years = years;
             this.techs = techs;
-            //this.timeslices = timeslices;
             this.scenarios = scenarios;
             this.scenariosCount = scenarios.length;
             this.datafields = datafields;

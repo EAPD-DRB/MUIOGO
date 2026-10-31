@@ -9,7 +9,7 @@ On success the finished environment is written to the installed registry, which 
 hand-off the run layer later uses (python_path).
 """
 import threading
-from datetime import date, datetime, timezone, UTC
+from datetime import date, datetime, UTC
 
 from Classes.Base import Config
 from Classes.Base.CustomThreadClass import CustomThread

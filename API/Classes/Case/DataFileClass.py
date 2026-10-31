@@ -7,23 +7,19 @@ belong to that run; view/<group>.json combines multiple runs of one case.
 
 from pathlib import Path
 import pandas as pd
-import traceback
 import json, shutil, os, time, subprocess
 import concurrent.futures
 import hashlib
 import logging
 from collections import defaultdict
-from itertools import product
 
 from Classes.Base import Config
 from Classes.Case.OsemosysClass import Osemosys
 from Classes.Case.HelpersClass import Helpers
 from Classes.Base.FileClass import File
-from Classes.Base.CustomThreadClass import CustomThread
 from Classes.Case import CommodityPrice
 
 logger = logging.getLogger(__name__)
-
 
 class DataFile(Osemosys):
 
@@ -63,14 +59,12 @@ class DataFile(Osemosys):
                 else:
                     dtString += '{} '.format(0)
 
-
             dtbString += '{} '.format(ts['Ts'])
             for dtb in dailytypebrackets :
                 if dtb['DtbId'] == ts['DTB']:
                     dtbString += '{} '.format(1)
                 else:
                     dtbString += '{} '.format(0)
-
 
             seString += '{}'.format('\n')
             dtString += '{}'.format('\n')
@@ -191,8 +185,7 @@ class DataFile(Osemosys):
                     # self.f.write('{}{}'.format('[RE1,'+ self.techMap[activityTechId] + ','+ self.commMap[activityCommId] +',*,*]:', '\n'))
                     # self.f.write('{}{}{}'.format( self.years, ':=', '\n'))
                     for mod in self.modIds:
-                        
-                        
+
                         # for yearId in self.yearIDs:
                         tmp = self.defaultValue[id]
                         for sc in self.scOrder:
@@ -234,7 +227,6 @@ class DataFile(Osemosys):
             self.f.write('{}{}{}'.format( self.years, ':=', '\n'))
             for timesliceId in self.timesliceIDs:
                 rytsString = ''
-                #defaultValueFlag = False
                 for yearId in self.yearIDs:
                     tmp = self.defaultValue[id]
                     for sc in self.scOrder:
@@ -255,7 +247,6 @@ class DataFile(Osemosys):
             self.f.write('{}{}{}'.format( self.years, ':=', '\n'))
             for dtbId in self.dtbIDs:
                 rydtbString = ''
-                #defaultValueFlag = False
                 for yearId in self.yearIDs:
                     tmp = self.defaultValue[id]
                     for sc in self.scOrder:
@@ -707,7 +698,6 @@ class DataFile(Osemosys):
             self.dtbMap = self.getDtbMap()
             
             self.yearIDs = self.getYears()
-            # self.timesliceIDs = self.getTimeslices()
             self.timesliceIDs = self.getTsIds()
             self.modIds = self.getMods()
 
@@ -774,16 +764,11 @@ class DataFile(Osemosys):
             self.comm_se = self._joinIds(self.allCommLists["Se"])
             self.comm_an = self._joinIds(self.allCommLists["An"])
 
-            # path = '"{}"'.format(self.resPath.resolve())
             self.resPath = Path('..', '..', '..', '..', 'WebAPP', 'DataStorage', self.case, 'res',caserunname, 'csv')
-            path = '"{}"'.format(self.resPath)
 
             dataFilePath = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
             # restored backups may lack an empty res/<caserunname>/ folder
             dataFilePath.parent.mkdir(parents=True, exist_ok=True)
-
-            # self.f = open(self.dataFile, mode="w", encoding='utf-8')
-            #self.f = open(dataFilePath, mode="w", encoding='utf-8')
 
             with open(dataFilePath, "w", encoding="utf-8") as self.f:
                 #f.write(json.dumps(data, ensure_ascii=False,  indent=4, sort_keys=False))
@@ -1056,7 +1041,6 @@ class DataFile(Osemosys):
                 if not case_path.exists():
                     case_path.mkdir(parents=True, exist_ok=True)
 
-
             response = {
                 "message": "You have recycled results!",
                 "status_code": "success"
@@ -1116,7 +1100,6 @@ class DataFile(Osemosys):
     def readDataFile( self, caserunname ):
         try:
             
-            #f = open(self.dataFile, mode="r")
             dataFilePath = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
             if os.path.exists(dataFilePath):
                 with open(dataFilePath, mode="r", encoding='utf-8-sig') as f:
@@ -1124,9 +1107,6 @@ class DataFile(Osemosys):
             else:
                 data = None
 
-            # f = open(self.dataFile, 'r')
-            # file_contents = f.read()
-            # f.close()
             return data
         except(IOError, IndexError):
             raise IndexError
@@ -1238,95 +1218,7 @@ class DataFile(Osemosys):
 
             dataFilePath = Path(Config.DATA_STORAGE, self.case, 'res',caserunname,'data.txt')
             if dataFilePath.is_file():
-                # with open(dataFilePath, 'r') as f:
 
-                #     parsing = False
-                #     for line in f:
-                #         line = line.rstrip().replace('\t', ' ')
-                #         if line.startswith(";"):
-                #             parsing = False
-
-                #         if parsing:
-                #             if line.startswith('['):
-
-                #                 element = line.split(',')
-                #                 region = element[0][1:]
-                #                 tech = element[1]
-                #                 fuel_emi = element[2]
-                    
-                #             elif line.startswith(start_year):
-                #                 years = line.rstrip(':= ;\n').split(' ')[0:]
-                #                 years = [i.strip(':=') for i in years]
-                            
-                #             else:
-                #                 values = line.rstrip().split(' ')[1:]
-
-                #                 if param_current in ('DiscountRate'):
-                #                     region = line.split(' ')[0]
-                #                     dr = line.split(' ')[1]
-                #                     data[param_current].append(tuple([region, dr]))
-
-                #                 if param_current in ('CapacityToActivityUnit', 'TotalTechnologyModelPeriodActivityLowerLimit', 'TotalTechnologyModelPeriodActivityUpperLimit', 'DiscountRateIdv'):
-                #                     if firstRow:
-                #                         techs = line.rstrip(':= ;\n').split(' ')[0:]
-                #                         firstRow=False
-                #                     else:
-                #                         region = line.split(' ')[0]
-                #                         for i, tech in enumerate(techs):
-                #                             data[param_current].append(tuple([region, tech, values[i]]))
-
-                #                 if param_current in ('OutputActivityRatio','InputActivityRatio','EmissionActivityRatio'):
-                #                     mode = line.split(' ')[0]
-                #                     for i, year in enumerate(years):
-                #                         data[param_current].append(tuple([region, fuel_emi, tech, year, mode, values[i]]))
-
-                #                 if param_current in ('CapacityFactor', 'SpecifiedDemandProfile'):
-                #                     timeslice = line.split(' ')[0]
-                #                     for i, year in enumerate(years):
-                #                         data[param_current].append(tuple([region, tech, year, timeslice, values[i]]))
-
-                #                 if param_current in ('YearSplit'):
-                #                     timeslice = line.split(' ')[0]
-                #                     for i, year in enumerate(years):
-                #                         data[param_current].append(tuple([region, year, timeslice, values[i]]))
-
-                #                 if param_current in ('TotalAnnualMaxCapacityInvestment','TotalAnnualMinCapacityInvestment','TotalTechnologyAnnualActivityUpperLimit', 'TotalTechnologyAnnualActivityLowerLimit', 'TotalAnnualMaxCapacity', 'ResidualCapacity', 'AvailabilityFactor'):
-                #                     tech = line.split(' ')[0]
-                #                     for i, year in enumerate(years):
-                #                         data[param_current].append(tuple([region, tech, year, values[i]]))   
-
-                #         if line.startswith(
-                            
-                #             ('param DiscountRate',
-                #             'param OutputActivityRatio',
-                #             'param InputActivityRatio', 
-                #             'param EmissionActivityRatio',
-                #             'param TotalAnnualMaxCapacityInvestment',
-                #             'param TotalAnnualMinCapacityInvestment',
-                #             'param TotalTechnologyAnnualActivityUpperLimit',
-                #             'param TotalTechnologyAnnualActivityLowerLimit',
-                #             'param TotalAnnualMaxCapacity',
-                #             'param ResidualCapacity',
-                #             'param AvailabilityFactor',
-
-                #             'param CapacityToActivityUnit',
-                #             'param DiscountRateIdv',
-                #             'param TotalTechnologyModelPeriodActivityLowerLimit',
-                #             'param TotalTechnologyModelPeriodActivityUpperLimit',
-                #             'param CapacityFactor',
-                #             'param YearSplit',
-
-                #             'param SpecifiedDemandProfile'
-                #             )):
-                            
-                #             param_current = line.split(' ')[1]
-                #             # params = Config.PARAMETERS_C[param_current].copy()
-                #             # params.append(param_current)
-                #             data[param_current] = []
-                #             # data[param_current].append(tuple(params))
-                #             parsing = True
-                #             if line.startswith(('param CapacityToActivityUnit'))  or line.startswith(('param DiscountRateIdv')) or line.startswith(('param TotalTechnologyModelPeriodActivityLowerLimit')) or line.startswith(('param TotalTechnologyModelPeriodActivityUpperLimit')):
-                #                 firstRow=True 
                 data = self.parseDataFile(dataFilePath)
             else:
                 response = {
@@ -1335,86 +1227,54 @@ class DataFile(Osemosys):
                 }   
                 return response
 
-
             ############################################### Create dataframes from data file
             # df_IAR = pd.DataFrame(df_IAR.values[1:], columns=df_IAR.iloc[0] )
             df_IAR = pd.DataFrame(data['InputActivityRatio'], columns=Config.PARAMETERS_C_full['InputActivityRatio'])
             df_IAR['InputActivityRatio'] = df_IAR['InputActivityRatio'].astype(float)
 
             df_TAMaxCI = pd.DataFrame(data['TotalAnnualMaxCapacityInvestment'], columns=Config.PARAMETERS_C_full['TotalAnnualMaxCapacityInvestment'])
-            # headers = df_TAMaxCI.iloc[0]
-            # df_TAMaxCI = pd.DataFrame(df_TAMaxCI.values[1:], columns=headers )
             df_TAMaxCI['TotalAnnualMaxCapacityInvestment'] = df_TAMaxCI['TotalAnnualMaxCapacityInvestment'].astype(float)
 
             df_TAMinCI = pd.DataFrame(data['TotalAnnualMinCapacityInvestment'], columns=Config.PARAMETERS_C_full['TotalAnnualMinCapacityInvestment'])
-            # headers = df_TAMinCI.iloc[0]
-            # df_TAMinCI = pd.DataFrame(df_TAMinCI.values[1:], columns=headers )
             df_TAMinCI['TotalAnnualMinCapacityInvestment'] = df_TAMinCI['TotalAnnualMinCapacityInvestment'].astype(float)
 
             df_TAAUL = pd.DataFrame(data['TotalTechnologyAnnualActivityUpperLimit'], columns=Config.PARAMETERS_C_full['TotalTechnologyAnnualActivityUpperLimit'])
-            # headers = df_TAAUL.iloc[0]
-            # df_TAAUL = pd.DataFrame(df_TAAUL.values[1:], columns=headers )
             df_TAAUL['TotalTechnologyAnnualActivityUpperLimit'] = df_TAAUL['TotalTechnologyAnnualActivityUpperLimit'].astype(float)
 
             df_TAALL = pd.DataFrame(data['TotalTechnologyAnnualActivityLowerLimit'], columns=Config.PARAMETERS_C_full['TotalTechnologyAnnualActivityLowerLimit'])
-            # headers = df_TAALL.iloc[0]
-            # df_TAALL = pd.DataFrame(df_TAALL.values[1:], columns=headers )
             df_TAALL['TotalTechnologyAnnualActivityLowerLimit'] = df_TAALL['TotalTechnologyAnnualActivityLowerLimit'].astype(float)
 
             df_TAMaxC = pd.DataFrame(data['TotalAnnualMaxCapacity'], columns=Config.PARAMETERS_C_full['TotalAnnualMaxCapacity'])
-            # headers = df_TAMaxC.iloc[0]
-            # df_TAMaxC = pd.DataFrame(df_TAMaxC.values[1:], columns=headers )
             df_TAMaxC['TotalAnnualMaxCapacity'] = df_TAMaxC['TotalAnnualMaxCapacity'].astype(float)
 
             df_RC = pd.DataFrame(data['ResidualCapacity'], columns=Config.PARAMETERS_C_full['ResidualCapacity'])
-            # headers = df_RC.iloc[0]
-            # df_RC = pd.DataFrame(df_RC.values[1:], columns=headers )
             df_RC['ResidualCapacity'] = df_RC['ResidualCapacity'].astype(float)
 
             df_AF = pd.DataFrame(data['AvailabilityFactor'], columns=Config.PARAMETERS_C_full['AvailabilityFactor'])
-            # headers = df_AF.iloc[0]
-            # df_AF = pd.DataFrame(df_AF.values[1:], columns=headers )
             df_AF['AvailabilityFactor'] = df_AF['AvailabilityFactor'].astype(float)
 
             df_CTAU = pd.DataFrame(data['CapacityToActivityUnit'], columns=Config.PARAMETERS_C_full['CapacityToActivityUnit'])
-            # headers = df_CTAU.iloc[0]
-            # df_CTAU = pd.DataFrame(df_CTAU.values[1:], columns=headers )
             df_CTAU['CapacityToActivityUnit'] = df_CTAU['CapacityToActivityUnit'].astype(float)
 
             df_TMPALL = pd.DataFrame(data['TotalTechnologyModelPeriodActivityLowerLimit'], columns=Config.PARAMETERS_C_full['TotalTechnologyModelPeriodActivityLowerLimit'])
-            # headers = df_TMPALL.iloc[0]
-            # df_TMPALL = pd.DataFrame(df_TMPALL.values[1:], columns=headers )
             df_TMPALL['TotalTechnologyModelPeriodActivityLowerLimit'] = df_TMPALL['TotalTechnologyModelPeriodActivityLowerLimit'].astype(float)
 
-
             df_TMPAUL = pd.DataFrame(data['TotalTechnologyModelPeriodActivityUpperLimit'], columns=Config.PARAMETERS_C_full['TotalTechnologyModelPeriodActivityUpperLimit'])
-            # headers = df_TMPAUL.iloc[0]
-            # df_TMPAUL = pd.DataFrame(df_TMPAUL.values[1:], columns=headers )
             df_TMPAUL['TotalTechnologyModelPeriodActivityUpperLimit'] = df_TMPAUL['TotalTechnologyModelPeriodActivityUpperLimit'].astype(float)
 
             df_CF = pd.DataFrame(data['CapacityFactor'], columns=Config.PARAMETERS_C_full['CapacityFactor'])
-            # headers = df_CF.iloc[0]
-            # df_CF = pd.DataFrame(df_CF.values[1:], columns=headers )
             df_CF['CapacityFactor'] = df_CF['CapacityFactor'].astype(float)
 
             df_YS = pd.DataFrame(data['YearSplit'], columns=Config.PARAMETERS_C_full['YearSplit'])
-            # headers = df_YS.iloc[0]
-            # df_YS = pd.DataFrame(df_YS.values[1:], columns=headers )
             df_YS['YearSplit'] = df_YS['YearSplit'].astype(float)
 
             df_SDP = pd.DataFrame(data['SpecifiedDemandProfile'], columns=Config.PARAMETERS_C_full['SpecifiedDemandProfile'])
-            # headers = df_SDP.iloc[0]
-            # df_SDP = pd.DataFrame(df_SDP.values[1:], columns=headers )
             df_SDP['SpecifiedDemandProfile'] = df_SDP['SpecifiedDemandProfile'].astype(float)
 
             df_DRI = pd.DataFrame(data['DiscountRateIdv'], columns=Config.PARAMETERS_C_full['DiscountRateIdv'])
-            # headers = df_DRI.iloc[0]
-            # df_DRI = pd.DataFrame(df_DRI.values[1:], columns=headers )
             df_DRI['DiscountRateIdv'] = df_DRI['DiscountRateIdv'].astype(float)
 
             df_DR = pd.DataFrame(data['DiscountRate'], columns=Config.PARAMETERS_C_full['DiscountRate'])
-            # headers = df_DR.iloc[0]
-            # df_DR = pd.DataFrame(df_DR.values[1:], columns=headers )
             df_DR['DiscountRate'] = df_DR['DiscountRate'].astype(float)
 
             ########################################################################################## df za provjeru 1
@@ -1450,7 +1310,6 @@ class DataFile(Osemosys):
             df_merge7 = df_merge71.merge(df_merge72, on=['r','y','t'], how='left')
             df_YStmp = df_YS.groupby(['r','y'])['YearSplit'].sum().reset_index().rename(columns={'YearSplit':'Sum'})
 
-            # df_merge7 = df_merge7.set_index(['r','y']).fillna(df_YStmp.set_index(['r','y'])).reset_index()
             df_merge7 = pd.merge(df_merge7, df_YStmp, on=['r','y'],  suffixes=("", "_y"), how="left")
             df_merge7['Sum'] = df_merge7['Sum'].fillna(df_merge7['Sum_y'])
 
@@ -1462,9 +1321,7 @@ class DataFile(Osemosys):
             df_merge8['TotalTechnologyModelPeriodActivityUpperLimit'] = df_merge8['TotalTechnologyModelPeriodActivityUpperLimit'].fillna(self.defaultValue['TMPAU'])
             df_merge8 = df_merge8[df_merge8['Sum_TotalTechnologyAnnualActivityLowerLimit'].notna()]
 
-
             ################################################################################################ df za provjeru 10
-
 
             ########################################################################################### C H E C K S ###############################################################################
 
@@ -1670,8 +1527,6 @@ class DataFile(Osemosys):
                 print("CHECK 10: Success")
                 msg+="<i class='fa fa-check-square-o success' aria-hidden='true'></i>CHECK 10: Success\n\n"
 
-            #print('msg \n', msg)
-
             response = {
                 "msg": msg,
                 "status_code": 'success'
@@ -1766,8 +1621,7 @@ class DataFile(Osemosys):
                                     for i, mode in enumerate(modes):
                                         if(value[i] != '0'):
                                             data[param_current].append(tuple([ stg, tech, mode]))
-                                        
-                                        
+
                     if line.startswith(
                         (
                         'param OutputActivityRatio',
@@ -1786,7 +1640,6 @@ class DataFile(Osemosys):
                         parsing = True
                         if line.startswith(('param OperationalLife','param DiscountRateIdv','param TechnologyToStorage','param TechnologyFromStorage')):
                             firstRow=True
-
 
             data_out = data['OutputActivityRatio']
             data_inp = data['InputActivityRatio']
@@ -1896,14 +1749,12 @@ class DataFile(Osemosys):
             #         else:
             #             dtString += '{} '.format(0)
 
-
             #     dtbString += '{} '.format(ts['Ts'])
             #     for dtb in dailytypebrackets :
             #         if dtb['Dtb'] == ts['DTB'][0]:
             #             dtbString += '{} '.format(1)
             #         else:
             #             dtbString += '{} '.format(0)
-
 
             #     seString += '{}'.format('\n')
             #     dtString += '{}'.format('\n')
@@ -1984,14 +1835,12 @@ class DataFile(Osemosys):
             # but that write was fully superseded by the final write below - removed
             # so a failure here can never leave data_outfile partially overwritten.)
 
-
             # df_OL = pd.DataFrame(data['OperationalLife'], columns=['r','t','OperationalLife'])
             # df_OL['OperationalLife'] = df_OL['OperationalLife'].astype(int)
             # df_DRi = pd.DataFrame(data['DiscountRateIdv'], columns=['r','t','DiscountRateIdv'])
             # df_DRi['DiscountRateIdv'] = df_DRi['DiscountRateIdv'].astype(float)
             # df_CRF = pd.merge(df_DRi, df_OL, on=['r', 't'])
             # df_CRF['CRF'] = (1 - pow( (1+df_CRF['DiscountRateIdv']), -1) ) / (1 - pow( (1+df_CRF['DiscountRateIdv']), -df_CRF['OperationalLife'] ) )
-
 
             #function for appending values in data file
             def file_output_function(dict, set_list, set_name, extra_char, type=None):
@@ -2026,7 +1875,6 @@ class DataFile(Osemosys):
                 file_output_function(dict_ittc, input_fuel_list, 'set INPUTxTOTALxCAPACITYperFUEL[', '', type='input')
 
                 file_output_function(dict_all, tech_list, 'set MODEperTECHNOLOGY[', '*')
-
 
                 line = 'set INPUTxFUEL:=' + ', '.join(input_fuel_list)
                 file_out.write(line + ';' + '\n')
@@ -2147,7 +1995,6 @@ class DataFile(Osemosys):
             batchlog=""
             msg=""
             status = "Success"
-            results = []
 
             # A caserun listed twice would make two workers write into the same
             # folder; keep first occurrence, preserve order.
@@ -2261,9 +2108,6 @@ class DataFile(Osemosys):
         try:
             caserunname = caserun
             if lock is not None:
-                # self.caserunname = caserunname
-                # lock = {}
-                # lock[caserunname] = threading.Lock() 
                 lock.acquire()
                 lock_acquired = True
                 caserunname = caserun
@@ -2286,7 +2130,6 @@ class DataFile(Osemosys):
             logfile = str(self.logFile.resolve())
             logfiletxt = str(self.logFileTxt.resolve())
             lpfile = str(self.lpFile.resolve())
-
 
             glpfolder = self.glpkFolder.resolve()
             cbcfolder = self.cbcFolder.resolve()
@@ -2349,10 +2192,8 @@ class DataFile(Osemosys):
                         "status_code": "error",
                         "caserun": caserunname,
                     }
-            
 
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
-                
 
                 #original data file without preprocessing
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile_original +' -d ' + datafile +' --wlp ' + lpfile, cwd=glpfolder,  capture_output=True, text=True, shell=True)
@@ -2360,19 +2201,6 @@ class DataFile(Osemosys):
                 print("CREATINON OF LP FILE DONE (%s)! --- %s seconds --- %s" % ('reused' if lp_reused else 'rebuilt', time.time() - start_time, caserunname))
                 txtOut = txtOut + ("Creation of LP file time {:0.2f}s ({});{}".format(time.time() - start_time, 'reused' if lp_reused else 'rebuilt', '\n'))
 
-
-                ####output to logfile.txt
-                #subprocess.run('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile +'>'+  logfiletxt+'2>&1', cwd=glpfolder, text=True, shell=True)
-
-                # proc = subprocess.Popen('glpsol --check -m ' + modelfile +' -d ' + datafile_processed +' --wlp ' + lpfile, cwd=glpfolder, text=True, shell=True)
-                # try:
-                #     outs, errs = proc.communicate(timeout=25)
-                # except:
-                #     proc.kill()
-                #     outs, errs = proc.communicate()
-
-                #cbc_out = subprocess.run('cbc ' + lpfile +' -presolve off -postsolve on -logLevel 3 solve -printing all -solu '  + resultfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
-                # prin
                 cbc_out = subprocess.run(
                     [str(cbc_exec), lpfile, "solve", "-printing", "all", "-solu", resultfile],
                     cwd=cbc_cwd,
@@ -2443,7 +2271,6 @@ class DataFile(Osemosys):
                     except Exception as ex:
                         print("OGLink hook error (CLEWs run unaffected):", ex)
 
-
                 print("MESSAGES DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
                 txtOut = txtOut + ("Message preparation time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
@@ -2466,7 +2293,6 @@ class DataFile(Osemosys):
                 if oglinkInfo:
                     response["oglink"] = oglinkInfo
 
-           
             return response
             # urllib.request.urlretrieve(self.dataFile, dataFile)
 
@@ -2528,8 +2354,7 @@ class DataFile(Osemosys):
             df.columns = ['temp']
 
             df['temp'] = df['temp'].str.lstrip(' *\n\t')
-           
-           
+
             if len(df) > 0:
                 #ovdje parsa result.txt file
                 df[['temp','value']] = df['temp'].str.split(')', expand=True)                
@@ -2546,7 +2371,6 @@ class DataFile(Osemosys):
 
                 #df[['primal','dual']] = df['value'].str.split('\t', expand=True)
                 df[['value','dual']] = df['value'].str.split(expand=True)
-                #print(df[['value','dual']].head())
 
                 df[['parameter','id']] = df['temp'].str.split('(', expand=True)
                 df['parameter'] = df['parameter'].str.split(' ', expand=True)[1]
@@ -2606,14 +2430,6 @@ class DataFile(Osemosys):
                 ################################################################################################################
                 #duals
                 for dual in self.DUALS_BY_NAME.keys():
-                    # if 'EBb4_EnergyBalanceEachYear4_ICR' in all_params:
-                    #     df_DR = pd.DataFrame(data['DiscountRate'], columns=Config.PARAMETERS_C_full['DiscountRate'])
-                    #     df_DR['DiscountRate'] = df_DR['DiscountRate'].astype(float)
-                    #     df_EB = all_params['EBb4_EnergyBalanceEachYear4_ICR']
-                    #     df_EB['y'] = df_EB['y'].astype(int)
-                    #     df_EB_d = pd.merge(df_EB, df_DR, on=['r'], how='outer')
-                    #     df_EB_d['EBb4_EnergyBalanceEachYear4_ICR'] = df_EB_d['EBb4_EnergyBalanceEachYear4_ICR'] * pow((1 + df_EB_d['DiscountRate']), df_EB_d['y'] - start_year + 0.5)
-                    #     df_EB_d.to_csv(os.path.join(base_folder, 'csv', 'EBb4_EnergyBalanceEachYear4_ICR.csv'), index=None)
                     if dual in all_params:
                         df_DR = pd.DataFrame(data['DiscountRate'], columns=Config.PARAMETERS_C_full['DiscountRate'])
                         df_DR['DiscountRate'] = df_DR['DiscountRate'].astype(float)
@@ -2628,18 +2444,10 @@ class DataFile(Osemosys):
                     df_RSC = pd.DataFrame(data['ResidualStorageCapacity'], columns=Config.PARAMETERS_C_full['ResidualStorageCapacity'])
                     df_RSC['ResidualStorageCapacity'] = df_RSC['ResidualStorageCapacity'].astype(float)
 
-                    # print('AccumulatedNewStorageCapacity')
-                    # print(df_ANSC.head())
-                    # print('ResidualStorageCapacity')
-                    # print(df_RSC.head())
-
                     df_TSC_tmp =  pd.merge(df_ANSC, df_RSC, on=['y', 's'] ,  how='outer')
                     df_TSC_tmp['ResidualStorageCapacity'] = df_TSC_tmp['ResidualStorageCapacity'].fillna(0)
                     df_TSC_tmp['TotalStorageCapacity'] = df_TSC_tmp['AccumulatedNewStorageCapacity'] + df_TSC_tmp['ResidualStorageCapacity']
                     df_TSC_tmp.sort_values(['s','y'], inplace=True)
-                    
-                    # print('TotalStorageCapacity')
-                    # print(df_TSC_tmp.head())
 
                     df_TSC = df_TSC_tmp[['s','y','TotalStorageCapacity']]
                     df_TSC = df_TSC[df_TSC['TotalStorageCapacity']!=0]
@@ -2670,30 +2478,20 @@ class DataFile(Osemosys):
                     df_yearsplit = pd.DataFrame(data['YearSplit'], columns=['r','y', 'l','YearSplit'])
                     df_activity = all_params['RateOfActivity'].rename(columns={'value':'RateOfActivity'})
 
-                    # df_output = pd.DataFrame(data['OutputActivityRatio'], columns=['r','f','t','y','m','OutputActivityRatio'])
                     df_output = pd.DataFrame(data['OutputActivityRatio'], columns=Config.PARAMETERS_C_full['OutputActivityRatio'])
                     df_output['OutputActivityRatio'] = df_output['OutputActivityRatio'].astype(float)
                     df_out_ys = pd.merge(df_output, df_yearsplit, on='y')
                     #df_out_ys['OutputActivityRatio'] = df_out_ys['OutputActivityRatio'].astype(float)
                     df_out_ys['YearSplit'] = df_out_ys['YearSplit'].astype(float)
                     
-                    # df_input = pd.DataFrame(data['InputActivityRatio'], columns=['r', 'f','t','y','m','InputActivityRatio'])
                     df_input = pd.DataFrame(data['InputActivityRatio'], columns=Config.PARAMETERS_C_full['InputActivityRatio'])
                     df_input['InputActivityRatio'] = df_input['InputActivityRatio'].astype(float)
                     df_in_ys = pd.merge(df_input, df_yearsplit, on='y')
                     # df_in_ys['InputActivityRatio'] = df_in_ys['InputActivityRatio'].astype(float)
                     df_in_ys['YearSplit'] = df_in_ys['YearSplit'].astype(float)
                     
-                    # df_emi = pd.DataFrame(data['EmissionActivityRatio'], columns=['r', 'e','t','y','m','EmissionActivityRatio'])
                     df_emi = pd.DataFrame(data['EmissionActivityRatio'], columns=Config.PARAMETERS_C_full['EmissionActivityRatio'])
                     df_emi['EmissionActivityRatio'] = df_emi['EmissionActivityRatio'].astype(float)
-                    #df_emi.to_csv(os.path.join(base_folder, 'emi_table.csv'), index=None)
-
-                    #########################################Demand#################################################################
-                    #SpecifiedAnnualDemand[r,f,y]*SpecifiedDemandProfile[r,f,l,y]+ AccumulatedAnnualDemand[r,f,y]
-                    # df_sad = data['SpecifiedAnnualDemand'].rename(columns={'value':'SpecifiedAnnualDemand'})
-                    # df_sdp = data['SpecifiedDemandProfile'].rename(columns={'value':'SpecifiedDemandProfile'})
-                    # df_aad = data['AccumulatedAnnualDemand'].rename(columns={'value':'AccumulatedAnnualDemand'})
 
                     if not df_out_ys.empty:
                         ########################################ProductionByTechnologyByModeTs############################################
@@ -2779,7 +2577,6 @@ class DataFile(Osemosys):
                         df_ropbt = df_ropbt[df_ropbt['RateOfProductionByTechnologyByMode']!=0]
                         df_ropbt.to_csv(os.path.join(base_folder, 'csv', 'RateOfProductionByTechnologyByMode.csv'), index=None)
 
-                    
                     if not df_in_ys.empty:
                         ######################################UseByTechnologyByModeTs##############################################
                         df_use = pd.merge(df_in_ys, df_activity, how='left', on=['t','m','l','y'])
@@ -2833,16 +2630,11 @@ class DataFile(Osemosys):
                         cumulativeList.append(row['CIxCRF'])
                         df_ACI_temp.loc[index,'AnnualizedInvestmentCost'] = sum(cumulativeList[-row['OperationalLife']:])
                         tech_current = row['t']
-                        # if int(start_year) + row['OperationalLife'] <= int(row['y']) or tech_current != row['t']:
-                        #     Sum = 0
-                        # Sum += row['CIxCRF']
-                        # df_ACI_temp.loc[index,'AnnualizedInvestmentCost'] = Sum
-                        # tech_current = row['t']
 
                     df_ACI = df_ACI_temp[['r','t','y','AnnualizedInvestmentCost']]
                     df_ACI = df_ACI[df_ACI['AnnualizedInvestmentCost']!=0]
                     df_ACI.to_csv(os.path.join(base_folder, 'csv', 'AnnualizedInvestmentCost.csv'), index=None)
-        except Exception as ex:
+        except Exception:
             # unexpected
             raise
  
@@ -2876,7 +2668,6 @@ class DataFile(Osemosys):
             # 'group', so the extra key is harmless.
             paramByName = { **self.VAR_BY_NAME, **self.DUALS_BY_NAME, **self.IND_BY_NAME }
 
-            DATA = {}
             for csv in csvs:
                 #read csv file
                 csv_path = Path(Config.DATA_STORAGE,self.case,'res', caserunname, 'csv', csv)

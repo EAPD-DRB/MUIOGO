@@ -27,7 +27,6 @@ export class Html {
     }
 
     static apendModel(value, selectedCS) {
-        //Base.appendCasePickerHTML(value, selectedCS);
         let htmlstring = `
             <div class="panel panel-default" id=l_${value.replace(/[^A-Z0-9]/ig, "")}>
                 <div class="panel-heading" style="padding-right: 0px !important;">
@@ -91,7 +90,6 @@ export class Html {
     }
 
     static apendCase(value) {
-        //Base.appendCasePickerHTML(value, selectedCS);
         let scs = []
         $.each(value.Scenarios, function (index, obj) {
             if(obj.Active == true){
@@ -177,36 +175,12 @@ export class Html {
             $('#csvFiles').append(res);
         });
 
-
     }
 
     static renderDataFile(DataFile, model){
 
         $("#osy-DataFile").empty();
         $("#osy-DataFile").html('');
-
-        // var table = $("<table />");
-        // var rows = DataFile.split("\n"); 
-
-        // if(rows.length < 2500){
-        //     for (var i = 0; i < rows.length; i++) {
-        //         var row = $("<tr />");
-        //         var cells = rows[i].split(" ");
-        //         //var cells = rows[i].match(/.{1,50}/g);
-        //         if (cells !== null){
-        //             for (var j = 0; j < cells.length; j++) {
-        //                 var cell = $(" <td style='padding-right:5px'></td>");
-        //                 //cells[j] = cells[j].replace(/ /g, '&nbsp;');
-        //                 cell.html(cells[j]);
-        //                 row.append(cell);
-        //             }
-        //             table.append(row);
-        //         }
-        //     }
-        //     $("#osy-DataFile").append(table);
-        // }else{
-        //     $("#osy-DataFile").html('Data file is to large for preview.');
-        // }
 
         Html.renderPreformatted('#osy-DataFile', DataFile, 'Data file preview unavailable.');
 
@@ -270,11 +244,8 @@ export class Html {
             }
         });
 
-        //$("#osy-date").datepicker().datepicker("setDate", model.date);
         $("#osy-casename").val(model.casename);
         $("#osy-desc").val(model.desc);
-        // $("#osy-ns").val(model.ns);
-        // $("#osy-dt").val(model.dt);
         $("#osy-mo").val(model.mo);
 
         $("#commCount").text(model.commCount);
@@ -311,7 +282,6 @@ export class Html {
     }
 
     static enableImportProcess() {
-        //console.log('import SHOW')
         $("#osy-process").removeAttr('disabled');
         $('#osy-import').prop("disabled", true);
         $("#osy-casename").prop("disabled", true);
@@ -323,7 +293,6 @@ export class Html {
     }
 
     static newImportProcess() {
-        //console.log('new import SHOW')
         $("#osy-process").prop("disabled", true);
 
         $('#osy-import').removeAttr('disabled');
@@ -620,9 +589,7 @@ export class Html {
         container.empty();
         for (var i = from; i <= to; i++) {
             container.append('<label class="checkbox"><input type="checkbox" name="Year[' + i + ']" id="' + i + '" checked disabled/><i></i>' + i + '</label>');
-            //container.append(` <label><input type="checkbox" class="checkbox style-0" name="unit" id="' ${i} '" checked > <span>${i}</span></label>`);
         }
-
 
         // unitsList += `
         // <label class="col-md-4">
@@ -675,7 +642,6 @@ export class Html {
                     </span>
                 </div>`;
                 $("#osy-sc0").html(sc0);
-                //$("#osy-sc0").jqxSortable();
             }else{
                 if (flag.Active) {
                     var sortableElement =
@@ -755,7 +721,6 @@ export class Html {
         }
     }
 
-
     static renderIndicatorFormula(rules, unitsDef, indicatorDef) {
         $("#osy-indFormulaSort1").empty();
         $("#osy-indFormulaSort2").empty();
@@ -765,7 +730,6 @@ export class Html {
             $.each(indicatorDef, function (id, rule) {
 
                 if (!rules['cat'].some(e => e.var === id)) {
-                    //console.log('rule.val, unitsDef ', rule.ruleVal, unitsDef)
                     let res = jsonLogic.apply(rule.ruleVal, unitsDef)
                     var sortableElement =
                         `<div class="sortable-item" id="${id}">${res}</div>`;
@@ -781,14 +745,8 @@ export class Html {
             });
 
             $("#osy-indFormulaSort1").html(sortableList1);
-            //$("#osy-indFormulaSort1").jqxSortable();
 
             $("#osy-indFormulaSort2").html(sortableList2);
-            //$("#osy-indFormulaSort2").jqxSortable();
-            // $("#osy-indFormulaSort1, #osy-indFormulaSort2").jqxSortable({
-            //     connectWith: ".osy-indRuleSort",
-            //     opacity: 0.5,
-            // });
             
             $("#osy-indFormulaSort1, #osy-indFormulaSort2").jqxSortable({
                 connectWith: ".osy-indRuleSort",
@@ -814,10 +772,7 @@ export class Html {
         }
     }
 
-
-
     static ResStats(model){
-        //console.log('model res html ', model)
         $('#totalTechs').html(`<i class="fa fa-cog"></i>&nbsp;${model.genData['osy-tech'].length}`);
         let html = '';
         $('#activityTechsCount').html(`<i class="fa fa-connectdevelop warning"></i>&nbsp;${model.RES.Techs.length-2}`)
@@ -828,7 +783,6 @@ export class Html {
         });
         document.querySelector('#activityTechs').innerHTML = html;
 
-
         let selectedTechsHtml = '';
         model.selectedTechs.forEach((item) => {
             if(!['DS', 'DT', 'FD'].includes(item)){
@@ -838,15 +792,12 @@ export class Html {
         });
         document.querySelector('#selectedTechs').innerHTML = selectedTechsHtml;
 
-
-        
         $('#iarTechsCount').html(`<i class="fa fa-sign-in osy-second-color"></i>&nbsp;${ Object.keys(model.RES.Data.IAR).length}`)
         let iarTechsHtml = '';
         $.each(model.RES.Data.IAR, function (TechId, obj) {
             iarTechsHtml += `<li><a><small><b>${model.techData[TechId].Tech}</b> - ${model.techData[TechId].Desc}</small></a> <p class="divider"></p></li>`;
         });
         document.querySelector('#iarTechs').innerHTML = iarTechsHtml;
-
 
         $('#oarTechsCount').html(`<i class="fa fa-sign-out danger"></i>&nbsp;${Object.keys(model.RES.Data.OAR).length}`)
         let oarTechsHtml = '';
@@ -882,7 +833,6 @@ export class Html {
         }else{
             $('#commLegend').empty();
         }
-
 
     }
 
