@@ -1,3 +1,9 @@
+"""CLEWS case CRUD, source-table editing, and result-cache access.
+
+The browser's active CLEWS case is stored as session['osycase']. Structural
+edits pass through UpdateCase; parameter edits replace one parameter's table.
+"""
+
 from flask import Blueprint, jsonify, request, session, send_file
 import os
 import stat
@@ -271,6 +277,8 @@ def updateData():
         
         dataPath = Path(Config.DATA_STORAGE, case, dataJson)
         sourceData = File.readFile(dataPath)
+        # The request contains one parameter's complete scenario-to-rows map.
+        # Preserve the other parameters stored in the same dimension-group file.
         sourceData[param] = data
         File.writeFile(sourceData, dataPath)
         #File.writeFileUJson(sourceData, dataPath)

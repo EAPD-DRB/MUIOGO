@@ -1,3 +1,10 @@
+"""Export CLEWS source tables, run solvers, and publish result tables.
+
+The CBC path is generateDatafile -> preprocessData -> GLPK matrix check ->
+CBC optimization -> CSV extraction -> shared viewer JSON. Files in res/<run>
+belong to that run; view/<group>.json combines multiple runs of one case.
+"""
+
 from pathlib import Path
 import pandas as pd
 import traceback
@@ -19,8 +26,6 @@ logger = logging.getLogger(__name__)
 
 
 class DataFile(Osemosys):
-    # def __init__(self, case):
-    #     Osemosys.__init__(self, case)
 
     def gen_Conversions(self):
         self.seasons = ''
@@ -88,6 +93,9 @@ class DataFile(Osemosys):
         self.f.write('{}{}'.format(dtbString,'\n'))
 
     def gen_R(self):
+        # All gen_<group> exporters use this overlay rule: start with the
+        # parameter default, then apply active scenarios in stored order.
+        # None inherits the earlier value; an explicit zero replaces it.
         r = self.R(File.readFile(self.rPath))
         for id, param in self.PARAM['R'].items():
             self.f.write('{} {} {} {} {} {}'.format('param', param,'default', self.defaultValue[id], ':=','\n'))
@@ -669,6 +677,11 @@ class DataFile(Osemosys):
         return joined + ' ' if joined else ''
 
     def generateDatafile( self, caserunname ):
+        """Write res/<caserunname>/data.txt from source JSON and saved run layers.
+
+        This exports inputs only. It does not preprocess, build a matrix, or
+        optimize; callers choose those subsequent steps explicitly.
+        """
         try:
             self.defaultValue = self.getParamDefaultValues()
             self.emiIDs = self.getEmiIds()
@@ -755,7 +768,7 @@ class DataFile(Osemosys):
             self.mods = self._joinIds(self.modIds)
             self.cons = self._joinIds(self.conIDs, self.conMap)
 
-            #23052026 Blalnce leve
+            # Split commodities by their declared temporal balance resolution.
             self.allCommLists = self.getAllCommLists()
             self.comm_ts = self._joinIds(self.allCommLists["Ts"])
             self.comm_se = self._joinIds(self.allCommLists["Se"])
@@ -813,7 +826,8 @@ class DataFile(Osemosys):
 
                 self.gen_Conversions()
                 self.gen_RCn()
-                #dznamicaly call function depending on defined params
+                # Parameters.json is the registry: a populated group selects
+                # its matching gen_<group> exporter.
                 for group, array in self.PARAM.items():
                     if array:
                         func_name = f"gen_{group}"
@@ -1675,6 +1689,11 @@ class DataFile(Osemosys):
             raise OSError
         
     def preprocessData(self, data_infile, data_outfile):
+        """Add sparse technology/mode sets and financial factors for the solver.
+
+        Rebuild derived MODEper*/MODEx* sets from the exported mappings while
+        retaining the source parameter blocks. Publish the output atomically.
+        """
         try:
             lines = []
             with open(data_infile, 'r') as f1:
@@ -2180,73 +2199,6 @@ class DataFile(Osemosys):
                 if runout["status_code"] != 'success':
                     status = "Error"
 
-            ##################################Multiprocessing
-            # m = multiprocessing.Manager()
-            # lock = m.Lock()
-            # with concurrent.futures.ProcessPoolExecutor() as executor:
-            #     results = [executor.submit(self.run, solver, caserun, lock  ) for caserun in cases]
-            #     #runout = [result.result() for result in results]
-
-            #     # for caserun in cases:
-            #     #     # lock[caserun] = threading.Lock() 
-            #     #     #lock = threading.Lock() 
-            #     #     t = executor.submit(self.run, solver, caserun)
-            #     #     results.append(t)
-
-            # for ft in concurrent.futures.as_completed(results):
-            #     runout = ft.result()
-            #     msg+="Case: {0}{1}{2}".format( runout["caserun"], runout["timer"],  '\n')
-            #     # batchlog+="GLPK status {0}{1}{2}GLPK log {3}{4}{5}{6}CBC log {7}{8}{9}{10}{11}".format(runout["status_code"], runout["timer"],'\n',runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n\n')
-            #     batchlog+="{0}{1}{2}{3}{4}{5}{6}{7}{8}".format(runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n')
-            #     batchlog+="------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ {0}".format('\n')
-            #     if runout["status_code"] != 'success':
-            #         status = "Error"
-            
-
-            #####################################Threading
-            # with concurrent.futures.ThreadPoolExecutor() as executor:
-            #     results = [executor.submit(self.run, solver, caserun  ) for caserun in cases]
-
-            #     # for caserun in cases:
-            #     #     # lock[caserun] = threading.Lock() 
-            #     #     #lock = threading.Lock() 
-            #     #     t = executor.submit(self.run, solver, caserun)
-            #     #     results.append(t)
-
-            # for f in concurrent.futures.as_completed(results):
-            #     runout = f.result()
-            #     msg+="Case: {0}{1}{2}".format( runout["caserun"], runout["timer"],  '\n')
-            #     # batchlog+="GLPK status {0}{1}{2}GLPK log {3}{4}{5}{6}CBC log {7}{8}{9}{10}{11}".format(runout["status_code"], runout["timer"],'\n',runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n\n')
-            #     batchlog+="{0}{1}{2}{3}{4}{5}{6}{7}{8}".format(runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n')
-            #     batchlog+="------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ {0}".format('\n')
-            #     if runout["status_code"] != 'success':
-            #         status = "Error"
-
-
-            ##########################################CUSOM THREAD IMPLEMENATATION
-            # for caserun in cases:
-            #     # batchlog+="Run dor case {0}, started at {1}{2}".format(caserun,dt, '\n')
-            #     batchlog+="Case: {0}{1}".format(caserun, '\n')
-            #     batchlog+="------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ {0}".format('\n')
-            #     #df = self.generateDatafile(caserun)
-            #     #runout = self.run(solver, caserun)
-
-
-            #     # thread = CustomThread(target=self.run, args=(solver, caserun ) )
-            #     # thread.start()
-            #     # threads.append(thread)
-
-
-            # # for thread in threads:
-            #     #runout = thread.join()
-            #     #runout = threads[caserun].join()
-
-            #     msg+="Case: {0}{1}{2}".format(caserun, runout["timer"], '\n')
-            #     # batchlog+="GLPK status {0}{1}{2}GLPK log {3}{4}{5}{6}CBC log {7}{8}{9}{10}{11}".format(runout["status_code"], runout["timer"],'\n',runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n\n')
-            #     batchlog+="{0}{1}{2}{3}{4}{5}{6}{7}{8}".format(runout["glpk_message"],'\n',runout["glpk_stdmsg"],'\n',runout["cbc_message"],'\n',runout["cbc_stdmsg"],'\n', '\n')
-            #     batchlog+="------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ {0}".format('\n')
-            #     if runout["status_code"] != 'success':
-            #         status = "Error"
             response = {
                 "log": batchlog,
                 "msg": msg,
@@ -2300,6 +2252,11 @@ class DataFile(Osemosys):
         return out, False
 
     def run( self, solver, caserun, lock=None, postprocess=True ):
+        """Solve previously exported inputs and return solver messages and status.
+
+        With postprocess=False, the batch caller must publish results later,
+        serializing writes to viewer JSON shared by this case's runs.
+        """
         lock_acquired = False
         try:
             caserunname = caserun
@@ -2525,6 +2482,11 @@ class DataFile(Osemosys):
                 lock.release()
     
     def generateCSVfromCBC(self, data_file, results_file, base_folder=os.getcwd()):
+        """Parse CBC's named rows into primal/dual CSVs and derived indicators.
+
+        Registry setrelation fields determine index order. Commodity prices
+        use full-precision values before the ordinary display exports round.
+        """
         self.postprocessWarnings = []   # MUIOGO: reported with the run, see run()/batchRun()
         try:
             #pd.options.mode.chained_assignment = None
@@ -2885,6 +2847,11 @@ class DataFile(Osemosys):
             raise
  
     def generateResultsViewer(self, caserunname):
+        """Replace one run's entries in shared view/<group>.json caches.
+
+        These are read-modify-write operations: callers must serialize them
+        across runs of the same case. Run-specific CSVs remain the source.
+        """
         try:
             csvFolderPath = Path(Config.DATA_STORAGE,self.case,'res',caserunname, 'csv')
 

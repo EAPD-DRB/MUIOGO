@@ -1,3 +1,5 @@
+"""Exception carrying the message, HTTP status, and optional API response fields."""
+
 class CustomException(Exception):
     status_code = 400
 

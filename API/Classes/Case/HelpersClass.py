@@ -1,4 +1,4 @@
-# Classes/Helpers/helpers.py
+"""Registry indexes, solver lookup, and indicator projections shared by case services."""
 
 import os
 import shutil
@@ -98,7 +98,7 @@ class Helpers:
         return True
 
     # -------------------------------------------------------
-    # Ovdje ide logika indikatora, ali bez `self`
+    # Indicator projections keep case-specific definitions separate from type metadata.
     # -------------------------------------------------------
 
     @staticmethod
@@ -136,16 +136,16 @@ class Helpers:
     @staticmethod
     def merge_all_indicators_grouped(indicator_types_json: dict, custom_indicators: list, tech_map: dict) -> dict:
         """
-        Vraća strukturu grupisanu po 'group':
+        Return indicator records grouped by their type's dimension group:
         {
             "<group>": [
-                { ... indikator ... },
-                { ... indikator ... }
+                { ... indicator record ... },
+                { ... indicator record ... }
             ]
         }
         """
 
-        # 1) Sakupi sve tipove indikatora + group info
+        # Index type definitions once, preserving each type's dimension group.
         type_by_id = {}
         for group_name, group_items in indicator_types_json.items():
             if not isinstance(group_items, list):
@@ -155,10 +155,10 @@ class Helpers:
                 if isinstance(item, dict) and "id" in item:
                     type_by_id[item["id"]] = { **item, "group": group_name }
 
-        # 2) rezultat: group -> list of objects
+        # Result shape: dimension group -> list of indicator records.
         result = {}
 
-        # 3) obrada custom indikatora
+        # Skip incomplete definitions instead of producing unusable viewer entries.
         for item in custom_indicators:
             if not isinstance(item, dict):
                 continue
@@ -177,7 +177,7 @@ class Helpers:
             group = type_rec["group"]
             merged = deepcopy(item)
 
-            # Mapiranje Sets: TECHid -> TechName
+            # Solver-facing sets use technology codes, while source JSON stores IDs.
             techs_ids = merged.get("Techs", [])
             if isinstance(techs_ids, list):
                 merged["Techs"] = [tech_map.get(t, t) for t in techs_ids]
@@ -185,7 +185,7 @@ class Helpers:
             # Root-level group
             merged["group"] = group
 
-            # indicator_type bez 'group'
+            # The type payload omits the group already carried by the parent record.
             clean_type = {k: v for k, v in type_rec.items() if k != "group"}
             merged["indicator_type"] = deepcopy(clean_type)
 
@@ -195,7 +195,7 @@ class Helpers:
                 del merged["IndicatorId"]
 
             # -------------------------------
-            # UPIS: grupa -> lista objekata
+            # Append to the matching dimension group.
             # -------------------------------
             if group not in result:
                 result[group] = []

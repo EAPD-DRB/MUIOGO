@@ -1,4 +1,4 @@
-"""Serialize OG model runs: one solve at a time, ever.
+"""Serialize OG model runs within one application process.
 
 A single active run plus a FIFO queue, guarded by one process-wide lock. Solves are
 CPU-and-memory heavy (each spins up its own Dask cluster), so two at once would

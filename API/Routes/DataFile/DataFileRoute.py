@@ -1,3 +1,9 @@
+"""CLEWS run definitions, input export, solver execution, and artifact downloads.
+
+A case is the top-level model directory; a caserun selects ordered scenarios
+and owns res/<caserunname>. DataFile handles the generation and solver phases.
+"""
+
 from flask import Blueprint, Response, jsonify, request, send_file, session
 from pathlib import Path
 import shutil, datetime, time, os, logging
@@ -326,6 +332,8 @@ def batchRun():
 
         if modelname != None:
             txtFile = DataFile(modelname)
+            # Export sequentially before DataFile.batchRun starts independent
+            # solves; its viewer-cache publication is also serialized.
             for caserun in cases:
                 logger.info("Generating data file for model %s caserun %s", modelname, caserun)
                 txtFile.generateDatafile(caserun)

@@ -1,3 +1,6 @@
+// Adapt source parameter JSON for lookups, editable grids, and charts. Group
+// names encode dimensions (RYTCM = region/year/technology/commodity/mode).
+// Keep stable IDs for persistence; attach display names and units only in views.
 import { UNITDEFINITION, PARAM_TECH_GROUPS, PARAM_COMM_GROUPS, PARAM_EMIS_GROUPS, PARAM_STORAGE_GROUPS } from "./Const.Class.js";
 
 export class DataModel{
@@ -866,7 +869,9 @@ export class DataModel{
         return csbysc;
     }
 
-    ////////////////////////////////////////////////////////JSON data structures
+    // Each group has three projections: <group>() indexes rows by entity IDs,
+    // <group>grid() adds labels/units, and <group>chart() rearranges series.
+    // Clone first: the projections remove ID fields or add display metadata.
     static R(Rdata){
         let R = {};
         const cloneData = JSON.parse(JSON.stringify(Rdata));
@@ -1806,6 +1811,8 @@ export class DataModel{
     }
 
     static RYTCM(RYTCMdata){
+        // Source: [parameter][scenario] -> rows {TechId, CommId, MoId, <year>: value}.
+        // Lookup: [parameter][scenario][technology][commodity][mode] -> year values.
         let RYTCM = {};
         const cloneData = JSON.parse(JSON.stringify(RYTCMdata));
         $.each(cloneData, function (param, obj1) {

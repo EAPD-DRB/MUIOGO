@@ -12,6 +12,8 @@ from pathlib import Path
 
 SEAL_RELATIVE_PATH = Path("documentation") / "SEALED_CANDIDATE.json"
 IGNORED_PARTS = {".DS_Store", "view"}
+# Viewer JSON is a regenerable UI cache; source, run artifacts, and evidence
+# remain covered by the seal. The seal file itself cannot hash its own contents.
 REQUIRED_RUN_FILES = (
     "data.txt",
     "data_processed.txt",
@@ -201,6 +203,8 @@ def promote_case(candidate: Path, live: Path, backup: Path, execute: bool, allow
     if not live_exists:
         os.rename(candidate, live)
     else:
+        # Two same-filesystem renames preserve the sealed directory's contents.
+        # Restore the previous live case if the second rename fails.
         os.rename(live, backup)
         try:
             os.rename(candidate, live)

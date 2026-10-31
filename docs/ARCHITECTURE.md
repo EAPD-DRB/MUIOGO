@@ -174,6 +174,68 @@ rules served by `/ogc/getResultsReport`: levels as a percent change, rates in
 percentage points, fiscal values as shares of GDP, and a negative baseline
 flagged instead of given a percent change.
 
+## Code reading map
+
+Start with the route for the user action, follow its service call, then inspect
+the source table or run artifact it owns. The main paths are:
+
+| Workflow | Browser code | Backend code |
+| --- | --- | --- |
+| Page loading and unsaved changes | `WebAPP/Routes/Routes.Class.js`, `NavigationGuard.Class.js` | `API/app.py` serves templates and registers blueprints |
+| CLEWS structure and parameter editing | `WebAPP/App/Controller/AddCase.js`, dimension controllers such as `RYTCM.js`, `DataModel.Class.js` | `CaseRoute.py`, `CaseClass.py`, `UpdateCaseClass.py`, `OsemosysClass.py` |
+| CLEWS import and installation | `Base.Class.js`, `ClewsInstall.js` | `UploadRoute.py`, `CaseImporter.py`, `API/Classes/Clews/` |
+| CLEWS execution and results | `DataFile.js`, `WebAPP/AppResults/Controller/Pivot.js` | `DataFileRoute.py`, `DataFileClass.py`, `CommodityPrice.py` |
+| OG country workspace and runs | `OGWorkspace.Class.js`, `OGCases.js`, `OGParameters.js`, `OGRuns.js` | `OGCoreRunRoute.py`, `OGCoreCase.py`, `RunJob.py`, `OGRunner.py`, `ogc_worker.py` |
+| OG–CLEWS coupling | Run-hook and patch endpoints under `/oglink` | `API/Classes/OGLink/`, `oglink/oglink/`; see `oglink/README.md` |
+
+Class filenames in the browser column without a directory prefix are under
+`WebAPP/Classes/`; controller filenames are under `WebAPP/App/Controller/`.
+CLEWS case services are under `API/Classes/Case/`, OG services are under
+`API/Classes/OGCore/`, and route modules are under `API/Routes/` in their
+matching workflow directory.
+
+### CLEWS table conventions
+
+`genData.json` declares entities, stable IDs, and relationships. Shared
+`WebAPP/DataStorage/Parameters.json` defines parameter IDs, defaults, dimension groups,
+and units. A case's `<group>.json` files hold its source parameter values.
+Group letters describe dimensions: `R` region, `Y` year, `T` technology, `C`
+commodity, `E` emission, `S` storage, `M` mode, `Ts` timeslice, `Se` season,
+`Dt` day type, `Dtb` daily time bracket, and `Cn` user-defined constraint.
+The current exporter writes a single solver region, `RE1`.
+
+For example, `RYTCM.json` is indexed first by parameter and then by scenario.
+Each scenario contains rows with `TechId`, `CommId`, `MoId`, and year columns.
+`OsemosysClass.RYTCM()` and the browser's `DataModel.RYTCM()` turn these rows
+into nested lookups. Grid projections add names, descriptions, and units;
+save handlers retain IDs and parameter values and group rows by scenario again.
+
+`SC_0` is initialized with parameter defaults. Other scenarios use `null` for
+an inherited value. Export starts with the parameter default and applies
+non-null values from active scenarios in the caserun's saved order, so the last
+such value wins. Zero is an explicit value. Sorting the scenario list or
+replacing nulls with zero changes the exported model.
+
+### CLEWS execution and result ownership
+
+For CBC, the application exports `data.txt`, preprocesses it into
+`data_processed.txt`, builds `lp.lp` with `glpsol --check`, then optimizes with
+CBC. Preprocessing derives sparse technology/mode sets from the exported
+relationships. Matrix caching fingerprints the model file, processed data, and
+matrix flavor; a matching filename alone is insufficient for reuse.
+
+`res/<caserun>/` owns generated inputs, logs, solver results, and extracted
+CSVs. `view/<group>.json` combines results from several runs and is a UI cache.
+Batch solving uses a separate `DataFile` instance per worker and serializes
+updates to those shared JSON files. The annual commodity price is calculated
+from full-precision solver values before ordinary CSV display rounding.
+
+In the browser, `Pivot.js` coordinates `ResultLayoutState` (saved layout and
+filters), `ResultAggregator` (grouping and calculations), `ResultGrid`
+(Tabulator), and `Chart` (ECharts). `ResultPanel` and `ResultFieldSettings`
+edit the shared layout state. Keep numerical aggregation separate from display
+formatting so charts, tables, and exports use the same values.
+
 ## Known architectural constraints
 
 - Hardcoded or relative path assumptions exist and reduce portability.

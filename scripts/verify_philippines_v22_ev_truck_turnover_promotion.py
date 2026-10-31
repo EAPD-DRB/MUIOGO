@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Verify and document Philippines v22 EV/truck live promotion identity."""
+"""Verify and document Philippines v22 EV/truck live promotion identity.
+
+Historical workflow: this script writes evidence into both candidate and live
+cases. New releases use sealed_case_promotion.py so publication leaves sealed
+content unchanged.
+"""
 
 from __future__ import annotations
 

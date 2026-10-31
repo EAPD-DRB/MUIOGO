@@ -12,6 +12,8 @@ TIER_LABEL[TIER.LEVERS] = 'Policy levers';
 TIER_LABEL[TIER.ASSUMPTIONS] = 'Model assumptions';
 TIER_LABEL[TIER.REFERENCE] = 'Reference and advanced';
 
+// Module state survives route visits. Async schema/default responses must match
+// the current page generation before they can change the form or dirty state.
 let PAGE_ID = 0;
 let previewRef = 'auto';
 let dirty = false;

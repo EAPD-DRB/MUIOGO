@@ -106,6 +106,8 @@ export default class RYDtb {
 
             let rytsData = $divGrid.jqxGrid('getboundrows');
             let param = $("#osy-ryt").val();
+            // Persist stable row IDs and values only; grid labels and units are
+            // display metadata. Scenario nulls must survive to preserve inheritance.
             let data = JSON.parse(JSON.stringify(rytsData, ['ScId', 'DtbId'].concat(model.years)));
 
             let saveData = {};

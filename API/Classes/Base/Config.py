@@ -1,3 +1,9 @@
+"""Shared paths, runtime settings, and case-name validation for the Flask app.
+
+Environment overrides are read when this module is imported. CLEWS case data
+stays under DataStorage; OG calibration environments and job state live outside it.
+"""
+
 from pathlib import Path
 import os
 import tempfile
@@ -265,6 +271,7 @@ def ogc_clean_env():
 
 
 def get_runtime_log_path():
+    """Cache the first writable log location, falling back to temporary storage."""
     global _RUNTIME_LOG_PATH
 
     if _RUNTIME_LOG_PATH is not None:
@@ -283,14 +290,6 @@ def get_runtime_log_path():
             continue
 
     raise PermissionError("No writable runtime log directory is available.")
-#absolute paths
-# OSEMOSYS_ROOT = os.path.abspath(os.getcwd())
-# UPLOAD_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP')
-# WebAPP_PATH = Path(OSEMOSYS_ROOT, 'WebAPP')
-# DATA_STORAGE = Path(OSEMOSYS_ROOT, "WebAPP", 'DataStorage')
-# CLASS_FOLDER = Path(OSEMOSYS_ROOT, "WebAPP", 'Classes')
-# EXTRACT_FOLDER = Path(OSEMOSYS_ROOT, "")
-# SOLVERs_FOLDER = Path(OSEMOSYS_ROOT, 'WebAPP', 'SOLVERs')
 
 HEROKU_DEPLOY = 0
 AWS_SYNC = 0

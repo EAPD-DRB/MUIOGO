@@ -4,6 +4,8 @@ let activeGuard = null;
 let leaveRequestPending = false;
 
 async function runAllowed(guard, onAllowed) {
+    // A destination may install its own guard. Restore the original only when
+    // navigation fails or is refused before a replacement guard takes over.
     NavigationGuard.deactivate();
     try {
         const result = await onAllowed();
@@ -66,6 +68,8 @@ export class NavigationGuard {
             }
 
             if (choice === "Save") {
+                // update() owns persistence and any follow-up navigation. Restore
+                // the accepted URL while that asynchronous save is in progress.
                 activeGuard.update();
                 onBlocked();
             }

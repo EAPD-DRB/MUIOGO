@@ -1,3 +1,9 @@
+"""Rebuild source parameter tables after a case's structural entities change.
+
+Keep values whose entity IDs still exist. New entries receive SC_0 defaults
+or null scenario overrides; rows for removed entities are omitted.
+"""
+
 import os
 from Classes.Base import Config
 from Classes.Base.FileClass import File
@@ -757,6 +763,7 @@ class UpdateCase(Osemosys):
             raise IOError
     
     def updateCase(self):
+        """Regenerate every configured group against genDataUpdate."""
         try:
             for group, array in self.PARAMETERS.items():
                 if array:

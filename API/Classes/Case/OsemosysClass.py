@@ -1,3 +1,10 @@
+"""Read CLEWS case structure and reshape parameter rows into indexed lookups.
+
+Group names describe dimensions: R=region, Y=year, T=technology, C=commodity,
+E=emission, S=storage, M=mode, Ts=timeslice, and Cn=user-defined constraint.
+Source tables use stable entity IDs; the export layer maps them to model codes.
+"""
+
 from pathlib import Path
 import os
 import platform
@@ -19,9 +26,8 @@ class Osemosys():
 
         self.PARAMETERS = File.readParamFile(self.storagePath / 'Parameters.json')
         self.VARIABLES = File.readParamFile(self.storagePath / 'Variables.json')
-        # Stub files committed in #458 because upstream MUIO 5.6 reads them but
-        # forgot to commit them. The safe-read keeps us alive if a deploy is
-        # missing the stub for any reason (e.g. a user wiped DataStorage).
+        # Optional catalogs may be absent in older installations. Keep opening
+        # those cases possible; supplied definitions drive the result exports.
         self.DUALS = self._safe_read_param_file(self.storagePath / 'Duals.json')
         self.INDICATORS = self._safe_read_param_file(self.storagePath / 'Indicators.json')
         self.genData =  File.readFile(self.casePath / 'genData.json')
@@ -84,10 +90,8 @@ class Osemosys():
         self.PARAM = Helpers.build_param(self.PARAMETERS)
         self.VARS = Helpers.build_vars(self.VARIABLES)
         self.VAR_BY_NAME = Helpers.build_var_by_name(self.VARIABLES)
-        # Indicator and dual derived state. Empty until upstream commits real
-        # Indicators.json / Duals.json content; harmless no-ops in the
-        # meantime. Wired here so future indicator-pipeline consumers don't
-        # have to re-derive.
+        # Index result definitions by solver name once, including annual
+        # commodity prices from Duals.json and case-specific custom indicators.
         tech_map = self.getTechsMap()
         self.IND_BY_NAME = Helpers.merge_all_indicators(self.INDICATORS, self.customIndicators, tech_map)
         self.IND_GROUPED = Helpers.merge_all_indicators_grouped(self.INDICATORS, self.customIndicators, tech_map)
@@ -423,6 +427,7 @@ class Osemosys():
         return scBycs
 
     def getScOrder(self, caserunname):
+        """Return the stored scenario order; later active non-null values win."""
         #scIds = [ {'ScId': sc['ScenarioId'], 'Sc': sc['Scenario'], 'Active': sc['Active']} for sc in self.genData["osy-scenarios"]]
         scenarioBycase = self.getScenariosByCase()
         scIds = scenarioBycase[caserunname]

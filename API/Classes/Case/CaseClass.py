@@ -1,3 +1,10 @@
+"""Create source parameter tables for the entities declared in genData.json.
+
+Each default_<group> method writes one dimension group from Parameters.json.
+SC_0 receives parameter defaults; other scenarios start with null values so
+they inherit earlier active layers when a caserun is exported.
+"""
+
 from pathlib import Path
 from Classes.Base import Config
 from Classes.Base.FileClass import File

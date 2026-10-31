@@ -154,6 +154,8 @@ export default class RTSM {
             event.stopImmediatePropagation();
             let param = $("#osy-ryt").val();
             let rytData = $divGrid.jqxGrid('getboundrows');
+            // Persist stable row IDs and values only; grid labels and units are
+            // display metadata. Scenario nulls must survive to preserve inheritance.
             let data = JSON.parse(JSON.stringify(rytData, ['ScId', 'TechId', 'StgId', 'MoId', 'Value']));
 
             let saveData = {};

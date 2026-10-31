@@ -240,6 +240,8 @@ export class OGWorkspace {
     }
 
     static async prepare(country, isCurrent = () => true){
+        // Invalidate earlier preparations on every entry attempt. Check active()
+        // after awaits before publishing state for a workspace the user has left.
         const version = ++prepareVersion;
         preparing = true;
         prepared = null;

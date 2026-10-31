@@ -1,4 +1,4 @@
-"""OG-Core case and run endpoints (disk CRUD only).
+"""OG-Core case, parameter, run-lifecycle, results, and backup endpoints.
 
 All routes live under /ogc. They wrap OGCoreCase, which owns the on-disk case/run
 layout; nothing here executes OG-Core or imports the ogcore package. Model runs

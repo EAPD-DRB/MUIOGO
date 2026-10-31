@@ -1,3 +1,5 @@
+"""Thread wrapper that returns the target's value or re-raises its failure on join."""
+
 import sys
 from collections.abc import Callable, Iterable, Mapping
 from threading import Thread
@@ -21,6 +23,7 @@ class CustomThread(Thread):
                 self._exc_info = sys.exc_info()
 
     def join(self , *args , **kwargs):
+        # Restore the worker traceback so a caller sees the original failure site.
         Thread.join(self , *args , **kwargs)
         if self._exc_info is not None:
             raise self._exc_info[1].with_traceback(self._exc_info[2])

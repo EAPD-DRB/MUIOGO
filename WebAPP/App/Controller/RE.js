@@ -105,6 +105,8 @@ export default class RE {
             event.stopImmediatePropagation();
             let param = $( "#osy-ryt" ).val();
             let rtData = $divGrid.jqxGrid('getboundrows');
+            // Persist stable row IDs and values only; grid labels and units are
+            // display metadata. Scenario nulls must survive to preserve inheritance.
             let data = JSON.parse(JSON.stringify(rtData,['ScId'].concat(model.emiIds)));
             let saveData = {};
             $.each(data, function (id, obj) {

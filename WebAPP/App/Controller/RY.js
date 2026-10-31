@@ -111,6 +111,8 @@ export default class RY {
             let param = $("#osy-ryt").val();
             let ryData = $divGrid.jqxGrid('getboundrows');
 
+            // Persist stable row IDs and values only; grid labels and units are
+            // display metadata. Scenario nulls must survive to preserve inheritance.
             let daRYData = JSON.parse(JSON.stringify(ryData, ['ScId'].concat(model.years)))
 
             let saveData = {};

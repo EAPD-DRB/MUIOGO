@@ -1,3 +1,5 @@
+// Shared CLEWS HTTP/session helpers and browser upload wiring. Model-specific
+// parameter/run requests live in Osemosys.Class.js; OG requests use Ogc.Class.js.
 import { Message } from "./Message.Class.js";
 import { Html } from "./Html.Class.js";
 import { SyncS3 } from "./SyncS3.Class.js";
@@ -276,10 +278,10 @@ export class Base {
             forceChunking: true,
             parallelChunkUploads: false,
             uploadMultiple: false,
-            chunkSize: 500 * 1024 * 1024,  // 500MB chunkovi
+            chunkSize: 500 * 1024 * 1024,  // 500 MB per part
             retryChunks: true,
             retryChunksLimit: 5,
-            timeout: null,                // bez globalnog timeouta za velike fajlove
+            timeout: null,                // Large uploads may outlast an ordinary request timeout.
 
 
             acceptedFiles: "application/zip, .zip",
@@ -294,12 +296,6 @@ export class Base {
             dictFileTooBig: ` <i class="fa fa-caret-right text-danger"></i>Filers too big!`,
             dictRemoveFile: `Remove Case!`,
             dictInvalidFileType: "Not valid Osemosys ver 1.0 case!",
-            // accept: function(file, done) {
-            //   if (file.name == "justinbieber.jpg") {
-            //     done("Naha, you don't.");
-            //   }
-            //   else { done(); }
-            // },
             success: function (file, response) {
                 console.log('response ', response   )
                 const result = response.response && response.response[0];
@@ -321,44 +317,6 @@ export class Base {
                 } else if (result['status_code'] == 'error') {
                     Message.bigBoxDanger("Upload response", result['message'], null);
                 }
-                // $.each(file, function (key, value) {
-                //     if (response.response[key]['status_code'] == 'success') {
-
-                //         //let casename = value.name.slice(0, -4)
-                //         let casename = response.response[key]['casename'];
-                //         Html.apendModel(casename);
-                //         Message.bigBoxSuccess("Upload response", response.response[key]['message'], null);
-                //         value.previewElement.innerHTML = "";
-                //         $('#modalrestore').modal('toggle');
-                //         if (Base.AWS_SYNC == 1) {
-                //             SyncS3.deleteResultsPreSync(casename)
-                //                 .then(response => {
-                //                     SyncS3.uploadSync(casename);
-                //                 });
-                //         }
-
-                //     } else if (response.response[key]['status_code'] == 'warning') {
-                //         $('.dz-file-preview').removeClass("dz-success").addClass("dz-error")
-                //         //$(".dz-error-mark svg").css("background", "red"); 
-                //         //Message.bigBoxWarning("Upload response", response.response[key]['message'], null);
-                //         let casename = response.response[key]['casename'];
-                //         Html.apendModel(casename);
-                //         Message.bigBoxSuccess("Upload response", response.response[key]['message'], null);
-                //         Message.warningOsy(response.response[key]['message_warning'])
-                //         value.previewElement.innerHTML = "";
-                //         $('#modalrestore').modal('toggle');
-                //         if (Base.AWS_SYNC == 1) {
-                //             SyncS3.deleteResultsPreSync(casename)
-                //                 .then(response => {
-                //                     SyncS3.uploadSync(casename);
-                //                 });
-                //         }
-                //     } else if (response.response[key]['status_code'] == 'error') {
-                //         $('.dz-file-preview').removeClass("dz-success").addClass("dz-error")
-                //         //$(".dz-error-mark svg").css("background", "red"); 
-                //         Message.bigBoxDanger("Upload response", response.response[key]['message'], null);
-                //     }
-                // });
             },
             error: function (file, error) {
                 Message.bigBoxDanger("Upload response", file.name + " failed to upload! " + error + " Please remove from dropzone.", null);

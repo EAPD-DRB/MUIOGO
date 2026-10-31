@@ -1,3 +1,8 @@
+"""Cross-parameter input views and cell edits backed by source parameter JSON.
+
+Despite the route names, these views edit model inputs, not solved results.
+"""
+
 from flask import Blueprint, jsonify, request
 from Classes.Case.OsemosysClass import Osemosys
 from utils import validate_json_fields

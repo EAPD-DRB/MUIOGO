@@ -1,3 +1,9 @@
+"""Translate an Excel model template into MUIOGO structure and parameter JSON.
+
+Workbook entity names are mapped to case-local IDs before parameter rows are
+written. The ref<group> helpers describe each supported table's index fields.
+"""
+
 from pathlib import Path
 import pandas as pd
 import string, random, json, os.path, time
@@ -700,10 +706,8 @@ class ImportTemplate():
                         emis.append(self.defaultEmi(emi, desc, unit)[0])
 
             stgs = []
-            #ako nemamo storage ne treba nam ni ndefault ni
-            # if not stgsArray:
-            #     stgs.append(self.defaultStg('STG_0', first=True)[0])
-            # else:
+            # Storage is optional. An empty sheet leaves the storage set empty
+            # rather than inventing a default storage entity.
             if stgsArray:
                 for i, obj in enumerate(stgsArray):
                     stg = obj['STORAGE']

@@ -1,3 +1,5 @@
+"""HTTP wrappers for the optional legacy S3 case-synchronization workflow."""
+
 from flask import Blueprint, jsonify, request
 import os
 from pathlib import Path

@@ -1,3 +1,9 @@
+"""Legacy S3 transfer helpers used by the optional case synchronization routes.
+
+Bucket credentials and activation flags are supplied by Config; ordinary local
+case workflows do not require S3 synchronization.
+"""
+
 import boto3
 import os
 import glob

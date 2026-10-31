@@ -1,3 +1,5 @@
+// jqxGrid factories for CLEWS structure and parameter editors. The results table
+// has a separate Tabulator implementation in ResultGrid.Class.js.
 import { UNITS, TAGS, STORAGE_OPERATIONS, BALANCE_LEVELS } from './Const.Class.js';
 import { Message } from "./Message.Class.js";
 import { JqxSources } from "./JqxSources.Class.js";

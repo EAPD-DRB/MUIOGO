@@ -1,4 +1,6 @@
 
+// Convert solved viewer caches into labelled records consumed by the Results
+// aggregator. These caches are keyed by caserun, unlike input tables' scenarios.
 import { DataModel} from "./DataModel.Class.js"
 import { UNITDEFINITION, VAR_TECH_GROUPS, VAR_COMM_GROUPS, VAR_EMIS_GROUPS, VAR_STORAGE_GROUPS } from "./Const.Class.js";
 
@@ -491,8 +493,9 @@ export class DataModelResult{
                         let chunk = {};
                         chunk['Case'] = cs;
     
-                        //provjera da li u obj ima Comm, Tech, Stg, Emi... Redosljed je bitan za one varijable koje zavise vise od jednog seta, definicja 
-                        //unita ce da zavisi od toga
+                        // Select the entity combination before resolving units.
+                        // Multi-index results need both commodity and technology
+                        // metadata, so branch order affects the unit-rule inputs.
        
                         if(obj.MoId){
                             chunk['MoId'] = obj.MoId;

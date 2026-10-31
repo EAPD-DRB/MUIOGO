@@ -1,4 +1,7 @@
-#import ujson as json
+"""JSON persistence and the text-file publication helper used by case services.
+
+Only atomicWrite stages a replacement; the JSON writers write directly to disk.
+"""
 import json
 import os
 from contextlib import contextmanager
@@ -15,6 +18,8 @@ class File:
         Usage: with File.atomicWrite(path) as f: f.write(...) / f.writelines(...)
         """
         tmp_path = str(path) + '.tmp'
+        # The temporary name is shared by all writers to this path. Callers must
+        # serialize writes to one destination even though replacement is atomic.
         f = open(tmp_path, mode="w")
         try:
             yield f

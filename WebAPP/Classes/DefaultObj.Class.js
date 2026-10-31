@@ -1,8 +1,9 @@
+// New-case entity templates. Default IDs such as SC_0 are shared conventions
+// with the backend importer and source-table initialization code.
 export class DefaultObj{
     static getId(type) {
-        // Math.random should be unique because of its seeding algorithm.
-        // Convert it to base 36 (numbers + letters), and grab the first 9 characters
-        // after the decimal.
+        // Prefix five base-36 characters with the entity type. This is a compact
+        // local identifier; Math.random does not guarantee collision-free IDs.
         return type+'_' + Math.random().toString(36).substr(2, 5);
     }
     static defaultSe(first=false, seCount=0){

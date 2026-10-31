@@ -72,7 +72,9 @@ export class ResultAggregator {
             });
         });
 
-        // Create result cells containing the summed values for each row and column combination.
+        // Resolve each cell's requested summary (sum, average, count, etc.). Keep
+        // mergeable statistics so totals use source counts rather than averages
+        // of already-aggregated cell values.
         const cells = Array.from(aggregates.values()).map(cell => {
             const values = {};
             valueFields.forEach(valueField => {
@@ -389,6 +391,8 @@ export class ResultAggregator {
     }
 
     static createSummary() {
+        // countAll includes blanks, count excludes blanks, and numericCount is
+        // the denominator for numeric statistics. Their meanings differ.
         return { countAll: 0, count: 0, numericCount: 0, sum: 0, sumSquares: 0, min: null, max: null, first: null, last: null };
     }
 

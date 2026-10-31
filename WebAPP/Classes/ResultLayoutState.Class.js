@@ -1,3 +1,5 @@
+// Single source of layout/filter settings for the Results panel, grid, and chart.
+// The saved format is versioned; legacy Wijmo views are translated on read.
 import { ResultAggregator, RESULT_FILTER_CONDITION_LIMIT } from "./ResultAggregator.Class.js";
 
 const RESULT_LAYOUT_VERSION = 2;

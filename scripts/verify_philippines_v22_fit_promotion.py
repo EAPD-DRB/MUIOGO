@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Verify and document the result-free Philippines v22 live promotion."""
+"""Verify and document the result-free Philippines v22 live promotion.
+
+Historical workflow: this script writes evidence into both candidate and live
+cases. New releases use sealed_case_promotion.py so publication leaves sealed
+content unchanged.
+"""
 
 from __future__ import annotations
 

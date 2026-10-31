@@ -146,6 +146,8 @@ def run_writeback(args):
     if not any(y in years and y >= start_year for y in ratios):
         raise ValueError("feedback has no years in the target forecast horizon")
     active_order = clews_case.read_active_scenario_order(case_dir, caserun)
+    # Write into the last active layer so a later policy layer cannot silently
+    # override feedback. Base values must be the effective layered inputs too.
     scenario = clews_case.select_write_scenario(active_order, args.scenario)
     base_sad = clews_case.read_effective_sad(case_dir, caserun, country.demand_commodity)
     emissions = None

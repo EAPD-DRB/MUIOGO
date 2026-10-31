@@ -1,3 +1,9 @@
+"""Flask entry point serving the static app and CLEWS/OG-Core API blueprints.
+
+Importing configures logging; direct launch also reconciles persisted job state
+and installs shutdown handlers. Model execution belongs to services and workers.
+"""
+
 from pathlib import Path
 import atexit
 import logging

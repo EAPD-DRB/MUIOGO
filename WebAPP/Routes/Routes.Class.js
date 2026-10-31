@@ -1,3 +1,5 @@
+// Hash-route composition: load the page template, then initialize its controller.
+// NavigationGuard handles dirty inputs; OGWorkspace handles country-session exit.
 import { Osemosys } from "../../Classes/Osemosys.Class.js";
 import { Message } from "../../Classes/Message.Class.js";
 import { NavigationGuard } from "../../Classes/NavigationGuard.Class.js";
@@ -27,6 +29,8 @@ export class Routes {
 
     static getRoutes(model){
         let requestedModel = null;
+        // Every asynchronous view load carries this generation so a slow earlier
+        // response cannot replace the page selected by a later navigation.
         let viewVersion = 0;
 
         function beginView(){
@@ -284,6 +288,8 @@ export class Routes {
         //setup hasher
         hasher.init(); //start listening for history change 
         let acceptedHash = window.location.hash;
+        // URL changes precede async confirmation. acceptedHash remains the last
+        // admitted route, and restoration must not trigger a second navigation.
         let ignoreNextHashChange = false;
         let navigationPending = false;
         function routeFromHash(hash){

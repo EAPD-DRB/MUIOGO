@@ -81,6 +81,28 @@ Post updates when one of these events occurs:
 
 Small docs or typo-only PRs do not need a linked issue.
 
+## Comments and code legibility
+
+- Give modules with non-obvious responsibilities a short overview of their role
+  and the data they own. Document public operations' inputs, outputs, and side
+  effects when their names and signatures do not make these clear.
+- Explain why a rule exists: scenario precedence, null inheritance, units and
+  index order, compatibility requirements, cache validity, or concurrency.
+  Avoid comments that merely repeat the next statement.
+- Distinguish persisted entity IDs from display labels, source parameter files
+  from generated inputs, and per-run artifacts from shared viewer caches.
+- Keep comments next to the rule they explain. Update them with the code, and
+  remove obsolete commented-out implementations; Git preserves their history.
+- Use plain English and concrete examples for unfamiliar model conventions.
+  State a helper's limits accurately; atomic replacement, for example, does not
+  itself serialize concurrent writers.
+- For a comments-only change, check syntax and inspect the executable diff.
+  Run relevant existing regressions when shared modules are touched. Model
+  optimization is not needed to validate comment changes.
+
+See [the code reading map](docs/ARCHITECTURE.md#code-reading-map) for entry
+points and the shared CLEWS table conventions.
+
 ## Definition of done
 
 A task is done when:

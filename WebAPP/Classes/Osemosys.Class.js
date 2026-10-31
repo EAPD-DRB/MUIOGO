@@ -1,3 +1,5 @@
+// Browser adapter for the CLEWS Flask routes. A case is a model directory;
+// a caserun is an ordered scenario selection with its own solver artifacts.
 import { Base } from "./Base.Class.js";
 
 export class Osemosys {

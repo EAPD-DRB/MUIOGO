@@ -1,3 +1,9 @@
+"""Case backup, chunked archive upload, and Excel-template upload endpoints.
+
+Both upload shapes feed the shared CaseImporter after a complete ZIP exists;
+archive validation and case-version migration belong to that importer.
+"""
+
 import shutil
 from flask import Blueprint, request, jsonify, send_file
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -217,7 +223,8 @@ def handle_full_zip(file, filepath=None):
     lives in Classes/Case/CaseImporter.py so installers run the exact same code."""
     msg = []
 
-    # Ako je file objekat (upload iz browsera)
+    # An unchunked browser upload supplies a file object; an assembled upload
+    # supplies an already-saved archive name relative to DataStorage.
     if filepath is None:
         submitted_file = file.filename
         # A multipart filename is an archive label, never a path into a case.
@@ -241,47 +248,36 @@ def handle_full_zip(file, filepath=None):
 @upload_api.route('/uploadCase', methods=['POST'])
 def uploadCase():
     try:
-        # -------------------------------
-        # 1) Primanje Dropzone chunk meta
-        # -------------------------------
+        # Dropzone sends each part with a shared upload ID and a numeric index.
         dz_uuid = request.form.get("dzuuid")
         dz_chunk_index = request.form.get("dzchunkindex")
         dz_total_chunks = request.form.get("dztotalchunkcount")
         file = request.files.get("file")
 
-        # Ako nije chunked upload (chrome browser dev mode)
+        # A plain multipart upload can use the shared archive handler directly.
         if dz_uuid is None:
-            # ==========================
-            #     TVOJ ORIGINALNI KOD
-            # ==========================
             return handle_full_zip(file)
 
         _validate_upload_name(dz_uuid)
 
-        # Pretvaranje u int
+        # Convert form strings before counting parts or reconstructing their order.
         dz_chunk_index = int(dz_chunk_index)
         dz_total_chunks = int(dz_total_chunks)
 
-        # -------------------------------
-        # 2) Snimi chunk
-        # -------------------------------
+        # Keep separate uploads isolated while their parts arrive.
         chunk_dir = Config.validate_path(Config.DATA_STORAGE, Path("_chunks", dz_uuid))
         os.makedirs(chunk_dir, exist_ok=True)
 
         chunk_path = os.path.join(chunk_dir, f"chunk_{dz_chunk_index}")
         file.save(chunk_path)
 
-        # -------------------------------
-        # 3) Provjeri jesu li stigli svi
-        # -------------------------------
+        # A partial upload is acknowledged without attempting archive import.
         chunks_received = len(os.listdir(chunk_dir))
 
         if chunks_received < dz_total_chunks:
             return jsonify({"status": f"received {chunks_received}/{dz_total_chunks}"}), 200
 
-        # -------------------------------
-        # 4) Spajanje ZIP fajla
-        # -------------------------------
+        # Arrival order is irrelevant: assemble parts in their numeric order.
         final_zip_name = f"{dz_uuid}.zip"
         final_zip = Config.validate_path(Config.DATA_STORAGE, final_zip_name)
 
@@ -291,7 +287,7 @@ def uploadCase():
                 with open(part_path, "rb") as part:
                     merged.write(part.read())
 
-        # Očisti chunk folder
+        # Remove part files once the complete archive is on disk.
         shutil.rmtree(chunk_dir)
 
         # Now remove parent folder if it is empty
@@ -299,10 +295,6 @@ def uploadCase():
         if os.path.exists(parent) and not os.listdir(parent):
             os.rmdir(parent)
 
-        # -------------------------------
-        # 5) Pokreni TVOJ originalni ZIP handler
-        # -------------------------------
-        #return handle_full_zip(open(final_zip, "rb"), final_zip)
         # Pass the name relative to DataStorage: handle_full_zip validates it again,
         # and validate_path refuses absolute paths.
         return handle_full_zip(None, final_zip_name)
