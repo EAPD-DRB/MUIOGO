@@ -2174,7 +2174,7 @@ class DataFile(Osemosys):
                     )
 
                 self.preprocessData(self.dataFile, self.dataFile_processed)
-                print("PREPROCESSING DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                logger.info("PREPROCESSING DONE! --- %.2f seconds --- %s", time.time() - start_time, caserunname)
                 txtOut = txtOut + ("Preprocessing time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
                 #return output to variable preprocessed data file
@@ -2198,7 +2198,7 @@ class DataFile(Osemosys):
                 #original data file without preprocessing
                 #glpk_out = subprocess.run('glpsol --check -m ' + modelfile_original +' -d ' + datafile +' --wlp ' + lpfile, cwd=glpfolder,  capture_output=True, text=True, shell=True)
                 
-                print("CREATINON OF LP FILE DONE (%s)! --- %s seconds --- %s" % ('reused' if lp_reused else 'rebuilt', time.time() - start_time, caserunname))
+                logger.info("CREATION OF LP FILE DONE (%s)! --- %.2f seconds --- %s", 'reused' if lp_reused else 'rebuilt', time.time() - start_time, caserunname)
                 txtOut = txtOut + ("Creation of LP file time {:0.2f}s ({});{}".format(time.time() - start_time, 'reused' if lp_reused else 'rebuilt', '\n'))
 
                 cbc_out = subprocess.run(
@@ -2208,7 +2208,7 @@ class DataFile(Osemosys):
                     text=True,
                 )
                 # -printing all prints all constraints to result.txt
-                print("SOLUTION DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                logger.info("SOLUTION DONE! --- %.2f seconds --- %s", time.time() - start_time, caserunname)
                 txtOut = txtOut + ("Solution time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
                 ####output to lg file .log i .txt with errors
                 # out = subprocess.run('cbc ' + lpfile +' solve -solu '  + resultfile +'>'+ logfile, cwd=cbcfolder,  capture_output=True, text=True, shell=True)
@@ -2257,10 +2257,10 @@ class DataFile(Osemosys):
                 # runs postProcess() sequentially afterwards.
                 if statusFlag == "success" and postprocess:
                     self.generateCSVfromCBC(self.dataFile, self.resFile, self.resPath)
-                    print("CSV DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                    logger.info("CSV DONE! --- %.2f seconds --- %s", time.time() - start_time, caserunname)
                     txtOut = txtOut + ("csv files extraction time {:0.2f} s;{}".format(time.time() - start_time, '\n'))
                     self.generateResultsViewer(caserunname)
-                    print("PIVOT TABLE DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                    logger.info("PIVOT TABLE DONE! --- %.2f seconds --- %s", time.time() - start_time, caserunname)
                     txtOut = txtOut + ("Pivot data preparation time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
                     # OG-CLEWS link post-run hook: opt-in per case (oglink/hook.json),
@@ -2268,10 +2268,10 @@ class DataFile(Osemosys):
                     try:
                         from Classes.OGLink.PostRunHook import PostRunHook
                         oglinkInfo = PostRunHook.after_run(self.case, caserunname)
-                    except Exception as ex:
-                        print("OGLink hook error (CLEWs run unaffected):", ex)
+                    except Exception:
+                        logger.warning("OGLink hook error for %s/%s (CLEWs run unaffected)", self.case, caserunname, exc_info=True)
 
-                print("MESSAGES DONE! --- %s seconds --- %s" % (time.time() - start_time, caserunname))
+                logger.info("MESSAGES DONE! --- %.2f seconds --- %s", time.time() - start_time, caserunname)
                 txtOut = txtOut + ("Message preparation time {:0.2f}s;{}".format(time.time() - start_time, '\n'))
 
                 # MUIOGO: a result that could not be produced (e.g. commodity prices) is
@@ -2296,9 +2296,10 @@ class DataFile(Osemosys):
             return response
             # urllib.request.urlretrieve(self.dataFile, dataFile)
 
-        except Exception as ex:
-            print(ex) # do whatever you want for debugging.
-            raise    # re-raise exception.
+        except Exception:
+            # Batch runs turn this into a per-scenario error, so log it here too
+            logger.exception("Run %s of model %s failed", caserun, self.case)
+            raise
         except(IOError, IndexError):
             raise IndexError
         except OSError:
